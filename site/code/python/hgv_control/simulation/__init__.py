@@ -1,2 +1,0 @@
-"""Simulation entry points."""
-

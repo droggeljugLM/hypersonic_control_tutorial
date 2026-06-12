@@ -1,5 +1,0 @@
-case_id,seed,baseline,candidate,baseline_pass,candidate_pass,delta_h_rms,delta_v_rms,delta_q_max,delta_q_violation_integral,safety_improved,candidate_tracks_within_limits
-0,1,baseline,lqr,True,True,-173.42759854411403,-257.53102480228836,-19747.33075076202,0.0,False,True
-1,2,baseline,lqr,False,True,-444.3347061755935,-248.49692932082831,-30826.31310967727,-81125.01520416298,True,True
-2,3,baseline,lqr,False,True,-445.1711118500202,-244.1189187059981,-26961.994176337575,-1436.7008931110101,True,True
-3,4,baseline,lqr,False,True,-686.519877165685,-223.1119617296955,-31860.355976335006,-20378.79174444162,True,True
