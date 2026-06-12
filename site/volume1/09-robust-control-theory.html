@@ -187,6 +187,25 @@
       font-weight: 700;
     }
     .book-bottom-nav a:hover { background: rgba(255,255,255,0.98); }
+    .book-return-portal {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 0.8rem;
+    }
+    .book-return-portal a {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.68rem 1rem;
+      border-radius: 999px;
+      border: 1px solid var(--accent-soft);
+      background: linear-gradient(180deg, rgba(255,255,255,0.96), rgba(255,255,255,0.86));
+      color: var(--accent-deep);
+      text-decoration: none;
+      font-weight: 700;
+      box-shadow: 0 8px 18px rgba(31, 41, 55, 0.05);
+    }
+    .book-return-portal a:hover { background: var(--accent-soft); }
     .book-volume-intro {
       margin: 0 0 1.25rem;
       padding: 1.2rem 1.25rem 1.1rem;
@@ -631,6 +650,7 @@ Mach、高度或动压变化时，如何与线性化模型和对象语义对接�
         <a href="./index.html">卷首页</a>
         <a href="./10-adaptive-control-theory.html">下一章：第10章 自适应控制理论</a>
       </nav>
+      <div class="book-return-portal"><a href="../index.html">返回选择卷</a></div>
     </main>
   </div>
 </body>
