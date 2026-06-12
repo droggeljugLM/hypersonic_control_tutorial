@@ -1,0 +1,1041 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>第1章 高超声速飞行器控制问题导论</title>
+  <style>
+    :root {
+      --paper: #f7f3eb;
+      --ink: #1f2937;
+      --muted: #5b6472;
+      --line: color-mix(in srgb, #e7eef7 68%, #cbd5e1 32%);
+      --accent: #335c81;
+      --accent-soft: #e7eef7;
+      --accent-deep: #1e3d57;
+      color-scheme: light;
+    }
+    html {
+      -webkit-text-size-adjust: 100%;
+      background:
+        radial-gradient(circle at top left, #e7eef7 0, rgba(255,255,255,0) 32%),
+        linear-gradient(180deg, #fbfaf6 0%, var(--paper) 18%, #f7f1e6 100%);
+    }
+    body {
+      margin: 0;
+      font-family: "Source Han Serif SC", "Songti SC", "Noto Serif CJK SC", "Microsoft YaHei", serif;
+      color: var(--ink);
+      line-height: 1.78;
+      letter-spacing: 0;
+    }
+    a { color: var(--accent-deep); }
+    .book-app {
+      display: grid;
+      grid-template-columns: 280px minmax(0, 1fr);
+      min-height: 100vh;
+    }
+    .book-sidebar {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow: auto;
+      padding: 1.2rem 1rem 1.2rem 1.15rem;
+      border-right: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(255,255,255,0.86), rgba(255,255,255,0.72));
+      backdrop-filter: blur(10px);
+    }
+    .sidebar-shell { position: sticky; top: 0; display: flex; flex-direction: column; gap: 1rem; }
+    .sidebar-brand {
+      padding: 0.95rem 0.95rem 1rem;
+      border-radius: 18px;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.95), rgba(255,255,255,0.84)),
+        linear-gradient(135deg, var(--accent-soft), rgba(255,255,255,0));
+      border: 1px solid var(--line);
+      box-shadow: 0 12px 28px rgba(31, 41, 55, 0.06);
+    }
+    .sidebar-brand .kicker { margin: 0; color: var(--accent); font-size: 0.82rem; font-weight: 700; }
+    .sidebar-brand h2 { margin: 0.45rem 0 0.25rem; font-size: 1.08rem; line-height: 1.3; color: var(--ink); }
+    .sidebar-brand p { margin: 0.35rem 0 0; color: var(--muted); font-size: 0.9rem; }
+    .sidebar-links { display: grid; gap: 0.45rem; }
+    .sidebar-link {
+      display: grid;
+      grid-template-columns: 2.2rem minmax(0, 1fr);
+      gap: 0.6rem;
+      align-items: start;
+      padding: 0.7rem 0.75rem;
+      border-radius: 14px;
+      text-decoration: none;
+      background: rgba(255,255,255,0.72);
+      border: 1px solid rgba(31,41,55,0.07);
+      color: var(--ink);
+    }
+    .sidebar-link:hover { background: rgba(255,255,255,0.95); border-color: var(--line); }
+    .sidebar-link.active {
+      background: linear-gradient(135deg, rgba(255,255,255,0.98), rgba(255,255,255,0.9));
+      border-color: var(--accent-soft);
+      box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent-soft) 68%, #ffffff 32%);
+    }
+    .sidebar-index {
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      min-width: 2rem;
+      height: 2rem;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent-deep);
+      font-size: 0.78rem;
+      font-weight: 800;
+    }
+    .sidebar-title { font-size: 0.94rem; line-height: 1.35; }
+    .book-main { min-width: 0; padding: 1.25rem 1.45rem 1.8rem; }
+    .book-page-header {
+      padding: 0.85rem 0 1rem;
+      margin-bottom: 1rem;
+      border-bottom: 1px solid var(--line);
+    }
+    .page-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.28rem 0.72rem;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.82);
+      border: 1px solid var(--line);
+      color: var(--accent-deep);
+      font-size: 0.8rem;
+      font-weight: 700;
+    }
+    .book-page-header h1 {
+      margin: 0.7rem 0 0;
+      font-size: 1.85rem;
+      line-height: 1.22;
+      color: var(--accent-deep);
+      border: 0;
+      padding: 0;
+    }
+    .book-page-header p { margin: 0.45rem 0 0; color: var(--muted); max-width: 62rem; }
+    .book-article { max-width: 900px; margin: 0; padding: 0 0 1.2rem; }
+    .book-article h1, .book-article h2, .book-article h3, .book-article h4, .book-article h5, .book-article h6 {
+      line-height: 1.28;
+      margin-top: 1.45em;
+      margin-bottom: 0.55em;
+      color: var(--accent-deep);
+    }
+    .book-article h1 { font-size: 2rem; border-bottom: 2px solid var(--line); padding-bottom: 0.42rem; }
+    .book-article h1:first-of-type { margin-top: 0; }
+    .book-article h2 { font-size: 1.42rem; }
+    .book-article h3 { font-size: 1.12rem; }
+    .book-article p, .book-article li, .book-article dd, .book-article td, .book-article th { text-align: justify; text-justify: inter-ideograph; }
+    .book-article p { margin: 0.85rem 0; }
+    .book-article code, .book-article pre { font-family: "Cascadia Mono", "Source Code Pro", Consolas, monospace; font-size: 0.94em; }
+    .book-article code {
+      padding: 0.02rem 0.24rem;
+      background: color-mix(in srgb, var(--accent-soft) 34%, #ffffff 66%);
+      border: 0;
+      border-bottom: 1px solid color-mix(in srgb, var(--accent-soft) 74%, #d1d5db 26%);
+      border-radius: 4px;
+      color: #253244;
+      box-decoration-break: clone;
+      -webkit-box-decoration-break: clone;
+    }
+    .book-article pre {
+      padding: 1rem 1.1rem;
+      overflow: auto;
+      background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,253,248,0.98));
+      border: 1px solid color-mix(in srgb, var(--accent-soft) 54%, #d1d5db 46%);
+      border-left: 5px solid var(--accent);
+      border-radius: 14px;
+      box-shadow: 0 8px 22px rgba(31, 41, 55, 0.05);
+    }
+    .book-article pre code { padding: 0; border: 0; background: transparent; color: inherit; }
+    .book-article table {
+      border-collapse: collapse;
+      width: 100%;
+      margin: 1rem 0 1.25rem;
+      background: rgba(255,255,255,0.82);
+      overflow: hidden;
+      border-radius: 12px;
+    }
+    .book-article th, .book-article td { border: 1px solid var(--line); padding: 0.5rem 0.7rem; vertical-align: top; }
+    .book-article th { background: color-mix(in srgb, var(--accent-soft) 42%, #ffffff 58%); }
+    .book-article blockquote {
+      margin: 1rem 0;
+      padding: 0.25rem 0 0.25rem 1rem;
+      border-left: 4px solid var(--accent);
+      color: #374151;
+      background: linear-gradient(90deg, rgba(255,255,255,0.72), rgba(255,255,255,0.48));
+      border-radius: 0 12px 12px 0;
+    }
+    .book-bottom-nav {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-top: 2.2rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--line);
+    }
+    .book-bottom-nav a {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.6rem 0.9rem;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.84);
+      text-decoration: none;
+      font-weight: 700;
+    }
+    .book-bottom-nav span {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.6rem 0.9rem;
+      border-radius: 999px;
+      border: 1px solid rgba(31,41,55,0.08);
+      background: rgba(255,255,255,0.54);
+      color: rgba(31,41,55,0.42);
+      font-weight: 700;
+    }
+    .book-bottom-nav a:hover { background: rgba(255,255,255,0.98); }
+    .book-volume-intro {
+      margin: 0 0 1.25rem;
+      padding: 1.2rem 1.25rem 1.1rem;
+      border-radius: 18px;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.96), rgba(255,255,255,0.78)),
+        linear-gradient(135deg, var(--accent-soft), rgba(255,255,255,0));
+      border: 1px solid var(--line);
+      box-shadow: 0 14px 34px rgba(31, 41, 55, 0.06);
+    }
+    .volume-intro-kicker {
+      margin: 0;
+      color: var(--accent);
+      font-size: 0.84rem;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    .book-volume-intro h2 {
+      margin: 0.55rem 0 0.55rem;
+      font-size: 1.28rem;
+      line-height: 1.35;
+      color: var(--accent-deep);
+    }
+    .volume-intro-summary {
+      margin: 0;
+      color: var(--muted);
+      max-width: 68rem;
+    }
+    .volume-intro-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.8rem;
+      margin-top: 1rem;
+    }
+    .volume-intro-box {
+      padding: 0.85rem 0.9rem;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.72);
+      border: 1px solid rgba(31,41,55,0.08);
+    }
+    .volume-intro-box span {
+      display: block;
+      color: var(--accent);
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+    }
+    .volume-intro-box strong {
+      display: block;
+      margin-top: 0.35rem;
+      color: var(--ink);
+      font-size: 0.95rem;
+      line-height: 1.45;
+    }
+    .volume-intro-note {
+      margin-top: 0.9rem;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+    @media (max-width: 1180px) {
+      .book-app { grid-template-columns: 1fr; }
+      .book-sidebar {
+        position: relative;
+        height: auto;
+        border-right: 0;
+        border-bottom: 1px solid var(--line);
+      }
+      .sidebar-shell { position: static; }
+    }
+    @media (max-width: 900px) {
+      .book-main { padding: 1rem 1rem 1.5rem; }
+      .book-bottom-nav { flex-direction: column; }
+      .volume-intro-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="book-app">
+    <aside class="book-sidebar">
+      <div class="sidebar-shell">
+        <div class="sidebar-brand">
+          <p class="kicker">高超声速飞行器控制教程</p>
+          <h2>第一卷 数学基础与控制理论基础</h2>
+          <p>控制理论地基</p>
+        </div>
+        <nav class="sidebar-links" aria-label="本卷目录">
+          <a class="sidebar-link" href="./index.html"><span class="sidebar-index">0</span><span class="sidebar-title">卷首页</span></a>
+<a class="sidebar-link active" href="./01-hypersonic-control-problem-intro.html"><span class="sidebar-index">01</span><span class="sidebar-title">第1章 高超声速飞行器控制问题导论</span></a>
+<a class="sidebar-link" href="./02-dynamical-systems-state-space.html"><span class="sidebar-index">02</span><span class="sidebar-title">第2章 动力系统与状态空间方法</span></a>
+<a class="sidebar-link" href="./03-linear-systems-theory.html"><span class="sidebar-index">03</span><span class="sidebar-title">第3章 线性系统理论</span></a>
+<a class="sidebar-link" href="./04-nonlinear-systems-theory.html"><span class="sidebar-index">04</span><span class="sidebar-title">第4章 非线性系统理论</span></a>
+<a class="sidebar-link" href="./05-lyapunov-stability-theory.html"><span class="sidebar-index">05</span><span class="sidebar-title">第5章 Lyapunov 稳定性理论</span></a>
+<a class="sidebar-link" href="./06-input-output-small-gain.html"><span class="sidebar-index">06</span><span class="sidebar-title">第6章 输入输出稳定性与小增益理论</span></a>
+<a class="sidebar-link" href="./07-singular-perturbation-multitime-scale.html"><span class="sidebar-index">07</span><span class="sidebar-title">第7章 奇异摄动与多时间尺度系统</span></a>
+<a class="sidebar-link" href="./08-optimal-control-theory.html"><span class="sidebar-index">08</span><span class="sidebar-title">第8章 最优控制理论</span></a>
+<a class="sidebar-link" href="./09-robust-control-theory.html"><span class="sidebar-index">09</span><span class="sidebar-title">第9章 鲁棒控制理论</span></a>
+<a class="sidebar-link" href="./10-adaptive-control-theory.html"><span class="sidebar-index">10</span><span class="sidebar-title">第10章 自适应控制理论</span></a>
+<a class="sidebar-link" href="./11-stochastic-filtering-estimation.html"><span class="sidebar-index">11</span><span class="sidebar-title">第11章 随机系统、滤波与状态估计</span></a>
+<a class="sidebar-link" href="./12-constrained-safety-control-foundations.html"><span class="sidebar-index">12</span><span class="sidebar-title">第12章 约束系统与安全控制基础</span></a>
+<a class="sidebar-link" href="./13-numerical-convex-optimization.html"><span class="sidebar-index">13</span><span class="sidebar-title">第13章 数值优化与凸优化基础</span></a>
+<a class="sidebar-link" href="./13-hybrid-sampled-control.html"><span class="sidebar-index">14</span><span class="sidebar-title">混杂系统与采样控制专题</span></a>
+        </nav>
+      </div>
+    </aside>
+    <main class="book-main">
+      <header class="book-page-header">
+        <div class="page-eyebrow">第1册·章节页01</div>
+        <h1 id="volume1--01-hypersonic-control-problem-intro">第1章 高超声速飞行器控制问题导论</h1>
+        <p>本页是章节正文页。左侧目录用于回到本卷其他章节，底部导航用于前后章跳转。</p>
+      </header>
+      <article class="book-article">
+        <h2 id="为什么先讲控制问题">1.1 为什么先讲控制问题</h2>
+<p>本教程的第一章不从某个具体控制律开始，而先回答这样一个总问题：高超声速飞行器控制到底是一类什么控制问题？</p>
+<p>如果不先回答这个问题，后续很容易变成算法罗列：PID 一章、LQR
+一章、滑模一章、反步一章、神经网络一章。参考书级教程必须把对象、理论、方法、约束和验证统一起来。</p>
+<p>高超声速飞行器控制可以概括为：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>x</mi><mo accent="true">̇</mo></mover><mo>=</mo><mi>f</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>u</mi><mo>,</mo><mi>d</mi><mo>,</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo>,</mo><mspace width="2.0em"></mspace><mi>y</mi><mo>=</mo><mi>h</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>u</mi><mo>,</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo>,</mo><mspace width="2.0em"></mspace><mi>c</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>u</mi><mo>,</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo>≤</mo><mn>0</mn><mi>.</mi></mrow><annotation encoding="application/x-tex">
+\dot{x}=f(x,u,d,t),\qquad y=h(x,u,t),\qquad c(x,u,t)\le 0.
+</annotation></semantics></math></p>
+<p>这里先把控制问题的最小接口固定下来。 其中
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>x</mi><annotation encoding="application/x-tex">x</annotation></semantics></math>
+是状态，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>u</mi><annotation encoding="application/x-tex">u</annotation></semantics></math>
+是控制输入，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>d</mi><annotation encoding="application/x-tex">d</annotation></semantics></math>
+是扰动和不确定性，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>y</mi><annotation encoding="application/x-tex">y</annotation></semantics></math>
+是输出，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>c</mi><annotation encoding="application/x-tex">c</annotation></semantics></math>
+是路径、输入或终端约束，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mo stretchy="false" form="prefix">(</mo><mi>⋅</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">f(\cdot)</annotation></semantics></math>
+是系统动力学映射，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>t</mi><annotation encoding="application/x-tex">t</annotation></semantics></math>
+是时间。后续章节统一沿用这一组最小符号。</p>
+<h2 id="什么是高超声速飞行器控制">1.2 什么是高超声速飞行器控制</h2>
+<p>高超声速飞行通常指 Mach 数大于 5
+的飞行状态。控制问题的困难不只是速度高，而是速度高带来一系列耦合效应：</p>
+<ul>
+<li>气动系数随 Mach、高度、攻角和舵偏剧烈变化；</li>
+<li>动压、热流、过载和结构约束变得突出；</li>
+<li>气动、推进、结构和热环境耦合；</li>
+<li>执行机构带宽、幅值和速率受限；</li>
+<li>传感器和导航估计误差会被高速放大；</li>
+<li>真实飞行试验少，仿真验证必须更严谨。</li>
+</ul>
+<p>因此，高超声速飞行器控制不是常规飞行控制的简单放大，而是受约束、不确定、强非线性、多时间尺度系统的闭环控制问题。</p>
+<h2 id="飞行器类型和任务段">1.3 飞行器类型和任务段</h2>
+<p>不同高超声速对象有不同控制难点。</p>
+<table>
+<thead>
+<tr>
+<th>对象</th>
+<th>典型控制难点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>高超声速巡航飞行器</td>
+<td>速度高度保持、推力-姿态耦合、动压和进气道约束</td>
+</tr>
+<tr>
+<td>吸气式高超声速飞行器</td>
+<td>气动推进一体化、进气道敏感、燃烧和推力动态</td>
+</tr>
+<tr>
+<td>助推滑翔飞行器</td>
+<td>能量管理、大范围机动、滑翔走廊和终端约束</td>
+</tr>
+<tr>
+<td>再入飞行器</td>
+<td>热流、过载、再入走廊、横程控制和终端区域管理</td>
+</tr>
+<tr>
+<td>空天飞行器</td>
+<td>跨大气层、多模态动力学、推进模式切换</td>
+</tr>
+<tr>
+<td>终端突防飞行器</td>
+<td>快速机动、三维制导、姿态/过载/终端角约束</td>
+</tr>
+</tbody>
+</table>
+<p>这也是参考书要求不能只围绕纵向速度高度控制展开的原因。纵向模型是入门模型，但不能代表全部高超声速控制。</p>
+<h2 id="控制科学视角">1.4 控制科学视角</h2>
+<p>控制科学关心的是把任务转化为闭环问题：</p>
+<p>物理对象要先被抽象成动态系统，任务要求要被写成参考轨迹、终端条件和代价函数，飞行安全要被表达为状态约束、输入约束和路径约束，环境变化要进入不确定性和扰动模型，工程实现还必须显式考虑采样、延迟、执行机构、传感器和计算资源。</p>
+<p>高超声速控制不是只问“用哪个算法”，而是先问：</p>
+<p>状态是什么，输入是什么，输出是什么，约束是什么，哪些状态可测，哪些参数未知，闭环要证明什么，以及仿真要验证什么，这些问题必须先被回答清楚。</p>
+<h2 id="制导控制估计优化和验证">1.5 制导、控制、估计、优化和验证</h2>
+<p>完整系统至少包含五类问题。</p>
+<h3 id="制导">制导</h3>
+<p>制导决定飞行器应该往哪里飞：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>r</mi><mrow><mi mathvariant="normal">L</mi><mi mathvariant="normal">O</mi><mi mathvariant="normal">S</mi></mrow></msub><mo>=</mo><msub><mi>r</mi><mi>T</mi></msub><mo>−</mo><mi>r</mi><mo>,</mo><mspace width="2.0em"></mspace><msub><mover><mi>λ</mi><mo accent="true">̇</mo></mover><mrow><mi mathvariant="normal">L</mi><mi mathvariant="normal">O</mi><mi mathvariant="normal">S</mi></mrow></msub><mo>,</mo><mspace width="2.0em"></mspace><msub><mi>γ</mi><mi>c</mi></msub><mo>,</mo><mspace width="2.0em"></mspace><msub><mi>χ</mi><mi>c</mi></msub><mo>,</mo><mspace width="2.0em"></mspace><msub><mi>a</mi><mi>c</mi></msub><mi>.</mi></mrow><annotation encoding="application/x-tex">
+r_{\mathrm{LOS}} = r_T - r,\qquad \dot{\lambda}_{\mathrm{LOS}},\qquad \gamma_c,\qquad \chi_c,\qquad a_c.
+</annotation></semantics></math></p>
+<p>这组量把制导接口分成几何、几何变化率、方向命令和过载命令四层。
+其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>r</mi><mi>T</mi></msub><annotation encoding="application/x-tex">r_T</annotation></semantics></math>
+是目标位置或目标点，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>r</mi><annotation encoding="application/x-tex">r</annotation></semantics></math>
+是飞行器当前位置，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>r</mi><mrow><mi mathvariant="normal">L</mi><mi mathvariant="normal">O</mi><mi mathvariant="normal">S</mi></mrow></msub><annotation encoding="application/x-tex">r_{\mathrm{LOS}}</annotation></semantics></math>
+是视线相对位置向量，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mover><mi>λ</mi><mo accent="true">̇</mo></mover><mrow><mi mathvariant="normal">L</mi><mi mathvariant="normal">O</mi><mi mathvariant="normal">S</mi></mrow></msub><annotation encoding="application/x-tex">\dot{\lambda}_{\mathrm{LOS}}</annotation></semantics></math>
+是视线角速度，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>γ</mi><mi>c</mi></msub><annotation encoding="application/x-tex">\gamma_c</annotation></semantics></math>
+是期望航迹角，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>χ</mi><mi>c</mi></msub><annotation encoding="application/x-tex">\chi_c</annotation></semantics></math>
+是期望航向角，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>a</mi><mi>c</mi></msub><annotation encoding="application/x-tex">a_c</annotation></semantics></math>
+是期望法向或横向过载命令。 这里的
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>r</mi><mrow><mi mathvariant="normal">L</mi><mi mathvariant="normal">O</mi><mi mathvariant="normal">S</mi></mrow></msub><annotation encoding="application/x-tex">r_{\mathrm{LOS}}</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mover><mi>λ</mi><mo accent="true">̇</mo></mover><mrow><mi mathvariant="normal">L</mi><mi mathvariant="normal">O</mi><mi mathvariant="normal">S</mi></mrow></msub><annotation encoding="application/x-tex">\dot{\lambda}_{\mathrm{LOS}}</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>γ</mi><mi>c</mi></msub><annotation encoding="application/x-tex">\gamma_c</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>χ</mi><mi>c</mi></msub><annotation encoding="application/x-tex">\chi_c</annotation></semantics></math>
+和
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>a</mi><mi>c</mi></msub><annotation encoding="application/x-tex">a_c</annotation></semantics></math>
+分别表示制导几何、几何变化率、方向命令和加速度型命令。
+这五个量可以分成三层：<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>r</mi><mi>T</mi></msub><mo>−</mo><mi>r</mi></mrow><annotation encoding="application/x-tex">r_T-r</annotation></semantics></math>
+是相对几何量，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>γ</mi><mi>c</mi></msub><annotation encoding="application/x-tex">\gamma_c</annotation></semantics></math>
+和
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>χ</mi><mi>c</mi></msub><annotation encoding="application/x-tex">\chi_c</annotation></semantics></math>
+是方向或轨迹命令，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>a</mi><mi>c</mi></msub><annotation encoding="application/x-tex">a_c</annotation></semantics></math>
+是更接近控制层的加速度型命令。这样的分层便于后续把制导命令接到姿态和控制分配上。</p>
+<p>制导关注终端误差、路径约束、到达时间、落角和能量，因此它为后续控制器提供的是目标结构，而不是直接的执行机构命令。</p>
+<h3 id="控制">控制</h3>
+<p>控制决定如何让飞行器实现制导或姿态命令：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>u</mi><mo>=</mo><mi>π</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>r</mi><mo>,</mo><mover><mi>x</mi><mo accent="true">̂</mo></mover><mo stretchy="false" form="postfix">)</mo><mi>.</mi></mrow><annotation encoding="application/x-tex">
+u=\pi(x,r,\hat{x}).
+</annotation></semantics></math></p>
+<p>这条关系把参考、估计和真实状态分开，说明控制律输出的是可执行输入。
+其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>u</mi><annotation encoding="application/x-tex">u</annotation></semantics></math>
+是控制输入，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>π</mi><mo stretchy="false" form="prefix">(</mo><mi>⋅</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\pi(\cdot)</annotation></semantics></math>
+是控制律或控制映射，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>x</mi><annotation encoding="application/x-tex">x</annotation></semantics></math>
+是当前状态，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>r</mi><annotation encoding="application/x-tex">r</annotation></semantics></math>
+是参考量，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mover><mi>x</mi><mo accent="true">̂</mo></mover><annotation encoding="application/x-tex">\hat{x}</annotation></semantics></math>
+是状态估计。把三者分开，是为了避免把“参考值”“测量值”和“估计值”混成一个输入对象。</p>
+<p>控制关注稳定性、跟踪误差、鲁棒性、约束和执行机构可实现性，它的任务是把外部命令转化为真实可执行的控制输入。</p>
+<h3 id="估计">估计</h3>
+<p>估计负责从测量中恢复状态和参数：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mover><mi>x</mi><mo accent="true">̂</mo></mover><mrow><mi>k</mi><mo stretchy="false" form="prefix">|</mo><mi>k</mi></mrow></msub><mo>=</mo><mi>F</mi><mo stretchy="false" form="prefix">(</mo><msub><mover><mi>x</mi><mo accent="true">̂</mo></mover><mrow><mi>k</mi><mo stretchy="false" form="prefix">|</mo><mi>k</mi><mo>−</mo><mn>1</mn></mrow></msub><mo>,</mo><msub><mi>u</mi><mi>k</mi></msub><mo>,</mo><msub><mi>y</mi><mi>k</mi></msub><mo stretchy="false" form="postfix">)</mo><mi>.</mi></mrow><annotation encoding="application/x-tex">
+\hat{x}_{k|k}=F(\hat{x}_{k|k-1},u_k,y_k).
+</annotation></semantics></math></p>
+<p>这条更新关系说明测量、预测和输入共同决定状态估计。
+其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mover><mi>x</mi><mo accent="true">̂</mo></mover><mrow><mi>k</mi><mo stretchy="false" form="prefix">|</mo><mi>k</mi></mrow></msub><annotation encoding="application/x-tex">\hat{x}_{k|k}</annotation></semantics></math>
+表示时刻
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>k</mi><annotation encoding="application/x-tex">k</annotation></semantics></math>
+经测量更新后的状态估计，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mover><mi>x</mi><mo accent="true">̂</mo></mover><mrow><mi>k</mi><mo stretchy="false" form="prefix">|</mo><mi>k</mi><mo>−</mo><mn>1</mn></mrow></msub><annotation encoding="application/x-tex">\hat{x}_{k|k-1}</annotation></semantics></math>
+表示预测得到的先验状态估计，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>y</mi><mi>k</mi></msub><annotation encoding="application/x-tex">y_k</annotation></semantics></math>
+是时刻
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>k</mi><annotation encoding="application/x-tex">k</annotation></semantics></math>
+的测量输出，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>u</mi><mi>k</mi></msub><annotation encoding="application/x-tex">u_k</annotation></semantics></math>
+是时刻
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>k</mi><annotation encoding="application/x-tex">k</annotation></semantics></math>
+的控制输入，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>F</mi><mo stretchy="false" form="prefix">(</mo><mi>⋅</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">F(\cdot)</annotation></semantics></math>
+是估计更新映射。下标
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>k</mi><mo stretchy="false" form="prefix">|</mo><mi>k</mi></mrow><annotation encoding="application/x-tex">k|k</annotation></semantics></math>
+表示“用第
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>k</mi><annotation encoding="application/x-tex">k</annotation></semantics></math>
+时刻的测量更新后的第
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>k</mi><annotation encoding="application/x-tex">k</annotation></semantics></math>
+时刻估计”，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>k</mi><mo stretchy="false" form="prefix">|</mo><mi>k</mi><mo>−</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">k|k-1</annotation></semantics></math>
+表示“先验预测到第
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>k</mi><annotation encoding="application/x-tex">k</annotation></semantics></math>
+时刻的估计”。</p>
+<p>估计误差会直接影响控制输入和安全判断，因此估计不能被当作控制之外的附属模块。</p>
+<h3 id="优化">优化</h3>
+<p>优化用于轨迹、控制分配、MPC 和安全滤波：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><munder><mi>min</mi><mo>&#8289;</mo><mi>u</mi></munder><mi>J</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>u</mi><mo stretchy="false" form="postfix">)</mo><mspace width="1.0em"></mspace><mtext mathvariant="normal">s.t.</mtext><mspace width="1.0em"></mspace><mi>c</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>u</mi><mo stretchy="false" form="postfix">)</mo><mo>≤</mo><mn>0</mn><mi>.</mi></mrow><annotation encoding="application/x-tex">
+\min_u J(x,u)\quad \text{s.t.}\quad c(x,u)\le 0.
+</annotation></semantics></math></p>
+<p>这里的优化问题把性能目标和约束集合写进同一个可行性判断里。
+其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>J</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>u</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">J(x,u)</annotation></semantics></math>
+是性能指标或代价函数，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>c</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>u</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">c(x,u)</annotation></semantics></math>
+是约束函数，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>u</mi><annotation encoding="application/x-tex">u</annotation></semantics></math>
+是优化变量，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>x</mi><annotation encoding="application/x-tex">x</annotation></semantics></math>
+是给定状态或参数。<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>J</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>u</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">J(x,u)</annotation></semantics></math>
+通常包含跟踪误差、控制能量或软约束惩罚；<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>c</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>u</mi><mo stretchy="false" form="postfix">)</mo><mo>≤</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">c(x,u)\le 0</annotation></semantics></math>
+则表示可行域条件，只有满足它的输入才是可接受解。</p>
+<p>优化问题必须报告变量、约束、求解时间和不可行情况，否则优化器的输出就缺乏可核查性。</p>
+<h3 id="验证">验证</h3>
+<p>验证用指标和实验支撑结论：</p>
+<ul>
+<li>跟踪误差；</li>
+<li>约束裕度；</li>
+<li>控制能量；</li>
+<li>鲁棒样本；</li>
+<li>终端误差；</li>
+<li>求解可行性。</li>
+</ul>
+<p>没有验证，控制律只是公式。</p>
+<h2 id="全书理论地图">1.6 全书理论地图</h2>
+<p>第一卷先建立理论基础：</p>
+<ul>
+<li><strong>动力系统和状态空间</strong>：线性系统；非线性系统；Lyapunov
+稳定性；输入输出稳定性；多时间尺度；最优控制；鲁棒控制；自适应控制；滤波估计；约束安全；数值优化</li>
+</ul>
+<p>第二卷进入飞行器建模，第三卷讲控制方法，第四卷讲约束、安全、容错和
+IGC，第五卷讲仿真验证和研究训练。</p>
+<p>这个顺序体现参考书要求：理论先行，对象分类，模型分层，方法成体系，论文训练后置。</p>
+<h2 id="动压约束的位置">1.7 动压约束的位置</h2>
+<p>动压约束是高超声速控制中的重要问题：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>q</mi><mo accent="true">‾</mo></mover><mo>=</mo><mstyle displaystyle="false"><mfrac><mn>1</mn><mn>2</mn></mfrac></mstyle><mi>ρ</mi><mo stretchy="false" form="prefix">(</mo><mi>h</mi><mo stretchy="false" form="postfix">)</mo><msup><mi>V</mi><mn>2</mn></msup><mi>.</mi></mrow><annotation encoding="application/x-tex">
+\bar{q}=\tfrac{1}{2}\rho(h)V^2.
+</annotation></semantics></math></p>
+<p>这个定义把动压直接写成高度和速度共同决定的环境量。
+其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mover><mi>q</mi><mo accent="true">‾</mo></mover><annotation encoding="application/x-tex">\bar{q}</annotation></semantics></math>
+是动压，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ρ</mi><mo stretchy="false" form="prefix">(</mo><mi>h</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\rho(h)</annotation></semantics></math>
+是高度
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>h</mi><annotation encoding="application/x-tex">h</annotation></semantics></math>
+处的大气密度，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>V</mi><annotation encoding="application/x-tex">V</annotation></semantics></math>
+是速度，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mover><mi>q</mi><mo accent="true">‾</mo></mover><mi>max</mi><mo>&#8289;</mo></msub><annotation encoding="application/x-tex">\bar{q}_{\max}</annotation></semantics></math>
+是动压上限。 这里的
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ρ</mi><mo stretchy="false" form="prefix">(</mo><mi>h</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\rho(h)</annotation></semantics></math>
+和
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>V</mi><annotation encoding="application/x-tex">V</annotation></semantics></math>
+共同决定动压，因此动压函数同时依赖高度和速度；<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mover><mi>q</mi><mo accent="true">‾</mo></mover><mi>max</mi><mo>&#8289;</mo></msub><annotation encoding="application/x-tex">\bar{q}_{\max}</annotation></semantics></math>
+是动压允许上界，用来区分可行区域和不可行区域。这样写是为了把动压、密度、高度、速度和约束边界一次说清。</p>
+<p>但在本教程中，它只是代表案例之一，而不是全书总线。它应出现在：</p>
+<ul>
+<li>高超声速飞行约束体系；</li>
+<li>BLF/CBF 安全控制；</li>
+<li>MPC 和参考治理；</li>
+<li>巡航速度高度控制；</li>
+<li>仿真案例库；</li>
+<li>论文训练。</li>
+</ul>
+<p>同等重要的还有热流、过载、攻角、侧滑角、舵偏、舵速、进气道、终端角和再入走廊等约束。</p>
+<p>更准确地说，动压约束在控制系统中有三种位置。</p>
+<p>第一，它是飞行包线约束：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>q</mi><mo accent="true">‾</mo></mover><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo>≤</mo><msub><mover><mi>q</mi><mo accent="true">‾</mo></mover><mi>max</mi><mo>&#8289;</mo></msub><mo>,</mo><mspace width="2.0em"></mspace><msub><mi>𝒳</mi><mi>q</mi></msub><mo>=</mo><mo stretchy="false" form="prefix">{</mo><mi>x</mi><mo>∣</mo><mover><mi>q</mi><mo accent="true">‾</mo></mover><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo>≤</mo><msub><mover><mi>q</mi><mo accent="true">‾</mo></mover><mi>max</mi><mo>&#8289;</mo></msub><mo stretchy="false" form="postfix">}</mo><mi>.</mi></mrow><annotation encoding="application/x-tex">
+\bar{q}(x)\le \bar{q}_{\max},\qquad \mathcal{X}_q=\{x\mid \bar{q}(x)\le \bar{q}_{\max}\}.
+</annotation></semantics></math></p>
+<p>这里的不等式把动压上限变成可行域边界。
+其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>𝒳</mi><mi>q</mi></msub><annotation encoding="application/x-tex">\mathcal{X}_q</annotation></semantics></math>
+表示动压可行集，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>x</mi><annotation encoding="application/x-tex">x</annotation></semantics></math>
+是状态向量，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>q</mi><mo accent="true">‾</mo></mover><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\bar{q}(x)</annotation></semantics></math>
+是状态对应的动压函数。 这里的
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>𝒳</mi><mi>q</mi></msub><annotation encoding="application/x-tex">\mathcal{X}_q</annotation></semantics></math>
+不是单个点，而是一片满足动压上限的状态集合。</p>
+<p>这会截断速度-高度平面中的可行区域。</p>
+<p>第二，它是闭环命令生成的限制。参考治理器、安全滤波器或 MPC
+可以根据动压裕度修正速度、高度、航迹角或攻角命令。</p>
+<p>第三，它可以通过输入效能或执行机构可用能力影响闭环。例如：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>u</mi><mrow><mi mathvariant="normal">e</mi><mi mathvariant="normal">f</mi><mi mathvariant="normal">f</mi></mrow></msub><mo>=</mo><mi>η</mi><mo stretchy="false" form="prefix">(</mo><mover><mi>q</mi><mo accent="true">‾</mo></mover><mo stretchy="false" form="postfix">)</mo><mi>u</mi><mi>.</mi></mrow><annotation encoding="application/x-tex">
+u_{\mathrm{eff}}=\eta(\bar{q})u.
+</annotation></semantics></math></p>
+<p>这个效能因子说明动压变化会直接影响可用控制能力。
+其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>u</mi><mrow><mi mathvariant="normal">e</mi><mi mathvariant="normal">f</mi><mi mathvariant="normal">f</mi></mrow></msub><annotation encoding="application/x-tex">u_{\mathrm{eff}}</annotation></semantics></math>
+是执行机构实际可用的有效控制输入，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>η</mi><mo stretchy="false" form="prefix">(</mo><mover><mi>q</mi><mo accent="true">‾</mo></mover><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\eta(\bar{q})</annotation></semantics></math>
+是随动压变化的效能折减因子，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>η</mi><mi>min</mi><mo>&#8289;</mo></msub><annotation encoding="application/x-tex">\eta_{\min}</annotation></semantics></math>
+是最小效能下界。 这里的
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>η</mi><mo stretchy="false" form="prefix">(</mo><mover><mi>q</mi><mo accent="true">‾</mo></mover><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\eta(\bar{q})</annotation></semantics></math>
+说明动压越接近边界，可用控制能力可能越弱。</p>
+<p>这类低阶表达不声称建立完整结构载荷模型，而是把“接近边界后可用控制能力下降”作为控制相关机制放入闭环。这样的写法比把动压只放在仿真结束后检查更符合控制科学的思路。</p>
+<h2 id="控制问题六元组">1.8 控制问题六元组</h2>
+<p>本书把高超声速飞行器控制问题统一写成六元组：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>𝒫</mi><mo>=</mo><mo stretchy="false" form="prefix">(</mo><mi>ℳ</mi><mo>,</mo><mi>𝒯</mi><mo>,</mo><mi>ℐ</mi><mo>,</mo><mi>𝒞</mi><mo>,</mo><mi>𝒜</mi><mo>,</mo><mi>𝒱</mi><mo stretchy="false" form="postfix">)</mo><mi>.</mi></mrow><annotation encoding="application/x-tex">
+\mathcal{P}=(\mathcal{M},\mathcal{T},\mathcal{I},\mathcal{C},\mathcal{A},\mathcal{V}).
+</annotation></semantics></math></p>
+<p>这个六元组把模型、任务、信息、控制、假设和验证统一成同一对象。
+其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝒫</mi><annotation encoding="application/x-tex">\mathcal{P}</annotation></semantics></math>
+是控制问题六元组，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ℳ</mi><annotation encoding="application/x-tex">\mathcal{M}</annotation></semantics></math>
+是模型，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝒯</mi><annotation encoding="application/x-tex">\mathcal{T}</annotation></semantics></math>
+是任务，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ℐ</mi><annotation encoding="application/x-tex">\mathcal{I}</annotation></semantics></math>
+是信息结构，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝒞</mi><annotation encoding="application/x-tex">\mathcal{C}</annotation></semantics></math>
+是控制器，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝒜</mi><annotation encoding="application/x-tex">\mathcal{A}</annotation></semantics></math>
+是假设集合，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝒱</mi><annotation encoding="application/x-tex">\mathcal{V}</annotation></semantics></math>
+是验证集合。 这里的
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ℳ</mi><mo>,</mo><mi>𝒯</mi><mo>,</mo><mi>ℐ</mi><mo>,</mo><mi>𝒞</mi><mo>,</mo><mi>𝒜</mi><mo>,</mo><mi>𝒱</mi></mrow><annotation encoding="application/x-tex">\mathcal{M},\mathcal{T},\mathcal{I},\mathcal{C},\mathcal{A},\mathcal{V}</annotation></semantics></math>
+分别表示模型、任务、信息、控制、假设和验证。</p>
+<p>其中：</p>
+<table>
+<thead>
+<tr>
+<th>符号</th>
+<th>含义</th>
+<th>典型内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ℳ</mi><annotation encoding="application/x-tex">\mathcal{M}</annotation></semantics></math></td>
+<td>模型</td>
+<td>状态、输入、输出、扰动、参数、约束</td>
+</tr>
+<tr>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝒯</mi><annotation encoding="application/x-tex">\mathcal{T}</annotation></semantics></math></td>
+<td>任务</td>
+<td>巡航、滑翔、再入、终端制导、姿态稳定</td>
+</tr>
+<tr>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ℐ</mi><annotation encoding="application/x-tex">\mathcal{I}</annotation></semantics></math></td>
+<td>信息</td>
+<td>可测变量、估计状态、传感器噪声、采样和延迟</td>
+</tr>
+<tr>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝒞</mi><annotation encoding="application/x-tex">\mathcal{C}</annotation></semantics></math></td>
+<td>控制器</td>
+<td>反馈律、安全层、控制分配、参考治理</td>
+</tr>
+<tr>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝒜</mi><annotation encoding="application/x-tex">\mathcal{A}</annotation></semantics></math></td>
+<td>假设</td>
+<td>飞行包线、扰动上界、执行机构能力、模型误差</td>
+</tr>
+<tr>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝒱</mi><annotation encoding="application/x-tex">\mathcal{V}</annotation></semantics></math></td>
+<td>验证</td>
+<td>指标、场景、Monte Carlo、故障注入、可复现实验</td>
+</tr>
+</tbody>
+</table>
+<p>这一定义的目的，是让读者每学一个方法都能问同样的问题：</p>
+<ul>
+<li>这个方法作用于哪个模型？</li>
+<li>解决哪个任务？</li>
+<li>需要哪些测量和估计？</li>
+<li>用了哪些假设？</li>
+<li>满足哪些约束？</li>
+<li>用什么证据证明有效？</li>
+</ul>
+<p>若这些问题回答不清楚，控制律公式再复杂也不构成完整方法。</p>
+<h2 id="任务类型到控制问题的映射">1.9 任务类型到控制问题的映射</h2>
+<p>不同任务段对应不同的控制问题。</p>
+<table>
+<colgroup>
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+</colgroup>
+<thead>
+<tr>
+<th>任务段</th>
+<th>主要状态</th>
+<th>主要输入</th>
+<th>主要约束</th>
+<th>主要验证指标</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>高速巡航</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>V</mi><mo>,</mo><mi>h</mi><mo>,</mo><mi>γ</mi><mo>,</mo><mi>α</mi><mo>,</mo><mi>θ</mi><mo>,</mo><mi>q</mi></mrow><annotation encoding="application/x-tex">V,h,\gamma,\alpha,\theta,q</annotation></semantics></math></td>
+<td>油门、升降舵、体襟翼</td>
+<td>动压、进气道、攻角、舵偏</td>
+<td>速度/高度误差、推力裕度、动压裕度</td>
+</tr>
+<tr>
+<td>助推滑翔</td>
+<td>位置、速度、航迹角、能量</td>
+<td>攻角、倾侧角、姿态命令</td>
+<td>热流、过载、动压、终端条件</td>
+<td>终端误差、路径违反、能量余量</td>
+</tr>
+<tr>
+<td>再入飞行</td>
+<td>速度、高度、航迹角、横程</td>
+<td>倾侧角、攻角、RCS</td>
+<td>再入走廊、热流、过载</td>
+<td>热流峰值、横程误差、终端角</td>
+</tr>
+<tr>
+<td>姿态稳定</td>
+<td>姿态角、角速度、执行机构状态</td>
+<td>舵面、RCS、推力矢量</td>
+<td>舵偏、舵速、角速率</td>
+<td>姿态误差、控制力矩、饱和时间</td>
+</tr>
+<tr>
+<td>终端制导</td>
+<td>相对位置、相对速度、视线角</td>
+<td>过载命令、姿态命令</td>
+<td>终端角、过载、姿态能力</td>
+<td>脱靶量、落角误差、控制余量</td>
+</tr>
+</tbody>
+</table>
+<p>这个表说明：高超声速控制不是一个单一问题，而是一组随任务段变化的问题族。教程必须先建立共用理论语言，再进入具体任务和方法。</p>
+<h2 id="难点矩阵">1.10 难点矩阵</h2>
+<p>高超声速控制的难点可以组织成矩阵，而不是零散罗列。</p>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr>
+<th>难点</th>
+<th>对模型的影响</th>
+<th>对控制的影响</th>
+<th>对验证的影响</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>大包线非线性</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>u</mi><mo>,</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">f(x,u,t)</annotation></semantics></math>
+随 Mach、高度、攻角剧烈变化</td>
+<td>单点增益难覆盖全任务</td>
+<td>需要多飞行点和多初值</td>
+</tr>
+<tr>
+<td>参数不确定</td>
+<td>气动、质量、推力、密度偏差</td>
+<td>鲁棒或自适应补偿</td>
+<td>需要扰动和参数扫描</td>
+</tr>
+<tr>
+<td>多时间尺度</td>
+<td>制导、姿态、执行机构、结构模态速度不同</td>
+<td>分层设计可能失效</td>
+<td>需要带宽和延迟检查</td>
+</tr>
+<tr>
+<td>输入受限</td>
+<td>舵偏、舵速、推力、RCS 有界</td>
+<td>理论控制输入可能不可实现</td>
+<td>需要饱和时间和残差指标</td>
+</tr>
+<tr>
+<td>路径约束</td>
+<td>动压、热流、过载、攻角限制轨迹</td>
+<td>必须处理安全可行集</td>
+<td>需要最大值、裕度和违反积分</td>
+</tr>
+<tr>
+<td>信息不完整</td>
+<td>状态和参数需要估计</td>
+<td>估计误差进入控制律</td>
+<td>需要创新、一致性和估计裕度</td>
+</tr>
+<tr>
+<td>模型层级差异</td>
+<td>质点、纵向、六自由度结论不同</td>
+<td>控制接口需要转换</td>
+<td>需要说明证据边界</td>
+</tr>
+</tbody>
+</table>
+<p>后续各章实际上都在处理这张矩阵的某一列或某几行。线性系统解决局部分析，非线性系统解决大包线现象，Lyapunov
+解决稳定证明，鲁棒和自适应处理不确定性，约束安全处理可行集，仿真验证处理证据链。</p>
+<h2 id="从控制律到证据链">1.11 从控制律到证据链</h2>
+<p>本教程不把“提出一个控制律”视为终点。一个控制方案至少应给出以下证据链：</p>
+<ul>
+<li><strong>模型定义</strong>：假设和适用范围；控制目标和约束；控制律或优化问题；稳定性/有界性/安全性说明；实现细节；仿真场景；指标表；失败样本和边界说明</li>
+</ul>
+<p>例如某个速度高度跟踪控制器，不能只给出“高度误差收敛”这样的单句结论。</p>
+<p>还应说明：</p>
+<ul>
+<li>速度误差是否同时受控；</li>
+<li>攻角和俯仰角速度是否在安全范围内；</li>
+<li>动压和热流是否满足约束；</li>
+<li>舵偏和舵速是否可实现；</li>
+<li>扰动、模型误差和执行机构故障下是否仍可接受；</li>
+<li>安全层是否改变参考命令或输入能力；</li>
+<li>仿真时间、采样周期和积分器设置是否可复现。</li>
+</ul>
+<p>这也是本书把仿真验证和工程实现作为第五卷的原因。控制理论必须落到可核查的指标上。</p>
+<h3 id="闭环问题接口图">闭环问题接口图</h3>
+<p>为了避免把控制律、约束、安全层和验证指标写散，本书采用下列接口图组织一个控制问题：</p>
+<ul>
+<li>任务目标：参考或终端条件；</li>
+<li>模型与包线：对象模型、飞行包线和约束边界；</li>
+<li>信息与估计：可测信息、估计量和可信度；</li>
+<li>制导与命令：制导律或命令生成器；</li>
+<li>控制与执行：控制器、控制分配、安全滤波器、执行机构和飞行器；</li>
+<li>证据与日志：记录指标、失败样本和证据边界。</li>
+</ul>
+<p>这张图强调三件事。</p>
+<p>第一，任务目标不能直接跳到控制律。任务目标先变成参考、终端条件、路径约束和代价，再由模型层和信息层决定可设计的反馈结构。</p>
+<p>第二，安全层不是仿真结束后的检查项。若动压、热流、过载、攻角或舵速约束会修正命令、限制输入或改变有效控制能力，它们就已经进入闭环。</p>
+<p>第三，验证指标必须从接口中来。若控制器使用估计状态，就要报告估计误差或创新一致性；若使用优化器，就要报告求解时间和不可行样本；若使用控制分配，就要报告分配残差和执行机构裕度。</p>
+<h3 id="控制问题卡片">控制问题卡片</h3>
+<p>读者每开始一个新章节或新案例，都可以先填写一张控制问题卡片：</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>项目</th>
+<th>必须写清的问题</th>
+<th>常见遗漏</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>任务</td>
+<td>要稳定、跟踪、制导、避约束还是终端命中</td>
+<td>只写“控制好”而没有终端或路径指标</td>
+</tr>
+<tr>
+<td>模型</td>
+<td>状态、输入、输出、扰动和适用包线</td>
+<td>用低阶模型结论支撑高阶模型断言</td>
+</tr>
+<tr>
+<td>信息</td>
+<td>哪些量可测，哪些量要估计，采样周期是多少</td>
+<td>假设全状态可测却没有说明传感器来源</td>
+</tr>
+<tr>
+<td>约束</td>
+<td>状态、路径、输入、速率和终端约束</td>
+<td>只画曲线，不写最大值、裕度和违反积分</td>
+</tr>
+<tr>
+<td>方法</td>
+<td>控制律、优化问题、安全层和分配器的接口</td>
+<td>把算法名当成完整方案</td>
+</tr>
+<tr>
+<td>证据</td>
+<td>稳定性、安全性、鲁棒性和复现实验</td>
+<td>只给单一标称样本</td>
+</tr>
+</tbody>
+</table>
+<p>例如一个速度高度保持问题可以先写成：</p>
+<ul>
+<li>任务：跟踪速度参考和高度参考；</li>
+<li>模型：带执行机构状态的纵向刚体模型；</li>
+<li>信息：速度、高度、攻角、俯仰角、俯仰角速度和估计动压；</li>
+<li>约束：动压、攻角、舵面角度和舵面速率；</li>
+<li>方法：基线跟踪环加安全命令修正；</li>
+<li>证据：跟踪误差均方根、最大动压、最小裕度、控制能量、失败样本。</li>
+</ul>
+<p>如果这张卡片填不完整，后续即使写出控制律，也很难形成可复核的章节或论文案例。</p>
+<h2 id="例题把滑翔任务写成控制问题六元组">1.12
+例题：把滑翔任务写成控制问题六元组</h2>
+<p>考虑一个简化助推滑翔任务：飞行器从给定初始高度和速度进入滑翔段，需要在满足动压、热流和过载约束的条件下到达目标区域。不要一开始就问“用什么控制律”，先写控制问题六元组。</p>
+<p>模型层可以选三维质点或六自由度模型。若作为入门问题，可先选：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>x</mi><mo>=</mo><msup><mrow><mo stretchy="true" form="prefix">[</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><msub><mi>r</mi><mi>E</mi></msub></mtd><mtd columnalign="center" style="text-align: center"><msub><mi>r</mi><mi>N</mi></msub></mtd><mtd columnalign="center" style="text-align: center"><mi>h</mi></mtd><mtd columnalign="center" style="text-align: center"><mi>V</mi></mtd><mtd columnalign="center" style="text-align: center"><mi>γ</mi></mtd><mtd columnalign="center" style="text-align: center"><mi>χ</mi></mtd></mtr></mtable><mo stretchy="true" form="postfix">]</mo></mrow><mi>𝖳</mi></msup><mo>,</mo><mspace width="2.0em"></mspace><mi>u</mi><mo>=</mo><msup><mrow><mo stretchy="true" form="prefix">[</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><msub><mi>α</mi><mi>c</mi></msub></mtd><mtd columnalign="center" style="text-align: center"><msub><mi>σ</mi><mi>c</mi></msub></mtd></mtr></mtable><mo stretchy="true" form="postfix">]</mo></mrow><mi>𝖳</mi></msup><mi>.</mi></mrow><annotation encoding="application/x-tex">
+x=\begin{bmatrix}r_E &amp; r_N &amp; h &amp; V &amp; \gamma &amp; \chi\end{bmatrix}^\mathsf{T},\qquad
+u=\begin{bmatrix}\alpha_c &amp; \sigma_c\end{bmatrix}^\mathsf{T}.
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>x</mi><annotation encoding="application/x-tex">x</annotation></semantics></math>
+是状态向量，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>u</mi><annotation encoding="application/x-tex">u</annotation></semantics></math>
+是任务级控制输入向量，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>r</mi><mi>E</mi></msub><annotation encoding="application/x-tex">r_E</annotation></semantics></math>
+和
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>r</mi><mi>N</mi></msub><annotation encoding="application/x-tex">r_N</annotation></semantics></math>
+分别是东向和北向位置，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>h</mi><annotation encoding="application/x-tex">h</annotation></semantics></math>
+是高度，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>V</mi><annotation encoding="application/x-tex">V</annotation></semantics></math>
+是速度，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>γ</mi><annotation encoding="application/x-tex">\gamma</annotation></semantics></math>
+是航迹角，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>χ</mi><annotation encoding="application/x-tex">\chi</annotation></semantics></math>
+是航向角，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>α</mi><mi>c</mi></msub><annotation encoding="application/x-tex">\alpha_c</annotation></semantics></math>
+是攻角命令，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>σ</mi><mi>c</mi></msub><annotation encoding="application/x-tex">\sigma_c</annotation></semantics></math>
+是倾侧角命令。这里把位置、能量和航迹方向放在同一层，便于后续写滑翔任务。</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>q</mi><mo accent="true">‾</mo></mover><mo stretchy="false" form="prefix">(</mo><mi>h</mi><mo>,</mo><mi>V</mi><mo stretchy="false" form="postfix">)</mo><mo>≤</mo><msub><mover><mi>q</mi><mo accent="true">‾</mo></mover><mi>max</mi><mo>&#8289;</mo></msub><mo>,</mo><mspace width="2.0em"></mspace><mover><mi>Q</mi><mo accent="true">̇</mo></mover><mo stretchy="false" form="prefix">(</mo><mi>h</mi><mo>,</mo><mi>V</mi><mo>,</mo><mi>α</mi><mo stretchy="false" form="postfix">)</mo><mo>≤</mo><msub><mover><mi>Q</mi><mo accent="true">̇</mo></mover><mi>max</mi><mo>&#8289;</mo></msub><mo>,</mo><mspace width="2.0em"></mspace><mi>n</mi><mo stretchy="false" form="prefix">(</mo><mi>h</mi><mo>,</mo><mi>V</mi><mo>,</mo><mi>α</mi><mo>,</mo><mi>σ</mi><mo stretchy="false" form="postfix">)</mo><mo>≤</mo><msub><mi>n</mi><mi>max</mi><mo>&#8289;</mo></msub><mi>.</mi></mrow><annotation encoding="application/x-tex">
+\bar{q}(h,V)\le \bar{q}_{\max},\qquad
+\dot{Q}(h,V,\alpha)\le \dot{Q}_{\max},\qquad
+n(h,V,\alpha,\sigma)\le n_{\max}.
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mover><mi>q</mi><mo accent="true">‾</mo></mover><annotation encoding="application/x-tex">\bar{q}</annotation></semantics></math>
+是动压，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mover><mi>Q</mi><mo accent="true">̇</mo></mover><annotation encoding="application/x-tex">\dot{Q}</annotation></semantics></math>
+是热流率，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>n</mi><annotation encoding="application/x-tex">n</annotation></semantics></math>
+是过载，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mover><mi>q</mi><mo accent="true">‾</mo></mover><mi>max</mi><mo>&#8289;</mo></msub><annotation encoding="application/x-tex">\bar{q}_{\max}</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mover><mi>Q</mi><mo accent="true">̇</mo></mover><mi>max</mi><mo>&#8289;</mo></msub><annotation encoding="application/x-tex">\dot{Q}_{\max}</annotation></semantics></math>
+和
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>n</mi><mi>max</mi><mo>&#8289;</mo></msub><annotation encoding="application/x-tex">n_{\max}</annotation></semantics></math>
+分别是对应上限，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>h</mi><annotation encoding="application/x-tex">h</annotation></semantics></math>
+是高度，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>V</mi><annotation encoding="application/x-tex">V</annotation></semantics></math>
+是速度，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>α</mi><annotation encoding="application/x-tex">\alpha</annotation></semantics></math>
+是攻角，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>σ</mi><annotation encoding="application/x-tex">\sigma</annotation></semantics></math>
+是倾侧角。这组三条不等式把滑翔任务最典型的路径约束直接写进问题定义：第一条限制环境载荷，第二条限制热防护压力，第三条限制机动强度。</p>
+<p>为了把执行机构边界也明确放进同一个问题包，继续写：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>α</mi><mi>min</mi><mo>&#8289;</mo></msub><mo>≤</mo><mi>α</mi><mo>≤</mo><msub><mi>α</mi><mi>max</mi><mo>&#8289;</mo></msub><mo>,</mo><mspace width="2.0em"></mspace><msub><mi>δ</mi><mi>min</mi><mo>&#8289;</mo></msub><mo>≤</mo><msub><mi>δ</mi><mi>e</mi></msub><mo>≤</mo><msub><mi>δ</mi><mi>max</mi><mo>&#8289;</mo></msub><mo>,</mo><mspace width="2.0em"></mspace><msub><mover><mi>δ</mi><mo accent="true">̇</mo></mover><mrow><mi>e</mi><mo>,</mo><mi>min</mi><mo>&#8289;</mo></mrow></msub><mo>≤</mo><msub><mover><mi>δ</mi><mo accent="true">̇</mo></mover><mi>e</mi></msub><mo>≤</mo><msub><mover><mi>δ</mi><mo accent="true">̇</mo></mover><mrow><mi>e</mi><mo>,</mo><mi>max</mi><mo>&#8289;</mo></mrow></msub><mo>,</mo><mspace width="2.0em"></mspace><msub><mi>δ</mi><mrow><mi>T</mi><mo>,</mo><mi>min</mi><mo>&#8289;</mo></mrow></msub><mo>≤</mo><msub><mi>δ</mi><mi>T</mi></msub><mo>≤</mo><msub><mi>δ</mi><mrow><mi>T</mi><mo>,</mo><mi>max</mi><mo>&#8289;</mo></mrow></msub><mi>.</mi></mrow><annotation encoding="application/x-tex">
+\alpha_{\min}\le \alpha\le \alpha_{\max},\qquad
+\delta_{\min}\le \delta_e\le \delta_{\max},\qquad
+\dot{\delta}_{e,\min}\le \dot{\delta}_e\le \dot{\delta}_{e,\max},\qquad
+\delta_{T,\min}\le \delta_T\le \delta_{T,\max}.
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>α</mi><mi>min</mi><mo>&#8289;</mo></msub><annotation encoding="application/x-tex">\alpha_{\min}</annotation></semantics></math>
+和
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>α</mi><mi>max</mi><mo>&#8289;</mo></msub><annotation encoding="application/x-tex">\alpha_{\max}</annotation></semantics></math>
+是攻角上下限，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>δ</mi><mi>e</mi></msub><annotation encoding="application/x-tex">\delta_e</annotation></semantics></math>
+是升降舵命令，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>δ</mi><mi>T</mi></msub><annotation encoding="application/x-tex">\delta_T</annotation></semantics></math>
+是油门或推力相关命令，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>δ</mi><mi>min</mi><mo>&#8289;</mo></msub><annotation encoding="application/x-tex">\delta_{\min}</annotation></semantics></math>
+和
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>δ</mi><mi>max</mi><mo>&#8289;</mo></msub><annotation encoding="application/x-tex">\delta_{\max}</annotation></semantics></math>
+是升降舵偏转上下限，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mover><mi>δ</mi><mo accent="true">̇</mo></mover><mrow><mi>e</mi><mo>,</mo><mi>min</mi><mo>&#8289;</mo></mrow></msub><annotation encoding="application/x-tex">\dot{\delta}_{e,\min}</annotation></semantics></math>
+和
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mover><mi>δ</mi><mo accent="true">̇</mo></mover><mrow><mi>e</mi><mo>,</mo><mi>max</mi><mo>&#8289;</mo></mrow></msub><annotation encoding="application/x-tex">\dot{\delta}_{e,\max}</annotation></semantics></math>
+是升降舵速率上下限，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>δ</mi><mrow><mi>T</mi><mo>,</mo><mi>min</mi><mo>&#8289;</mo></mrow></msub><annotation encoding="application/x-tex">\delta_{T,\min}</annotation></semantics></math>
+和
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>δ</mi><mrow><mi>T</mi><mo>,</mo><mi>max</mi><mo>&#8289;</mo></mrow></msub><annotation encoding="application/x-tex">\delta_{T,\max}</annotation></semantics></math>
+是油门或推力相关输入上下限。这里把状态约束、控制输入约束和输入速率约束并列写在一起，是为了提醒读者：滑翔任务的可行性不是只看轨迹点是否到达，还要看控制输入能不能真实执行。若任务还需要约束油门或推力变化率，也应把相应速率约束写入同一集合。后续任何控制器、估计器或安全层都应能回到这个六元组上解释自己到底在解决什么问题。</p>
+<h3 id="证据对象">证据对象</h3>
+<p>证据对象至少应包含：</p>
+<ul>
+<li>任务指标；</li>
+<li>约束指标；</li>
+<li>实现指标；</li>
+<li>失败样本；</li>
+<li>证据边界。</li>
+</ul>
+<p>如果一个章节没有这些字段，它就很难成为参考书正文，只能算作算法展示。</p>
+<h3 id="路由对象">路由对象</h3>
+<p>路由对象是“问题出现后先看哪卷、哪章”。例如：</p>
+<ul>
+<li>局部稳定性问题先看线性系统和 Lyapunov；</li>
+<li>大包线问题先看非线性系统和鲁棒控制；</li>
+<li>约束问题先看约束系统、最优控制和安全控制；</li>
+<li>不可测和噪声问题先看随机系统与滤波；</li>
+<li>离散实现问题先看混杂系统、采样控制和第五卷；</li>
+<li>任务一体化问题先看制导控制一体化和任务专题。</li>
+</ul>
+<p>这一层的作用，是把第1章真正变成后续全书的入口，而不只是一个总述。
+补充要点如下：</p>
+<ul>
+<li>动压是代表性约束，但热流、过载、攻角、输入和终端约束同样决定可行性。</li>
+<li>再入任务至少写清模型层级、热流/过载约束、信息来源、控制输入和验证指标。</li>
+<li>跟踪误差小不能说明输入可实现，也不能说明路径约束满足。</li>
+<li>动压安全滤波器至少报告最大动压、最小裕度、违反积分、参考修改量和跟踪代价。</li>
+<li>例如 NDI 需要相对阶、输入方向、解耦矩阵和状态可测性假设。</li>
+<li>质点模型能支撑路径和能量结论，纵向刚体能支撑姿态/攻角通道，六自由度才能讨论完整姿态和横侧向耦合。</li>
+<li>实验矩阵应覆盖标称、参数偏差、扰动、输入限幅、安全层活跃和失败样本。</li>
+<li>卡片中至少写出状态、输入、可测信息、路径约束、执行机构约束、安全层接口和验证指标；若安全层会修正参考或输入，约束就不是后验检查。</li>
+</ul>
+<h2 id="任务问题包的最小交付格式">1.13 任务问题包的最小交付格式</h2>
+<p>把第1章真正写成参考书时，最好不要只留下定义和例子，还要把“高超声速飞行器控制问题”整理成一个可以继续向后传递的问题包。这个包不是为了格式好看，而是为了让后续章节、配套算例和仿真验证都站在同一组问题定义上。</p>
+<p>一个最小问题包建议至少包含下表字段：</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>字段</th>
+<th>建议记录内容</th>
+<th>控制作用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>任务名称</td>
+<td>例如巡航速度-高度保持、滑翔走廊跟踪、再入终端制导</td>
+<td>先区分问题类型，再选方法</td>
+</tr>
+<tr>
+<td>对象层级</td>
+<td>质点、纵向、横侧向、六自由度或耦合模型</td>
+<td>说明结论依托的对象边界</td>
+</tr>
+<tr>
+<td>任务输出</td>
+<td>速度、高度、航迹角、姿态角、终端误差或组合指标</td>
+<td>避免把全部状态都当成控制目标</td>
+</tr>
+<tr>
+<td>约束集合</td>
+<td>动压、热流、过载、攻角、舵偏、舵速、终端角</td>
+<td>把安全边界正式写入问题本身</td>
+</tr>
+<tr>
+<td>信息结构</td>
+<td>测量量、估计量、采样周期、延迟和噪声水平</td>
+<td>说明控制律能用到什么信息</td>
+</tr>
+<tr>
+<td>控制接口</td>
+<td>参考生成、安全层、控制器、执行机构和控制分配</td>
+<td>说明闭环如何落地</td>
+</tr>
+<tr>
+<td>验证接口</td>
+<td>跟踪误差、约束裕度、输入峰值、失败样本、统计样本</td>
+<td>让后续结论可核查</td>
+</tr>
+<tr>
+<td>结论边界</td>
+<td>能支持的结论、不能外推的结论、适用飞行段</td>
+<td>防止把局部结果写成全局结论</td>
+</tr>
+</tbody>
+</table>
+<p>如果把这个问题包继续交给后续章节，最有用的不是“我们已经知道问题是什么”，而是能够明确回答下面四件事：</p>
+<ol type="1">
+<li>任务究竟是跟踪、保持、制导还是约束管理；</li>
+<li>约束是否已经进入闭环，而不是只在结果里检查；</li>
+<li>可测量和可估计信息是否足够支撑控制律；</li>
+<li>这一问题包能否直接接到第2章的状态空间对象、第5章以后的稳定性与控制设计，以及第五卷的验证案例。</li>
+</ol>
+<h2 id="本章证据层次及其与后续章节的关系">1.14
+本章证据层次及其与后续章节的关系</h2>
+<p>第1章给出的证据层次，应该比普通课程讲义更严格一点，但又不必直接上升到完整论文的全部形式化证明。最稳妥的层次是：</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>层次</th>
+<th>应给出的内容</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>问题定义证据</td>
+<td>状态、输入、输出、约束、任务、信息结构</td>
+<td>说明对象是什么</td>
+</tr>
+<tr>
+<td>方法接口证据</td>
+<td>控制器、安全层、估计器、参考治理、执行机构</td>
+<td>说明方法怎么接入</td>
+</tr>
+<tr>
+<td>场景证据</td>
+<td>标称场景、扰动场景、输入受限场景、失败场景</td>
+<td>说明方法在哪些条件下检验</td>
+</tr>
+<tr>
+<td>指标证据</td>
+<td>误差、裕度、峰值、违反积分、终端误差</td>
+<td>说明结论如何被衡量</td>
+</tr>
+<tr>
+<td>边界证据</td>
+<td>适用飞行段、模型层级、不能外推的结论</td>
+<td>说明哪些话不能说太满</td>
+</tr>
+</tbody>
+</table>
+<p>这一级别的证据，后续章节会逐步加厚：</p>
+<ul>
+<li>第2章开始把对象写成可计算的状态空间模型；</li>
+<li>第3章用局部线性模型说明模态、输入效能和局部可控可观性；</li>
+<li>第4章开始处理非线性结构、相对阶、零动态和可行输入集合；</li>
+<li>第5章以后再分别把稳定性、鲁棒性、自适应、估计、安全和优化补成完整闭环。</li>
+</ul>
+<p>换句话说，第1章的任务不是把所有理论都讲完，而是把“控制问题”这件事定义成一份可持续传递的对象包。后面章节如果没有沿着这个对象包展开，写出来就容易变成算法散点，而不是一本书。</p>
+
+      </article>
+      
+      <nav class="book-bottom-nav" aria-label="章节导航">
+        <a href="./index.html">上一章：卷首页</a>
+        <a href="./index.html">卷首页</a>
+        <a href="./02-dynamical-systems-state-space.html">下一章：第2章 动力系统与状态空间方法</a>
+      </nav>
+    </main>
+  </div>
+</body>
+</html>

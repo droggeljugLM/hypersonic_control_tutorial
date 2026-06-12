@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>第23章 刚柔耦合与气动弹性模型</title>
+  <style>
+    :root {
+      --paper: #f7f3eb;
+      --ink: #1f2937;
+      --muted: #5b6472;
+      --line: color-mix(in srgb, #e3f5f2 68%, #cbd5e1 32%);
+      --accent: #18786f;
+      --accent-soft: #e3f5f2;
+      --accent-deep: #0e4b45;
+      color-scheme: light;
+    }
+    html {
+      -webkit-text-size-adjust: 100%;
+      background:
+        radial-gradient(circle at top left, #e3f5f2 0, rgba(255,255,255,0) 32%),
+        linear-gradient(180deg, #fbfaf6 0%, var(--paper) 18%, #f7f1e6 100%);
+    }
+    body {
+      margin: 0;
+      font-family: "Source Han Serif SC", "Songti SC", "Noto Serif CJK SC", "Microsoft YaHei", serif;
+      color: var(--ink);
+      line-height: 1.78;
+      letter-spacing: 0;
+    }
+    a { color: var(--accent-deep); }
+    .book-app {
+      display: grid;
+      grid-template-columns: 280px minmax(0, 1fr);
+      min-height: 100vh;
+    }
+    .book-sidebar {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow: auto;
+      padding: 1.2rem 1rem 1.2rem 1.15rem;
+      border-right: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(255,255,255,0.86), rgba(255,255,255,0.72));
+      backdrop-filter: blur(10px);
+    }
+    .sidebar-shell { position: sticky; top: 0; display: flex; flex-direction: column; gap: 1rem; }
+    .sidebar-brand {
+      padding: 0.95rem 0.95rem 1rem;
+      border-radius: 18px;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.95), rgba(255,255,255,0.84)),
+        linear-gradient(135deg, var(--accent-soft), rgba(255,255,255,0));
+      border: 1px solid var(--line);
+      box-shadow: 0 12px 28px rgba(31, 41, 55, 0.06);
+    }
+    .sidebar-brand .kicker { margin: 0; color: var(--accent); font-size: 0.82rem; font-weight: 700; }
+    .sidebar-brand h2 { margin: 0.45rem 0 0.25rem; font-size: 1.08rem; line-height: 1.3; color: var(--ink); }
+    .sidebar-brand p { margin: 0.35rem 0 0; color: var(--muted); font-size: 0.9rem; }
+    .sidebar-links { display: grid; gap: 0.45rem; }
+    .sidebar-link {
+      display: grid;
+      grid-template-columns: 2.2rem minmax(0, 1fr);
+      gap: 0.6rem;
+      align-items: start;
+      padding: 0.7rem 0.75rem;
+      border-radius: 14px;
+      text-decoration: none;
+      background: rgba(255,255,255,0.72);
+      border: 1px solid rgba(31,41,55,0.07);
+      color: var(--ink);
+    }
+    .sidebar-link:hover { background: rgba(255,255,255,0.95); border-color: var(--line); }
+    .sidebar-link.active {
+      background: linear-gradient(135deg, rgba(255,255,255,0.98), rgba(255,255,255,0.9));
+      border-color: var(--accent-soft);
+      box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent-soft) 68%, #ffffff 32%);
+    }
+    .sidebar-index {
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      min-width: 2rem;
+      height: 2rem;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent-deep);
+      font-size: 0.78rem;
+      font-weight: 800;
+    }
+    .sidebar-title { font-size: 0.94rem; line-height: 1.35; }
+    .book-main { min-width: 0; padding: 1.25rem 1.45rem 1.8rem; }
+    .book-page-header {
+      padding: 0.85rem 0 1rem;
+      margin-bottom: 1rem;
+      border-bottom: 1px solid var(--line);
+    }
+    .page-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.28rem 0.72rem;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.82);
+      border: 1px solid var(--line);
+      color: var(--accent-deep);
+      font-size: 0.8rem;
+      font-weight: 700;
+    }
+    .book-page-header h1 {
+      margin: 0.7rem 0 0;
+      font-size: 1.85rem;
+      line-height: 1.22;
+      color: var(--accent-deep);
+      border: 0;
+      padding: 0;
+    }
+    .book-page-header p { margin: 0.45rem 0 0; color: var(--muted); max-width: 62rem; }
+    .book-article { max-width: 900px; margin: 0; padding: 0 0 1.2rem; }
+    .book-article h1, .book-article h2, .book-article h3, .book-article h4, .book-article h5, .book-article h6 {
+      line-height: 1.28;
+      margin-top: 1.45em;
+      margin-bottom: 0.55em;
+      color: var(--accent-deep);
+    }
+    .book-article h1 { font-size: 2rem; border-bottom: 2px solid var(--line); padding-bottom: 0.42rem; }
+    .book-article h1:first-of-type { margin-top: 0; }
+    .book-article h2 { font-size: 1.42rem; }
+    .book-article h3 { font-size: 1.12rem; }
+    .book-article p, .book-article li, .book-article dd, .book-article td, .book-article th { text-align: justify; text-justify: inter-ideograph; }
+    .book-article p { margin: 0.85rem 0; }
+    .book-article code, .book-article pre { font-family: "Cascadia Mono", "Source Code Pro", Consolas, monospace; font-size: 0.94em; }
+    .book-article code {
+      padding: 0.02rem 0.24rem;
+      background: color-mix(in srgb, var(--accent-soft) 34%, #ffffff 66%);
+      border: 0;
+      border-bottom: 1px solid color-mix(in srgb, var(--accent-soft) 74%, #d1d5db 26%);
+      border-radius: 4px;
+      color: #253244;
+      box-decoration-break: clone;
+      -webkit-box-decoration-break: clone;
+    }
+    .book-article pre {
+      padding: 1rem 1.1rem;
+      overflow: auto;
+      background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,253,248,0.98));
+      border: 1px solid color-mix(in srgb, var(--accent-soft) 54%, #d1d5db 46%);
+      border-left: 5px solid var(--accent);
+      border-radius: 14px;
+      box-shadow: 0 8px 22px rgba(31, 41, 55, 0.05);
+    }
+    .book-article pre code { padding: 0; border: 0; background: transparent; color: inherit; }
+    .book-article table {
+      border-collapse: collapse;
+      width: 100%;
+      margin: 1rem 0 1.25rem;
+      background: rgba(255,255,255,0.82);
+      overflow: hidden;
+      border-radius: 12px;
+    }
+    .book-article th, .book-article td { border: 1px solid var(--line); padding: 0.5rem 0.7rem; vertical-align: top; }
+    .book-article th { background: color-mix(in srgb, var(--accent-soft) 42%, #ffffff 58%); }
+    .book-article blockquote {
+      margin: 1rem 0;
+      padding: 0.25rem 0 0.25rem 1rem;
+      border-left: 4px solid var(--accent);
+      color: #374151;
+      background: linear-gradient(90deg, rgba(255,255,255,0.72), rgba(255,255,255,0.48));
+      border-radius: 0 12px 12px 0;
+    }
+    .book-bottom-nav {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-top: 2.2rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--line);
+    }
+    .book-bottom-nav a {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.6rem 0.9rem;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.84);
+      text-decoration: none;
+      font-weight: 700;
+    }
+    .book-bottom-nav span {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.6rem 0.9rem;
+      border-radius: 999px;
+      border: 1px solid rgba(31,41,55,0.08);
+      background: rgba(255,255,255,0.54);
+      color: rgba(31,41,55,0.42);
+      font-weight: 700;
+    }
+    .book-bottom-nav a:hover { background: rgba(255,255,255,0.98); }
+    .book-volume-intro {
+      margin: 0 0 1.25rem;
+      padding: 1.2rem 1.25rem 1.1rem;
+      border-radius: 18px;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.96), rgba(255,255,255,0.78)),
+        linear-gradient(135deg, var(--accent-soft), rgba(255,255,255,0));
+      border: 1px solid var(--line);
+      box-shadow: 0 14px 34px rgba(31, 41, 55, 0.06);
+    }
+    .volume-intro-kicker {
+      margin: 0;
+      color: var(--accent);
+      font-size: 0.84rem;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    .book-volume-intro h2 {
+      margin: 0.55rem 0 0.55rem;
+      font-size: 1.28rem;
+      line-height: 1.35;
+      color: var(--accent-deep);
+    }
+    .volume-intro-summary {
+      margin: 0;
+      color: var(--muted);
+      max-width: 68rem;
+    }
+    .volume-intro-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.8rem;
+      margin-top: 1rem;
+    }
+    .volume-intro-box {
+      padding: 0.85rem 0.9rem;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.72);
+      border: 1px solid rgba(31,41,55,0.08);
+    }
+    .volume-intro-box span {
+      display: block;
+      color: var(--accent);
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+    }
+    .volume-intro-box strong {
+      display: block;
+      margin-top: 0.35rem;
+      color: var(--ink);
+      font-size: 0.95rem;
+      line-height: 1.45;
+    }
+    .volume-intro-note {
+      margin-top: 0.9rem;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+    @media (max-width: 1180px) {
+      .book-app { grid-template-columns: 1fr; }
+      .book-sidebar {
+        position: relative;
+        height: auto;
+        border-right: 0;
+        border-bottom: 1px solid var(--line);
+      }
+      .sidebar-shell { position: static; }
+    }
+    @media (max-width: 900px) {
+      .book-main { padding: 1rem 1rem 1.5rem; }
+      .book-bottom-nav { flex-direction: column; }
+      .volume-intro-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="book-app">
+    <aside class="book-sidebar">
+      <div class="sidebar-shell">
+        <div class="sidebar-brand">
+          <p class="kicker">高超声速飞行器控制教程</p>
+          <h2>第二卷 高超声速飞行器建模与飞行动力学</h2>
+          <p>对象与模型</p>
+        </div>
+        <nav class="sidebar-links" aria-label="本卷目录">
+          <a class="sidebar-link" href="./index.html"><span class="sidebar-index">0</span><span class="sidebar-title">卷首页</span></a>
+<a class="sidebar-link" href="./14-vehicle-types-mission-profiles.html"><span class="sidebar-index">01</span><span class="sidebar-title">第14章 高超声速飞行器类型与任务剖面</span></a>
+<a class="sidebar-link" href="./15-coordinate-kinematics-attitude.html"><span class="sidebar-index">02</span><span class="sidebar-title">第15章 坐标系、运动学与姿态描述</span></a>
+<a class="sidebar-link" href="./16-atmosphere-flight-conditions.html"><span class="sidebar-index">03</span><span class="sidebar-title">第16章 大气环境与飞行条件</span></a>
+<a class="sidebar-link" href="./17-aerodynamic-force-moment-modeling.html"><span class="sidebar-index">04</span><span class="sidebar-title">第17章 气动力与气动力矩建模</span></a>
+<a class="sidebar-link" href="./18-propulsion-aero-propulsive-coupling.html"><span class="sidebar-index">05</span><span class="sidebar-title">第18章 推进系统与气动推进耦合</span></a>
+<a class="sidebar-link" href="./19-point-mass-dynamics.html"><span class="sidebar-index">06</span><span class="sidebar-title">第19章 质点动力学模型</span></a>
+<a class="sidebar-link" href="./20-longitudinal-rigid-body-dynamics.html"><span class="sidebar-index">07</span><span class="sidebar-title">第20章 纵向刚体动力学模型</span></a>
+<a class="sidebar-link" href="./21-lateral-directional-dynamics.html"><span class="sidebar-index">08</span><span class="sidebar-title">第21章 横侧向动力学模型</span></a>
+<a class="sidebar-link" href="./22-six-dof-rigid-body-model.html"><span class="sidebar-index">09</span><span class="sidebar-title">第22章 六自由度刚体模型</span></a>
+<a class="sidebar-link active" href="./23-flexible-aeroelastic-modeling.html"><span class="sidebar-index">10</span><span class="sidebar-title">第23章 刚柔耦合与气动弹性模型</span></a>
+<a class="sidebar-link" href="./24-actuator-sensor-computation-modeling.html"><span class="sidebar-index">11</span><span class="sidebar-title">第24章 执行机构、传感器与计算系统建模</span></a>
+<a class="sidebar-link" href="./25-trim-linearization-modal-analysis.html"><span class="sidebar-index">12</span><span class="sidebar-title">第25章 配平、线性化与模态分析</span></a>
+        </nav>
+      </div>
+    </aside>
+    <main class="book-main">
+      <header class="book-page-header">
+        <div class="page-eyebrow">第2册·章节页10</div>
+        <h1 id="volume2--23-flexible-aeroelastic-modeling">第23章 刚柔耦合与气动弹性模型</h1>
+        <p>本页是章节正文页。左侧目录用于回到本卷其他章节，底部导航用于前后章跳转。</p>
+      </header>
+      <article class="book-article">
+        <h2 id="问题背景">23.1 问题背景</h2>
+<p>六自由度刚体模型默认结构外形和惯量不随变形改变。对低速、短时、小载荷任务，这个假设通常足够；但高超声速飞行器常常具有细长体、薄壁结构、热防护层和较强的气动热环境，结构变形会改变气动力、气动力矩、传感器读数和控制效能。</p>
+<p>这一章的目标不是做结构力学百科，而是说明：什么时候刚体模型不够，柔性模态如何进入控制模型，气动弹性如何影响闭环稳定性，以及在没有完整结构数据时，如何把柔性影响作为不确定性和带宽约束处理。</p>
+<h2 id="控制建模边界">23.2 控制建模边界</h2>
+<p>控制科学关心的不是所有结构细节，而是这些细节如何进入闭环。一个控制可用的柔性模型至少应说明：</p>
+<ul>
+<li>刚体状态和柔性状态分别是什么；</li>
+<li>柔性状态如何改变气动力和力矩；</li>
+<li>柔性状态如何污染传感器测量；</li>
+<li>控制输入如何激励柔性模态；</li>
+<li>柔性模态频率和控制带宽之间有什么关系；</li>
+<li>截断后的高阶模态如何进入鲁棒性分析。</li>
+</ul>
+<p>如果没有结构数据，就不应伪装成高保真刚柔耦合模型，而应明确说明当前结论只覆盖刚体或低阶等效模型。</p>
+<h2 id="什么时候刚体模型不够">23.3 什么时候刚体模型不够</h2>
+<p>以下现象通常说明刚体近似已经不稳妥：</p>
+<ul>
+<li>姿态误差不大，但角速度出现高频振荡，说明测量中可能混入柔性模态；</li>
+<li>舵面命令出现高频往复，说明控制器可能在追逐结构振动；</li>
+<li>动压升高后，同一舵偏产生的力矩变化明显，说明控制效能受变形或载荷影响；</li>
+<li>柔性模态频率接近姿态环带宽，闭环可能激励振动；</li>
+<li>热载荷持续作用后配平点漂移，说明气动中心或外形已经变化；</li>
+<li>舵机长期接近速率上限，往往意味着未建模动态被控制器放大。</li>
+</ul>
+<p>刚体模型仍然是必要基础，但它不能自动给出颤振裕度、热弹性裕度或结构安全结论。</p>
+<h2 id="柔性结构变量">23.4 柔性结构变量</h2>
+<p>柔性结构可以从连续位移场描述：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>w</mi><mo>=</mo><mi>w</mi><mo stretchy="false" form="prefix">(</mo><mi>r</mi><mo>,</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
+w=w(r,t)
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>r</mi><annotation encoding="application/x-tex">r</annotation></semantics></math>
+是结构位置，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>w</mi><annotation encoding="application/x-tex">w</annotation></semantics></math>
+是局部位移或转角。</p>
+<p>控制设计通常不会直接使用完整场变量，而是投影到有限个模态：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>w</mi><mo stretchy="false" form="prefix">(</mo><mi>r</mi><mo>,</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><munderover><mo>∑</mo><mrow><mi>i</mi><mo>=</mo><mn>1</mn></mrow><mi>N</mi></munderover><msub><mi>ϕ</mi><mi>i</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>r</mi><mo stretchy="false" form="postfix">)</mo><msub><mi>η</mi><mi>i</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
+w(r,t)=\sum_{i=1}^{N}\phi_i(r)\eta_i(t)
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ϕ</mi><mi>i</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>r</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\phi_i(r)</annotation></semantics></math>
+是第
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>i</mi><annotation encoding="application/x-tex">i</annotation></semantics></math>
+阶模态形状，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>η</mi><mi>i</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\eta_i(t)</annotation></semantics></math>
+是第
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>i</mi><annotation encoding="application/x-tex">i</annotation></semantics></math>
+阶模态坐标，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>N</mi><annotation encoding="application/x-tex">N</annotation></semantics></math>
+是保留模态数。</p>
+<p>模态坐标动力学可写为：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mover><mi>η</mi><mo accent="true">̈</mo></mover><mi>i</mi></msub><mo>+</mo><mn>2</mn><msub><mi>ζ</mi><mi>i</mi></msub><msub><mi>ω</mi><mi>i</mi></msub><msub><mover><mi>η</mi><mo accent="true">̇</mo></mover><mi>i</mi></msub><mo>+</mo><msubsup><mi>ω</mi><mi>i</mi><mn>2</mn></msubsup><msub><mi>η</mi><mi>i</mi></msub><mo>=</mo><msub><mi>Q</mi><mi>i</mi></msub><mo stretchy="false" form="prefix">(</mo><msub><mi>x</mi><mi>r</mi></msub><mo>,</mo><mi>u</mi><mo>,</mo><mi>p</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
+\ddot{\eta}_i+2\zeta_i\omega_i\dot{\eta}_i+\omega_i^2\eta_i=Q_i(x_r,u,p)
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ζ</mi><mi>i</mi></msub><annotation encoding="application/x-tex">\zeta_i</annotation></semantics></math>
+是模态阻尼比，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ω</mi><mi>i</mi></msub><annotation encoding="application/x-tex">\omega_i</annotation></semantics></math>
+是模态频率，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>Q</mi><mi>i</mi></msub><annotation encoding="application/x-tex">Q_i</annotation></semantics></math>
+是外激励，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>x</mi><mi>r</mi></msub><annotation encoding="application/x-tex">x_r</annotation></semantics></math>
+是刚体状态，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>u</mi><annotation encoding="application/x-tex">u</annotation></semantics></math>
+是控制输入，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>p</mi><annotation encoding="application/x-tex">p</annotation></semantics></math>
+是飞行条件和结构参数。</p>
+<h2 id="一阶状态空间形式">23.5 一阶状态空间形式</h2>
+<p>把刚体状态和柔性状态合并，可写成：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>x</mi><mo>=</mo><msup><mrow><mo stretchy="true" form="prefix">[</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><msub><mi>x</mi><mi>r</mi></msub></mtd><mtd columnalign="center" style="text-align: center"><mi>η</mi></mtd><mtd columnalign="center" style="text-align: center"><mover><mi>η</mi><mo accent="true">̇</mo></mover></mtd></mtr></mtable><mo stretchy="true" form="postfix">]</mo></mrow><mi>⊤</mi></msup></mrow><annotation encoding="application/x-tex">
+x=\begin{bmatrix}x_r &amp; \eta &amp; \dot\eta\end{bmatrix}^\top
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>x</mi><mi>r</mi></msub><annotation encoding="application/x-tex">x_r</annotation></semantics></math>
+是刚体状态，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>η</mi><annotation encoding="application/x-tex">\eta</annotation></semantics></math>
+是模态坐标向量，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mover><mi>η</mi><mo accent="true">̇</mo></mover><annotation encoding="application/x-tex">\dot\eta</annotation></semantics></math>
+是模态速度向量。</p>
+<p>把刚体与柔性模态增广为一阶状态后，线性化后常见结构为：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>x</mi><mo accent="true">̇</mo></mover><mo>=</mo><mi>A</mi><mi>x</mi><mo>+</mo><mi>B</mi><mi>u</mi></mrow><annotation encoding="application/x-tex">
+\dot x = A x + B u
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>x</mi><mo>=</mo><msup><mrow><mo stretchy="true" form="prefix">[</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><msub><mi>x</mi><mi>r</mi></msub></mtd><mtd columnalign="center" style="text-align: center"><mi>η</mi></mtd><mtd columnalign="center" style="text-align: center"><mover><mi>η</mi><mo accent="true">̇</mo></mover></mtd></mtr></mtable><mo stretchy="true" form="postfix">]</mo></mrow><mi>⊤</mi></msup></mrow><annotation encoding="application/x-tex">x = \begin{bmatrix}x_r &amp; \eta &amp; \dot\eta\end{bmatrix}^\top</annotation></semantics></math>，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>A</mi><annotation encoding="application/x-tex">A</annotation></semantics></math>
+表示刚体与柔性模态合并后的线性化系统矩阵，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>B</mi><annotation encoding="application/x-tex">B</annotation></semantics></math>
+表示对应的输入矩阵。</p>
+<p>如果刚体与柔性之间的耦合块被忽略，得到的只是“刚体加孤立振子”模型，通常不足以说明气动弹性闭环风险。</p>
+<h2 id="刚柔耦合路径">23.6 刚柔耦合路径</h2>
+<p>刚柔耦合进入控制闭环主要有四条路径：</p>
+<ol type="1">
+<li>控制输入经过气动力和执行机构载荷激励柔性模态；</li>
+<li>柔性模态改变外形和局部攻角，从而改变气动力和力矩；</li>
+<li>柔性模态污染传感器安装点，导致测量失真；</li>
+<li>热载荷和时间历史改变模态频率、阻尼和气动中心。</li>
+</ol>
+<p>这四条路径分别影响输入效能、状态测量、频域裕度、配平点、增益调度和鲁棒稳定边界。</p>
+<h2 id="气动弹性系数表达">23.7 气动弹性系数表达</h2>
+<p>刚体气动系数如果扩展到柔性模型，常可写成：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>C</mi><mi>m</mi></msub><mo>=</mo><msub><mi>C</mi><mrow><mi>m</mi><mn>0</mn></mrow></msub><mo>+</mo><msub><mi>C</mi><mrow><mi>m</mi><mi>α</mi></mrow></msub><mi>α</mi><mo>+</mo><msub><mi>C</mi><mrow><mi>m</mi><mi>q</mi></mrow></msub><mover><mi>q</mi><mo accent="true">̂</mo></mover><mo>+</mo><msub><mi>C</mi><mrow><mi>m</mi><msub><mi>δ</mi><mi>e</mi></msub></mrow></msub><msub><mi>δ</mi><mi>e</mi></msub><mo>+</mo><msub><mi>C</mi><mrow><mi>m</mi><mi>η</mi></mrow></msub><mi>η</mi></mrow><annotation encoding="application/x-tex">
+C_m=C_{m0}+C_{m\alpha}\alpha+C_{mq}\hat q+C_{m\delta_e}\delta_e+C_{m\eta}\eta
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>C</mi><mrow><mi>m</mi><mi>η</mi></mrow></msub><annotation encoding="application/x-tex">C_{m\eta}</annotation></semantics></math>
+表示柔性模态对俯仰力矩的等效影响。</p>
+<p>如果
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>C</mi><mrow><mi>m</mi><mi>η</mi></mrow></msub><annotation encoding="application/x-tex">C_{m\eta}</annotation></semantics></math>
+的符号和尺度不清楚，控制器可能把柔性变形误判为有利阻尼，实际却削弱闭环稳定性。</p>
+<h2 id="舵面柔性和控制效能">23.8 舵面柔性和控制效能</h2>
+<p>舵面、体襟翼或升降副翼的局部柔性会改变实际控制效能。可用等效形式表示：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>M</mi><mi>y</mi></msub><mo>=</mo><mover><mi>q</mi><mo accent="true">‾</mo></mover><mi>S</mi><mover><mi>c</mi><mo accent="true">‾</mo></mover><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>C</mi><mrow><mi>m</mi><mn>0</mn></mrow></msub><mo>+</mo><msub><mi>C</mi><mrow><mi>m</mi><msub><mi>δ</mi><mi>e</mi></msub></mrow></msub><msub><mi>δ</mi><mi>e</mi></msub><mo>+</mo><msub><mi>C</mi><mrow><mi>m</mi><mi>η</mi></mrow></msub><mi>η</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">
+M_y=\bar q S \bar c\left(C_{m0}+C_{m\delta_e}\delta_e+C_{m\eta}\eta\right)
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>δ</mi><mi>e</mi></msub><annotation encoding="application/x-tex">\delta_e</annotation></semantics></math>
+是舵面角，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>η</mi><annotation encoding="application/x-tex">\eta</annotation></semantics></math>
+是柔性模态坐标。</p>
+<p>这说明控制输入不仅影响刚体姿态，还可能激励柔性振动。因而，舵速限制和输入滤波不只是硬件保护，也是抑制结构激励的闭环设计手段。</p>
+<h2 id="传感器污染">23.9 传感器污染</h2>
+<p>如果传感器安装点位于柔性显著区域，测量量就可能写成：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>y</mi><mi>m</mi></msub><mo>=</mo><mi>y</mi><mo>+</mo><mi mathvariant="normal">Γ</mi><mi>η</mi><mo>+</mo><mi>n</mi></mrow><annotation encoding="application/x-tex">
+y_m=y+\Gamma \eta + n
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>y</mi><mi>m</mi></msub><annotation encoding="application/x-tex">y_m</annotation></semantics></math>
+是测量值，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>y</mi><annotation encoding="application/x-tex">y</annotation></semantics></math>
+是真实刚体量，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi mathvariant="normal">Γ</mi><annotation encoding="application/x-tex">\Gamma</annotation></semantics></math>
+是柔性污染映射，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>n</mi><annotation encoding="application/x-tex">n</annotation></semantics></math>
+是噪声。</p>
+<p>这意味着观测器和滤波器不能只针对刚体变量设计，还要考虑柔性污染和安装位置效应。否则，观测器可能把柔性振动误认为姿态变化。</p>
+<h2 id="带宽分离原则">23.10 带宽分离原则</h2>
+<p>如果主导柔性模态频率为
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ω</mi><mi>f</mi></msub><annotation encoding="application/x-tex">\omega_f</annotation></semantics></math>，姿态闭环带宽为
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ω</mi><mi>c</mi></msub><annotation encoding="application/x-tex">\omega_c</annotation></semantics></math>，通常希望：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ω</mi><mi>c</mi></msub><mo>≪</mo><msub><mi>ω</mi><mi>f</mi></msub></mrow><annotation encoding="application/x-tex">
+\omega_c \ll \omega_f
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ω</mi><mi>c</mi></msub><annotation encoding="application/x-tex">\omega_c</annotation></semantics></math>
+是姿态闭环带宽，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ω</mi><mi>f</mi></msub><annotation encoding="application/x-tex">\omega_f</annotation></semantics></math>
+是主导柔性模态频率。</p>
+<p>这个关系不是普适定理，但它提醒我们：刚体控制器不能只按刚体响应调快。若为了跟踪性能把姿态环带宽推近柔性模态，就必须同时检查频域裕度、传感器相位滞后和执行机构高频命令。</p>
+<h2 id="低阶例子">23.11 低阶例子</h2>
+<p>一个常用教学近似是“俯仰刚体加一个柔性模态”。这类模型足够说明柔性模态如何进入力矩通道、测量通道和控制通道，也足够用于理解为什么某些高频闭环会在仿真里看似有效、在真实对象上却失效。</p>
+<p>它适合教学，不适合直接代替结构试验、CFD-CSD
+耦合或高保真颤振分析。</p>
+<h2 id="验证要点">23.12 验证要点</h2>
+<p>柔性和气动弹性模型的验证至少应包括：</p>
+<ul>
+<li>柔性模态频率和阻尼是否已知；</li>
+<li>柔性状态是否进入控制闭环；</li>
+<li>传感器是否受到模态污染；</li>
+<li>控制输入是否激励了高频振动；</li>
+<li>频域裕度是否在全包线内可接受；</li>
+<li>结论是否只适用于某个有限飞行点。</li>
+</ul>
+<h2 id="本章小结">23.13 本章小结</h2>
+<p>刚柔耦合和气动弹性模型的作用，是把“刚体可控”与“结构可控”分开讨论。高超声速飞行器控制中，柔性不是附加噪声，而是会改变闭环稳定性、控制效能和安全裕度的真实对象。</p>
+<h2 id="练习">23.14 练习</h2>
+<ol type="1">
+<li>说明什么时候刚体模型不够用。</li>
+<li>写出模态展开的基本形式。</li>
+<li>解释
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>A</mi><mrow><mi>r</mi><mi>f</mi></mrow></msub><annotation encoding="application/x-tex">A_{rf}</annotation></semantics></math>
+和
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>A</mi><mrow><mi>f</mi><mi>r</mi></mrow></msub><annotation encoding="application/x-tex">A_{fr}</annotation></semantics></math>
+的物理意义。</li>
+<li>说明舵面柔性为什么会影响控制效能。</li>
+<li>给出一个带宽分离原则，并解释其工程含义。</li>
+</ol>
+
+      </article>
+      
+      <nav class="book-bottom-nav" aria-label="章节导航">
+        <a href="./22-six-dof-rigid-body-model.html">上一章：第22章 六自由度刚体模型</a>
+        <a href="./index.html">卷首页</a>
+        <a href="./24-actuator-sensor-computation-modeling.html">下一章：第24章 执行机构、传感器与计算系统建模</a>
+      </nav>
+    </main>
+  </div>
+</body>
+</html>

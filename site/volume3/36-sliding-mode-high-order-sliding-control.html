@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>第36章 滑模控制与高阶滑模控制</title>
+  <style>
+    :root {
+      --paper: #f7f3eb;
+      --ink: #1f2937;
+      --muted: #5b6472;
+      --line: color-mix(in srgb, #f6ecd1 68%, #cbd5e1 32%);
+      --accent: #9a6d1c;
+      --accent-soft: #f6ecd1;
+      --accent-deep: #5d4010;
+      color-scheme: light;
+    }
+    html {
+      -webkit-text-size-adjust: 100%;
+      background:
+        radial-gradient(circle at top left, #f6ecd1 0, rgba(255,255,255,0) 32%),
+        linear-gradient(180deg, #fbfaf6 0%, var(--paper) 18%, #f7f1e6 100%);
+    }
+    body {
+      margin: 0;
+      font-family: "Source Han Serif SC", "Songti SC", "Noto Serif CJK SC", "Microsoft YaHei", serif;
+      color: var(--ink);
+      line-height: 1.78;
+      letter-spacing: 0;
+    }
+    a { color: var(--accent-deep); }
+    .book-app {
+      display: grid;
+      grid-template-columns: 280px minmax(0, 1fr);
+      min-height: 100vh;
+    }
+    .book-sidebar {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow: auto;
+      padding: 1.2rem 1rem 1.2rem 1.15rem;
+      border-right: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(255,255,255,0.86), rgba(255,255,255,0.72));
+      backdrop-filter: blur(10px);
+    }
+    .sidebar-shell { position: sticky; top: 0; display: flex; flex-direction: column; gap: 1rem; }
+    .sidebar-brand {
+      padding: 0.95rem 0.95rem 1rem;
+      border-radius: 18px;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.95), rgba(255,255,255,0.84)),
+        linear-gradient(135deg, var(--accent-soft), rgba(255,255,255,0));
+      border: 1px solid var(--line);
+      box-shadow: 0 12px 28px rgba(31, 41, 55, 0.06);
+    }
+    .sidebar-brand .kicker { margin: 0; color: var(--accent); font-size: 0.82rem; font-weight: 700; }
+    .sidebar-brand h2 { margin: 0.45rem 0 0.25rem; font-size: 1.08rem; line-height: 1.3; color: var(--ink); }
+    .sidebar-brand p { margin: 0.35rem 0 0; color: var(--muted); font-size: 0.9rem; }
+    .sidebar-links { display: grid; gap: 0.45rem; }
+    .sidebar-link {
+      display: grid;
+      grid-template-columns: 2.2rem minmax(0, 1fr);
+      gap: 0.6rem;
+      align-items: start;
+      padding: 0.7rem 0.75rem;
+      border-radius: 14px;
+      text-decoration: none;
+      background: rgba(255,255,255,0.72);
+      border: 1px solid rgba(31,41,55,0.07);
+      color: var(--ink);
+    }
+    .sidebar-link:hover { background: rgba(255,255,255,0.95); border-color: var(--line); }
+    .sidebar-link.active {
+      background: linear-gradient(135deg, rgba(255,255,255,0.98), rgba(255,255,255,0.9));
+      border-color: var(--accent-soft);
+      box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent-soft) 68%, #ffffff 32%);
+    }
+    .sidebar-index {
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      min-width: 2rem;
+      height: 2rem;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent-deep);
+      font-size: 0.78rem;
+      font-weight: 800;
+    }
+    .sidebar-title { font-size: 0.94rem; line-height: 1.35; }
+    .book-main { min-width: 0; padding: 1.25rem 1.45rem 1.8rem; }
+    .book-page-header {
+      padding: 0.85rem 0 1rem;
+      margin-bottom: 1rem;
+      border-bottom: 1px solid var(--line);
+    }
+    .page-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.28rem 0.72rem;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.82);
+      border: 1px solid var(--line);
+      color: var(--accent-deep);
+      font-size: 0.8rem;
+      font-weight: 700;
+    }
+    .book-page-header h1 {
+      margin: 0.7rem 0 0;
+      font-size: 1.85rem;
+      line-height: 1.22;
+      color: var(--accent-deep);
+      border: 0;
+      padding: 0;
+    }
+    .book-page-header p { margin: 0.45rem 0 0; color: var(--muted); max-width: 62rem; }
+    .book-article { max-width: 900px; margin: 0; padding: 0 0 1.2rem; }
+    .book-article h1, .book-article h2, .book-article h3, .book-article h4, .book-article h5, .book-article h6 {
+      line-height: 1.28;
+      margin-top: 1.45em;
+      margin-bottom: 0.55em;
+      color: var(--accent-deep);
+    }
+    .book-article h1 { font-size: 2rem; border-bottom: 2px solid var(--line); padding-bottom: 0.42rem; }
+    .book-article h1:first-of-type { margin-top: 0; }
+    .book-article h2 { font-size: 1.42rem; }
+    .book-article h3 { font-size: 1.12rem; }
+    .book-article p, .book-article li, .book-article dd, .book-article td, .book-article th { text-align: justify; text-justify: inter-ideograph; }
+    .book-article p { margin: 0.85rem 0; }
+    .book-article code, .book-article pre { font-family: "Cascadia Mono", "Source Code Pro", Consolas, monospace; font-size: 0.94em; }
+    .book-article code {
+      padding: 0.02rem 0.24rem;
+      background: color-mix(in srgb, var(--accent-soft) 34%, #ffffff 66%);
+      border: 0;
+      border-bottom: 1px solid color-mix(in srgb, var(--accent-soft) 74%, #d1d5db 26%);
+      border-radius: 4px;
+      color: #253244;
+      box-decoration-break: clone;
+      -webkit-box-decoration-break: clone;
+    }
+    .book-article pre {
+      padding: 1rem 1.1rem;
+      overflow: auto;
+      background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,253,248,0.98));
+      border: 1px solid color-mix(in srgb, var(--accent-soft) 54%, #d1d5db 46%);
+      border-left: 5px solid var(--accent);
+      border-radius: 14px;
+      box-shadow: 0 8px 22px rgba(31, 41, 55, 0.05);
+    }
+    .book-article pre code { padding: 0; border: 0; background: transparent; color: inherit; }
+    .book-article table {
+      border-collapse: collapse;
+      width: 100%;
+      margin: 1rem 0 1.25rem;
+      background: rgba(255,255,255,0.82);
+      overflow: hidden;
+      border-radius: 12px;
+    }
+    .book-article th, .book-article td { border: 1px solid var(--line); padding: 0.5rem 0.7rem; vertical-align: top; }
+    .book-article th { background: color-mix(in srgb, var(--accent-soft) 42%, #ffffff 58%); }
+    .book-article blockquote {
+      margin: 1rem 0;
+      padding: 0.25rem 0 0.25rem 1rem;
+      border-left: 4px solid var(--accent);
+      color: #374151;
+      background: linear-gradient(90deg, rgba(255,255,255,0.72), rgba(255,255,255,0.48));
+      border-radius: 0 12px 12px 0;
+    }
+    .book-bottom-nav {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-top: 2.2rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--line);
+    }
+    .book-bottom-nav a {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.6rem 0.9rem;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.84);
+      text-decoration: none;
+      font-weight: 700;
+    }
+    .book-bottom-nav span {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.6rem 0.9rem;
+      border-radius: 999px;
+      border: 1px solid rgba(31,41,55,0.08);
+      background: rgba(255,255,255,0.54);
+      color: rgba(31,41,55,0.42);
+      font-weight: 700;
+    }
+    .book-bottom-nav a:hover { background: rgba(255,255,255,0.98); }
+    .book-volume-intro {
+      margin: 0 0 1.25rem;
+      padding: 1.2rem 1.25rem 1.1rem;
+      border-radius: 18px;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.96), rgba(255,255,255,0.78)),
+        linear-gradient(135deg, var(--accent-soft), rgba(255,255,255,0));
+      border: 1px solid var(--line);
+      box-shadow: 0 14px 34px rgba(31, 41, 55, 0.06);
+    }
+    .volume-intro-kicker {
+      margin: 0;
+      color: var(--accent);
+      font-size: 0.84rem;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    .book-volume-intro h2 {
+      margin: 0.55rem 0 0.55rem;
+      font-size: 1.28rem;
+      line-height: 1.35;
+      color: var(--accent-deep);
+    }
+    .volume-intro-summary {
+      margin: 0;
+      color: var(--muted);
+      max-width: 68rem;
+    }
+    .volume-intro-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.8rem;
+      margin-top: 1rem;
+    }
+    .volume-intro-box {
+      padding: 0.85rem 0.9rem;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.72);
+      border: 1px solid rgba(31,41,55,0.08);
+    }
+    .volume-intro-box span {
+      display: block;
+      color: var(--accent);
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+    }
+    .volume-intro-box strong {
+      display: block;
+      margin-top: 0.35rem;
+      color: var(--ink);
+      font-size: 0.95rem;
+      line-height: 1.45;
+    }
+    .volume-intro-note {
+      margin-top: 0.9rem;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+    @media (max-width: 1180px) {
+      .book-app { grid-template-columns: 1fr; }
+      .book-sidebar {
+        position: relative;
+        height: auto;
+        border-right: 0;
+        border-bottom: 1px solid var(--line);
+      }
+      .sidebar-shell { position: static; }
+    }
+    @media (max-width: 900px) {
+      .book-main { padding: 1rem 1rem 1.5rem; }
+      .book-bottom-nav { flex-direction: column; }
+      .volume-intro-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="book-app">
+    <aside class="book-sidebar">
+      <div class="sidebar-shell">
+        <div class="sidebar-brand">
+          <p class="kicker">高超声速飞行器控制教程</p>
+          <h2>第三卷 经典与现代飞行控制方法</h2>
+          <p>控制方法体系</p>
+        </div>
+        <nav class="sidebar-links" aria-label="本卷目录">
+          <a class="sidebar-link" href="./index.html"><span class="sidebar-index">0</span><span class="sidebar-title">卷首页</span></a>
+<a class="sidebar-link" href="./26-flight-control-system-architecture.html"><span class="sidebar-index">01</span><span class="sidebar-title">第26章 飞行控制系统架构</span></a>
+<a class="sidebar-link" href="./27-pid-classical-autopilot.html"><span class="sidebar-index">02</span><span class="sidebar-title">第27章 PID 与经典自动驾驶仪</span></a>
+<a class="sidebar-link" href="./28-root-locus-frequency-domain-margins.html"><span class="sidebar-index">03</span><span class="sidebar-title">第28章 根轨迹、频域设计与稳定裕度</span></a>
+<a class="sidebar-link" href="./29-state-feedback-observer-pole-placement.html"><span class="sidebar-index">04</span><span class="sidebar-title">第29章 状态反馈、观测器与极点配置</span></a>
+<a class="sidebar-link" href="./30-lqr-lqg-linear-optimal-control.html"><span class="sidebar-index">05</span><span class="sidebar-title">第30章 LQR、LQG 与线性最优控制</span></a>
+<a class="sidebar-link" href="./31-h2-hinf-robust-flight-control.html"><span class="sidebar-index">06</span><span class="sidebar-title">第31章 $H_2$、$H_\infty$ 与鲁棒飞行控制</span></a>
+<a class="sidebar-link" href="./32-gain-scheduling-lpv-control.html"><span class="sidebar-index">07</span><span class="sidebar-title">第32章 增益调度与 LPV 控制</span></a>
+<a class="sidebar-link" href="./33-feedback-linearization-dynamic-inversion.html"><span class="sidebar-index">08</span><span class="sidebar-title">第33章 反馈线性化与动态逆控制</span></a>
+<a class="sidebar-link" href="./34-incremental-nonlinear-dynamic-inversion.html"><span class="sidebar-index">09</span><span class="sidebar-title">第34章 增量非线性动态逆控制</span></a>
+<a class="sidebar-link" href="./35-backstepping-dynamic-surface-control.html"><span class="sidebar-index">10</span><span class="sidebar-title">第35章 反步控制与动态面控制</span></a>
+<a class="sidebar-link active" href="./36-sliding-mode-high-order-sliding-control.html"><span class="sidebar-index">11</span><span class="sidebar-title">第36章 滑模控制与高阶滑模控制</span></a>
+<a class="sidebar-link" href="./37-adaptive-flight-control.html"><span class="sidebar-index">12</span><span class="sidebar-title">第37章 自适应飞行控制</span></a>
+<a class="sidebar-link" href="./38-intelligent-approximation-control.html"><span class="sidebar-index">13</span><span class="sidebar-title">第38章 智能逼近控制</span></a>
+<a class="sidebar-link" href="./39-disturbance-observer-eso-adrc.html"><span class="sidebar-index">14</span><span class="sidebar-title">第39章 扰动观测器、扩张状态观测器与 ADRC</span></a>
+        </nav>
+      </div>
+    </aside>
+    <main class="book-main">
+      <header class="book-page-header">
+        <div class="page-eyebrow">第3册·章节页11</div>
+        <h1 id="volume3--36-sliding-mode-high-order-sliding-control">第36章 滑模控制与高阶滑模控制</h1>
+        <p>本页是章节正文页。左侧目录用于回到本卷其他章节，底部导航用于前后章跳转。</p>
+      </header>
+      <article class="book-article">
+        <h2 id="问题背景">36.1 问题背景</h2>
+<p>NDI
+和反步依赖较强的标称模型。滑模控制的核心价值是：在一定不确定性结构下，通过滑模面和到达律获得鲁棒性。高超声速飞行器中，气动参数误差、推力误差、大气扰动和执行机构不确定性都使滑模控制具有吸引力。</p>
+<p>滑模控制不是为了“把公式写得硬”，而是为了在不确定性存在时仍能把误差压到一个可控滑动面上。</p>
+<h2 id="滑模面的基本思想">36.2 滑模面的基本思想</h2>
+<p>对误差
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>e</mi><annotation encoding="application/x-tex">e</annotation></semantics></math>，常用滑模面为</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>s</mi><mo>=</mo><mover><mi>e</mi><mo accent="true">̇</mo></mover><mo>+</mo><mi>λ</mi><mi>e</mi></mrow><annotation encoding="application/x-tex">
+ s = \dot e + \lambda e
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>s</mi><annotation encoding="application/x-tex">s</annotation></semantics></math>
+是滑模变量，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>λ</mi><annotation encoding="application/x-tex">\lambda</annotation></semantics></math>
+是正反馈增益。
+其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>e</mi><annotation encoding="application/x-tex">e</annotation></semantics></math>
+是跟踪误差，一般由状态、输出或参考构造得到。</p>
+<p>也就是说，滑模面定义了期望误差动态。控制器任务分两步：到达阶段让
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>s</mi><annotation encoding="application/x-tex">s</annotation></semantics></math>
+到达零或边界层；滑动阶段让系统沿
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>s</mi><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">s=0</annotation></semantics></math>
+运动。</p>
+<h2 id="滑模面设计前的接口检查">36.3 滑模面设计前的接口检查</h2>
+<p>滑模面不是一个纯数学表达式，而是把控制目标、可测信号和控制接口压缩到一个标量或向量约束里。因此，在真正写出
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>s</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">s(x,t)</annotation></semantics></math>
+之前，先把信号从哪里来、控制要压到哪里、哪些量能直接用上讲清楚，会比直接给出一个形式更有帮助。</p>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>项目</th>
+<th>交代要点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>受控对象</td>
+<td>姿态通道、攻角通道、速度高度通道还是控制分配前的广义控制量</td>
+</tr>
+<tr>
+<td>误差信号</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>e</mi><annotation encoding="application/x-tex">e</annotation></semantics></math>
+来自直接测量、状态估计还是制导修正参考</td>
+</tr>
+<tr>
+<td>导数来源</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mover><mi>e</mi><mo accent="true">̇</mo></mover><annotation encoding="application/x-tex">\dot e</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mover><mi>α</mi><mo accent="true">̇</mo></mover><annotation encoding="application/x-tex">\dot\alpha</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mover><mi>γ</mi><mo accent="true">̇</mo></mover><annotation encoding="application/x-tex">\dot\gamma</annotation></semantics></math>、角加速度来自模型、滤波器还是数值差分</td>
+</tr>
+<tr>
+<td>控制接口</td>
+<td>输出是实际舵偏
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>u</mi><annotation encoding="application/x-tex">u</annotation></semantics></math>、广义控制量
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ν</mi><mi>c</mi></msub><annotation encoding="application/x-tex">\nu_c</annotation></semantics></math>，还是参考命令
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>r</mi><mi>f</mi></msub><annotation encoding="application/x-tex">r_f</annotation></semantics></math></td>
+</tr>
+<tr>
+<td>相对阶</td>
+<td>受控输出到输入的相对阶是否清楚、符号是否稳定</td>
+</tr>
+<tr>
+<td>适用区间</td>
+<td>在哪些飞行包线内
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>b</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">b(x)</annotation></semantics></math>
+不退化、滑模面含义不失真</td>
+</tr>
+</tbody>
+</table>
+<h2 id="到达律">36.4 到达律</h2>
+<p>若滑模动态为</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>s</mi><mo accent="true">̇</mo></mover><mo>=</mo><mi>−</mi><mi>η</mi><mspace width="0.167em"></mspace><mrow><mi mathvariant="normal">s</mi><mi mathvariant="normal">g</mi><mi mathvariant="normal">n</mi></mrow><mo stretchy="false" form="prefix">(</mo><mi>s</mi><mo stretchy="false" form="postfix">)</mo><mo>+</mo><mi>d</mi></mrow><annotation encoding="application/x-tex">
+ \dot s = -\eta\,\mathrm{sgn}(s) + d
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>η</mi><annotation encoding="application/x-tex">\eta</annotation></semantics></math>
+是到达律增益，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">s</mi><mi mathvariant="normal">g</mi><mi mathvariant="normal">n</mi></mrow><mo stretchy="false" form="prefix">(</mo><mi>⋅</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\mathrm{sgn}(\cdot)</annotation></semantics></math>
+是符号函数。</p>
+<p>若外部扰动有界</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">|</mo><mi>d</mi><mo stretchy="false" form="postfix">|</mo><mo>≤</mo><msub><mi>d</mi><mi>max</mi><mo>&#8289;</mo></msub></mrow><annotation encoding="application/x-tex">
+\lvert d \rvert \le d_{\max}
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>d</mi><annotation encoding="application/x-tex">d</annotation></semantics></math>
+是外部扰动，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>d</mi><mi>max</mi><mo>&#8289;</mo></msub><annotation encoding="application/x-tex">d_{\max}</annotation></semantics></math>
+是扰动上界。</p>
+<p>则切换控制常可取为</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>u</mi><mrow><mi mathvariant="normal">s</mi><mi mathvariant="normal">w</mi></mrow></msub><mo>=</mo><mi>−</mi><msub><mi>k</mi><mi>s</mi></msub><mspace width="0.167em"></mspace><mrow><mi mathvariant="normal">s</mi><mi mathvariant="normal">g</mi><mi mathvariant="normal">n</mi></mrow><mo stretchy="false" form="prefix">(</mo><mi>s</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
+ u_{\mathrm{sw}} = -k_s \,\mathrm{sgn}(s)
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>u</mi><mrow><mi mathvariant="normal">s</mi><mi mathvariant="normal">w</mi></mrow></msub><annotation encoding="application/x-tex">u_{\mathrm{sw}}</annotation></semantics></math>
+是切换项；等效控制解释了滑模面上的平均控制行为，切换项用于抵抗不确定性并保证到达。</p>
+<h2 id="等效控制">36.5 等效控制</h2>
+<p>若在滑模面上令
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>s</mi><mo accent="true">̇</mo></mover><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\dot s=0</annotation></semantics></math>，则可得到等效控制</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>u</mi><mrow><mi mathvariant="normal">e</mi><mi mathvariant="normal">q</mi></mrow></msub><mo>=</mo><mi>−</mi><mi>a</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mi>/</mi><mi>b</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
+ u_{\mathrm{eq}} = -a(x)/b(x)
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>u</mi><mrow><mi mathvariant="normal">e</mi><mi mathvariant="normal">q</mi></mrow></msub><annotation encoding="application/x-tex">u_{\mathrm{eq}}</annotation></semantics></math>
+是等效控制。
+其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>a</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">a(x)</annotation></semantics></math>
+是标称漂移项，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>b</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">b(x)</annotation></semantics></math>
+是输入通道增益。</p>
+<p>等效控制对应“平均意义上的”保持滑模运动所需的输入，切换项对应对不确定性和扰动的补偿。</p>
+<h2 id="抖振">36.6 抖振</h2>
+<p>为了抑制抖振，常用边界层近似代替理想符号函数。边界层内可使用饱和函数</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">s</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">t</mi></mrow><mspace width="-0.167em"></mspace><mrow><mo stretchy="true" form="prefix">(</mo><mfrac><mi>s</mi><mi>ϵ</mi></mfrac><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">
+\mathrm{sat}\!\left(\frac{s}{\epsilon}\right)
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ϵ</mi><annotation encoding="application/x-tex">\epsilon</annotation></semantics></math>
+是边界层厚度。</p>
+<p>控制律变为</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>u</mi><mo>=</mo><msub><mi>u</mi><mrow><mi mathvariant="normal">e</mi><mi mathvariant="normal">q</mi></mrow></msub><mo>−</mo><msub><mi>k</mi><mi>s</mi></msub><mspace width="0.167em"></mspace><mrow><mi mathvariant="normal">s</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">t</mi></mrow><mspace width="-0.167em"></mspace><mrow><mo stretchy="true" form="prefix">(</mo><mfrac><mi>s</mi><mi>ϵ</mi></mfrac><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">
+ u = u_{\mathrm{eq}} - k_s\,\mathrm{sat}\!\left(\frac{s}{\epsilon}\right)
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>k</mi><mi>s</mi></msub><annotation encoding="application/x-tex">k_s</annotation></semantics></math>
+是切换增益，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">s</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">t</mi></mrow><mo stretchy="false" form="prefix">(</mo><mi>⋅</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\mathrm{sat}(\cdot)</annotation></semantics></math>
+是饱和函数。</p>
+<p>边界层方法把“严格到零”换成“有界进入一层薄带”，但残余误差和高频切换强度必须被记录。</p>
+<h2 id="高阶滑模">36.7 高阶滑模</h2>
+<p>高阶滑模的目标是让
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>s</mi><annotation encoding="application/x-tex">s</annotation></semantics></math>
+及其若干导数同时收敛。以二阶滑模为例，可写成</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>s</mi><mo>=</mo><mn>0</mn><mo>,</mo><mspace width="2.0em"></mspace><mover><mi>s</mi><mo accent="true">̇</mo></mover><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">
+ s = 0,\qquad \dot s = 0
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mover><mi>s</mi><mo accent="true">̇</mo></mover><annotation encoding="application/x-tex">\dot s</annotation></semantics></math>
+是滑模变量导数。</p>
+<p>常见高阶滑模算法包括
+super-twisting。它们的优势是减少抖振并提高对有界扰动的鲁棒性，但代价是参数选择、噪声敏感性和实现复杂度上升。</p>
+<h2 id="终端滑模">36.8 终端滑模</h2>
+<p>终端滑模通过非线性滑模面提高有限时间收敛能力。例如</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>s</mi><mo>=</mo><mi>e</mi><mo>+</mo><mi>λ</mi><mo stretchy="false" form="prefix">|</mo><mi>e</mi><msup><mo stretchy="false" form="prefix">|</mo><mi>ρ</mi></msup><mrow><mi mathvariant="normal">s</mi><mi mathvariant="normal">g</mi><mi mathvariant="normal">n</mi></mrow><mo stretchy="false" form="prefix">(</mo><mi>e</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
+ s = e + \lambda |e|^\rho \mathrm{sgn}(e)
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0</mn><mo>&lt;</mo><mi>ρ</mi><mo>&lt;</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">0&lt;\rho&lt;1</annotation></semantics></math>。
+其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ρ</mi><annotation encoding="application/x-tex">\rho</annotation></semantics></math>
+是终端滑模的幂指数，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>λ</mi><annotation encoding="application/x-tex">\lambda</annotation></semantics></math>
+是滑模面增益。</p>
+<p>这类方法能使误差在有限时间内收敛，但也要小心奇异性和噪声放大问题。</p>
+<h2 id="积分滑模">36.9 积分滑模</h2>
+<p>积分滑模常用于改善初始阶段鲁棒性。若</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>s</mi><mo>=</mo><mi>e</mi><mo>+</mo><msubsup><mo>∫</mo><mn>0</mn><mi>t</mi></msubsup><mi>ϕ</mi><mo stretchy="false" form="prefix">(</mo><mi>τ</mi><mo stretchy="false" form="postfix">)</mo><mspace width="0.167em"></mspace><mi>d</mi><mi>τ</mi></mrow><annotation encoding="application/x-tex">
+ s = e + \int_0^t \phi(\tau)\,d\tau
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ϕ</mi><mo stretchy="false" form="prefix">(</mo><mi>τ</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\phi(\tau)</annotation></semantics></math>
+是设计的积分项。
+其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ϕ</mi><mo stretchy="false" form="prefix">(</mo><mi>τ</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\phi(\tau)</annotation></semantics></math>
+是积分滑模中的设计项，用于塑造初始阶段的滑模面偏置或等效补偿。</p>
+<p>那么系统可从初始时刻就被放到滑模面附近，减小到达阶段的不确定性影响。</p>
+<h2 id="与安全约束的连接">36.10 与安全约束的连接</h2>
+<p>滑模控制增强鲁棒跟踪，但不自动保证动压、热流、过载、攻角、舵偏和舵速约束。</p>
+<p>如果滑模强行跟踪不可行参考，可能更快逼近安全边界。因此，约束任务中应采用原始参考经过安全治理后再进入滑模跟踪，或者把安全项显式并入滑模面和控制律。</p>
+<h2 id="最小验证协议">36.11 最小验证协议</h2>
+<p>第36章不能只停在“滑模抗扰”。它还必须主动说明和后续章节的接口。</p>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>本章输出</th>
+<th>后续章节继续完成</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>围绕某一通道的鲁棒跟踪律</td>
+<td>第40到第44章继续承接约束、安全和参考可行化</td>
+</tr>
+<tr>
+<td>输出属于
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>u</mi><annotation encoding="application/x-tex">u</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ν</mi><mi>c</mi></msub><annotation encoding="application/x-tex">\nu_c</annotation></semantics></math>
+或
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>r</mi><mi>f</mi></msub><annotation encoding="application/x-tex">r_f</annotation></semantics></math>
+的边界</td>
+<td>第45章继续承接控制分配可实现性</td>
+</tr>
+<tr>
+<td>对采样、滤波、舵速和延迟的说明</td>
+<td>第55章继续承接离散实现与实时计算</td>
+</tr>
+</tbody>
+</table>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>u</mi><annotation encoding="application/x-tex">u</annotation></semantics></math>
+是实际输入，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ν</mi><mi>c</mi></msub><annotation encoding="application/x-tex">\nu_c</annotation></semantics></math>
+是广义控制量，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>r</mi><mi>f</mi></msub><annotation encoding="application/x-tex">r_f</annotation></semantics></math>
+是安全治理后的参考命令。</p>
+<h2 id="本章小结">36.12 本章小结</h2>
+<p>滑模控制和高阶滑模控制的核心价值，在于对有界不确定性的鲁棒性。但它们不是约束保证方法，也不是天然无抖振方法。对于高超声速飞行器，滑模控制更适合做鲁棒内环或局部补偿，而不是单独承担全部任务。</p>
+<h2 id="练习">36.13 练习</h2>
+<ol type="1">
+<li>写出标准滑模面的基本形式。</li>
+<li>说明到达律和滑动阶段分别做什么。</li>
+<li>解释抖振为什么是工程核心问题。</li>
+<li>写出边界层近似的基本形式。</li>
+<li>说明高阶滑模和终端滑模分别解决什么问题。</li>
+</ol>
+
+      </article>
+      
+      <nav class="book-bottom-nav" aria-label="章节导航">
+        <a href="./35-backstepping-dynamic-surface-control.html">上一章：第35章 反步控制与动态面控制</a>
+        <a href="./index.html">卷首页</a>
+        <a href="./37-adaptive-flight-control.html">下一章：第37章 自适应飞行控制</a>
+      </nav>
+    </main>
+  </div>
+</body>
+</html>

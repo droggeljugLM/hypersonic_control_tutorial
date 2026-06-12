@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>第45章 控制分配理论</title>
+  <style>
+    :root {
+      --paper: #f7f3eb;
+      --ink: #1f2937;
+      --muted: #5b6472;
+      --line: color-mix(in srgb, #f5dfe9 68%, #cbd5e1 32%);
+      --accent: #8b3f67;
+      --accent-soft: #f5dfe9;
+      --accent-deep: #522640;
+      color-scheme: light;
+    }
+    html {
+      -webkit-text-size-adjust: 100%;
+      background:
+        radial-gradient(circle at top left, #f5dfe9 0, rgba(255,255,255,0) 32%),
+        linear-gradient(180deg, #fbfaf6 0%, var(--paper) 18%, #f7f1e6 100%);
+    }
+    body {
+      margin: 0;
+      font-family: "Source Han Serif SC", "Songti SC", "Noto Serif CJK SC", "Microsoft YaHei", serif;
+      color: var(--ink);
+      line-height: 1.78;
+      letter-spacing: 0;
+    }
+    a { color: var(--accent-deep); }
+    .book-app {
+      display: grid;
+      grid-template-columns: 280px minmax(0, 1fr);
+      min-height: 100vh;
+    }
+    .book-sidebar {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow: auto;
+      padding: 1.2rem 1rem 1.2rem 1.15rem;
+      border-right: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(255,255,255,0.86), rgba(255,255,255,0.72));
+      backdrop-filter: blur(10px);
+    }
+    .sidebar-shell { position: sticky; top: 0; display: flex; flex-direction: column; gap: 1rem; }
+    .sidebar-brand {
+      padding: 0.95rem 0.95rem 1rem;
+      border-radius: 18px;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.95), rgba(255,255,255,0.84)),
+        linear-gradient(135deg, var(--accent-soft), rgba(255,255,255,0));
+      border: 1px solid var(--line);
+      box-shadow: 0 12px 28px rgba(31, 41, 55, 0.06);
+    }
+    .sidebar-brand .kicker { margin: 0; color: var(--accent); font-size: 0.82rem; font-weight: 700; }
+    .sidebar-brand h2 { margin: 0.45rem 0 0.25rem; font-size: 1.08rem; line-height: 1.3; color: var(--ink); }
+    .sidebar-brand p { margin: 0.35rem 0 0; color: var(--muted); font-size: 0.9rem; }
+    .sidebar-links { display: grid; gap: 0.45rem; }
+    .sidebar-link {
+      display: grid;
+      grid-template-columns: 2.2rem minmax(0, 1fr);
+      gap: 0.6rem;
+      align-items: start;
+      padding: 0.7rem 0.75rem;
+      border-radius: 14px;
+      text-decoration: none;
+      background: rgba(255,255,255,0.72);
+      border: 1px solid rgba(31,41,55,0.07);
+      color: var(--ink);
+    }
+    .sidebar-link:hover { background: rgba(255,255,255,0.95); border-color: var(--line); }
+    .sidebar-link.active {
+      background: linear-gradient(135deg, rgba(255,255,255,0.98), rgba(255,255,255,0.9));
+      border-color: var(--accent-soft);
+      box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent-soft) 68%, #ffffff 32%);
+    }
+    .sidebar-index {
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      min-width: 2rem;
+      height: 2rem;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent-deep);
+      font-size: 0.78rem;
+      font-weight: 800;
+    }
+    .sidebar-title { font-size: 0.94rem; line-height: 1.35; }
+    .book-main { min-width: 0; padding: 1.25rem 1.45rem 1.8rem; }
+    .book-page-header {
+      padding: 0.85rem 0 1rem;
+      margin-bottom: 1rem;
+      border-bottom: 1px solid var(--line);
+    }
+    .page-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.28rem 0.72rem;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.82);
+      border: 1px solid var(--line);
+      color: var(--accent-deep);
+      font-size: 0.8rem;
+      font-weight: 700;
+    }
+    .book-page-header h1 {
+      margin: 0.7rem 0 0;
+      font-size: 1.85rem;
+      line-height: 1.22;
+      color: var(--accent-deep);
+      border: 0;
+      padding: 0;
+    }
+    .book-page-header p { margin: 0.45rem 0 0; color: var(--muted); max-width: 62rem; }
+    .book-article { max-width: 900px; margin: 0; padding: 0 0 1.2rem; }
+    .book-article h1, .book-article h2, .book-article h3, .book-article h4, .book-article h5, .book-article h6 {
+      line-height: 1.28;
+      margin-top: 1.45em;
+      margin-bottom: 0.55em;
+      color: var(--accent-deep);
+    }
+    .book-article h1 { font-size: 2rem; border-bottom: 2px solid var(--line); padding-bottom: 0.42rem; }
+    .book-article h1:first-of-type { margin-top: 0; }
+    .book-article h2 { font-size: 1.42rem; }
+    .book-article h3 { font-size: 1.12rem; }
+    .book-article p, .book-article li, .book-article dd, .book-article td, .book-article th { text-align: justify; text-justify: inter-ideograph; }
+    .book-article p { margin: 0.85rem 0; }
+    .book-article code, .book-article pre { font-family: "Cascadia Mono", "Source Code Pro", Consolas, monospace; font-size: 0.94em; }
+    .book-article code {
+      padding: 0.02rem 0.24rem;
+      background: color-mix(in srgb, var(--accent-soft) 34%, #ffffff 66%);
+      border: 0;
+      border-bottom: 1px solid color-mix(in srgb, var(--accent-soft) 74%, #d1d5db 26%);
+      border-radius: 4px;
+      color: #253244;
+      box-decoration-break: clone;
+      -webkit-box-decoration-break: clone;
+    }
+    .book-article pre {
+      padding: 1rem 1.1rem;
+      overflow: auto;
+      background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,253,248,0.98));
+      border: 1px solid color-mix(in srgb, var(--accent-soft) 54%, #d1d5db 46%);
+      border-left: 5px solid var(--accent);
+      border-radius: 14px;
+      box-shadow: 0 8px 22px rgba(31, 41, 55, 0.05);
+    }
+    .book-article pre code { padding: 0; border: 0; background: transparent; color: inherit; }
+    .book-article table {
+      border-collapse: collapse;
+      width: 100%;
+      margin: 1rem 0 1.25rem;
+      background: rgba(255,255,255,0.82);
+      overflow: hidden;
+      border-radius: 12px;
+    }
+    .book-article th, .book-article td { border: 1px solid var(--line); padding: 0.5rem 0.7rem; vertical-align: top; }
+    .book-article th { background: color-mix(in srgb, var(--accent-soft) 42%, #ffffff 58%); }
+    .book-article blockquote {
+      margin: 1rem 0;
+      padding: 0.25rem 0 0.25rem 1rem;
+      border-left: 4px solid var(--accent);
+      color: #374151;
+      background: linear-gradient(90deg, rgba(255,255,255,0.72), rgba(255,255,255,0.48));
+      border-radius: 0 12px 12px 0;
+    }
+    .book-bottom-nav {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-top: 2.2rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--line);
+    }
+    .book-bottom-nav a {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.6rem 0.9rem;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.84);
+      text-decoration: none;
+      font-weight: 700;
+    }
+    .book-bottom-nav span {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.6rem 0.9rem;
+      border-radius: 999px;
+      border: 1px solid rgba(31,41,55,0.08);
+      background: rgba(255,255,255,0.54);
+      color: rgba(31,41,55,0.42);
+      font-weight: 700;
+    }
+    .book-bottom-nav a:hover { background: rgba(255,255,255,0.98); }
+    .book-volume-intro {
+      margin: 0 0 1.25rem;
+      padding: 1.2rem 1.25rem 1.1rem;
+      border-radius: 18px;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.96), rgba(255,255,255,0.78)),
+        linear-gradient(135deg, var(--accent-soft), rgba(255,255,255,0));
+      border: 1px solid var(--line);
+      box-shadow: 0 14px 34px rgba(31, 41, 55, 0.06);
+    }
+    .volume-intro-kicker {
+      margin: 0;
+      color: var(--accent);
+      font-size: 0.84rem;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    .book-volume-intro h2 {
+      margin: 0.55rem 0 0.55rem;
+      font-size: 1.28rem;
+      line-height: 1.35;
+      color: var(--accent-deep);
+    }
+    .volume-intro-summary {
+      margin: 0;
+      color: var(--muted);
+      max-width: 68rem;
+    }
+    .volume-intro-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.8rem;
+      margin-top: 1rem;
+    }
+    .volume-intro-box {
+      padding: 0.85rem 0.9rem;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.72);
+      border: 1px solid rgba(31,41,55,0.08);
+    }
+    .volume-intro-box span {
+      display: block;
+      color: var(--accent);
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+    }
+    .volume-intro-box strong {
+      display: block;
+      margin-top: 0.35rem;
+      color: var(--ink);
+      font-size: 0.95rem;
+      line-height: 1.45;
+    }
+    .volume-intro-note {
+      margin-top: 0.9rem;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+    @media (max-width: 1180px) {
+      .book-app { grid-template-columns: 1fr; }
+      .book-sidebar {
+        position: relative;
+        height: auto;
+        border-right: 0;
+        border-bottom: 1px solid var(--line);
+      }
+      .sidebar-shell { position: static; }
+    }
+    @media (max-width: 900px) {
+      .book-main { padding: 1rem 1rem 1.5rem; }
+      .book-bottom-nav { flex-direction: column; }
+      .volume-intro-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="book-app">
+    <aside class="book-sidebar">
+      <div class="sidebar-shell">
+        <div class="sidebar-brand">
+          <p class="kicker">高超声速飞行器控制教程</p>
+          <h2>第四卷 约束、安全、容错与制导控制一体化</h2>
+          <p>约束与安全</p>
+        </div>
+        <nav class="sidebar-links" aria-label="本卷目录">
+          <a class="sidebar-link" href="./index.html"><span class="sidebar-index">0</span><span class="sidebar-title">卷首页</span></a>
+<a class="sidebar-link" href="./40-hypersonic-flight-constraints.html"><span class="sidebar-index">01</span><span class="sidebar-title">第40章 高超声速飞行约束体系</span></a>
+<a class="sidebar-link" href="./41-input-saturation-anti-windup.html"><span class="sidebar-index">02</span><span class="sidebar-title">第41章 输入饱和与抗积分饱和控制</span></a>
+<a class="sidebar-link" href="./42-barrier-lyapunov-constrained-tracking.html"><span class="sidebar-index">03</span><span class="sidebar-title">第42章 障碍 Lyapunov 函数与约束跟踪控制</span></a>
+<a class="sidebar-link" href="./43-control-barrier-function-safety-filter.html"><span class="sidebar-index">04</span><span class="sidebar-title">第43章 控制障碍函数与安全滤波</span></a>
+<a class="sidebar-link" href="./44-model-predictive-control.html"><span class="sidebar-index">05</span><span class="sidebar-title">第44章 模型预测控制</span></a>
+<a class="sidebar-link active" href="./45-control-allocation-theory.html"><span class="sidebar-index">06</span><span class="sidebar-title">第45章 控制分配理论</span></a>
+<a class="sidebar-link" href="./46-fault-diagnosis-fault-tolerant-control.html"><span class="sidebar-index">07</span><span class="sidebar-title">第46章 故障诊断与容错控制</span></a>
+<a class="sidebar-link" href="./47-guidance-theory-foundations.html"><span class="sidebar-index">08</span><span class="sidebar-title">第47章 制导理论基础</span></a>
+<a class="sidebar-link" href="./48-integrated-guidance-control.html"><span class="sidebar-index">09</span><span class="sidebar-title">第48章 制导控制一体化</span></a>
+<a class="sidebar-link" href="./49-reentry-flight-control.html"><span class="sidebar-index">10</span><span class="sidebar-title">第49章 再入飞行控制</span></a>
+<a class="sidebar-link" href="./50-glide-energy-management-control.html"><span class="sidebar-index">11</span><span class="sidebar-title">第50章 滑翔飞行与能量管理控制</span></a>
+<a class="sidebar-link" href="./51-airbreathing-hypersonic-cruise-control.html"><span class="sidebar-index">12</span><span class="sidebar-title">第51章 吸气式高超声速巡航控制</span></a>
+        </nav>
+      </div>
+    </aside>
+    <main class="book-main">
+      <header class="book-page-header">
+        <div class="page-eyebrow">第4册·章节页06</div>
+        <h1 id="volume4--45-control-allocation-theory">第45章 控制分配理论</h1>
+        <p>本页是章节正文页。左侧目录用于回到本卷其他章节，底部导航用于前后章跳转。</p>
+      </header>
+      <article class="book-article">
+        <h2 id="问题背景">45.1 问题背景</h2>
+<p>高超声速飞行器常有多个执行机构：升降舵、副翼、方向舵、体襟翼、RCS、推力矢量和油门。主控制器通常不应直接逐个生成每个执行机构命令，而是先给出期望力或力矩，再由控制分配层把它们转换为实际执行机构输入。</p>
+<p>控制分配描述的是“控制律输出什么”和“执行机构实际做什么”之间的映射关系。这个层次在高超声速飞行器里尤其关键，因为控制命令常常不可能一对一落到单个执行机构上。</p>
+<h2 id="从期望力矩到执行机构">45.2 从期望力矩到执行机构</h2>
+<p>设主控制器输出期望广义控制量</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ν</mi><mi>c</mi></msub><mo>=</mo><msup><mrow><mo stretchy="true" form="prefix">[</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><msub><mi>L</mi><mi>c</mi></msub></mtd><mtd columnalign="center" style="text-align: center"><msub><mi>M</mi><mi>c</mi></msub></mtd><mtd columnalign="center" style="text-align: center"><msub><mi>N</mi><mi>c</mi></msub></mtd></mtr></mtable><mo stretchy="true" form="postfix">]</mo></mrow><mi>⊤</mi></msup></mrow><annotation encoding="application/x-tex">
+\nu_c = \begin{bmatrix}L_c &amp; M_c &amp; N_c\end{bmatrix}^\top
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ν</mi><mi>c</mi></msub><annotation encoding="application/x-tex">\nu_c</annotation></semantics></math>
+是期望广义控制量。</p>
+<p>控制分配的基本问题是</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>B</mi><mi>a</mi></msub><msub><mi>u</mi><mi>a</mi></msub><mo>≈</mo><msub><mi>ν</mi><mi>c</mi></msub></mrow><annotation encoding="application/x-tex">
+B_a u_a \approx \nu_c
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>B</mi><mi>a</mi></msub><annotation encoding="application/x-tex">B_a</annotation></semantics></math>
+是控制效能矩阵，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>u</mi><mi>a</mi></msub><annotation encoding="application/x-tex">u_a</annotation></semantics></math>
+是执行机构命令向量。</p>
+<h2 id="控制效能矩阵">45.3 控制效能矩阵</h2>
+<p>控制效能矩阵由气动导数、执行机构安装位置、推力矢量方向和当前飞行点共同决定。若执行机构效率变化，可写为</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>B</mi><mi>a</mi></msub><mo>=</mo><msub><mi>B</mi><mn>0</mn></msub><mi mathvariant="normal">Λ</mi></mrow><annotation encoding="application/x-tex">
+B_a = B_0 \Lambda
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>B</mi><mn>0</mn></msub><annotation encoding="application/x-tex">B_0</annotation></semantics></math>
+是名义效能矩阵，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Λ</mi><mo>=</mo><mrow><mi mathvariant="normal">d</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">g</mi></mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>λ</mi><mn>1</mn></msub><mo>,</mo><mi>…</mi><mo>,</mo><msub><mi>λ</mi><mi>m</mi></msub><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\Lambda=\mathrm{diag}(\lambda_1,\ldots,\lambda_m)</annotation></semantics></math>
+表示执行机构效率。</p>
+<h2 id="广义逆分配">45.4 广义逆分配</h2>
+<p>最简单的分配为 Moore-Penrose 广义逆</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>u</mi><mi>a</mi></msub><mo>=</mo><msubsup><mi>B</mi><mi>a</mi><mo>†</mo></msubsup><msub><mi>ν</mi><mi>c</mi></msub></mrow><annotation encoding="application/x-tex">
+u_a = B_a^\dagger \nu_c
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msubsup><mi>B</mi><mi>a</mi><mo>†</mo></msubsup><annotation encoding="application/x-tex">B_a^\dagger</annotation></semantics></math>
+是广义逆。</p>
+<p>广义逆方法直观，但不能直接处理幅值和速率约束。</p>
+<h2 id="加权最小二乘分配">45.5 加权最小二乘分配</h2>
+<p>若考虑权重和偏好，可写成</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>u</mi><mi>a</mi><mo>⋆</mo></msubsup><mo>=</mo><mi>arg</mi><mo>&#8289;</mo><munder><mi>min</mi><mo>&#8289;</mo><msub><mi>u</mi><mi>a</mi></msub></munder><mspace width="0.222em"></mspace><mo stretchy="false" form="postfix">∥</mo><mi>W</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>B</mi><mi>a</mi></msub><msub><mi>u</mi><mi>a</mi></msub><mo>−</mo><msub><mi>ν</mi><mi>c</mi></msub><mo stretchy="false" form="postfix">)</mo><msubsup><mo stretchy="false" form="postfix">∥</mo><mn>2</mn><mn>2</mn></msubsup></mrow><annotation encoding="application/x-tex">
+u_a^\star = \arg\min_{u_a}\ \|W(B_a u_a-\nu_c)\|_2^2
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>W</mi><annotation encoding="application/x-tex">W</annotation></semantics></math>
+是权重矩阵。</p>
+<p>加权最小二乘能够表达执行机构优先级和通道偏好。</p>
+<h2 id="约束分配">45.6 约束分配</h2>
+<p>约束分配可写成二次规划</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><munder><mi>min</mi><mo>&#8289;</mo><msub><mi>u</mi><mi>a</mi></msub></munder><mspace width="0.222em"></mspace><mo stretchy="false" form="postfix">∥</mo><msub><mi>B</mi><mi>a</mi></msub><msub><mi>u</mi><mi>a</mi></msub><mo>−</mo><msub><mi>ν</mi><mi>c</mi></msub><msubsup><mo stretchy="false" form="postfix">∥</mo><mn>2</mn><mn>2</mn></msubsup><mo>+</mo><mi>ρ</mi><mo stretchy="false" form="postfix">∥</mo><msub><mi>u</mi><mi>a</mi></msub><msubsup><mo stretchy="false" form="postfix">∥</mo><mn>2</mn><mn>2</mn></msubsup></mrow><annotation encoding="application/x-tex">
+\min_{u_a}\ \|B_a u_a-\nu_c\|_2^2 + \rho \|u_a\|_2^2
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ρ</mi><annotation encoding="application/x-tex">\rho</annotation></semantics></math>
+是正则项权重。</p>
+<p>并满足</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>u</mi><mi>min</mi><mo>&#8289;</mo></msub><mo>≤</mo><msub><mi>u</mi><mi>a</mi></msub><mo>≤</mo><msub><mi>u</mi><mi>max</mi><mo>&#8289;</mo></msub></mrow><annotation encoding="application/x-tex">
+u_{\min}\le u_a \le u_{\max}
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>u</mi><mi>min</mi><mo>&#8289;</mo></msub><annotation encoding="application/x-tex">u_{\min}</annotation></semantics></math>
+和
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>u</mi><mi>max</mi><mo>&#8289;</mo></msub><annotation encoding="application/x-tex">u_{\max}</annotation></semantics></math>
+是执行机构边界。</p>
+<h2 id="分配残差">45.7 分配残差</h2>
+<p>若目标不可完全实现，定义残差</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>r</mi><mi>a</mi></msub><mo>=</mo><msub><mi>ν</mi><mi>c</mi></msub><mo>−</mo><msub><mi>B</mi><mi>a</mi></msub><msub><mi>u</mi><mi>a</mi></msub></mrow><annotation encoding="application/x-tex">
+r_a = \nu_c - B_a u_a
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>r</mi><mi>a</mi></msub><annotation encoding="application/x-tex">r_a</annotation></semantics></math>
+是分配残差。</p>
+<p>分配残差不是噪声，而是控制余度不足或故障重构不足的直接证据。</p>
+<h2 id="效率下降和故障重构">45.8 效率下降和故障重构</h2>
+<p>执行机构效率损失可写为</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>u</mi><mrow><mi mathvariant="normal">a</mi><mi mathvariant="normal">c</mi><mi mathvariant="normal">t</mi></mrow></msub><mo>=</mo><mi mathvariant="normal">Λ</mi><msub><mi>u</mi><mi>a</mi></msub></mrow><annotation encoding="application/x-tex">
+u_{\mathrm{act}} = \Lambda u_a
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>λ</mi><mi>j</mi></msub><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\lambda_j=0</annotation></semantics></math>
+表示完全失效。</p>
+<p>故障诊断模块估计
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mover><mi mathvariant="normal">Λ</mi><mo accent="true">̂</mo></mover><annotation encoding="application/x-tex">\hat\Lambda</annotation></semantics></math>
+后，控制分配器可将故障后的效能写为</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>B</mi><mi>a</mi><mrow><mo stretchy="false" form="prefix">(</mo><mi>f</mi><mo stretchy="false" form="postfix">)</mo></mrow></msubsup><mo>=</mo><msub><mi>B</mi><mn>0</mn></msub><mover><mi mathvariant="normal">Λ</mi><mo accent="true">̂</mo></mover></mrow><annotation encoding="application/x-tex">
+B_a^{(f)} = B_0 \hat\Lambda
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msubsup><mi>B</mi><mi>a</mi><mrow><mo stretchy="false" form="prefix">(</mo><mi>f</mi><mo stretchy="false" form="postfix">)</mo></mrow></msubsup><annotation encoding="application/x-tex">B_a^{(f)}</annotation></semantics></math>
+是故障后的效能矩阵。</p>
+<h2 id="速率限制和动态分配">45.9 速率限制和动态分配</h2>
+<p>若执行机构存在速率限制，则还应检查</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">|</mo><mi mathvariant="normal">Δ</mi><msub><mi>u</mi><mi>a</mi></msub><mo stretchy="false" form="prefix">|</mo><mo>≤</mo><mi mathvariant="normal">Δ</mi><msub><mi>u</mi><mi>max</mi><mo>&#8289;</mo></msub></mrow><annotation encoding="application/x-tex">
+|\Delta u_a| \le \Delta u_{\max}
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Δ</mi><msub><mi>u</mi><mi>max</mi><mo>&#8289;</mo></msub></mrow><annotation encoding="application/x-tex">\Delta u_{\max}</annotation></semantics></math>
+是单步变化上限。</p>
+<h2 id="优先级与分级分配">45.10 优先级与分级分配</h2>
+<p>优先级可以通过权重实现，也可以用分级优化：</p>
+<ol type="1">
+<li>第一层尽量满足关键轴力矩；</li>
+<li>第二层在不破坏第一层的前提下满足次要轴；</li>
+<li>第三层最小化执行机构消耗或热负荷。</li>
+</ol>
+<p>分级分配比单一加权更能表达硬优先级，但实现和验证更复杂。</p>
+<h2 id="任务降级逻辑">45.11 任务降级逻辑</h2>
+<p>若分配器已经检测到不可行命令，应输出</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ν</mi><mi>c</mi></msub><mo>∈</mo><mi>𝒱</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
+\nu_c \in \mathcal V(x)
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>𝒱</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\mathcal V(x)</annotation></semantics></math>
+是当前可达控制集。</p>
+<p>此时可触发：</p>
+<ul>
+<li>参考限幅和参考治理；</li>
+<li>故障后任务降级；</li>
+<li>进入容错控制模式；</li>
+<li>或通知制导层降低任务激进度。</li>
+</ul>
+<h2 id="与-ndiindilqrmpccbf-的连接">45.12 与 NDI、INDI、LQR、MPC、CBF
+的连接</h2>
+<p>控制分配通常与多类控制器共同出现：</p>
+<ul>
+<li>NDI/INDI 输出广义控制量，再由分配器落到执行机构；</li>
+<li>LQR/LQG 输出期望力矩或广义控制量，再由分配器处理约束；</li>
+<li>MPC 可以把分配层并入优化问题；</li>
+<li>CBF 可以在分配前后加入安全滤波；</li>
+<li>容错控制可在故障后重构分配矩阵。</li>
+</ul>
+<h2 id="验证指标">45.13 验证指标</h2>
+<p>控制分配至少应报告：</p>
+<table>
+<thead>
+<tr>
+<th>指标</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>allocation_residual_rms</td>
+<td>分配残差 RMS</td>
+</tr>
+<tr>
+<td>allocation_residual_max</td>
+<td>分配残差峰值</td>
+</tr>
+<tr>
+<td>surface_peak</td>
+<td>执行机构偏角峰值</td>
+</tr>
+<tr>
+<td>surface_rate_peak</td>
+<td>执行机构速率峰值</td>
+</tr>
+<tr>
+<td>saturation_fraction</td>
+<td>幅值饱和时间比例</td>
+</tr>
+<tr>
+<td>rate_saturation_fraction</td>
+<td>速率饱和时间比例</td>
+</tr>
+<tr>
+<td>priority_error</td>
+<td>关键轴力矩误差</td>
+</tr>
+<tr>
+<td>post_fault_residual</td>
+<td>故障后残差</td>
+</tr>
+</tbody>
+</table>
+<h2 id="本章小结">45.14 本章小结</h2>
+<p>控制分配是连接控制律和物理执行机构的工程关键层。高超声速飞行器里，分配不是简单矩阵求逆，而是要同时处理约束、优先级、故障和可达性。</p>
+<h2 id="练习">45.15 练习</h2>
+<ol type="1">
+<li>写出广义控制量和控制效能矩阵的基本形式。</li>
+<li>比较广义逆分配和加权最小二乘分配。</li>
+<li>说明分配残差为什么是重要证据。</li>
+<li>设计一个带舵速约束的控制分配问题。</li>
+<li>解释故障重构分配和任务降级的关系。</li>
+</ol>
+
+      </article>
+      
+      <nav class="book-bottom-nav" aria-label="章节导航">
+        <a href="./44-model-predictive-control.html">上一章：第44章 模型预测控制</a>
+        <a href="./index.html">卷首页</a>
+        <a href="./46-fault-diagnosis-fault-tolerant-control.html">下一章：第46章 故障诊断与容错控制</a>
+      </nav>
+    </main>
+  </div>
+</body>
+</html>

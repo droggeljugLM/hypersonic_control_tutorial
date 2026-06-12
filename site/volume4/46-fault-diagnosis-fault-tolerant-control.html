@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>第46章 故障诊断与容错控制</title>
+  <style>
+    :root {
+      --paper: #f7f3eb;
+      --ink: #1f2937;
+      --muted: #5b6472;
+      --line: color-mix(in srgb, #f5dfe9 68%, #cbd5e1 32%);
+      --accent: #8b3f67;
+      --accent-soft: #f5dfe9;
+      --accent-deep: #522640;
+      color-scheme: light;
+    }
+    html {
+      -webkit-text-size-adjust: 100%;
+      background:
+        radial-gradient(circle at top left, #f5dfe9 0, rgba(255,255,255,0) 32%),
+        linear-gradient(180deg, #fbfaf6 0%, var(--paper) 18%, #f7f1e6 100%);
+    }
+    body {
+      margin: 0;
+      font-family: "Source Han Serif SC", "Songti SC", "Noto Serif CJK SC", "Microsoft YaHei", serif;
+      color: var(--ink);
+      line-height: 1.78;
+      letter-spacing: 0;
+    }
+    a { color: var(--accent-deep); }
+    .book-app {
+      display: grid;
+      grid-template-columns: 280px minmax(0, 1fr);
+      min-height: 100vh;
+    }
+    .book-sidebar {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow: auto;
+      padding: 1.2rem 1rem 1.2rem 1.15rem;
+      border-right: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(255,255,255,0.86), rgba(255,255,255,0.72));
+      backdrop-filter: blur(10px);
+    }
+    .sidebar-shell { position: sticky; top: 0; display: flex; flex-direction: column; gap: 1rem; }
+    .sidebar-brand {
+      padding: 0.95rem 0.95rem 1rem;
+      border-radius: 18px;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.95), rgba(255,255,255,0.84)),
+        linear-gradient(135deg, var(--accent-soft), rgba(255,255,255,0));
+      border: 1px solid var(--line);
+      box-shadow: 0 12px 28px rgba(31, 41, 55, 0.06);
+    }
+    .sidebar-brand .kicker { margin: 0; color: var(--accent); font-size: 0.82rem; font-weight: 700; }
+    .sidebar-brand h2 { margin: 0.45rem 0 0.25rem; font-size: 1.08rem; line-height: 1.3; color: var(--ink); }
+    .sidebar-brand p { margin: 0.35rem 0 0; color: var(--muted); font-size: 0.9rem; }
+    .sidebar-links { display: grid; gap: 0.45rem; }
+    .sidebar-link {
+      display: grid;
+      grid-template-columns: 2.2rem minmax(0, 1fr);
+      gap: 0.6rem;
+      align-items: start;
+      padding: 0.7rem 0.75rem;
+      border-radius: 14px;
+      text-decoration: none;
+      background: rgba(255,255,255,0.72);
+      border: 1px solid rgba(31,41,55,0.07);
+      color: var(--ink);
+    }
+    .sidebar-link:hover { background: rgba(255,255,255,0.95); border-color: var(--line); }
+    .sidebar-link.active {
+      background: linear-gradient(135deg, rgba(255,255,255,0.98), rgba(255,255,255,0.9));
+      border-color: var(--accent-soft);
+      box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent-soft) 68%, #ffffff 32%);
+    }
+    .sidebar-index {
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      min-width: 2rem;
+      height: 2rem;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent-deep);
+      font-size: 0.78rem;
+      font-weight: 800;
+    }
+    .sidebar-title { font-size: 0.94rem; line-height: 1.35; }
+    .book-main { min-width: 0; padding: 1.25rem 1.45rem 1.8rem; }
+    .book-page-header {
+      padding: 0.85rem 0 1rem;
+      margin-bottom: 1rem;
+      border-bottom: 1px solid var(--line);
+    }
+    .page-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.28rem 0.72rem;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.82);
+      border: 1px solid var(--line);
+      color: var(--accent-deep);
+      font-size: 0.8rem;
+      font-weight: 700;
+    }
+    .book-page-header h1 {
+      margin: 0.7rem 0 0;
+      font-size: 1.85rem;
+      line-height: 1.22;
+      color: var(--accent-deep);
+      border: 0;
+      padding: 0;
+    }
+    .book-page-header p { margin: 0.45rem 0 0; color: var(--muted); max-width: 62rem; }
+    .book-article { max-width: 900px; margin: 0; padding: 0 0 1.2rem; }
+    .book-article h1, .book-article h2, .book-article h3, .book-article h4, .book-article h5, .book-article h6 {
+      line-height: 1.28;
+      margin-top: 1.45em;
+      margin-bottom: 0.55em;
+      color: var(--accent-deep);
+    }
+    .book-article h1 { font-size: 2rem; border-bottom: 2px solid var(--line); padding-bottom: 0.42rem; }
+    .book-article h1:first-of-type { margin-top: 0; }
+    .book-article h2 { font-size: 1.42rem; }
+    .book-article h3 { font-size: 1.12rem; }
+    .book-article p, .book-article li, .book-article dd, .book-article td, .book-article th { text-align: justify; text-justify: inter-ideograph; }
+    .book-article p { margin: 0.85rem 0; }
+    .book-article code, .book-article pre { font-family: "Cascadia Mono", "Source Code Pro", Consolas, monospace; font-size: 0.94em; }
+    .book-article code {
+      padding: 0.02rem 0.24rem;
+      background: color-mix(in srgb, var(--accent-soft) 34%, #ffffff 66%);
+      border: 0;
+      border-bottom: 1px solid color-mix(in srgb, var(--accent-soft) 74%, #d1d5db 26%);
+      border-radius: 4px;
+      color: #253244;
+      box-decoration-break: clone;
+      -webkit-box-decoration-break: clone;
+    }
+    .book-article pre {
+      padding: 1rem 1.1rem;
+      overflow: auto;
+      background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,253,248,0.98));
+      border: 1px solid color-mix(in srgb, var(--accent-soft) 54%, #d1d5db 46%);
+      border-left: 5px solid var(--accent);
+      border-radius: 14px;
+      box-shadow: 0 8px 22px rgba(31, 41, 55, 0.05);
+    }
+    .book-article pre code { padding: 0; border: 0; background: transparent; color: inherit; }
+    .book-article table {
+      border-collapse: collapse;
+      width: 100%;
+      margin: 1rem 0 1.25rem;
+      background: rgba(255,255,255,0.82);
+      overflow: hidden;
+      border-radius: 12px;
+    }
+    .book-article th, .book-article td { border: 1px solid var(--line); padding: 0.5rem 0.7rem; vertical-align: top; }
+    .book-article th { background: color-mix(in srgb, var(--accent-soft) 42%, #ffffff 58%); }
+    .book-article blockquote {
+      margin: 1rem 0;
+      padding: 0.25rem 0 0.25rem 1rem;
+      border-left: 4px solid var(--accent);
+      color: #374151;
+      background: linear-gradient(90deg, rgba(255,255,255,0.72), rgba(255,255,255,0.48));
+      border-radius: 0 12px 12px 0;
+    }
+    .book-bottom-nav {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-top: 2.2rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--line);
+    }
+    .book-bottom-nav a {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.6rem 0.9rem;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.84);
+      text-decoration: none;
+      font-weight: 700;
+    }
+    .book-bottom-nav span {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.6rem 0.9rem;
+      border-radius: 999px;
+      border: 1px solid rgba(31,41,55,0.08);
+      background: rgba(255,255,255,0.54);
+      color: rgba(31,41,55,0.42);
+      font-weight: 700;
+    }
+    .book-bottom-nav a:hover { background: rgba(255,255,255,0.98); }
+    .book-volume-intro {
+      margin: 0 0 1.25rem;
+      padding: 1.2rem 1.25rem 1.1rem;
+      border-radius: 18px;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.96), rgba(255,255,255,0.78)),
+        linear-gradient(135deg, var(--accent-soft), rgba(255,255,255,0));
+      border: 1px solid var(--line);
+      box-shadow: 0 14px 34px rgba(31, 41, 55, 0.06);
+    }
+    .volume-intro-kicker {
+      margin: 0;
+      color: var(--accent);
+      font-size: 0.84rem;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    .book-volume-intro h2 {
+      margin: 0.55rem 0 0.55rem;
+      font-size: 1.28rem;
+      line-height: 1.35;
+      color: var(--accent-deep);
+    }
+    .volume-intro-summary {
+      margin: 0;
+      color: var(--muted);
+      max-width: 68rem;
+    }
+    .volume-intro-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.8rem;
+      margin-top: 1rem;
+    }
+    .volume-intro-box {
+      padding: 0.85rem 0.9rem;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.72);
+      border: 1px solid rgba(31,41,55,0.08);
+    }
+    .volume-intro-box span {
+      display: block;
+      color: var(--accent);
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+    }
+    .volume-intro-box strong {
+      display: block;
+      margin-top: 0.35rem;
+      color: var(--ink);
+      font-size: 0.95rem;
+      line-height: 1.45;
+    }
+    .volume-intro-note {
+      margin-top: 0.9rem;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+    @media (max-width: 1180px) {
+      .book-app { grid-template-columns: 1fr; }
+      .book-sidebar {
+        position: relative;
+        height: auto;
+        border-right: 0;
+        border-bottom: 1px solid var(--line);
+      }
+      .sidebar-shell { position: static; }
+    }
+    @media (max-width: 900px) {
+      .book-main { padding: 1rem 1rem 1.5rem; }
+      .book-bottom-nav { flex-direction: column; }
+      .volume-intro-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="book-app">
+    <aside class="book-sidebar">
+      <div class="sidebar-shell">
+        <div class="sidebar-brand">
+          <p class="kicker">高超声速飞行器控制教程</p>
+          <h2>第四卷 约束、安全、容错与制导控制一体化</h2>
+          <p>约束与安全</p>
+        </div>
+        <nav class="sidebar-links" aria-label="本卷目录">
+          <a class="sidebar-link" href="./index.html"><span class="sidebar-index">0</span><span class="sidebar-title">卷首页</span></a>
+<a class="sidebar-link" href="./40-hypersonic-flight-constraints.html"><span class="sidebar-index">01</span><span class="sidebar-title">第40章 高超声速飞行约束体系</span></a>
+<a class="sidebar-link" href="./41-input-saturation-anti-windup.html"><span class="sidebar-index">02</span><span class="sidebar-title">第41章 输入饱和与抗积分饱和控制</span></a>
+<a class="sidebar-link" href="./42-barrier-lyapunov-constrained-tracking.html"><span class="sidebar-index">03</span><span class="sidebar-title">第42章 障碍 Lyapunov 函数与约束跟踪控制</span></a>
+<a class="sidebar-link" href="./43-control-barrier-function-safety-filter.html"><span class="sidebar-index">04</span><span class="sidebar-title">第43章 控制障碍函数与安全滤波</span></a>
+<a class="sidebar-link" href="./44-model-predictive-control.html"><span class="sidebar-index">05</span><span class="sidebar-title">第44章 模型预测控制</span></a>
+<a class="sidebar-link" href="./45-control-allocation-theory.html"><span class="sidebar-index">06</span><span class="sidebar-title">第45章 控制分配理论</span></a>
+<a class="sidebar-link active" href="./46-fault-diagnosis-fault-tolerant-control.html"><span class="sidebar-index">07</span><span class="sidebar-title">第46章 故障诊断与容错控制</span></a>
+<a class="sidebar-link" href="./47-guidance-theory-foundations.html"><span class="sidebar-index">08</span><span class="sidebar-title">第47章 制导理论基础</span></a>
+<a class="sidebar-link" href="./48-integrated-guidance-control.html"><span class="sidebar-index">09</span><span class="sidebar-title">第48章 制导控制一体化</span></a>
+<a class="sidebar-link" href="./49-reentry-flight-control.html"><span class="sidebar-index">10</span><span class="sidebar-title">第49章 再入飞行控制</span></a>
+<a class="sidebar-link" href="./50-glide-energy-management-control.html"><span class="sidebar-index">11</span><span class="sidebar-title">第50章 滑翔飞行与能量管理控制</span></a>
+<a class="sidebar-link" href="./51-airbreathing-hypersonic-cruise-control.html"><span class="sidebar-index">12</span><span class="sidebar-title">第51章 吸气式高超声速巡航控制</span></a>
+        </nav>
+      </div>
+    </aside>
+    <main class="book-main">
+      <header class="book-page-header">
+        <div class="page-eyebrow">第4册·章节页07</div>
+        <h1 id="volume4--46-fault-diagnosis-fault-tolerant-control">第46章 故障诊断与容错控制</h1>
+        <p>本页是章节正文页。左侧目录用于回到本卷其他章节，底部导航用于前后章跳转。</p>
+      </header>
+      <article class="book-article">
+        <h2 id="问题背景">46.1 问题背景</h2>
+<p>高超声速飞行器工作在强热、强振动、高动态和宽包线环境中，传感器、执行机构、推进系统、气动参数和计算链路都可能出现异常。若控制器只在健康系统上验证，即使标称性能很好，也不能说明任务可靠。</p>
+<p>故障诊断与容错控制的目标，不是简单把异常压成一个扰动项，而是在故障发生后仍然判断系统还能否继续完成任务，以及应当如何降级、重构或退出。对高超声速对象来说，这一层和控制分配、参考治理、约束控制以及任务管理是连在一起的。</p>
+<p>本章先区分故障、扰动和不确定性，再说明故障建模、检测、隔离和估计的基本写法；随后讨论被动容错、主动容错、控制重构和任务降级的关系；最后给出与控制分配、制导控制一体化和实时实现的接口。</p>
+<h2 id="故障扰动和不确定性">46.2 故障、扰动和不确定性</h2>
+<p>扰动通常表示外界输入或未建模作用，可写为</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>x</mi><mo accent="true">̇</mo></mover><mo>=</mo><mi>f</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>u</mi><mo stretchy="false" form="postfix">)</mo><mo>+</mo><mi>d</mi></mrow><annotation encoding="application/x-tex">
+\dot{x}=f(x,u)+d
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>x</mi><annotation encoding="application/x-tex">x</annotation></semantics></math>
+是状态，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>u</mi><annotation encoding="application/x-tex">u</annotation></semantics></math>
+是控制输入，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>u</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">f(x,u)</annotation></semantics></math>
+是名义动力学，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>d</mi><annotation encoding="application/x-tex">d</annotation></semantics></math>
+是扰动项。</p>
+<p>故障则通常表示系统结构、测量链路或执行链路发生异常，可写为</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>y</mi><mo>=</mo><mi>h</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo>+</mo><msub><mi>f</mi><mi>s</mi></msub><mo>,</mo><mspace width="2.0em"></mspace><msub><mi>u</mi><mrow><mi mathvariant="normal">a</mi><mi mathvariant="normal">c</mi><mi mathvariant="normal">t</mi></mrow></msub><mo>=</mo><mi mathvariant="normal">Λ</mi><msub><mi>u</mi><mi>c</mi></msub><mo>+</mo><msub><mi>b</mi><mi>f</mi></msub></mrow><annotation encoding="application/x-tex">
+y=h(x)+f_s,\qquad u_{\mathrm{act}}=\Lambda u_c+b_f
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>y</mi><annotation encoding="application/x-tex">y</annotation></semantics></math>
+是测量输出，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>h</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">h(x)</annotation></semantics></math>
+是输出方程，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>f</mi><mi>s</mi></msub><annotation encoding="application/x-tex">f_s</annotation></semantics></math>
+是传感器故障项，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>u</mi><mrow><mi mathvariant="normal">a</mi><mi mathvariant="normal">c</mi><mi mathvariant="normal">t</mi></mrow></msub><annotation encoding="application/x-tex">u_{\mathrm{act}}</annotation></semantics></math>
+是实际作用到对象上的输入，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>u</mi><mi>c</mi></msub><annotation encoding="application/x-tex">u_c</annotation></semantics></math>
+是控制器给出的指令，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Λ</mi><mo>=</mo><mrow><mi mathvariant="normal">d</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">g</mi></mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>λ</mi><mn>1</mn></msub><mo>,</mo><mi>…</mi><mo>,</mo><msub><mi>λ</mi><mi>m</mi></msub><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\Lambda=\mathrm{diag}(\lambda_1,\ldots,\lambda_m)</annotation></semantics></math>
+是执行机构效能矩阵，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mi>f</mi></msub><annotation encoding="application/x-tex">b_f</annotation></semantics></math>
+是执行机构偏置项，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>λ</mi><mi>i</mi></msub><annotation encoding="application/x-tex">\lambda_i</annotation></semantics></math>
+是第
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>i</mi><annotation encoding="application/x-tex">i</annotation></semantics></math>
+个通道的健康因子。</p>
+<p>若
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>λ</mi><mi>i</mi></msub><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">\lambda_i=1</annotation></semantics></math>，表示该通道健康；若
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0</mn><mo>&lt;</mo><msub><mi>λ</mi><mi>i</mi></msub><mo>&lt;</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">0&lt;\lambda_i&lt;1</annotation></semantics></math>，表示效率损失；若
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>λ</mi><mi>i</mi></msub><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\lambda_i=0</annotation></semantics></math>，表示完全失效。若某个执行机构卡滞，则其实际输出可近似视为常数，即</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>u</mi><mrow><mrow><mi mathvariant="normal">a</mi><mi mathvariant="normal">c</mi><mi mathvariant="normal">t</mi></mrow><mo>,</mo><mi>i</mi></mrow></msub><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><msub><mi>u</mi><mrow><mrow><mi mathvariant="normal">s</mi><mi mathvariant="normal">t</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">c</mi><mi mathvariant="normal">k</mi></mrow><mo>,</mo><mi>i</mi></mrow></msub></mrow><annotation encoding="application/x-tex">
+u_{\mathrm{act},i}(t)=u_{\mathrm{stick},i}
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>u</mi><mrow><mrow><mi mathvariant="normal">s</mi><mi mathvariant="normal">t</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">c</mi><mi mathvariant="normal">k</mi></mrow><mo>,</mo><mi>i</mi></mrow></msub><annotation encoding="application/x-tex">u_{\mathrm{stick},i}</annotation></semantics></math>
+是卡滞后的固定值。</p>
+<p>不确定性则包括参数偏差、气动系数漂移、时滞、噪声和离散化误差等。它们不一定构成故障，但会削弱检测灵敏度、扩大控制误差，并影响容错重构的可行性。</p>
+<h2 id="故障建模的三类对象">46.3 故障建模的三类对象</h2>
+<p>故障建模至少应分成三类。</p>
+<p>第一类是传感器故障，常表现为偏置、漂移、失真或丢包。偏置可写为</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>y</mi><mi>m</mi></msub><mo>=</mo><mi>y</mi><mo>+</mo><msub><mi>b</mi><mi>s</mi></msub></mrow><annotation encoding="application/x-tex">
+y_m=y+b_s
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>y</mi><mi>m</mi></msub><annotation encoding="application/x-tex">y_m</annotation></semantics></math>
+是带故障的测量值，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>y</mi><annotation encoding="application/x-tex">y</annotation></semantics></math>
+是真实值，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mi>s</mi></msub><annotation encoding="application/x-tex">b_s</annotation></semantics></math>
+是传感器偏置。</p>
+<p>第二类是执行机构故障，常表现为效率下降、卡滞、饱和加剧或响应变慢。效率下降可写为前面的
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi mathvariant="normal">Λ</mi><annotation encoding="application/x-tex">\Lambda</annotation></semantics></math>
+形式，响应变慢则可近似写成一阶惯性增强：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>τ</mi><mi>f</mi></msub><msub><mover><mi>u</mi><mo accent="true">̇</mo></mover><mrow><mi mathvariant="normal">a</mi><mi mathvariant="normal">c</mi><mi mathvariant="normal">t</mi></mrow></msub><mo>+</mo><msub><mi>u</mi><mrow><mi mathvariant="normal">a</mi><mi mathvariant="normal">c</mi><mi mathvariant="normal">t</mi></mrow></msub><mo>=</mo><msub><mi>u</mi><mi>c</mi></msub></mrow><annotation encoding="application/x-tex">
+\tau_f \dot{u}_{\mathrm{act}}+u_{\mathrm{act}}=u_c
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>τ</mi><mi>f</mi></msub><annotation encoding="application/x-tex">\tau_f</annotation></semantics></math>
+是故障后等效时间常数。</p>
+<p>第三类是模型突变或参数突变，例如质量、气动导数、惯量或推力模型变化。可写为</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>x</mi><mo accent="true">̇</mo></mover><mo>=</mo><mi>f</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>u</mi><mo>,</mo><mi>θ</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
+\dot{x}=f(x,u,\theta)
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>θ</mi><annotation encoding="application/x-tex">\theta</annotation></semantics></math>
+是参数向量。若
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>θ</mi><annotation encoding="application/x-tex">\theta</annotation></semantics></math>
+偏离标称值，系统未必“坏了”，但闭环性能和稳定裕度会显著变化。</p>
+<p>本节的核心是：故障建模要服务于检测、隔离、估计和重构，而不是仅仅把异常写成一串符号。</p>
+<h2 id="故障检测隔离与估计">46.4 故障检测、隔离与估计</h2>
+<p>故障诊断通常分三步：检测、隔离和估计。</p>
+<p>检测回答“是否发生故障”。常见做法是构造残差</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>r</mi><mi>k</mi></msub><mo>=</mo><msub><mi>y</mi><mi>k</mi></msub><mo>−</mo><msub><mover><mi>y</mi><mo accent="true">̂</mo></mover><mi>k</mi></msub></mrow><annotation encoding="application/x-tex">
+r_k=y_k-\hat{y}_k
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>r</mi><mi>k</mi></msub><annotation encoding="application/x-tex">r_k</annotation></semantics></math>
+是第
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>k</mi><annotation encoding="application/x-tex">k</annotation></semantics></math>
+个采样时刻的残差，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>y</mi><mi>k</mi></msub><annotation encoding="application/x-tex">y_k</annotation></semantics></math>
+是测量值，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mover><mi>y</mi><mo accent="true">̂</mo></mover><mi>k</mi></msub><annotation encoding="application/x-tex">\hat{y}_k</annotation></semantics></math>
+是由观测器、滤波器或模型产生的预测值。</p>
+<p>若残差在无故障时应近似服从零均值小波动，可进一步构造检测统计量</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>J</mi><mi>k</mi></msub><mo>=</mo><msubsup><mi>r</mi><mi>k</mi><mi>⊤</mi></msubsup><msup><mi>S</mi><mrow><mi>−</mi><mn>1</mn></mrow></msup><msub><mi>r</mi><mi>k</mi></msub></mrow><annotation encoding="application/x-tex">
+J_k=r_k^\top S^{-1} r_k
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>S</mi><annotation encoding="application/x-tex">S</annotation></semantics></math>
+是残差协方差矩阵，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>J</mi><mi>k</mi></msub><annotation encoding="application/x-tex">J_k</annotation></semantics></math>
+是归一化检测统计量。若
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>J</mi><mi>k</mi></msub><mo>&gt;</mo><msub><mi>γ</mi><mi>d</mi></msub></mrow><annotation encoding="application/x-tex">J_k&gt;\gamma_d</annotation></semantics></math>，就可判为发生异常，其中
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>γ</mi><mi>d</mi></msub><annotation encoding="application/x-tex">\gamma_d</annotation></semantics></math>
+是检测门限。</p>
+<p>隔离回答“哪一类通道发生了故障”。例如，当多个传感器或多个舵面并存时，检测只知道“有事发生”，隔离则要进一步判断是哪一个通道、哪一种故障模式。</p>
+<p>估计回答“故障有多严重”。例如可估计健康因子
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mover><mi>λ</mi><mo accent="true">̂</mo></mover><mi>i</mi></msub><annotation encoding="application/x-tex">\hat{\lambda}_i</annotation></semantics></math>、偏置
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mover><mi>b</mi><mo accent="true">̂</mo></mover><mi>f</mi></msub><annotation encoding="application/x-tex">\hat{b}_f</annotation></semantics></math>
+或传感器偏差
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mover><mi>b</mi><mo accent="true">̂</mo></mover><mi>s</mi></msub><annotation encoding="application/x-tex">\hat{b}_s</annotation></semantics></math>。这些估计量一旦得到，就会直接进入后续的控制重构和控制分配。</p>
+<p>对高超声速对象来说，故障诊断不是离线附属分析，而是闭环的一部分。检测延迟、误报率和漏报率都会影响是否还能保持可行参考。</p>
+<h2 id="被动容错与主动容错">46.5 被动容错与主动容错</h2>
+<p>被动容错通常是指控制器在设计时就考虑一定范围的异常和不确定性，使其在故障发生后无需显式重构也能维持基本稳定。它的优点是结构简单，切换少，工程实现相对直接；缺点是当故障幅度较大时，保守性会明显增加。</p>
+<p>主动容错则会在故障检测后显式更新模型、估计健康状态，并重构控制律、参考或控制分配。其典型链路可写成</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mtext mathvariant="normal">检测</mtext><mo>→</mo><mtext mathvariant="normal">隔离</mtext><mo>→</mo><mtext mathvariant="normal">估计</mtext><mo>→</mo><mtext mathvariant="normal">重构</mtext><mo>→</mo><mtext mathvariant="normal">验证</mtext></mrow><annotation encoding="application/x-tex">
+\text{检测}\rightarrow \text{隔离}\rightarrow \text{估计}\rightarrow \text{重构}\rightarrow \text{验证}
+</annotation></semantics></math></p>
+<p>其中，重构可以发生在控制律层、参考层或分配层。</p>
+<p>如果故障较轻、任务较宽松，被动容错可能已经足够；如果故障明显、任务约束紧，主动容错通常更合适。</p>
+<h2 id="控制重构与控制分配重构">46.6 控制重构与控制分配重构</h2>
+<p>故障后最直接的工程动作，不是立刻改控制理论，而是更新可用控制能力。若控制效能矩阵由
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>B</mi><mi>a</mi></msub><annotation encoding="application/x-tex">B_a</annotation></semantics></math>
+表示，故障后则变为</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>B</mi><mi>a</mi><mrow><mo stretchy="false" form="prefix">(</mo><mi>f</mi><mo stretchy="false" form="postfix">)</mo></mrow></msubsup><mo>=</mo><msub><mi>B</mi><mi>a</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo>,</mo><mover><mi mathvariant="normal">Λ</mi><mo accent="true">̂</mo></mover><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
+B_a^{(f)}=B_a(x,\hat{\Lambda})
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msubsup><mi>B</mi><mi>a</mi><mrow><mo stretchy="false" form="prefix">(</mo><mi>f</mi><mo stretchy="false" form="postfix">)</mo></mrow></msubsup><annotation encoding="application/x-tex">B_a^{(f)}</annotation></semantics></math>
+是故障后的控制效能矩阵，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mover><mi mathvariant="normal">Λ</mi><mo accent="true">̂</mo></mover><annotation encoding="application/x-tex">\hat{\Lambda}</annotation></semantics></math>
+是故障估计得到的健康矩阵。</p>
+<p>若主控制器给出期望广义控制量
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ν</mi><mi>c</mi></msub><annotation encoding="application/x-tex">\nu_c</annotation></semantics></math>，控制分配问题可写为</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>B</mi><mi>a</mi><mrow><mo stretchy="false" form="prefix">(</mo><mi>f</mi><mo stretchy="false" form="postfix">)</mo></mrow></msubsup><msub><mi>u</mi><mi>a</mi></msub><mo>≈</mo><msub><mi>ν</mi><mi>c</mi></msub></mrow><annotation encoding="application/x-tex">
+B_a^{(f)}u_a\approx \nu_c
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>u</mi><mi>a</mi></msub><annotation encoding="application/x-tex">u_a</annotation></semantics></math>
+是执行机构命令向量。若故障后控制余度不足，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>B</mi><mi>a</mi><mrow><mo stretchy="false" form="prefix">(</mo><mi>f</mi><mo stretchy="false" form="postfix">)</mo></mrow></msubsup><msub><mi>u</mi><mi>a</mi></msub><mo>=</mo><msub><mi>ν</mi><mi>c</mi></msub></mrow><annotation encoding="application/x-tex">B_a^{(f)}u_a=\nu_c</annotation></semantics></math>
+可能不再可行，此时必须允许残差存在，并显式记录</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>r</mi><mi>a</mi></msub><mo>=</mo><msub><mi>ν</mi><mi>c</mi></msub><mo>−</mo><msubsup><mi>B</mi><mi>a</mi><mrow><mo stretchy="false" form="prefix">(</mo><mi>f</mi><mo stretchy="false" form="postfix">)</mo></mrow></msubsup><msub><mi>u</mi><mi>a</mi></msub></mrow><annotation encoding="application/x-tex">
+r_a=\nu_c-B_a^{(f)}u_a
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>r</mi><mi>a</mi></msub><annotation encoding="application/x-tex">r_a</annotation></semantics></math>
+是分配残差。</p>
+<p>控制重构不一定等于重做整套控制器。很多时候，只需调整控制增益、参考命令或分配权重，就能把系统从不可行状态拉回到可控状态。</p>
+<h2 id="任务降级与参考治理">46.7 任务降级与参考治理</h2>
+<p>当故障导致原始任务不可行时，正确做法不是强行追原始命令，而是进行任务降级。可行参考记为
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>r</mi><mi>f</mi></msub><annotation encoding="application/x-tex">r_f</annotation></semantics></math>，原始参考记为
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>r</mi><mi>g</mi></msub><annotation encoding="application/x-tex">r_g</annotation></semantics></math>，两者差值记为</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>e</mi><mrow><mi>g</mi><mi>r</mi></mrow></msub><mo>=</mo><msub><mi>r</mi><mi>g</mi></msub><mo>−</mo><msub><mi>r</mi><mi>f</mi></msub></mrow><annotation encoding="application/x-tex">
+e_{gr}=r_g-r_f
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>e</mi><mrow><mi>g</mi><mi>r</mi></mrow></msub><annotation encoding="application/x-tex">e_{gr}</annotation></semantics></math>
+是参考可行化误差。</p>
+<p>若
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>e</mi><mrow><mi>g</mi><mi>r</mi></mrow></msub><annotation encoding="application/x-tex">e_{gr}</annotation></semantics></math>
+过大，说明原始任务已经超出当前故障后的可执行能力。此时参考治理器应降低终端速度、终端角、横向机动或轨迹激进度，并向上层报告任务余度不足。</p>
+<p>任务降级不是失败，而是容错系统的一部分。对高超声速飞行器来说，能安全地降级，比在不可行命令下继续硬追更重要。</p>
+<h2 id="与-cbfmpc-和-blf-的关系">46.8 与 CBF、MPC 和 BLF 的关系</h2>
+<p>控制障碍函数、模型预测控制和障碍 Lyapunov
+函数都可能参与容错系统，但它们的位置不同。</p>
+<p>CBF 更适合作为在线安全滤波器。若定义安全函数
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>h</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">h(x)</annotation></semantics></math>，则安全集可以写成</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>𝒮</mi><mo>=</mo><mo stretchy="false" form="prefix">{</mo><mi>x</mi><mo>∣</mo><mi>h</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo>≥</mo><mn>0</mn><mo stretchy="false" form="postfix">}</mo></mrow><annotation encoding="application/x-tex">
+\mathcal{S}=\{x\mid h(x)\ge 0\}
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝒮</mi><annotation encoding="application/x-tex">\mathcal{S}</annotation></semantics></math>
+是安全集。故障后若健康通道减少，CBF
+仍可尝试修正输入，但它依赖可行性。</p>
+<p>MPC
+更适合把故障后的约束、执行机构限制和任务目标一起纳入优化。若故障后输入集合记为
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>𝒰</mi><mi>f</mi></msub><annotation encoding="application/x-tex">\mathcal{U}_f</annotation></semantics></math>，则优化问题必须改写为</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>u</mi><mi>a</mi></msub><mo>∈</mo><msub><mi>𝒰</mi><mi>f</mi></msub></mrow><annotation encoding="application/x-tex">
+u_a\in \mathcal{U}_f
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>𝒰</mi><mi>f</mi></msub><annotation encoding="application/x-tex">\mathcal{U}_f</annotation></semantics></math>
+是故障后的可用输入集合。若不更新这个集合，MPC
+可能表面上可解，实际上已不对应真实对象。</p>
+<p>BLF
+适合把约束保持写进稳定性分析，但前提是初始可行、约束裕度和执行能力都还存在。若故障后约束收缩过度，BLF
+也会失去可行性基础。</p>
+<h2 id="与控制分配igc-和实时实现的接口">46.9 与控制分配、IGC
+和实时实现的接口</h2>
+<p>第46章至少要与后续章节形成四条明确接口。</p>
+<ul>
+<li>故障估计
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mover><mi>f</mi><mo accent="true">̂</mo></mover><annotation encoding="application/x-tex">\hat{f}</annotation></semantics></math>
+和健康矩阵
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mover><mi mathvariant="normal">Λ</mi><mo accent="true">̂</mo></mover><annotation encoding="application/x-tex">\hat{\Lambda}</annotation></semantics></math>
+交给第45章继续承接控制分配重构。</li>
+<li>故障后可行参考
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>r</mi><mi>f</mi></msub><annotation encoding="application/x-tex">r_f</annotation></semantics></math>
+交给第 47、48 章继续承接制导参考与 IGC 收缩。</li>
+<li>约束收缩和安全模式交给第40到第44章继续承接安全层与参考治理。</li>
+<li>检测延迟、模式切换和求解时间预算交给第55章继续承接实时实现。</li>
+</ul>
+<p>更具体地说，容错模块的输出至少应明确属于下面三类之一：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>f</mi><mo accent="true">̂</mo></mover><mo>,</mo><mspace width="2.0em"></mspace><mover><mi mathvariant="normal">Λ</mi><mo accent="true">̂</mo></mover><mo>,</mo><mspace width="2.0em"></mspace><msub><mi>r</mi><mi>f</mi></msub></mrow><annotation encoding="application/x-tex">
+\hat{f},\qquad \hat{\Lambda},\qquad r_f
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mover><mi>f</mi><mo accent="true">̂</mo></mover><annotation encoding="application/x-tex">\hat{f}</annotation></semantics></math>
+是故障估计量，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mover><mi mathvariant="normal">Λ</mi><mo accent="true">̂</mo></mover><annotation encoding="application/x-tex">\hat{\Lambda}</annotation></semantics></math>
+是健康矩阵估计，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>r</mi><mi>f</mi></msub><annotation encoding="application/x-tex">r_f</annotation></semantics></math>
+是可行参考。</p>
+<p>如果这三类输出没有分开写清楚，就容易把故障检测、控制重构和任务降级混成一个口头概念，最后既不利于实现，也不利于验证。</p>
+<h2 id="验证指标">46.10 验证指标</h2>
+<p>故障诊断与容错控制不能只看“有没有恢复”，还要看恢复得有多稳妥。至少应报告以下指标：</p>
+<table>
+<thead>
+<tr>
+<th>指标</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>detection_delay</td>
+<td>故障检测延迟</td>
+</tr>
+<tr>
+<td>false_alarm_rate</td>
+<td>误报率</td>
+</tr>
+<tr>
+<td>missed_detection_rate</td>
+<td>漏报率</td>
+</tr>
+<tr>
+<td>isolation_accuracy</td>
+<td>隔离准确率</td>
+</tr>
+<tr>
+<td>estimate_error</td>
+<td>故障估计误差</td>
+</tr>
+<tr>
+<td>residual_rms</td>
+<td>残差均方根</td>
+</tr>
+<tr>
+<td>residual_peak</td>
+<td>残差峰值</td>
+</tr>
+<tr>
+<td>post_fault_tracking_rms</td>
+<td>故障后跟踪误差 RMS</td>
+</tr>
+<tr>
+<td>post_fault_constraint_margin</td>
+<td>故障后约束裕度</td>
+</tr>
+<tr>
+<td>allocation_residual_peak</td>
+<td>分配残差峰值</td>
+</tr>
+<tr>
+<td>recovery_time</td>
+<td>恢复时间</td>
+</tr>
+<tr>
+<td>downgrade_count</td>
+<td>任务降级次数</td>
+</tr>
+</tbody>
+</table>
+<p>若只报告闭环能跑通，而不报告误报、漏报、延迟和约束裕度，就不能证明容错策略真的可靠。</p>
+<h2 id="常见错误">46.11 常见错误</h2>
+<ol type="1">
+<li>把大扰动当成故障处理，却没有故障发生时间和类型。</li>
+<li>检测成功后不做隔离和估计，却声称完成主动容错。</li>
+<li>故障后仍使用健康控制效能矩阵。</li>
+<li>只展示一条故障曲线，不报告误报、漏报和检测延迟。</li>
+<li>剩余控制能力不足时仍硬追原始参考。</li>
+<li>容错后跟踪变好，但安全裕度和分配残差未报告。</li>
+<li>不说明输出是故障估计、健康矩阵、广义控制量还是降级参考。</li>
+</ol>
+<h2 id="练习">46.12 练习</h2>
+<ol type="1">
+<li>给定
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>u</mi><mrow><mi mathvariant="normal">a</mi><mi mathvariant="normal">c</mi><mi mathvariant="normal">t</mi></mrow></msub><mo>=</mo><mi mathvariant="normal">Λ</mi><msub><mi>u</mi><mi>c</mi></msub><mo>+</mo><msub><mi>b</mi><mi>f</mi></msub></mrow><annotation encoding="application/x-tex">u_{\mathrm{act}}=\Lambda u_c+b_f</annotation></semantics></math>，分别构造效率损失、偏置和卡滞故障。</li>
+<li>对一个残差
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>r</mi><mi>k</mi></msub><annotation encoding="application/x-tex">r_k</annotation></semantics></math>，写出归一化检测统计量，并说明门限如何影响误报和漏报。</li>
+<li>设计一个升降舵效率下降故障的控制分配重构问题。</li>
+<li>说明故障检测成功为什么不等于容错控制成功。</li>
+<li>给出一个故障后必须任务降级的高超声速终端制导场景，并列出降级后的通过判据。</li>
+</ol>
+<h2 id="本章小结">46.13 本章小结</h2>
+<p>故障诊断与容错控制不是控制系统的附加说明，而是保证高超声速任务能够继续执行的核心机制。它要求我们明确故障对象、诊断接口、重构方式和降级逻辑，并把这些内容和控制分配、制导控制一体化以及实时实现连成闭环。只有这样，故障处理才不只是“恢复一条曲线”，而是真正变成可核查、可实现、可退出的工程能力。</p>
+
+      </article>
+      
+      <nav class="book-bottom-nav" aria-label="章节导航">
+        <a href="./45-control-allocation-theory.html">上一章：第45章 控制分配理论</a>
+        <a href="./index.html">卷首页</a>
+        <a href="./47-guidance-theory-foundations.html">下一章：第47章 制导理论基础</a>
+      </nav>
+    </main>
+  </div>
+</body>
+</html>

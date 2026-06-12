@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>第43章 控制障碍函数与安全滤波</title>
+  <style>
+    :root {
+      --paper: #f7f3eb;
+      --ink: #1f2937;
+      --muted: #5b6472;
+      --line: color-mix(in srgb, #f5dfe9 68%, #cbd5e1 32%);
+      --accent: #8b3f67;
+      --accent-soft: #f5dfe9;
+      --accent-deep: #522640;
+      color-scheme: light;
+    }
+    html {
+      -webkit-text-size-adjust: 100%;
+      background:
+        radial-gradient(circle at top left, #f5dfe9 0, rgba(255,255,255,0) 32%),
+        linear-gradient(180deg, #fbfaf6 0%, var(--paper) 18%, #f7f1e6 100%);
+    }
+    body {
+      margin: 0;
+      font-family: "Source Han Serif SC", "Songti SC", "Noto Serif CJK SC", "Microsoft YaHei", serif;
+      color: var(--ink);
+      line-height: 1.78;
+      letter-spacing: 0;
+    }
+    a { color: var(--accent-deep); }
+    .book-app {
+      display: grid;
+      grid-template-columns: 280px minmax(0, 1fr);
+      min-height: 100vh;
+    }
+    .book-sidebar {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow: auto;
+      padding: 1.2rem 1rem 1.2rem 1.15rem;
+      border-right: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(255,255,255,0.86), rgba(255,255,255,0.72));
+      backdrop-filter: blur(10px);
+    }
+    .sidebar-shell { position: sticky; top: 0; display: flex; flex-direction: column; gap: 1rem; }
+    .sidebar-brand {
+      padding: 0.95rem 0.95rem 1rem;
+      border-radius: 18px;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.95), rgba(255,255,255,0.84)),
+        linear-gradient(135deg, var(--accent-soft), rgba(255,255,255,0));
+      border: 1px solid var(--line);
+      box-shadow: 0 12px 28px rgba(31, 41, 55, 0.06);
+    }
+    .sidebar-brand .kicker { margin: 0; color: var(--accent); font-size: 0.82rem; font-weight: 700; }
+    .sidebar-brand h2 { margin: 0.45rem 0 0.25rem; font-size: 1.08rem; line-height: 1.3; color: var(--ink); }
+    .sidebar-brand p { margin: 0.35rem 0 0; color: var(--muted); font-size: 0.9rem; }
+    .sidebar-links { display: grid; gap: 0.45rem; }
+    .sidebar-link {
+      display: grid;
+      grid-template-columns: 2.2rem minmax(0, 1fr);
+      gap: 0.6rem;
+      align-items: start;
+      padding: 0.7rem 0.75rem;
+      border-radius: 14px;
+      text-decoration: none;
+      background: rgba(255,255,255,0.72);
+      border: 1px solid rgba(31,41,55,0.07);
+      color: var(--ink);
+    }
+    .sidebar-link:hover { background: rgba(255,255,255,0.95); border-color: var(--line); }
+    .sidebar-link.active {
+      background: linear-gradient(135deg, rgba(255,255,255,0.98), rgba(255,255,255,0.9));
+      border-color: var(--accent-soft);
+      box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent-soft) 68%, #ffffff 32%);
+    }
+    .sidebar-index {
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      min-width: 2rem;
+      height: 2rem;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent-deep);
+      font-size: 0.78rem;
+      font-weight: 800;
+    }
+    .sidebar-title { font-size: 0.94rem; line-height: 1.35; }
+    .book-main { min-width: 0; padding: 1.25rem 1.45rem 1.8rem; }
+    .book-page-header {
+      padding: 0.85rem 0 1rem;
+      margin-bottom: 1rem;
+      border-bottom: 1px solid var(--line);
+    }
+    .page-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.28rem 0.72rem;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.82);
+      border: 1px solid var(--line);
+      color: var(--accent-deep);
+      font-size: 0.8rem;
+      font-weight: 700;
+    }
+    .book-page-header h1 {
+      margin: 0.7rem 0 0;
+      font-size: 1.85rem;
+      line-height: 1.22;
+      color: var(--accent-deep);
+      border: 0;
+      padding: 0;
+    }
+    .book-page-header p { margin: 0.45rem 0 0; color: var(--muted); max-width: 62rem; }
+    .book-article { max-width: 900px; margin: 0; padding: 0 0 1.2rem; }
+    .book-article h1, .book-article h2, .book-article h3, .book-article h4, .book-article h5, .book-article h6 {
+      line-height: 1.28;
+      margin-top: 1.45em;
+      margin-bottom: 0.55em;
+      color: var(--accent-deep);
+    }
+    .book-article h1 { font-size: 2rem; border-bottom: 2px solid var(--line); padding-bottom: 0.42rem; }
+    .book-article h1:first-of-type { margin-top: 0; }
+    .book-article h2 { font-size: 1.42rem; }
+    .book-article h3 { font-size: 1.12rem; }
+    .book-article p, .book-article li, .book-article dd, .book-article td, .book-article th { text-align: justify; text-justify: inter-ideograph; }
+    .book-article p { margin: 0.85rem 0; }
+    .book-article code, .book-article pre { font-family: "Cascadia Mono", "Source Code Pro", Consolas, monospace; font-size: 0.94em; }
+    .book-article code {
+      padding: 0.02rem 0.24rem;
+      background: color-mix(in srgb, var(--accent-soft) 34%, #ffffff 66%);
+      border: 0;
+      border-bottom: 1px solid color-mix(in srgb, var(--accent-soft) 74%, #d1d5db 26%);
+      border-radius: 4px;
+      color: #253244;
+      box-decoration-break: clone;
+      -webkit-box-decoration-break: clone;
+    }
+    .book-article pre {
+      padding: 1rem 1.1rem;
+      overflow: auto;
+      background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,253,248,0.98));
+      border: 1px solid color-mix(in srgb, var(--accent-soft) 54%, #d1d5db 46%);
+      border-left: 5px solid var(--accent);
+      border-radius: 14px;
+      box-shadow: 0 8px 22px rgba(31, 41, 55, 0.05);
+    }
+    .book-article pre code { padding: 0; border: 0; background: transparent; color: inherit; }
+    .book-article table {
+      border-collapse: collapse;
+      width: 100%;
+      margin: 1rem 0 1.25rem;
+      background: rgba(255,255,255,0.82);
+      overflow: hidden;
+      border-radius: 12px;
+    }
+    .book-article th, .book-article td { border: 1px solid var(--line); padding: 0.5rem 0.7rem; vertical-align: top; }
+    .book-article th { background: color-mix(in srgb, var(--accent-soft) 42%, #ffffff 58%); }
+    .book-article blockquote {
+      margin: 1rem 0;
+      padding: 0.25rem 0 0.25rem 1rem;
+      border-left: 4px solid var(--accent);
+      color: #374151;
+      background: linear-gradient(90deg, rgba(255,255,255,0.72), rgba(255,255,255,0.48));
+      border-radius: 0 12px 12px 0;
+    }
+    .book-bottom-nav {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-top: 2.2rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--line);
+    }
+    .book-bottom-nav a {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.6rem 0.9rem;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.84);
+      text-decoration: none;
+      font-weight: 700;
+    }
+    .book-bottom-nav span {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.6rem 0.9rem;
+      border-radius: 999px;
+      border: 1px solid rgba(31,41,55,0.08);
+      background: rgba(255,255,255,0.54);
+      color: rgba(31,41,55,0.42);
+      font-weight: 700;
+    }
+    .book-bottom-nav a:hover { background: rgba(255,255,255,0.98); }
+    .book-volume-intro {
+      margin: 0 0 1.25rem;
+      padding: 1.2rem 1.25rem 1.1rem;
+      border-radius: 18px;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.96), rgba(255,255,255,0.78)),
+        linear-gradient(135deg, var(--accent-soft), rgba(255,255,255,0));
+      border: 1px solid var(--line);
+      box-shadow: 0 14px 34px rgba(31, 41, 55, 0.06);
+    }
+    .volume-intro-kicker {
+      margin: 0;
+      color: var(--accent);
+      font-size: 0.84rem;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    .book-volume-intro h2 {
+      margin: 0.55rem 0 0.55rem;
+      font-size: 1.28rem;
+      line-height: 1.35;
+      color: var(--accent-deep);
+    }
+    .volume-intro-summary {
+      margin: 0;
+      color: var(--muted);
+      max-width: 68rem;
+    }
+    .volume-intro-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.8rem;
+      margin-top: 1rem;
+    }
+    .volume-intro-box {
+      padding: 0.85rem 0.9rem;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.72);
+      border: 1px solid rgba(31,41,55,0.08);
+    }
+    .volume-intro-box span {
+      display: block;
+      color: var(--accent);
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+    }
+    .volume-intro-box strong {
+      display: block;
+      margin-top: 0.35rem;
+      color: var(--ink);
+      font-size: 0.95rem;
+      line-height: 1.45;
+    }
+    .volume-intro-note {
+      margin-top: 0.9rem;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+    @media (max-width: 1180px) {
+      .book-app { grid-template-columns: 1fr; }
+      .book-sidebar {
+        position: relative;
+        height: auto;
+        border-right: 0;
+        border-bottom: 1px solid var(--line);
+      }
+      .sidebar-shell { position: static; }
+    }
+    @media (max-width: 900px) {
+      .book-main { padding: 1rem 1rem 1.5rem; }
+      .book-bottom-nav { flex-direction: column; }
+      .volume-intro-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="book-app">
+    <aside class="book-sidebar">
+      <div class="sidebar-shell">
+        <div class="sidebar-brand">
+          <p class="kicker">高超声速飞行器控制教程</p>
+          <h2>第四卷 约束、安全、容错与制导控制一体化</h2>
+          <p>约束与安全</p>
+        </div>
+        <nav class="sidebar-links" aria-label="本卷目录">
+          <a class="sidebar-link" href="./index.html"><span class="sidebar-index">0</span><span class="sidebar-title">卷首页</span></a>
+<a class="sidebar-link" href="./40-hypersonic-flight-constraints.html"><span class="sidebar-index">01</span><span class="sidebar-title">第40章 高超声速飞行约束体系</span></a>
+<a class="sidebar-link" href="./41-input-saturation-anti-windup.html"><span class="sidebar-index">02</span><span class="sidebar-title">第41章 输入饱和与抗积分饱和控制</span></a>
+<a class="sidebar-link" href="./42-barrier-lyapunov-constrained-tracking.html"><span class="sidebar-index">03</span><span class="sidebar-title">第42章 障碍 Lyapunov 函数与约束跟踪控制</span></a>
+<a class="sidebar-link active" href="./43-control-barrier-function-safety-filter.html"><span class="sidebar-index">04</span><span class="sidebar-title">第43章 控制障碍函数与安全滤波</span></a>
+<a class="sidebar-link" href="./44-model-predictive-control.html"><span class="sidebar-index">05</span><span class="sidebar-title">第44章 模型预测控制</span></a>
+<a class="sidebar-link" href="./45-control-allocation-theory.html"><span class="sidebar-index">06</span><span class="sidebar-title">第45章 控制分配理论</span></a>
+<a class="sidebar-link" href="./46-fault-diagnosis-fault-tolerant-control.html"><span class="sidebar-index">07</span><span class="sidebar-title">第46章 故障诊断与容错控制</span></a>
+<a class="sidebar-link" href="./47-guidance-theory-foundations.html"><span class="sidebar-index">08</span><span class="sidebar-title">第47章 制导理论基础</span></a>
+<a class="sidebar-link" href="./48-integrated-guidance-control.html"><span class="sidebar-index">09</span><span class="sidebar-title">第48章 制导控制一体化</span></a>
+<a class="sidebar-link" href="./49-reentry-flight-control.html"><span class="sidebar-index">10</span><span class="sidebar-title">第49章 再入飞行控制</span></a>
+<a class="sidebar-link" href="./50-glide-energy-management-control.html"><span class="sidebar-index">11</span><span class="sidebar-title">第50章 滑翔飞行与能量管理控制</span></a>
+<a class="sidebar-link" href="./51-airbreathing-hypersonic-cruise-control.html"><span class="sidebar-index">12</span><span class="sidebar-title">第51章 吸气式高超声速巡航控制</span></a>
+        </nav>
+      </div>
+    </aside>
+    <main class="book-main">
+      <header class="book-page-header">
+        <div class="page-eyebrow">第4册·章节页04</div>
+        <h1 id="volume4--43-control-barrier-function-safety-filter">第43章 控制障碍函数与安全滤波</h1>
+        <p>本页是章节正文页。左侧目录用于回到本卷其他章节，底部导航用于前后章跳转。</p>
+      </header>
+      <article class="book-article">
+        <h2 id="问题背景">43.1 问题背景</h2>
+<p>第42章讲
+BLF，重点是把跟踪误差限制在边界内。本章讲控制障碍函数，Control Barrier
+Function，CBF，以及基于 CBF 的安全滤波。CBF
+的核心不是先构造完整控制律，而是先定义安全集，再在每个采样时刻约束控制输入，使系统状态不离开安全集。</p>
+<p>CBF
+很适合做名义控制器外层的安全保护，但它不是万能安全证明。若安全约束和输入能力本身不可行，CBF-QP
+也只能暴露问题，不能凭空创造控制余度。</p>
+<h2 id="安全集">43.2 安全集</h2>
+<p>设系统为</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>x</mi><mo accent="true">̇</mo></mover><mo>=</mo><mi>f</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo>+</mo><mi>g</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mi>u</mi></mrow><annotation encoding="application/x-tex">
+\dot x = f(x)+g(x)u
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>x</mi><annotation encoding="application/x-tex">x</annotation></semantics></math>
+是状态，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>u</mi><annotation encoding="application/x-tex">u</annotation></semantics></math>
+是控制输入，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">f(x)</annotation></semantics></math>
+是漂移项，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>g</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">g(x)</annotation></semantics></math>
+是输入通道矩阵。</p>
+<p>若定义安全函数
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>h</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">h(x)</annotation></semantics></math>，则安全集可写为</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>𝒮</mi><mo>=</mo><mo stretchy="false" form="prefix">{</mo><mi>x</mi><mo>∣</mo><mi>h</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo>≥</mo><mn>0</mn><mo stretchy="false" form="postfix">}</mo></mrow><annotation encoding="application/x-tex">
+\mathcal S = \{x \mid h(x)\ge 0\}
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>h</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">h(x)</annotation></semantics></math>
+是安全函数，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝒮</mi><annotation encoding="application/x-tex">\mathcal S</annotation></semantics></math>
+是安全集。</p>
+<p>若所有从安全集内出发的闭环轨迹都满足</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>h</mi><mo accent="true">̇</mo></mover><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo>+</mo><mi>α</mi><mo stretchy="false" form="prefix">(</mo><mi>h</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">)</mo><mo>≥</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">
+\dot h(x)+\alpha(h(x))\ge 0
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>α</mi><mo stretchy="false" form="prefix">(</mo><mi>⋅</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\alpha(\cdot)</annotation></semantics></math>
+是类
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝒦</mi><annotation encoding="application/x-tex">\mathcal K</annotation></semantics></math>
+函数。</p>
+<p>则可将安全约束写成输入不等式。对仿射系统，有</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>L</mi><mi>f</mi></msub><mi>h</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo>+</mo><msub><mi>L</mi><mi>g</mi></msub><mi>h</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mi>u</mi><mo>+</mo><mi>α</mi><mo stretchy="false" form="prefix">(</mo><mi>h</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">)</mo><mo>≥</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">
+L_f h(x)+L_g h(x)u+\alpha(h(x))\ge 0
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>L</mi><mi>f</mi></msub><mi>h</mi></mrow><annotation encoding="application/x-tex">L_f h</annotation></semantics></math>
+和
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>L</mi><mi>g</mi></msub><mi>h</mi></mrow><annotation encoding="application/x-tex">L_g h</annotation></semantics></math>
+是 Lie 导数。</p>
+<h2 id="正向不变性">43.3 正向不变性</h2>
+<p>CBF
+的目标，是让安全集对闭环系统正向不变。也就是说，只要初始状态位于安全集内，后续轨迹就不应离开安全集。</p>
+<p>若在连续时间下满足 CBF
+约束，则系统状态可以保持在安全边界内或安全边界之上。工程上仍要检查初值、采样和输入限制是否破坏这一性质。</p>
+<h2 id="相对阶和高阶-cbf">43.4 相对阶和高阶 CBF</h2>
+<p>并非所有约束都能在一阶导数里直接看到输入。若输出对输入有相对阶，则需要高阶
+CBF。对二阶情形，可写成</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>h</mi><mo accent="true">̈</mo></mover><mo>+</mo><msub><mi>k</mi><mn>1</mn></msub><mover><mi>h</mi><mo accent="true">̇</mo></mover><mo>+</mo><msub><mi>k</mi><mn>0</mn></msub><mi>h</mi><mo>≥</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">
+\ddot h + k_1 \dot h + k_0 h \ge 0
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>k</mi><mn>0</mn></msub><annotation encoding="application/x-tex">k_0</annotation></semantics></math>
+和
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>k</mi><mn>1</mn></msub><annotation encoding="application/x-tex">k_1</annotation></semantics></math>
+是设计参数。</p>
+<p>高超声速飞行中，动压、热流和过载等约束常常需要先经状态导数整理，再决定用一阶还是高阶
+CBF。</p>
+<h2 id="安全滤波器">43.5 安全滤波器</h2>
+<p>安全滤波器通常把名义控制器输出
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>u</mi><mrow><mi mathvariant="normal">n</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">m</mi></mrow></msub><annotation encoding="application/x-tex">u_{\mathrm{nom}}</annotation></semantics></math>
+修正为安全控制
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>u</mi><annotation encoding="application/x-tex">u</annotation></semantics></math>：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>u</mi><mo>⋆</mo></msup><mo>=</mo><mi>arg</mi><mo>&#8289;</mo><munder><mi>min</mi><mo>&#8289;</mo><mrow><mi>u</mi><mo>∈</mo><mi>𝒰</mi></mrow></munder><mspace width="0.222em"></mspace><mo stretchy="false" form="postfix">∥</mo><mi>u</mi><mo>−</mo><msub><mi>u</mi><mrow><mi mathvariant="normal">n</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">m</mi></mrow></msub><msup><mo stretchy="false" form="postfix">∥</mo><mn>2</mn></msup></mrow><annotation encoding="application/x-tex">
+u^\star = \arg\min_{u\in\mathcal U}\ \|u-u_{\mathrm{nom}}\|^2
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝒰</mi><annotation encoding="application/x-tex">\mathcal U</annotation></semantics></math>
+是可行输入集合，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>u</mi><mrow><mi mathvariant="normal">n</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">m</mi></mrow></msub><annotation encoding="application/x-tex">u_{\mathrm{nom}}</annotation></semantics></math>
+是名义控制器输出，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>u</mi><mo>⋆</mo></msup><annotation encoding="application/x-tex">u^\star</annotation></semantics></math>
+是滤波后的安全输入。</p>
+<p>并满足 CBF 约束</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>L</mi><mi>f</mi></msub><mi>h</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo>+</mo><msub><mi>L</mi><mi>g</mi></msub><mi>h</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mi>u</mi><mo>+</mo><mi>α</mi><mo stretchy="false" form="prefix">(</mo><mi>h</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">)</mo><mo>≥</mo><mi>−</mi><mi>δ</mi></mrow><annotation encoding="application/x-tex">
+L_f h(x)+L_g h(x)u+\alpha(h(x))\ge -\delta
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>δ</mi><annotation encoding="application/x-tex">\delta</annotation></semantics></math>
+是松弛变量，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>w</mi><mi>δ</mi></msub><annotation encoding="application/x-tex">w_\delta</annotation></semantics></math>
+是松弛权重。</p>
+<p>约束可进一步与 CLF 结合为</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>L</mi><mi>f</mi></msub><mi>V</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo>+</mo><msub><mi>L</mi><mi>g</mi></msub><mi>V</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mi>u</mi><mo>+</mo><mi>c</mi><mi>V</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo>≤</mo><mi>δ</mi></mrow><annotation encoding="application/x-tex">
+L_f V(x)+L_g V(x)u+cV(x)\le \delta
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>V</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">V(x)</annotation></semantics></math>
+是控制 Lyapunov
+函数，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>c</mi><annotation encoding="application/x-tex">c</annotation></semantics></math>
+是收敛参数。</p>
+<h2 id="clf-cbf-qp">43.6 CLF-CBF-QP</h2>
+<p>实际工程中，安全滤波常写成二次规划问题。一个最小形式是</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtable><mtr><mtd columnalign="right" style="text-align: right; padding-right: 0"><munder><mi>min</mi><mo>&#8289;</mo><mi>u</mi></munder><mspace width="1.0em"></mspace></mtd><mtd columnalign="left" style="text-align: left; padding-left: 0"><mo stretchy="false" form="postfix">∥</mo><mi>u</mi><mo>−</mo><msub><mi>u</mi><mrow><mi mathvariant="normal">n</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">m</mi></mrow></msub><msup><mo stretchy="false" form="postfix">∥</mo><mn>2</mn></msup><mo>+</mo><msub><mi>w</mi><mi>δ</mi></msub><msup><mi>δ</mi><mn>2</mn></msup></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right; padding-right: 0"><mtext mathvariant="normal">s.t.</mtext><mspace width="1.0em"></mspace></mtd><mtd columnalign="left" style="text-align: left; padding-left: 0"><msub><mi>L</mi><mi>f</mi></msub><mi>h</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo>+</mo><msub><mi>L</mi><mi>g</mi></msub><mi>h</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mi>u</mi><mo>+</mo><mi>α</mi><mo stretchy="false" form="prefix">(</mo><mi>h</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">)</mo><mo>≥</mo><mi>−</mi><mi>δ</mi></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right; padding-right: 0"></mtd><mtd columnalign="left" style="text-align: left; padding-left: 0"><msub><mi>L</mi><mi>f</mi></msub><mi>V</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo>+</mo><msub><mi>L</mi><mi>g</mi></msub><mi>V</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mi>u</mi><mo>+</mo><mi>c</mi><mi>V</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo>≤</mo><mi>δ</mi></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right; padding-right: 0"></mtd><mtd columnalign="left" style="text-align: left; padding-left: 0"><mi>u</mi><mo>∈</mo><mi>𝒰</mi></mtd></mtr></mtable><annotation encoding="application/x-tex">
+\begin{aligned}
+\min_u \quad &amp; \|u-u_{\mathrm{nom}}\|^2 + w_\delta \delta^2 \\
+\text{s.t.}\quad &amp; L_f h(x)+L_g h(x)u+\alpha(h(x))\ge -\delta \\
+&amp; L_f V(x)+L_g V(x)u+cV(x)\le \delta \\
+&amp; u\in \mathcal U
+\end{aligned}
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>w</mi><mi>δ</mi></msub><annotation encoding="application/x-tex">w_\delta</annotation></semantics></math>
+是松弛权重，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>δ</mi><annotation encoding="application/x-tex">\delta</annotation></semantics></math>
+是松弛变量，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>u</mi><mo>∈</mo><mi>𝒰</mi></mrow><annotation encoding="application/x-tex">u\in\mathcal U</annotation></semantics></math>
+表示输入必须满足边界。</p>
+<h2 id="约束对象">43.7 约束对象</h2>
+<p>在高超声速飞行里，常见安全函数包括</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>h</mi><mi>q</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><msub><mover><mi>q</mi><mo accent="true">‾</mo></mover><mi>max</mi><mo>&#8289;</mo></msub><mo>−</mo><mover><mi>q</mi><mo accent="true">‾</mo></mover></mrow><annotation encoding="application/x-tex">
+h_q(x)=\bar q_{\max}-\bar q
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mover><mi>q</mi><mo accent="true">‾</mo></mover><annotation encoding="application/x-tex">\bar q</annotation></semantics></math>
+是动压，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mover><mi>q</mi><mo accent="true">‾</mo></mover><mi>max</mi><mo>&#8289;</mo></msub><annotation encoding="application/x-tex">\bar q_{\max}</annotation></semantics></math>
+是动压上界。</p>
+<p>过载安全函数可定义为</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>h</mi><mi>n</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><msub><mi>n</mi><mi>max</mi><mo>&#8289;</mo></msub><mo>−</mo><mi>n</mi></mrow><annotation encoding="application/x-tex">
+h_n(x)=n_{\max}-n
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>n</mi><annotation encoding="application/x-tex">n</annotation></semantics></math>
+是过载，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>n</mi><mi>max</mi><mo>&#8289;</mo></msub><annotation encoding="application/x-tex">n_{\max}</annotation></semantics></math>
+是过载上界。</p>
+<p>对攻角约束，可写成</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>h</mi><mi>α</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><msub><mi>α</mi><mi>max</mi><mo>&#8289;</mo></msub><mo>−</mo><mo stretchy="false" form="prefix">|</mo><mi>α</mi><mo stretchy="false" form="prefix">|</mo></mrow><annotation encoding="application/x-tex">
+h_\alpha(x)=\alpha_{\max}-|\alpha|
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>α</mi><annotation encoding="application/x-tex">\alpha</annotation></semantics></math>
+是攻角，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>α</mi><mi>max</mi><mo>&#8289;</mo></msub><annotation encoding="application/x-tex">\alpha_{\max}</annotation></semantics></math>
+是攻角上界。</p>
+<h2 id="低阶问题卡单约束动压安全滤波">43.8
+低阶问题卡：单约束动压安全滤波</h2>
+<p>对动压约束，若</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>h</mi><mi>q</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><msub><mover><mi>q</mi><mo accent="true">‾</mo></mover><mi>max</mi><mo>&#8289;</mo></msub><mo>−</mo><mfrac><mn>1</mn><mn>2</mn></mfrac><mi>ρ</mi><mo stretchy="false" form="prefix">(</mo><mi>h</mi><mo stretchy="false" form="postfix">)</mo><msup><mi>V</mi><mn>2</mn></msup></mrow><annotation encoding="application/x-tex">
+h_q(x)=\bar q_{\max}-\frac{1}{2}\rho(h)V^2
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ρ</mi><mo stretchy="false" form="prefix">(</mo><mi>h</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\rho(h)</annotation></semantics></math>
+是密度，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>V</mi><annotation encoding="application/x-tex">V</annotation></semantics></math>
+是速度。</p>
+<p>则其导数可写为</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mover><mi>h</mi><mo accent="true">̇</mo></mover><mi>q</mi></msub><mo>=</mo><mi>−</mi><mover><mover><mi>q</mi><mo accent="true">‾</mo></mover><mo accent="true">̇</mo></mover></mrow><annotation encoding="application/x-tex">
+\dot h_q = -\dot{\bar q}
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mover><mi>h</mi><mo accent="true">̇</mo></mover><mi>q</mi></msub><annotation encoding="application/x-tex">\dot h_q</annotation></semantics></math>
+是安全函数导数。</p>
+<p>因此，需要检查采样点之间是否发生约束穿越；若系统对输入的相对阶更高，则应使用高阶
+CBF，而不是直接套一阶条件。</p>
+<h2 id="离散实现">43.9 离散实现</h2>
+<p>CBF 不是只在连续时间里成立。实际实现时，采样周期
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>T</mi><mi>s</mi></msub><annotation encoding="application/x-tex">T_s</annotation></semantics></math>、数值求解器误差和传感器延迟都会影响安全判断。若采样间隔过大，安全集在离散时刻内可能被穿越而未被发现。</p>
+<h2 id="与参考治理器的区别">43.10 与参考治理器的区别</h2>
+<p>CBF
+安全滤波器修改的是控制输入；参考治理器修改的是上层参考。两者都可以安全化，但接口层级不同。</p>
+<h2 id="约束与可行性">43.11 约束与可行性</h2>
+<p>CBF
+能保证的是“在给定输入约束和模型假设下的安全修正”，不能凭空创造可行性。若控制效能退化、输入边界过紧或安全集本身空集，QP
+可能无解或只能大量使用松弛变量。</p>
+<h2 id="最小验证协议">43.12 最小验证协议</h2>
+<p>对高超声速飞行器，CBF 至少应报告：</p>
+<table>
+<thead>
+<tr>
+<th>类别</th>
+<th>指标</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>安全集</td>
+<td>最小安全裕度、是否越界、恢复时间</td>
+</tr>
+<tr>
+<td>输入</td>
+<td>修改幅度、修改频率、可行性</td>
+</tr>
+<tr>
+<td>性能</td>
+<td>跟踪误差、性能损失、松弛变量</td>
+</tr>
+<tr>
+<td>离散实现</td>
+<td>采样点间穿越、求解时间、回退次数</td>
+</tr>
+<tr>
+<td>约束</td>
+<td>动压、热流、过载、攻角和舵速裕度</td>
+</tr>
+</tbody>
+</table>
+<h2 id="证据层次">43.13 证据层次</h2>
+<p>为了避免把“做了一个安全滤波器”误写成已经完成安全控制设计，本章可把证据粗分为四级：</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>等级</th>
+<th>最低证据</th>
+<th>仍缺什么</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>S</mi><mn>0</mn></mrow><annotation encoding="application/x-tex">S0</annotation></semantics></math></td>
+<td>给出安全函数、约束形式和 CBF 条件</td>
+<td>没有 QP、离散和输入边界证据</td>
+</tr>
+<tr>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>S</mi><mn>1</mn></mrow><annotation encoding="application/x-tex">S1</annotation></semantics></math></td>
+<td>有单场景安全滤波结果</td>
+<td>没有多约束冲突和恢复证据</td>
+</tr>
+<tr>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>S</mi><mn>2</mn></mrow><annotation encoding="application/x-tex">S2</annotation></semantics></math></td>
+<td>有输入饱和、初值偏移和扰动扫描</td>
+<td>没有任务级联和可行性失败样本</td>
+</tr>
+<tr>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>S</mi><mn>3</mn></mrow><annotation encoding="application/x-tex">S3</annotation></semantics></math></td>
+<td>控制器、CBF、参考治理和输入边界共同闭环</td>
+<td>工程级安全证据</td>
+</tr>
+</tbody>
+</table>
+<h2 id="本章小结">43.14 本章小结</h2>
+<p>CBF
+的作用，是把安全从事后检查变成闭环内的实时约束。它特别适合做名义控制器外层的安全保护，但它仍然依赖可行性、离散实现和输入边界。</p>
+<h2 id="练习">43.15 练习</h2>
+<ol type="1">
+<li>写出安全集和前向不变性的基本定义。</li>
+<li>说明一阶 CBF 条件和高阶 CBF 条件的差异。</li>
+<li>写出一个 CLF-CBF-QP 的最小形式。</li>
+<li>比较参考治理器和 CBF 安全滤波器的接口差异。</li>
+<li>设计一个动压约束的离散 CBF 验证实验。</li>
+</ol>
+
+      </article>
+      
+      <nav class="book-bottom-nav" aria-label="章节导航">
+        <a href="./42-barrier-lyapunov-constrained-tracking.html">上一章：第42章 障碍 Lyapunov 函数与约束跟踪控制</a>
+        <a href="./index.html">卷首页</a>
+        <a href="./44-model-predictive-control.html">下一章：第44章 模型预测控制</a>
+      </nav>
+    </main>
+  </div>
+</body>
+</html>

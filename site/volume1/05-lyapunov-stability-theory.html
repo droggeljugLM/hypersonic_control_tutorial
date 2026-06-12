@@ -1,0 +1,1044 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>第5章 Lyapunov 稳定性理论</title>
+  <style>
+    :root {
+      --paper: #f7f3eb;
+      --ink: #1f2937;
+      --muted: #5b6472;
+      --line: color-mix(in srgb, #e7eef7 68%, #cbd5e1 32%);
+      --accent: #335c81;
+      --accent-soft: #e7eef7;
+      --accent-deep: #1e3d57;
+      color-scheme: light;
+    }
+    html {
+      -webkit-text-size-adjust: 100%;
+      background:
+        radial-gradient(circle at top left, #e7eef7 0, rgba(255,255,255,0) 32%),
+        linear-gradient(180deg, #fbfaf6 0%, var(--paper) 18%, #f7f1e6 100%);
+    }
+    body {
+      margin: 0;
+      font-family: "Source Han Serif SC", "Songti SC", "Noto Serif CJK SC", "Microsoft YaHei", serif;
+      color: var(--ink);
+      line-height: 1.78;
+      letter-spacing: 0;
+    }
+    a { color: var(--accent-deep); }
+    .book-app {
+      display: grid;
+      grid-template-columns: 280px minmax(0, 1fr);
+      min-height: 100vh;
+    }
+    .book-sidebar {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow: auto;
+      padding: 1.2rem 1rem 1.2rem 1.15rem;
+      border-right: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(255,255,255,0.86), rgba(255,255,255,0.72));
+      backdrop-filter: blur(10px);
+    }
+    .sidebar-shell { position: sticky; top: 0; display: flex; flex-direction: column; gap: 1rem; }
+    .sidebar-brand {
+      padding: 0.95rem 0.95rem 1rem;
+      border-radius: 18px;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.95), rgba(255,255,255,0.84)),
+        linear-gradient(135deg, var(--accent-soft), rgba(255,255,255,0));
+      border: 1px solid var(--line);
+      box-shadow: 0 12px 28px rgba(31, 41, 55, 0.06);
+    }
+    .sidebar-brand .kicker { margin: 0; color: var(--accent); font-size: 0.82rem; font-weight: 700; }
+    .sidebar-brand h2 { margin: 0.45rem 0 0.25rem; font-size: 1.08rem; line-height: 1.3; color: var(--ink); }
+    .sidebar-brand p { margin: 0.35rem 0 0; color: var(--muted); font-size: 0.9rem; }
+    .sidebar-links { display: grid; gap: 0.45rem; }
+    .sidebar-link {
+      display: grid;
+      grid-template-columns: 2.2rem minmax(0, 1fr);
+      gap: 0.6rem;
+      align-items: start;
+      padding: 0.7rem 0.75rem;
+      border-radius: 14px;
+      text-decoration: none;
+      background: rgba(255,255,255,0.72);
+      border: 1px solid rgba(31,41,55,0.07);
+      color: var(--ink);
+    }
+    .sidebar-link:hover { background: rgba(255,255,255,0.95); border-color: var(--line); }
+    .sidebar-link.active {
+      background: linear-gradient(135deg, rgba(255,255,255,0.98), rgba(255,255,255,0.9));
+      border-color: var(--accent-soft);
+      box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent-soft) 68%, #ffffff 32%);
+    }
+    .sidebar-index {
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      min-width: 2rem;
+      height: 2rem;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent-deep);
+      font-size: 0.78rem;
+      font-weight: 800;
+    }
+    .sidebar-title { font-size: 0.94rem; line-height: 1.35; }
+    .book-main { min-width: 0; padding: 1.25rem 1.45rem 1.8rem; }
+    .book-page-header {
+      padding: 0.85rem 0 1rem;
+      margin-bottom: 1rem;
+      border-bottom: 1px solid var(--line);
+    }
+    .page-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.28rem 0.72rem;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.82);
+      border: 1px solid var(--line);
+      color: var(--accent-deep);
+      font-size: 0.8rem;
+      font-weight: 700;
+    }
+    .book-page-header h1 {
+      margin: 0.7rem 0 0;
+      font-size: 1.85rem;
+      line-height: 1.22;
+      color: var(--accent-deep);
+      border: 0;
+      padding: 0;
+    }
+    .book-page-header p { margin: 0.45rem 0 0; color: var(--muted); max-width: 62rem; }
+    .book-article { max-width: 900px; margin: 0; padding: 0 0 1.2rem; }
+    .book-article h1, .book-article h2, .book-article h3, .book-article h4, .book-article h5, .book-article h6 {
+      line-height: 1.28;
+      margin-top: 1.45em;
+      margin-bottom: 0.55em;
+      color: var(--accent-deep);
+    }
+    .book-article h1 { font-size: 2rem; border-bottom: 2px solid var(--line); padding-bottom: 0.42rem; }
+    .book-article h1:first-of-type { margin-top: 0; }
+    .book-article h2 { font-size: 1.42rem; }
+    .book-article h3 { font-size: 1.12rem; }
+    .book-article p, .book-article li, .book-article dd, .book-article td, .book-article th { text-align: justify; text-justify: inter-ideograph; }
+    .book-article p { margin: 0.85rem 0; }
+    .book-article code, .book-article pre { font-family: "Cascadia Mono", "Source Code Pro", Consolas, monospace; font-size: 0.94em; }
+    .book-article code {
+      padding: 0.02rem 0.24rem;
+      background: color-mix(in srgb, var(--accent-soft) 34%, #ffffff 66%);
+      border: 0;
+      border-bottom: 1px solid color-mix(in srgb, var(--accent-soft) 74%, #d1d5db 26%);
+      border-radius: 4px;
+      color: #253244;
+      box-decoration-break: clone;
+      -webkit-box-decoration-break: clone;
+    }
+    .book-article pre {
+      padding: 1rem 1.1rem;
+      overflow: auto;
+      background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,253,248,0.98));
+      border: 1px solid color-mix(in srgb, var(--accent-soft) 54%, #d1d5db 46%);
+      border-left: 5px solid var(--accent);
+      border-radius: 14px;
+      box-shadow: 0 8px 22px rgba(31, 41, 55, 0.05);
+    }
+    .book-article pre code { padding: 0; border: 0; background: transparent; color: inherit; }
+    .book-article table {
+      border-collapse: collapse;
+      width: 100%;
+      margin: 1rem 0 1.25rem;
+      background: rgba(255,255,255,0.82);
+      overflow: hidden;
+      border-radius: 12px;
+    }
+    .book-article th, .book-article td { border: 1px solid var(--line); padding: 0.5rem 0.7rem; vertical-align: top; }
+    .book-article th { background: color-mix(in srgb, var(--accent-soft) 42%, #ffffff 58%); }
+    .book-article blockquote {
+      margin: 1rem 0;
+      padding: 0.25rem 0 0.25rem 1rem;
+      border-left: 4px solid var(--accent);
+      color: #374151;
+      background: linear-gradient(90deg, rgba(255,255,255,0.72), rgba(255,255,255,0.48));
+      border-radius: 0 12px 12px 0;
+    }
+    .book-bottom-nav {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-top: 2.2rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--line);
+    }
+    .book-bottom-nav a {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.6rem 0.9rem;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.84);
+      text-decoration: none;
+      font-weight: 700;
+    }
+    .book-bottom-nav span {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.6rem 0.9rem;
+      border-radius: 999px;
+      border: 1px solid rgba(31,41,55,0.08);
+      background: rgba(255,255,255,0.54);
+      color: rgba(31,41,55,0.42);
+      font-weight: 700;
+    }
+    .book-bottom-nav a:hover { background: rgba(255,255,255,0.98); }
+    .book-volume-intro {
+      margin: 0 0 1.25rem;
+      padding: 1.2rem 1.25rem 1.1rem;
+      border-radius: 18px;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.96), rgba(255,255,255,0.78)),
+        linear-gradient(135deg, var(--accent-soft), rgba(255,255,255,0));
+      border: 1px solid var(--line);
+      box-shadow: 0 14px 34px rgba(31, 41, 55, 0.06);
+    }
+    .volume-intro-kicker {
+      margin: 0;
+      color: var(--accent);
+      font-size: 0.84rem;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    .book-volume-intro h2 {
+      margin: 0.55rem 0 0.55rem;
+      font-size: 1.28rem;
+      line-height: 1.35;
+      color: var(--accent-deep);
+    }
+    .volume-intro-summary {
+      margin: 0;
+      color: var(--muted);
+      max-width: 68rem;
+    }
+    .volume-intro-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.8rem;
+      margin-top: 1rem;
+    }
+    .volume-intro-box {
+      padding: 0.85rem 0.9rem;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.72);
+      border: 1px solid rgba(31,41,55,0.08);
+    }
+    .volume-intro-box span {
+      display: block;
+      color: var(--accent);
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+    }
+    .volume-intro-box strong {
+      display: block;
+      margin-top: 0.35rem;
+      color: var(--ink);
+      font-size: 0.95rem;
+      line-height: 1.45;
+    }
+    .volume-intro-note {
+      margin-top: 0.9rem;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+    @media (max-width: 1180px) {
+      .book-app { grid-template-columns: 1fr; }
+      .book-sidebar {
+        position: relative;
+        height: auto;
+        border-right: 0;
+        border-bottom: 1px solid var(--line);
+      }
+      .sidebar-shell { position: static; }
+    }
+    @media (max-width: 900px) {
+      .book-main { padding: 1rem 1rem 1.5rem; }
+      .book-bottom-nav { flex-direction: column; }
+      .volume-intro-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="book-app">
+    <aside class="book-sidebar">
+      <div class="sidebar-shell">
+        <div class="sidebar-brand">
+          <p class="kicker">高超声速飞行器控制教程</p>
+          <h2>第一卷 数学基础与控制理论基础</h2>
+          <p>控制理论地基</p>
+        </div>
+        <nav class="sidebar-links" aria-label="本卷目录">
+          <a class="sidebar-link" href="./index.html"><span class="sidebar-index">0</span><span class="sidebar-title">卷首页</span></a>
+<a class="sidebar-link" href="./01-hypersonic-control-problem-intro.html"><span class="sidebar-index">01</span><span class="sidebar-title">第1章 高超声速飞行器控制问题导论</span></a>
+<a class="sidebar-link" href="./02-dynamical-systems-state-space.html"><span class="sidebar-index">02</span><span class="sidebar-title">第2章 动力系统与状态空间方法</span></a>
+<a class="sidebar-link" href="./03-linear-systems-theory.html"><span class="sidebar-index">03</span><span class="sidebar-title">第3章 线性系统理论</span></a>
+<a class="sidebar-link" href="./04-nonlinear-systems-theory.html"><span class="sidebar-index">04</span><span class="sidebar-title">第4章 非线性系统理论</span></a>
+<a class="sidebar-link active" href="./05-lyapunov-stability-theory.html"><span class="sidebar-index">05</span><span class="sidebar-title">第5章 Lyapunov 稳定性理论</span></a>
+<a class="sidebar-link" href="./06-input-output-small-gain.html"><span class="sidebar-index">06</span><span class="sidebar-title">第6章 输入输出稳定性与小增益理论</span></a>
+<a class="sidebar-link" href="./07-singular-perturbation-multitime-scale.html"><span class="sidebar-index">07</span><span class="sidebar-title">第7章 奇异摄动与多时间尺度系统</span></a>
+<a class="sidebar-link" href="./08-optimal-control-theory.html"><span class="sidebar-index">08</span><span class="sidebar-title">第8章 最优控制理论</span></a>
+<a class="sidebar-link" href="./09-robust-control-theory.html"><span class="sidebar-index">09</span><span class="sidebar-title">第9章 鲁棒控制理论</span></a>
+<a class="sidebar-link" href="./10-adaptive-control-theory.html"><span class="sidebar-index">10</span><span class="sidebar-title">第10章 自适应控制理论</span></a>
+<a class="sidebar-link" href="./11-stochastic-filtering-estimation.html"><span class="sidebar-index">11</span><span class="sidebar-title">第11章 随机系统、滤波与状态估计</span></a>
+<a class="sidebar-link" href="./12-constrained-safety-control-foundations.html"><span class="sidebar-index">12</span><span class="sidebar-title">第12章 约束系统与安全控制基础</span></a>
+<a class="sidebar-link" href="./13-numerical-convex-optimization.html"><span class="sidebar-index">13</span><span class="sidebar-title">第13章 数值优化与凸优化基础</span></a>
+<a class="sidebar-link" href="./13-hybrid-sampled-control.html"><span class="sidebar-index">14</span><span class="sidebar-title">混杂系统与采样控制专题</span></a>
+        </nav>
+      </div>
+    </aside>
+    <main class="book-main">
+      <header class="book-page-header">
+        <div class="page-eyebrow">第1册·章节页05</div>
+        <h1 id="volume1--05-lyapunov-stability-theory">第5章 Lyapunov 稳定性理论</h1>
+        <p>本页是章节正文页。左侧目录用于回到本卷其他章节，底部导航用于前后章跳转。</p>
+      </header>
+      <article class="book-article">
+        <h2 id="问题背景">5.1 问题背景</h2>
+<p>控制器设计最终要回答一个底线问题：闭环系统会不会失稳。</p>
+<p>对高超声速飞行器来说，这个问题不能只靠仿真曲线回答。原因有三点：第一，飞行器在大包线内工作，模型会随
+Mach
+数、高度、攻角和舵偏明显变化；第二，真实系统包含气动不确定性、执行机构饱和、传感器噪声和外部扰动；第三，控制目标不只是误差收敛，还包括动压、热流、过载、攻角和舵偏等约束。</p>
+<p>Lyapunov
+理论的价值在于：即使不能求出系统解析解，也可以通过一个能量型函数证明稳定、有界、收敛或安全不变性。</p>
+<p>这里讨论的基本系统写成</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>x</mi><mo accent="true">̇</mo></mover><mo>=</mo><mi>f</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
+\dot{x}=f(x,t)
+</annotation></semantics></math></p>
+<p>这里先把自治系统的状态演化形式固定下来，便于后面统一讨论稳定性。 其中
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>x</mi><annotation encoding="application/x-tex">x</annotation></semantics></math>
+是状态向量，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>t</mi><annotation encoding="application/x-tex">t</annotation></semantics></math>
+是时间，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">f(x,t)</annotation></semantics></math>
+是系统向量场；若后续要讨论维数，则
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>n</mi><annotation encoding="application/x-tex">n</annotation></semantics></math>
+表示状态维数。上式先给出无显式输入的自治形式。若系统含输入、扰动或控制器，则可写成</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>x</mi><mo accent="true">̇</mo></mover><mo>=</mo><mi>f</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo>+</mo><mi>g</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mi>u</mi><mo>+</mo><mi>d</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
+\dot{x}=f(x,t)+g(x,t)u+d(x,t)
+</annotation></semantics></math></p>
+<p>这里把输入通道和外部扰动单独拆开，后续所有闭环分析都会用到这两个角色。
+其中
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>u</mi><annotation encoding="application/x-tex">u</annotation></semantics></math>
+是控制输入，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>g</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">g(x,t)</annotation></semantics></math>
+是输入分布矩阵，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>d</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">d(x,t)</annotation></semantics></math>
+是外部扰动。这里
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>g</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mi>u</mi></mrow><annotation encoding="application/x-tex">g(x,t)u</annotation></semantics></math>
+表示输入如何进入系统，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>d</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">d(x,t)</annotation></semantics></math>
+表示建模之外的外部作用。若后续要把参考、估计和控制律一起写进闭环，则常再引入
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>r</mi><annotation encoding="application/x-tex">r</annotation></semantics></math>
+表示参考信号，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mover><mi>x</mi><mo accent="true">̂</mo></mover><annotation encoding="application/x-tex">\hat{x}</annotation></semantics></math>
+表示状态估计，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>π</mi><mo stretchy="false" form="prefix">(</mo><mi>⋅</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\pi(\cdot)</annotation></semantics></math>
+表示控制律；这些符号不属于这里的基础模型。高超声速控制中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>x</mi><annotation encoding="application/x-tex">x</annotation></semantics></math>
+可以是姿态误差、速度高度误差、制导误差、观测误差，也可以是由多环闭环组成的增广状态。</p>
+<h2 id="稳定性的基本定义">5.2 稳定性的基本定义</h2>
+<p>对原点平衡点，若对任意
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ϵ</mi><mo>&gt;</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\epsilon&gt;0</annotation></semantics></math>，都存在
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>δ</mi><mo>&gt;</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\delta&gt;0</annotation></semantics></math>，使得</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="postfix">∥</mo><mi>x</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>t</mi><mn>0</mn></msub><mo stretchy="false" form="postfix">)</mo><mo>−</mo><mn>0</mn><mo stretchy="false" form="postfix">∥</mo><mo>&lt;</mo><mi>δ</mi><mo>⇒</mo><mo stretchy="false" form="postfix">∥</mo><mi>x</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo>−</mo><mn>0</mn><mo stretchy="false" form="postfix">∥</mo><mo>&lt;</mo><mi>ϵ</mi><mo>,</mo><mspace width="1.0em"></mspace><mo>∀</mo><mi>t</mi><mo>≥</mo><msub><mi>t</mi><mn>0</mn></msub></mrow><annotation encoding="application/x-tex">
+\|x(t_0)-0\|&lt;\delta \Rightarrow \|x(t)-0\|&lt;\epsilon,\quad \forall t\ge t_0
+</annotation></semantics></math></p>
+<p>这里的邻域保持条件表达的是“初值小则轨迹始终小”，而不是误差自动收敛。这里
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="postfix">∥</mo><mi>⋅</mi><mo stretchy="false" form="postfix">∥</mo></mrow><annotation encoding="application/x-tex">\|\cdot\|</annotation></semantics></math>
+表示欧氏范数，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>t</mi><mn>0</mn></msub><annotation encoding="application/x-tex">t_0</annotation></semantics></math>
+是初始时刻，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ϵ</mi><annotation encoding="application/x-tex">\epsilon</annotation></semantics></math>
+是允许的误差上界，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>δ</mi><annotation encoding="application/x-tex">\delta</annotation></semantics></math>
+是相应的初值半径。换句话说，稳定性先保证的是邻域保持，而不是收敛速度。</p>
+<p>如果进一步满足</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><munder><mi>lim</mi><mo>&#8289;</mo><mrow><mi>t</mi><mo>→</mo><mi>∞</mi></mrow></munder><mi>x</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">
+\lim_{t\to\infty}x(t)=0
+</annotation></semantics></math></p>
+<p>该极限条件说明状态最终回到平衡点，因此称原点渐近稳定，其中
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>x</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">x(t)</annotation></semantics></math>
+是状态轨迹。这里的极限写法表示状态不仅保持有界，而且最终回到平衡点。</p>
+<p>如果还存在常数
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>c</mi><mo>&gt;</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">c&gt;0</annotation></semantics></math>
+和
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>λ</mi><mo>&gt;</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\lambda&gt;0</annotation></semantics></math>，使得</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="postfix">∥</mo><mi>x</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">∥</mo><mo>≤</mo><mi>c</mi><msup><mi>e</mi><mrow><mi>−</mi><mi>λ</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo>−</mo><msub><mi>t</mi><mn>0</mn></msub><mo stretchy="false" form="postfix">)</mo></mrow></msup><mo stretchy="false" form="postfix">∥</mo><mi>x</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>t</mi><mn>0</mn></msub><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">∥</mo><mo>,</mo><mspace width="1.0em"></mspace><mo>∀</mo><mi>t</mi><mo>≥</mo><msub><mi>t</mi><mn>0</mn></msub></mrow><annotation encoding="application/x-tex">
+\|x(t)\|\le c e^{-\lambda (t-t_0)}\|x(t_0)\|,\quad \forall t\ge t_0
+</annotation></semantics></math></p>
+<p>这里的上界给出了衰减速度，也给出了可比较的收敛尺度，因此称原点指数稳定。其中
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>c</mi><annotation encoding="application/x-tex">c</annotation></semantics></math>
+是放大系数，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>λ</mi><annotation encoding="application/x-tex">\lambda</annotation></semantics></math>
+是指数衰减率。指数稳定比渐近稳定更强，因为它给出了可量化的衰减速度。</p>
+<p>如果只要求状态最终进入某个有界邻域，例如</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><munder><mi>limsup</mi><mo>&#8289;</mo><mrow><mi>t</mi><mo>→</mo><mi>∞</mi></mrow></munder><mo stretchy="false" form="postfix">∥</mo><mi>x</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">∥</mo><mo>≤</mo><mi>b</mi></mrow><annotation encoding="application/x-tex">
+\limsup_{t\to\infty}\|x(t)\|\le b
+</annotation></semantics></math></p>
+<p>该上界说明系统最终只会停在一个由扰动决定的小邻域里，其中
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>b</mi><mo>&gt;</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">b&gt;0</annotation></semantics></math>
+是与扰动强度相关的常数，因此通常称为最终有界。这个表述说明系统不一定收敛到零，但会被限制在某个扰动相关邻域内。</p>
+<h2 id="lyapunov-函数与直接法">5.3 Lyapunov 函数与直接法</h2>
+<p>Lyapunov 直接法的核心，是先选一个候选函数
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>V</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">V(x)</annotation></semantics></math>，再研究它的正定性与导数符号。</p>
+<p>常见要求是</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>α</mi><mn>1</mn></msub><mo stretchy="false" form="prefix">(</mo><mo stretchy="false" form="postfix">∥</mo><mi>x</mi><mo stretchy="false" form="postfix">∥</mo><mo stretchy="false" form="postfix">)</mo><mo>≤</mo><mi>V</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo>≤</mo><msub><mi>α</mi><mn>2</mn></msub><mo stretchy="false" form="prefix">(</mo><mo stretchy="false" form="postfix">∥</mo><mi>x</mi><mo stretchy="false" form="postfix">∥</mo><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
+\alpha_1(\|x\|)\le V(x)\le \alpha_2(\|x\|)
+</annotation></semantics></math></p>
+<p>这里的夹逼关系把状态大小和候选能量大小绑定在一起。 其中
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>V</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">V(x)</annotation></semantics></math>
+是候选 Lyapunov
+函数，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>α</mi><mn>1</mn></msub><annotation encoding="application/x-tex">\alpha_1</annotation></semantics></math>
+和
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>α</mi><mn>2</mn></msub><annotation encoding="application/x-tex">\alpha_2</annotation></semantics></math>
+是类
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝒦</mi><annotation encoding="application/x-tex">\mathcal{K}</annotation></semantics></math>
+函数。类
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝒦</mi><annotation encoding="application/x-tex">\mathcal{K}</annotation></semantics></math>
+函数指在区间上单调递增、且在零点取零的函数；若它还在无穷远处无界，则记为类
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>𝒦</mi><mi>∞</mi></msub><annotation encoding="application/x-tex">\mathcal{K}_\infty</annotation></semantics></math>。这个不等式把状态大小和“能量”大小联系起来。
+它的作用是把状态范数和候选能量函数夹在同一对界之间。</p>
+<p>如果还能证明</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>V</mi><mo accent="true">̇</mo></mover><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo>≤</mo><mi>−</mi><msub><mi>α</mi><mn>3</mn></msub><mo stretchy="false" form="prefix">(</mo><mo stretchy="false" form="postfix">∥</mo><mi>x</mi><mo stretchy="false" form="postfix">∥</mo><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
+\dot V(x)\le -\alpha_3(\|x\|)
+</annotation></semantics></math></p>
+<p>这个导数条件说明候选能量沿轨迹持续下降。 其中
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mover><mi>V</mi><mo accent="true">̇</mo></mover><annotation encoding="application/x-tex">\dot{V}</annotation></semantics></math>
+是沿系统轨迹的时间导数，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>α</mi><mn>3</mn></msub><annotation encoding="application/x-tex">\alpha_3</annotation></semantics></math>
+也是类
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝒦</mi><annotation encoding="application/x-tex">\mathcal{K}</annotation></semantics></math>
+函数，那么原点稳定性通常就能由此推出。这里的关键是导数为负，意味着候选能量持续下降。
+这一步把“稳定”转化成了一个可验证的不等式条件。 这里的
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>α</mi><mn>3</mn></msub><mo stretchy="false" form="prefix">(</mo><mo stretchy="false" form="postfix">∥</mo><mi>x</mi><mo stretchy="false" form="postfix">∥</mo><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\alpha_3(\|x\|)</annotation></semantics></math>
+不是随便写的补偿项，而是一个明确的正函数下界，所以它把“下降多少”也写了出来。</p>
+<p>在高超声速控制中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>V</mi><annotation encoding="application/x-tex">V</annotation></semantics></math>
+常被设计成误差能量、角速度能量、参数偏差能量或这些量的加权和。</p>
+<h2 id="正定性径向有界性与比较函数">5.4
+正定性、径向有界性与比较函数</h2>
+<p>对一个好的 Lyapunov 函数，正定性与径向有界性非常关键。</p>
+<p>若</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>V</mi><mo stretchy="false" form="prefix">(</mo><mn>0</mn><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mn>0</mn><mo>,</mo><mspace width="2.0em"></mspace><mi>V</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo>&gt;</mo><mn>0</mn><mspace width="0.222em"></mspace><mtext mathvariant="normal">for</mtext><mspace width="0.222em"></mspace><mi>x</mi><mo>≠</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">
+V(0)=0,\qquad V(x)&gt;0\ \text{for}\ x\neq 0
+</annotation></semantics></math></p>
+<p>这里的
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>V</mi><mo stretchy="false" form="prefix">(</mo><mn>0</mn><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">V(0)</annotation></semantics></math>
+是原点处的函数值，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>V</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo>&gt;</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">V(x)&gt;0</annotation></semantics></math>
+表示除原点外的任意状态都对应正的候选能量，这保证了候选函数对误差确实“有感觉”。</p>
+<p>如果还满足</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>α</mi><mn>1</mn></msub><mo stretchy="false" form="prefix">(</mo><mo stretchy="false" form="postfix">∥</mo><mi>x</mi><mo stretchy="false" form="postfix">∥</mo><mo stretchy="false" form="postfix">)</mo><mo>≤</mo><mi>V</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo>≤</mo><msub><mi>α</mi><mn>2</mn></msub><mo stretchy="false" form="prefix">(</mo><mo stretchy="false" form="postfix">∥</mo><mi>x</mi><mo stretchy="false" form="postfix">∥</mo><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
+\alpha_1(\|x\|)\le V(x)\le \alpha_2(\|x\|)
+</annotation></semantics></math></p>
+<p>这里的
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>α</mi><mn>1</mn></msub><mo stretchy="false" form="prefix">(</mo><mo stretchy="false" form="postfix">∥</mo><mi>x</mi><mo stretchy="false" form="postfix">∥</mo><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\alpha_1(\|x\|)</annotation></semantics></math>
+和
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>α</mi><mn>2</mn></msub><mo stretchy="false" form="prefix">(</mo><mo stretchy="false" form="postfix">∥</mo><mi>x</mi><mo stretchy="false" form="postfix">∥</mo><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\alpha_2(\|x\|)</annotation></semantics></math>
+分别给出候选能量对状态范数的下界和上界，二者共同把
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>V</mi><annotation encoding="application/x-tex">V</annotation></semantics></math>
+和状态范数联系起来。于是
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>V</mi><annotation encoding="application/x-tex">V</annotation></semantics></math>
+是径向有界的，意味着状态变大时能量也会被拉大，这个性质常用来把状态有界性从能量有界性中推出。</p>
+<p>考虑一个简单反馈误差系统</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>e</mi><mo accent="true">̇</mo></mover><mo>=</mo><mi>−</mi><mi>k</mi><mi>e</mi><mo>+</mo><mi>d</mi></mrow><annotation encoding="application/x-tex">
+\dot e=-ke+d
+</annotation></semantics></math></p>
+<p>这里的一阶误差方程把反馈回拉和外部扰动放在同一条动态里。其中左边是误差变化率，右边前一项是线性回拉，后一项是外部扰动。
+其中
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>e</mi><annotation encoding="application/x-tex">e</annotation></semantics></math>
+是误差，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>k</mi><annotation encoding="application/x-tex">k</annotation></semantics></math>
+是反馈增益，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>d</mi><annotation encoding="application/x-tex">d</annotation></semantics></math>
+是有界扰动，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mover><mi>d</mi><mo accent="true">‾</mo></mover><annotation encoding="application/x-tex">\bar d</annotation></semantics></math>
+是扰动上界。这个一阶例子用来说明反馈增益与扰动上界如何共同决定最终误差。再进一步说，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>k</mi><annotation encoding="application/x-tex">k</annotation></semantics></math>
+越大，系统回拉越强，但对输入噪声也会更敏感。</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>V</mi><mo>=</mo><mfrac><mn>1</mn><mn>2</mn></mfrac><msup><mi>e</mi><mn>2</mn></msup></mrow><annotation encoding="application/x-tex">
+V=\frac{1}{2}e^2
+</annotation></semantics></math></p>
+<p>这里把误差能量写成最简单的二次型，其中
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>e</mi><annotation encoding="application/x-tex">e</annotation></semantics></math>
+是误差状态，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>V</mi><annotation encoding="application/x-tex">V</annotation></semantics></math>
+是误差能量，系数
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mstyle displaystyle="false"><mfrac><mn>1</mn><mn>2</mn></mfrac></mstyle><annotation encoding="application/x-tex">\tfrac{1}{2}</annotation></semantics></math>
+只是为了让后面的导数形式更简洁；这个能量函数直接对应误差平方，属于最常见的二次型候选函数。</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>V</mi><mo accent="true">̇</mo></mover><mo>=</mo><mi>e</mi><mover><mi>e</mi><mo accent="true">̇</mo></mover><mo>=</mo><mi>−</mi><mi>k</mi><msup><mi>e</mi><mn>2</mn></msup><mo>+</mo><mi>e</mi><mi>d</mi></mrow><annotation encoding="application/x-tex">
+\dot V=e\dot e=-ke^2+ed
+</annotation></semantics></math></p>
+<p>这里的
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mover><mi>V</mi><mo accent="true">̇</mo></mover><annotation encoding="application/x-tex">\dot V</annotation></semantics></math>
+是候选能量的变化率，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>−</mi><mi>k</mi><msup><mi>e</mi><mn>2</mn></msup></mrow><annotation encoding="application/x-tex">-ke^2</annotation></semantics></math>
+是回拉项，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>e</mi><mi>d</mi></mrow><annotation encoding="application/x-tex">ed</annotation></semantics></math>
+是扰动项。利用 Young 不等式可把交叉项
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>e</mi><mi>d</mi></mrow><annotation encoding="application/x-tex">ed</annotation></semantics></math>
+拆成一个回拉项和一个扰动项，便于得到可验证的最终界。</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>V</mi><mo accent="true">̇</mo></mover><mo>≤</mo><mi>−</mi><mfrac><mi>k</mi><mn>2</mn></mfrac><msup><mi>e</mi><mn>2</mn></msup><mo>+</mo><mfrac><msup><mi>d</mi><mn>2</mn></msup><mrow><mn>2</mn><mi>k</mi></mrow></mfrac></mrow><annotation encoding="application/x-tex">
+\dot V\le -\frac{k}{2}e^2+\frac{d^2}{2k}
+</annotation></semantics></math></p>
+<p>这里的不等式给出一个可以直接看出最终界的形式，其中左边是候选能量的下降率，右边第一项是反馈回拉，第二项是扰动残余；<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mfrac><mi>k</mi><mn>2</mn></mfrac><annotation encoding="application/x-tex">\frac{k}{2}</annotation></semantics></math>
+和
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mfrac><mn>1</mn><mrow><mn>2</mn><mi>k</mi></mrow></mfrac><annotation encoding="application/x-tex">\frac{1}{2k}</annotation></semantics></math>
+只是 Young 不等式配平后得到的系数。进而有</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><munder><mi>limsup</mi><mo>&#8289;</mo><mrow><mi>t</mi><mo>→</mo><mi>∞</mi></mrow></munder><mo stretchy="false" form="prefix">|</mo><mi>e</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="prefix">|</mo><mo>≤</mo><mfrac><mover><mi>d</mi><mo accent="true">‾</mo></mover><mi>k</mi></mfrac></mrow><annotation encoding="application/x-tex">
+\limsup_{t\to\infty}|e(t)|\le \frac{\bar d}{k}
+</annotation></semantics></math></p>
+<p>这里的最终界直接反映了扰动强度和反馈增益的平衡，其中
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mover><mi>d</mi><mo accent="true">‾</mo></mover><annotation encoding="application/x-tex">\bar d</annotation></semantics></math>
+是扰动上界、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>k</mi><annotation encoding="application/x-tex">k</annotation></semantics></math>
+是反馈增益，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>limsup</mi><annotation encoding="application/x-tex">\limsup</annotation></semantics></math>
+表示长期上界，因此误差最终会被压进一个由
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>d</mi><mo accent="true">‾</mo></mover><mi>/</mi><mi>k</mi></mrow><annotation encoding="application/x-tex">\bar d/k</annotation></semantics></math>
+决定的可计算残余范围。</p>
+<h2 id="二阶姿态误差例子">5.5 二阶姿态误差例子</h2>
+<p>考虑一个简化俯仰姿态误差系统</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mover><mi>e</mi><mo accent="true">̇</mo></mover><mi>θ</mi></msub><mo>=</mo><msub><mi>e</mi><mi>q</mi></msub><mo>,</mo><mspace width="2.0em"></mspace><mi>J</mi><msub><mover><mi>e</mi><mo accent="true">̇</mo></mover><mi>q</mi></msub><mo>=</mo><mi>−</mi><msub><mi>k</mi><mi>θ</mi></msub><msub><mi>e</mi><mi>θ</mi></msub><mo>−</mo><msub><mi>k</mi><mi>q</mi></msub><msub><mi>e</mi><mi>q</mi></msub><mo>+</mo><mi>d</mi></mrow><annotation encoding="application/x-tex">
+\dot e_\theta=e_q,\qquad J\dot e_q=-k_\theta e_\theta-k_q e_q+d
+</annotation></semantics></math></p>
+<p>这里的二阶模型把姿态误差、角速度误差和扰动统一写进同一个闭环。其中
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>e</mi><mi>θ</mi></msub><annotation encoding="application/x-tex">e_\theta</annotation></semantics></math>
+是姿态角误差，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>e</mi><mi>q</mi></msub><annotation encoding="application/x-tex">e_q</annotation></semantics></math>
+是角速度误差，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>J</mi><mo>&gt;</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">J&gt;0</annotation></semantics></math>
+是等效惯量，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>k</mi><mi>θ</mi></msub><mo>&gt;</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">k_\theta&gt;0</annotation></semantics></math>
+是姿态误差反馈增益，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>k</mi><mi>q</mi></msub><mo>&gt;</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">k_q&gt;0</annotation></semantics></math>
+是角速度反馈增益，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>d</mi><annotation encoding="application/x-tex">d</annotation></semantics></math>
+是扰动或未建模项。这里的
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>J</mi><annotation encoding="application/x-tex">J</annotation></semantics></math>
+相当于二阶系统的“惯性权重”，而
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>k</mi><mi>θ</mi></msub><annotation encoding="application/x-tex">k_\theta</annotation></semantics></math>
+和
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>k</mi><mi>q</mi></msub><annotation encoding="application/x-tex">k_q</annotation></semantics></math>
+分别决定角度误差和角速度误差被拉回的强度。</p>
+<p>取候选函数</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>V</mi><mo>=</mo><mfrac><mn>1</mn><mn>2</mn></mfrac><msub><mi>k</mi><mi>θ</mi></msub><msubsup><mi>e</mi><mi>θ</mi><mn>2</mn></msubsup><mo>+</mo><mfrac><mn>1</mn><mn>2</mn></mfrac><mi>J</mi><msubsup><mi>e</mi><mi>q</mi><mn>2</mn></msubsup></mrow><annotation encoding="application/x-tex">
+V=\frac{1}{2}k_\theta e_\theta^2+\frac{1}{2}J e_q^2
+</annotation></semantics></math></p>
+<p>这里的候选函数同时度量角度误差和角速度误差；<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>V</mi><annotation encoding="application/x-tex">V</annotation></semantics></math>
+仍然是一个标量能量指标，而不是系统状态向量，所以它只负责衡量偏离程度，不负责描述运动方向。</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>V</mi><mo accent="true">̇</mo></mover><mo>=</mo><msub><mi>k</mi><mi>θ</mi></msub><msub><mi>e</mi><mi>θ</mi></msub><msub><mover><mi>e</mi><mo accent="true">̇</mo></mover><mi>θ</mi></msub><mo>+</mo><mi>J</mi><msub><mi>e</mi><mi>q</mi></msub><msub><mover><mi>e</mi><mo accent="true">̇</mo></mover><mi>q</mi></msub><mo>=</mo><mi>−</mi><msub><mi>k</mi><mi>q</mi></msub><msubsup><mi>e</mi><mi>q</mi><mn>2</mn></msubsup><mo>+</mo><msub><mi>e</mi><mi>q</mi></msub><mi>d</mi></mrow><annotation encoding="application/x-tex">
+\dot V=k_\theta e_\theta\dot e_\theta+J e_q\dot e_q=-k_q e_q^2+e_q d
+</annotation></semantics></math></p>
+<p>这个导数说明角速度误差的阻尼项会被扰动项拉扯，其中
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>k</mi><mi>q</mi></msub><msubsup><mi>e</mi><mi>q</mi><mn>2</mn></msubsup></mrow><annotation encoding="application/x-tex">k_q e_q^2</annotation></semantics></math>
+是耗散项，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>e</mi><mi>q</mi></msub><mi>d</mi></mrow><annotation encoding="application/x-tex">e_q d</annotation></semantics></math>
+是扰动注入项。若先忽略
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>d</mi><annotation encoding="application/x-tex">d</annotation></semantics></math>，则有
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>V</mi><mo accent="true">̇</mo></mover><mo>=</mo><mi>−</mi><msub><mi>k</mi><mi>q</mi></msub><msubsup><mi>e</mi><mi>q</mi><mn>2</mn></msubsup><mo>≤</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\dot V=-k_q e_q^2\le 0</annotation></semantics></math>；但这只说明能量不增，还不能直接推出
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>e</mi><mi>θ</mi></msub><mo>→</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">e_\theta\to 0</annotation></semantics></math>，因此还要借助
+LaSalle 不变性原理来检查导数为零时系统会停在哪个集合里。</p>
+<p>如果
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>d</mi><mo>≠</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">d\neq 0</annotation></semantics></math>
+且有界，那么</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>V</mi><mo accent="true">̇</mo></mover><mo>≤</mo><mi>−</mi><mfrac><msub><mi>k</mi><mi>q</mi></msub><mn>2</mn></mfrac><msubsup><mi>e</mi><mi>q</mi><mn>2</mn></msubsup><mo>+</mo><mfrac><msup><mi>d</mi><mn>2</mn></msup><mrow><mn>2</mn><msub><mi>k</mi><mi>q</mi></msub></mrow></mfrac></mrow><annotation encoding="application/x-tex">
+\dot V\le -\frac{k_q}{2}e_q^2+\frac{d^2}{2k_q}
+</annotation></semantics></math></p>
+<p>这个不等式表明最终误差会被扰动能量抬高到一个有限邻域，其中
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mfrac><msup><mi>d</mi><mn>2</mn></msup><mrow><mn>2</mn><msub><mi>k</mi><mi>q</mi></msub></mrow></mfrac><annotation encoding="application/x-tex">\frac{d^2}{2k_q}</annotation></semantics></math>
+是扰动上界；因此只要扰动不消失，姿态误差就只能进入一个小邻域，而不会严格收敛到零。</p>
+<h2 id="比较引理与衰减率估计">5.6 比较引理与衰减率估计</h2>
+<p>比较引理的作用，是把微分不等式转成可读的显式界。</p>
+<p>例如若</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>V</mi><mo accent="true">̇</mo></mover><mo>≤</mo><mi>−</mi><mi>a</mi><mi>V</mi><mo>+</mo><mi>b</mi></mrow><annotation encoding="application/x-tex">
+\dot V\le -aV+b
+</annotation></semantics></math></p>
+<p>这里把按比例衰减项和残差项写成一个最小不等式，其中
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>a</mi><mi>V</mi></mrow><annotation encoding="application/x-tex">aV</annotation></semantics></math>
+是按比例衰减的项，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>b</mi><annotation encoding="application/x-tex">b</annotation></semantics></math>
+是持续注入的残差上界。</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>V</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo>≤</mo><msup><mi>e</mi><mrow><mi>−</mi><mi>a</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo>−</mo><msub><mi>t</mi><mn>0</mn></msub><mo stretchy="false" form="postfix">)</mo></mrow></msup><mi>V</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>t</mi><mn>0</mn></msub><mo stretchy="false" form="postfix">)</mo><mo>+</mo><mfrac><mi>b</mi><mi>a</mi></mfrac><mo minsize="1.2" maxsize="1.2" stretchy="false" form="prefix">(</mo><mn>1</mn><mo>−</mo><msup><mi>e</mi><mrow><mi>−</mi><mi>a</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo>−</mo><msub><mi>t</mi><mn>0</mn></msub><mo stretchy="false" form="postfix">)</mo></mrow></msup><mo minsize="1.2" maxsize="1.2" stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
+V(t)\le e^{-a(t-t_0)}V(t_0)+\frac{b}{a}\bigl(1-e^{-a(t-t_0)}\bigr)
+</annotation></semantics></math></p>
+<p>这里的
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>V</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>t</mi><mn>0</mn></msub><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">V(t_0)</annotation></semantics></math>
+是初始能量，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>e</mi><mrow><mi>−</mi><mi>a</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo>−</mo><msub><mi>t</mi><mn>0</mn></msub><mo stretchy="false" form="postfix">)</mo></mrow></msup><annotation encoding="application/x-tex">e^{-a(t-t_0)}</annotation></semantics></math>
+是时间衰减因子，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mfrac><mi>b</mi><mi>a</mi></mfrac><annotation encoding="application/x-tex">\frac{b}{a}</annotation></semantics></math>
+是最终残差平台；因此初始能量按指数衰减，而残差项决定最后还会剩下多少。</p>
+<h2 id="lasalle-不变性原理">5.7 LaSalle 不变性原理</h2>
+<p>很多系统只能证明</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>V</mi><mo accent="true">̇</mo></mover><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo>≤</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">
+\dot V(x)\le 0
+</annotation></semantics></math></p>
+<p>这里先看能量不增的情形；这个条件只说明能量不增，还不能单独推出趋零，其中
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>V</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">V(x)</annotation></semantics></math>
+是候选 Lyapunov
+函数，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>V</mi><mo accent="true">̇</mo></mover><mo>≤</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\dot V\le 0</annotation></semantics></math>
+只说明候选函数不会上升，不足以排除非零不变集。</p>
+<p>设</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi mathvariant="normal">Ω</mi><mi>c</mi></msub><mo>=</mo><mo stretchy="false" form="prefix">{</mo><mi>x</mi><mo>∣</mo><mi>V</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo>≤</mo><mi>c</mi><mo stretchy="false" form="postfix">}</mo></mrow><annotation encoding="application/x-tex">
+\Omega_c=\{x\mid V(x)\le c\}
+</annotation></semantics></math></p>
+<p>这个集合是按候选能量截出来的子水平集，其中
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>c</mi><annotation encoding="application/x-tex">c</annotation></semantics></math>
+是能量阈值，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi mathvariant="normal">Ω</mi><mi>c</mi></msub><annotation encoding="application/x-tex">\Omega_c</annotation></semantics></math>
+表示所有满足
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>V</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo>≤</mo><mi>c</mi></mrow><annotation encoding="application/x-tex">V(x)\le c</annotation></semantics></math>
+的状态。若
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi mathvariant="normal">Ω</mi><mi>c</mi></msub><annotation encoding="application/x-tex">\Omega_c</annotation></semantics></math>
+是紧集，且轨迹始终留在
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi mathvariant="normal">Ω</mi><mi>c</mi></msub><annotation encoding="application/x-tex">\Omega_c</annotation></semantics></math>
+内，那么系统轨迹会逐渐逼近集合</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>M</mi><mo>=</mo><mo stretchy="false" form="prefix">{</mo><mi>x</mi><mo>∈</mo><msub><mi mathvariant="normal">Ω</mi><mi>c</mi></msub><mo>∣</mo><mover><mi>V</mi><mo accent="true">̇</mo></mover><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mn>0</mn><mo stretchy="false" form="postfix">}</mo></mrow><annotation encoding="application/x-tex">
+M=\{x\in\Omega_c\mid \dot V(x)=0\}
+</annotation></semantics></math></p>
+<p>其中
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>M</mi><annotation encoding="application/x-tex">M</annotation></semantics></math>
+是在子水平集
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi mathvariant="normal">Ω</mi><mi>c</mi></msub><annotation encoding="application/x-tex">\Omega_c</annotation></semantics></math>
+内满足
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>V</mi><mo accent="true">̇</mo></mover><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\dot V(x)=0</annotation></semantics></math>
+的状态集合。LaSalle
+原理关注的正是候选能量停止下降后系统会停在哪一类状态上，最终再逼近
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>M</mi><annotation encoding="application/x-tex">M</annotation></semantics></math>
+中最大的正不变集。</p>
+<p>在自适应飞行控制里，这个工具很有用，因为自适应律通常让某个误差积分可控，但系统不一定是自治的。此时单靠
+LaSalle 往往不够，Barbalat 可以补上“导数足够平滑”这一层。</p>
+<p>Barbalat 相关结论常写成：若信号
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>z</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">z(t)</annotation></semantics></math>
+可积、且
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>z</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">z(t)</annotation></semantics></math>
+的导数一致连续或有界，那么
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>z</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo>→</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">z(t)\to 0</annotation></semantics></math>。这里
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>z</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">z(t)</annotation></semantics></math>
+是需要证明趋零的信号，例如跟踪误差、梯度项或残差项。 如果
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>z</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">z(t)</annotation></semantics></math>
+代表跟踪误差，那么 Barbalat
+引理就把“误差趋零”从积分有界和平滑性条件中推出来。</p>
+<h2 id="输入到状态稳定性与最终有界性">5.8
+输入到状态稳定性与最终有界性</h2>
+<p>对带扰动系统，输入到状态稳定性，简称
+ISS，是比“渐近稳定”更常见也更实用的结论。</p>
+<p>如果存在函数
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>β</mi><mo>∈</mo><mrow><mi>𝒦</mi><mi>ℒ</mi></mrow></mrow><annotation encoding="application/x-tex">\beta\in\mathcal{KL}</annotation></semantics></math>
+和
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>γ</mi><mo>∈</mo><mi>𝒦</mi></mrow><annotation encoding="application/x-tex">\gamma\in\mathcal{K}</annotation></semantics></math>，使得</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="postfix">∥</mo><mi>x</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">∥</mo><mo>≤</mo><mi>β</mi><mo stretchy="false" form="prefix">(</mo><mo stretchy="false" form="postfix">∥</mo><mi>x</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>t</mi><mn>0</mn></msub><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">∥</mo><mo>,</mo><mi>t</mi><mo>−</mo><msub><mi>t</mi><mn>0</mn></msub><mo stretchy="false" form="postfix">)</mo><mo>+</mo><mi>γ</mi><mo minsize="1.2" maxsize="1.2" stretchy="false" form="prefix">(</mo><mo stretchy="false" form="postfix">∥</mo><mi>d</mi><msub><mo stretchy="false" form="postfix">∥</mo><mi>∞</mi></msub><mo minsize="1.2" maxsize="1.2" stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
+\|x(t)\|\le \beta(\|x(t_0)\|,t-t_0)+\gamma\bigl(\|d\|_\infty\bigr)
+</annotation></semantics></math></p>
+<p>这一定义把初值影响和扰动影响分成两条独立通道，其中
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>β</mi><annotation encoding="application/x-tex">\beta</annotation></semantics></math>
+描述初值衰减，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>γ</mi><annotation encoding="application/x-tex">\gamma</annotation></semantics></math>
+描述扰动最终会把状态推到多大的邻域；<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝒦</mi><annotation encoding="application/x-tex">\mathcal{K}</annotation></semantics></math>
+函数指单调递增且在零点取零的函数，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>𝒦</mi><mi>ℒ</mi></mrow><annotation encoding="application/x-tex">\mathcal{KL}</annotation></semantics></math>
+函数则是在第一个自变量上递增、在第二个自变量上递减并趋于零的函数。</p>
+<p>从 Lyapunov 角度看，常见形式是</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>V</mi><mo accent="true">̇</mo></mover><mo>≤</mo><mi>−</mi><mi>a</mi><mi>V</mi><mo>+</mo><mi>σ</mi><mo stretchy="false" form="postfix">∥</mo><mi>d</mi><mo stretchy="false" form="postfix">∥</mo></mrow><annotation encoding="application/x-tex">
+\dot V\le -aV+\sigma\|d\|
+</annotation></semantics></math></p>
+<p>这个形式把衰减项和输入增益项并列写清楚，其中
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>a</mi><annotation encoding="application/x-tex">a</annotation></semantics></math>
+是回拉强度，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>σ</mi><annotation encoding="application/x-tex">\sigma</annotation></semantics></math>
+是输入到状态的增益系数，因此扰动越大，闭环最终邻域也越大；<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>a</mi><annotation encoding="application/x-tex">a</annotation></semantics></math>
+越大、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>σ</mi><annotation encoding="application/x-tex">\sigma</annotation></semantics></math>
+越小，收敛一般越快。</p>
+<p>这一定义在高超声速控制里很重要，因为动压波动、执行机构误差、气动模型偏差和估计误差都可视作输入。</p>
+<h2 id="级联系统与外内环证明">5.9 级联系统与外内环证明</h2>
+<p>高超声速飞行控制常常是级联结构：外环给出姿态或轨迹命令，内环负责快速跟踪。</p>
+<p>设外环误差为
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>x</mi><mn>1</mn></msub><annotation encoding="application/x-tex">x_1</annotation></semantics></math>，内环误差为
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>x</mi><mn>2</mn></msub><annotation encoding="application/x-tex">x_2</annotation></semantics></math>，候选函数写成</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>V</mi><mo>=</mo><msub><mi>V</mi><mn>1</mn></msub><mo stretchy="false" form="prefix">(</mo><msub><mi>x</mi><mn>1</mn></msub><mo stretchy="false" form="postfix">)</mo><mo>+</mo><mi>ρ</mi><msub><mi>V</mi><mn>2</mn></msub><mo stretchy="false" form="prefix">(</mo><msub><mi>x</mi><mn>2</mn></msub><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
+V=V_1(x_1)+\rho V_2(x_2)
+</annotation></semantics></math></p>
+<p>这里把外环和内环的误差能量放到同一个 Lyapunov 函数里，其中
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>V</mi><mn>1</mn></msub><mo stretchy="false" form="prefix">(</mo><msub><mi>x</mi><mn>1</mn></msub><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">V_1(x_1)</annotation></semantics></math>
+和
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>V</mi><mn>2</mn></msub><mo stretchy="false" form="prefix">(</mo><msub><mi>x</mi><mn>2</mn></msub><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">V_2(x_2)</annotation></semantics></math>
+分别表示外环和内环的候选函数，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ρ</mi><mo>&gt;</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\rho&gt;0</annotation></semantics></math>
+是它们的配比系数；<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ρ</mi><annotation encoding="application/x-tex">\rho</annotation></semantics></math>
+用来调节外环和内环在同一个 Lyapunov 函数中的相对权重，如果
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ρ</mi><annotation encoding="application/x-tex">\rho</annotation></semantics></math>
+过小，内环负项可能压不住外环误差，过大又会让外环影响被低估。</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>V</mi><mo accent="true">̇</mo></mover><mo>≤</mo><mi>−</mi><msub><mi>a</mi><mn>1</mn></msub><mo stretchy="false" form="postfix">∥</mo><msub><mi>x</mi><mn>1</mn></msub><msup><mo stretchy="false" form="postfix">∥</mo><mn>2</mn></msup><mo>−</mo><mi>ρ</mi><msub><mi>a</mi><mn>2</mn></msub><mo stretchy="false" form="postfix">∥</mo><msub><mi>x</mi><mn>2</mn></msub><msup><mo stretchy="false" form="postfix">∥</mo><mn>2</mn></msup><mo>+</mo><msub><mi>c</mi><mn>1</mn></msub><mo stretchy="false" form="postfix">∥</mo><msub><mi>x</mi><mn>1</mn></msub><mo stretchy="false" form="postfix">∥</mo><mo stretchy="false" form="postfix">∥</mo><msub><mi>x</mi><mn>2</mn></msub><mo stretchy="false" form="postfix">∥</mo></mrow><annotation encoding="application/x-tex">
+\dot V\le -a_1\|x_1\|^2-\rho a_2\|x_2\|^2+c_1\|x_1\|\|x_2\|
+</annotation></semantics></math></p>
+<p>这个不等式说明耦合项必须被负项压住；只要选择足够大的
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ρ</mi><annotation encoding="application/x-tex">\rho</annotation></semantics></math>，就可以让交叉项
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>c</mi><mn>1</mn></msub><mo stretchy="false" form="postfix">∥</mo><msub><mi>x</mi><mn>1</mn></msub><mo stretchy="false" form="postfix">∥</mo><mo stretchy="false" form="postfix">∥</mo><msub><mi>x</mi><mn>2</mn></msub><mo stretchy="false" form="postfix">∥</mo></mrow><annotation encoding="application/x-tex">c_1\|x_1\|\|x_2\|</annotation></semantics></math>
+被内环负项吸收，其中
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>a</mi><mn>1</mn></msub><annotation encoding="application/x-tex">a_1</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>a</mi><mn>2</mn></msub><annotation encoding="application/x-tex">a_2</annotation></semantics></math>
+和
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>c</mi><mn>1</mn></msub><annotation encoding="application/x-tex">c_1</annotation></semantics></math>
+分别描述外环衰减、内环衰减和耦合强度。</p>
+<h2 id="有限时间和固定时间稳定">5.10 有限时间和固定时间稳定</h2>
+<p>有限时间稳定要求系统在有限时间
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>T</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>x</mi><mn>0</mn></msub><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">T(x_0)</annotation></semantics></math>
+内到达平衡点。常见的导数条件是</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>V</mi><mo accent="true">̇</mo></mover><mo>≤</mo><mi>−</mi><msub><mi>c</mi><mn>1</mn></msub><msup><mi>V</mi><mi>α</mi></msup><mo>,</mo><mspace width="2.0em"></mspace><mn>0</mn><mo>&lt;</mo><mi>α</mi><mo>&lt;</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">
+\dot V\le -c_1 V^\alpha,\qquad 0&lt;\alpha&lt;1
+</annotation></semantics></math></p>
+<p>这个不等式说明，有限时间收敛的速度由候选函数本身的幂次衰减律决定；其中
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>c</mi><mn>1</mn></msub><annotation encoding="application/x-tex">c_1</annotation></semantics></math>
+是收敛强度，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>α</mi><annotation encoding="application/x-tex">\alpha</annotation></semantics></math>
+是幂次参数，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0</mn><mo>&lt;</mo><mi>α</mi><mo>&lt;</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">0&lt;\alpha&lt;1</annotation></semantics></math>
+的作用是在接近平衡点时仍保持足够强的回拉。</p>
+<p>其收敛时间可以估计为</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>T</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>x</mi><mn>0</mn></msub><mo stretchy="false" form="postfix">)</mo><mo>≤</mo><mfrac><mrow><mi>V</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>x</mi><mn>0</mn></msub><msup><mo stretchy="false" form="postfix">)</mo><mrow><mn>1</mn><mo>−</mo><mi>α</mi></mrow></msup></mrow><mrow><msub><mi>c</mi><mn>1</mn></msub><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>α</mi><mo stretchy="false" form="postfix">)</mo></mrow></mfrac></mrow><annotation encoding="application/x-tex">
+T(x_0)\le \frac{V(x_0)^{1-\alpha}}{c_1(1-\alpha)}
+</annotation></semantics></math></p>
+<p>这个上界说明，初始能量越大，达到平衡点通常越慢，而参数越强，收敛时间越短；其中
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>T</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>x</mi><mn>0</mn></msub><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">T(x_0)</annotation></semantics></math>
+是到达平衡点的时间上界，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>V</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>x</mi><mn>0</mn></msub><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">V(x_0)</annotation></semantics></math>
+是初始能量。固定时间稳定比有限时间更强，它要求收敛时间不依赖初始状态。这个式子把“多快到”直接写成了初值和参数的函数，所以很适合比较不同控制器的收敛性。</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>V</mi><mo accent="true">̇</mo></mover><mo>≤</mo><mi>−</mi><msub><mi>c</mi><mn>1</mn></msub><msup><mi>V</mi><mi>α</mi></msup><mo>−</mo><msub><mi>c</mi><mn>2</mn></msub><msup><mi>V</mi><mi>β</mi></msup><mo>,</mo><mspace width="2.0em"></mspace><mn>0</mn><mo>&lt;</mo><mi>α</mi><mo>&lt;</mo><mn>1</mn><mo>&lt;</mo><mi>β</mi></mrow><annotation encoding="application/x-tex">
+\dot V\le -c_1 V^\alpha-c_2 V^\beta,\qquad 0&lt;\alpha&lt;1&lt;\beta
+</annotation></semantics></math></p>
+<p>这个不等式说明，固定时间收敛同时压住了远离原点和接近原点两种情形，低次项负责近原点收敛，高次项负责远离原点时的拉回。其中
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>c</mi><mn>2</mn></msub><mo>&gt;</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">c_2&gt;0</annotation></semantics></math>，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>β</mi><mo>&gt;</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">\beta&gt;1</annotation></semantics></math>，固定时间上界可写成</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>T</mi><mo>≤</mo><mfrac><mn>1</mn><mrow><msub><mi>c</mi><mn>1</mn></msub><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>α</mi><mo stretchy="false" form="postfix">)</mo></mrow></mfrac><mo>+</mo><mfrac><mn>1</mn><mrow><msub><mi>c</mi><mn>2</mn></msub><mo stretchy="false" form="prefix">(</mo><mi>β</mi><mo>−</mo><mn>1</mn><mo stretchy="false" form="postfix">)</mo></mrow></mfrac></mrow><annotation encoding="application/x-tex">
+T\le \frac{1}{c_1(1-\alpha)}+\frac{1}{c_2(\beta-1)}
+</annotation></semantics></math></p>
+<p>这个上界说明，固定时间收敛只由参数决定，不再受初始状态大小影响；对高超声速飞行器而言，这类结论很诱人，但必须同时检查输入饱和、舵速限制、热流和结构载荷。</p>
+<h2 id="从证明到写作的最小模板">5.11 从证明到写作的最小模板</h2>
+<p>一份能直接进入教材的 Lyapunov
+证明，通常至少要交代四件事：系统、候选函数、导数整理和结论口径。</p>
+<p>最小写法可以概括成</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>x</mi><mo accent="true">̇</mo></mover><mo>=</mo><mi>f</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo>,</mo><mspace width="2.0em"></mspace><mi>V</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo>&gt;</mo><mn>0</mn><mo>,</mo><mspace width="2.0em"></mspace><mover><mi>V</mi><mo accent="true">̇</mo></mover><mo>≤</mo><mi>−</mi><mi>W</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
+\dot x=f(x),\qquad V(x)&gt;0,\qquad \dot V\le -W(x)
+</annotation></semantics></math></p>
+<p>这行把系统、候选函数和耗散项放在一起，方便写成可检查的证明格式。其中
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">f(x)</annotation></semantics></math>
+是闭环向量场，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>W</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">W(x)</annotation></semantics></math>
+是需要被压制的耗散项；它既可以是误差平方，也可以是残差能量，只要它是非负的并且能反映系统偏离平衡点的程度。这个模板对应“对象方程”“能量函数”和“能量下降条件”，是后面所有
+Lyapunov 证明最常见的骨架。</p>
+<h2 id="证明常数的物理意义">5.12 证明常数的物理意义</h2>
+<p>Lyapunov 证明里出现的常数，不能只停留在数学符号层面。</p>
+<p>例如在</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>V</mi><mo accent="true">̇</mo></mover><mo>≤</mo><mi>−</mi><mi>a</mi><mi>V</mi><mo>+</mo><mi>b</mi></mrow><annotation encoding="application/x-tex">
+\dot V\le -aV+b
+</annotation></semantics></math></p>
+<p>中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>a</mi><annotation encoding="application/x-tex">a</annotation></semantics></math>
+通常对应闭环阻尼、回拉强度或反馈裕度，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>b</mi><annotation encoding="application/x-tex">b</annotation></semantics></math>
+通常对应扰动、残差、建模误差、离散化误差或饱和残差的上界。这里
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>a</mi><mo>&gt;</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">a&gt;0</annotation></semantics></math>，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>b</mi><mo>≥</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">b\ge 0</annotation></semantics></math>。<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>a</mi><annotation encoding="application/x-tex">a</annotation></semantics></math>
+决定衰减快慢，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>b</mi><annotation encoding="application/x-tex">b</annotation></semantics></math>
+决定最后还剩多少残差；换句话说，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>a</mi><annotation encoding="application/x-tex">a</annotation></semantics></math>
+是“拉回去”的力度，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>b</mi><annotation encoding="application/x-tex">b</annotation></semantics></math>
+是“还会漏进来”的强度。 这里的
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>a</mi><mi>V</mi></mrow><annotation encoding="application/x-tex">aV</annotation></semantics></math>
+是按比例回拉，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>b</mi><annotation encoding="application/x-tex">b</annotation></semantics></math>
+是持续注入的外部扰动或建模偏差。
+因此，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>a</mi><annotation encoding="application/x-tex">a</annotation></semantics></math>
+越大通常越容易收敛，但也越可能放大控制峰值。
+这条解释的重点不是数学上好看，而是让读者知道证明常数背后对应哪一类物理效应。
+如果把它放到实现里看，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>a</mi><annotation encoding="application/x-tex">a</annotation></semantics></math>
+往往跟控制器带宽、阻尼或鲁棒裕度有关，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>b</mi><annotation encoding="application/x-tex">b</annotation></semantics></math>
+则常和未建模残差、采样误差或饱和残留有关。</p>
+<p>如果
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>a</mi><annotation encoding="application/x-tex">a</annotation></semantics></math>
+变大，衰减一般会更快，但控制峰值可能上升；如果
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>b</mi><annotation encoding="application/x-tex">b</annotation></semantics></math>
+变小，最终界会收缩，但实现代价可能是更高带宽、更强观测器或更敏感的噪声放大。</p>
+<h2 id="用仿真复核证明边界">5.13 用仿真复核证明边界</h2>
+<p>Lyapunov
+证明不要求每次都与数值曲线完全一致，但至少要能被仿真趋势支持。</p>
+<p>复核时通常看四类量：误差峰值、均方根误差、最终界，以及能量函数或代表性
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>V</mi><annotation encoding="application/x-tex">V</annotation></semantics></math>
+指标的衰减趋势。若证明里还有残差通道，还应检查执行机构残差、分配残差或估计误差轨迹。</p>
+<p>如果实验结果和证明给出的边界趋势明显相反，就要回头检查误差系统、残差上界和符号定义，而不是直接把仿真解释成“数值误差”。</p>
+<h2 id="典型失败模式">5.14 典型失败模式</h2>
+<p>Lyapunov 章节最常见的问题，不是公式不会推，而是结论和对象对不上。</p>
+<p>第一，没先写误差系统，就直接给 Lyapunov
+函数。第二，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>V</mi><mo accent="true">̇</mo></mover><mo>≤</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\dot{V}\le 0</annotation></semantics></math>
+后直接声称渐近稳定，却没有用 LaSalle 或
+Barbalat。第三，对含扰动系统声称误差严格收敛，而没有说明扰动是否趋零。第四，自适应律没有投影、死区或鲁棒修正，却忽略参数漂移。第五，把约束保持和误差稳定混为一谈。第六，忽略执行机构饱和残差对
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mover><mi>V</mi><mo accent="true">̇</mo></mover><annotation encoding="application/x-tex">\dot{V}</annotation></semantics></math>
+的影响。</p>
+<h2 id="与后续章节的接口">5.15 与后续章节的接口</h2>
+<p>Lyapunov 证明不是单独的数学插曲，而是后续章节的共同底座。</p>
+<p>第6章会把稳定性放进互联系统分析，第7章会把内外环带宽和慢快变量纳入证明，第10章会将自适应项和参数漂移并入误差系统，第12章和第13章则会把稳定性结论与约束可行性和优化可实现性一起检查。</p>
+<p>所以，本章的任务不是只给一个
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>V</mi><annotation encoding="application/x-tex">V</annotation></semantics></math>，而是给出一整套能传给后续章节的证明语言。</p>
+<h2 id="证明审查清单">5.16 证明审查清单</h2>
+<p>后续控制方法章节写 Lyapunov 证明时，可以按下面清单自查。</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>检查项</th>
+<th>必须说明的问题</th>
+<th>常见后果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>闭环状态</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>x</mi><annotation encoding="application/x-tex">x</annotation></semantics></math>
+是否包含对象、执行机构、滤波器、估计器和安全层状态</td>
+<td>证明对象和仿真对象不一致</td>
+</tr>
+<tr>
+<td>误差系统</td>
+<td>控制律代入后误差方程是否完整</td>
+<td>控制器内部状态被遗漏</td>
+</tr>
+<tr>
+<td>正定性</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>V</mi><annotation encoding="application/x-tex">V</annotation></semantics></math>
+是否能上下界夹住状态误差</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>V</mi><annotation encoding="application/x-tex">V</annotation></semantics></math>
+下降不能推出状态有界</td>
+</tr>
+<tr>
+<td>导数计算</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mover><mi>V</mi><mo accent="true">̇</mo></mover><annotation encoding="application/x-tex">\dot{V}</annotation></semantics></math>
+是否包含扰动、饱和、残差和估计误差</td>
+<td>结论被写得过强</td>
+</tr>
+<tr>
+<td>不等式使用</td>
+<td>Young、Cauchy、比较引理条件是否写清</td>
+<td>最终界无法复核</td>
+</tr>
+<tr>
+<td>结论类型</td>
+<td>渐近、指数、UUB、ISS、有限时间、安全不变是否匹配推导</td>
+<td>证明和摘要表述不一致</td>
+</tr>
+<tr>
+<td>作用区域</td>
+<td>水平集是否落在飞行包线、气动表和执行机构约束内</td>
+<td>局部结论被误当成大包线结论</td>
+</tr>
+<tr>
+<td>安全集合</td>
+<td>稳定性证明是否另外检查动压、热流、过载、攻角和舵偏</td>
+<td>误差稳定但路径不安全</td>
+</tr>
+<tr>
+<td>离散实现</td>
+<td>采样、延迟、滤波和数值微分是否改变闭环</td>
+<td>连续证明不能支撑实现结论</td>
+</tr>
+<tr>
+<td>指标映射</td>
+<td>仿真输出是否能验证证明中的每个界</td>
+<td>证明无法由实验复核</td>
+</tr>
+</tbody>
+</table>
+<p>这张清单不要求每个教学例子都做到工程级完整，但要求作者明确“已经证明什么”和“还只是仿真观察什么”。</p>
+<h2 id="常见错误">5.17 常见错误</h2>
+<ol type="1">
+<li>没有先写误差系统，就直接给 Lyapunov 函数。</li>
+<li><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>V</mi><mo accent="true">̇</mo></mover><mo>≤</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\dot{V}\le 0</annotation></semantics></math>
+后直接声称渐近稳定，却没有用 LaSalle 或 Barbalat。</li>
+<li>对含扰动系统声称误差严格收敛，而没有说明扰动是否趋零。</li>
+<li>自适应律没有投影、死区或鲁棒修正，却忽略参数漂移。</li>
+<li>把约束保持和误差稳定混为一谈。</li>
+<li>忽略执行机构饱和残差对
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mover><mi>V</mi><mo accent="true">̇</mo></mover><annotation encoding="application/x-tex">\dot{V}</annotation></semantics></math>
+的影响。</li>
+<li>用一个标称仿真替代稳定性证明。</li>
+<li>把局部稳定结论写成全飞行包线结论。</li>
+<li>级联闭环中假设内环理想跟踪，却没有给出带宽、饱和和残差条件。</li>
+<li>只证明连续时间控制律稳定，没有检查采样、延迟和离散实现误差。</li>
+</ol>
+<h2 id="本章小结">5.18 本章小结</h2>
+<p>Lyapunov
+稳定性理论是高超声速控制从“算法演示”走向“控制科学”的核心工具。本教程中，PID/LQR、鲁棒控制、反步、滑模、自适应、BLF/CBF、MPC、IGC
+和容错控制都应明确自己的稳定性或有界性结论。对工程问题，应优先采用可核查的保守表述：在什么假设下稳定，在什么扰动下最终有界，在什么约束下安全集合前向不变。</p>
+<h2 id="练习">5.19 练习</h2>
+<ol type="1">
+<li>对系统
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>x</mi><mo accent="true">̇</mo></mover><mo>=</mo><mi>−</mi><mi>a</mi><mi>x</mi></mrow><annotation encoding="application/x-tex">\dot{x}=-ax</annotation></semantics></math>，取
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>V</mi><mo>=</mo><mfrac><mn>1</mn><mn>2</mn></mfrac><msup><mi>x</mi><mn>2</mn></msup></mrow><annotation encoding="application/x-tex">V=\frac{1}{2}x^2</annotation></semantics></math>
+证明指数稳定。</li>
+<li>对系统
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>x</mi><mo accent="true">̇</mo></mover><mo>=</mo><mi>−</mi><mi>a</mi><mi>x</mi><mo>+</mo><mi>d</mi></mrow><annotation encoding="application/x-tex">\dot{x}=-ax+d</annotation></semantics></math>，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">|</mo><mi>d</mi><mo stretchy="false" form="prefix">|</mo><mo>≤</mo><mover><mi>d</mi><mo accent="true">‾</mo></mover></mrow><annotation encoding="application/x-tex">|d|\le \bar{d}</annotation></semantics></math>，推导
+UUB 半径。</li>
+<li>解释 LaSalle 不变性原理和 Barbalat
+引理分别适合处理什么证明缺口。</li>
+<li>写出姿态误差和角速度误差的二次型 Lyapunov 函数。</li>
+<li>把动压约束
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>q</mi><mo accent="true">‾</mo></mover><mo>≤</mo><msub><mover><mi>q</mi><mo accent="true">‾</mo></mover><mi>max</mi><mo>&#8289;</mo></msub></mrow><annotation encoding="application/x-tex">\bar{q}\le \bar{q}_{\max}</annotation></semantics></math>
+写成安全函数
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>h</mi><mi>q</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo>≥</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">h_q(x)\ge 0</annotation></semantics></math>。</li>
+<li>给出一个“有限时间收敛但工程上可能不可行”的高超声速控制例子。</li>
+<li>对本章二阶俯仰误差例子，用 LaSalle 不变性原理补全渐近稳定证明。</li>
+<li>若控制分配残差满足
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="postfix">∥</mo><msub><mi mathvariant="normal">Δ</mi><mi>τ</mi></msub><mo stretchy="false" form="postfix">∥</mo><mo>≤</mo><msub><mover><mi mathvariant="normal">Δ</mi><mo accent="true">‾</mo></mover><mi>τ</mi></msub></mrow><annotation encoding="application/x-tex">\|\Delta_\tau\|\le \bar{\Delta}_\tau</annotation></semantics></math>，说明姿态误差证明为什么通常只能得到扰动相关最终界。</li>
+<li>给出一个外环和内环级联系统，写出
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>V</mi><mo>=</mo><msub><mi>V</mi><mn>1</mn></msub><mo>+</mo><mi>ρ</mi><msub><mi>V</mi><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">V=V_1+\rho V_2</annotation></semantics></math>
+的证明思路。</li>
+<li>说明为什么“水平集包含在气动表有效域内”是飞行控制 Lyapunov
+证明的重要前提。</li>
+<li>为一个姿态控制闭环填写稳定性证明写法。</li>
+<li>说明同一个证明为什么还需要交接给安全滤波、控制分配和仿真验证章节。</li>
+</ol>
+<h2 id="练习提示">5.20 练习提示</h2>
+<ol type="1">
+<li>计算
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>V</mi><mo accent="true">̇</mo></mover><mo>=</mo><mi>x</mi><mover><mi>x</mi><mo accent="true">̇</mo></mover><mo>=</mo><mi>−</mi><mi>a</mi><msup><mi>x</mi><mn>2</mn></msup><mo>=</mo><mi>−</mi><mn>2</mn><mi>a</mi><mi>V</mi></mrow><annotation encoding="application/x-tex">\dot{V}=x\dot{x}=-ax^2=-2aV</annotation></semantics></math>，再用比较引理得到指数界。</li>
+<li>用
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">|</mo><mi>x</mi><mi>d</mi><mo stretchy="false" form="prefix">|</mo><mo>≤</mo><mo stretchy="false" form="prefix">(</mo><mi>a</mi><mi>/</mi><mn>2</mn><mo stretchy="false" form="postfix">)</mo><msup><mi>x</mi><mn>2</mn></msup><mo>+</mo><msup><mover><mi>d</mi><mo accent="true">‾</mo></mover><mn>2</mn></msup><mi>/</mi><mo stretchy="false" form="prefix">(</mo><mn>2</mn><mi>a</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">|xd|\le (a/2)x^2+\bar{d}^2/(2a)</annotation></semantics></math>，得到扰动相关最终界。</li>
+<li>LaSalle 适合
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>V</mi><mo accent="true">̇</mo></mover><mo>≤</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\dot{V}\le 0</annotation></semantics></math>
+但负定性不足的自治系统；Barbalat
+常用于自适应或非自治场景，但要证明一致连续。</li>
+<li>可取
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>V</mi><mo>=</mo><mfrac><mn>1</mn><mn>2</mn></mfrac><msubsup><mi>e</mi><mi>η</mi><mi>⊤</mi></msubsup><msub><mi>K</mi><mi>η</mi></msub><msub><mi>e</mi><mi>η</mi></msub><mo>+</mo><mfrac><mn>1</mn><mn>2</mn></mfrac><msubsup><mi>e</mi><mi>ω</mi><mi>⊤</mi></msubsup><mi>J</mi><msub><mi>e</mi><mi>ω</mi></msub></mrow><annotation encoding="application/x-tex">V=\frac{1}{2}e_\eta^\top K_\eta e_\eta+\frac{1}{2}e_\omega^\top J e_\omega</annotation></semantics></math>，并说明
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>K</mi><mi>η</mi></msub><annotation encoding="application/x-tex">K_\eta</annotation></semantics></math>
+与
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>J</mi><annotation encoding="application/x-tex">J</annotation></semantics></math>
+正定。</li>
+<li>写成
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>h</mi><mi>q</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><msub><mover><mi>q</mi><mo accent="true">‾</mo></mover><mi>max</mi><mo>&#8289;</mo></msub><mo>−</mo><mover><mi>q</mi><mo accent="true">‾</mo></mover><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">h_q(x)=\bar{q}_{\max}-\bar{q}(x)</annotation></semantics></math>，安全要求是
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>h</mi><mi>q</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo>≥</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">h_q(x)\ge 0</annotation></semantics></math>。</li>
+<li>终端滑模或固定时间姿态控制可能需要很大舵偏、角速度或过载，因此要检查输入和结构约束。</li>
+<li>在
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>V</mi><mo accent="true">̇</mo></mover><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\dot{V}=0</annotation></semantics></math>
+的集合中先得到
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>e</mi><mi>q</mi></msub><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">e_q=0</annotation></semantics></math>，再由闭环方程推出
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>e</mi><mi>θ</mi></msub><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">e_\theta=0</annotation></semantics></math>。</li>
+<li>残差项会在
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mover><mi>V</mi><mo accent="true">̇</mo></mover><annotation encoding="application/x-tex">\dot{V}</annotation></semantics></math>
+中形成
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>e</mi><mi>ω</mi><mi>⊤</mi></msubsup><msub><mi mathvariant="normal">Δ</mi><mi>τ</mi></msub></mrow><annotation encoding="application/x-tex">e_\omega^\top\Delta_\tau</annotation></semantics></math>，通常只能用不等式给出最终邻域。</li>
+<li>关键是把外环交叉项
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>c</mi><mn>1</mn></msub><mo stretchy="false" form="postfix">∥</mo><msub><mi>x</mi><mn>1</mn></msub><mo stretchy="false" form="postfix">∥</mo><mo stretchy="false" form="postfix">∥</mo><msub><mi>x</mi><mn>2</mn></msub><mo stretchy="false" form="postfix">∥</mo></mrow><annotation encoding="application/x-tex">c_1\|x_1\|\|x_2\|</annotation></semantics></math>
+用内环负项吸收，并选择合适权重
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ρ</mi><annotation encoding="application/x-tex">\rho</annotation></semantics></math>。</li>
+<li>若水平集越过气动表、攻角、舵偏或动压有效范围，数学证明已经脱离模型可信区域。</li>
+<li>至少写清闭环状态、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>V</mi><annotation encoding="application/x-tex">V</annotation></semantics></math>
+与
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mover><mi>V</mi><mo accent="true">̇</mo></mover><annotation encoding="application/x-tex">\dot{V}</annotation></semantics></math>、作用区域、残差上界、安全约束、实现假设和验证映射。</li>
+<li>因为稳定性证明解决的是“能否收敛或有界”，而安全滤波、控制分配和仿真验证还要分别处理可行输入集合、残差来源和实验复核。</li>
+</ol>
+<h2 id="lyapunov-对象包的最小交付格式">5.21 Lyapunov
+对象包的最小交付格式</h2>
+<p>Lyapunov 稳定性章节如果只留下一个
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>V</mi><annotation encoding="application/x-tex">V</annotation></semantics></math>
+函数和几条不等式，还不足以支撑后续章节的使用。更适合参考书的写法，是把稳定性证明整理成一个对象包，让控制器、执行机构、估计器和安全层都知道自己对应的是哪一个闭环对象、哪一类误差、哪一段证明边界。</p>
+<p>一个最小 Lyapunov 对象包建议至少包含：</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>字段</th>
+<th>建议记录内容</th>
+<th>控制作用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>对象名称</td>
+<td>例如姿态误差闭环、速度高度误差闭环、UUB 残差闭环</td>
+<td>区分不同稳定性对象</td>
+</tr>
+<tr>
+<td>闭环状态</td>
+<td>植物、执行机构、滤波器、估计器、安全层和参考修正状态</td>
+<td>保证证明对象和实现对象一致</td>
+</tr>
+<tr>
+<td>误差定义</td>
+<td>跟踪误差、姿态误差、执行机构残差、估计误差和约束偏差</td>
+<td>说明
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>V</mi><annotation encoding="application/x-tex">V</annotation></semantics></math>
+作用于哪些误差通道</td>
+</tr>
+<tr>
+<td>候选函数</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>V</mi><annotation encoding="application/x-tex">V</annotation></semantics></math>
+的具体形式、正定性、径向有界性和物理含义</td>
+<td>说明为什么这个
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>V</mi><annotation encoding="application/x-tex">V</annotation></semantics></math>
+合理</td>
+</tr>
+<tr>
+<td>导数整理</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mover><mi>V</mi><mo accent="true">̇</mo></mover><annotation encoding="application/x-tex">\dot{V}</annotation></semantics></math>
+的最终形式、扰动项、残差项和饱和项</td>
+<td>说明稳定性结论从哪里来</td>
+</tr>
+<tr>
+<td>结论类型</td>
+<td>指数稳定、渐近稳定、UUB、ISS 或安全不变</td>
+<td>避免把结论说过强</td>
+</tr>
+<tr>
+<td>作用区域</td>
+<td>水平集、飞行包线、气动表有效域和约束裕度</td>
+<td>说明结论适用范围</td>
+</tr>
+<tr>
+<td>验证映射</td>
+<td>误差峰值、最终界、能量下降、失败样本和约束违反</td>
+<td>连接证明和仿真证据</td>
+</tr>
+<tr>
+<td>后续用途</td>
+<td>鲁棒控制、自适应控制、安全控制、互联分析和仿真验证</td>
+<td>说明后面还能接什么</td>
+</tr>
+</tbody>
+</table>
+<p>如果把这个对象包继续交给后续章节，最关键的是说明三件事：第一，证明针对的是哪类闭环误差，而不是只针对理想植物；第二，稳定性结论是指数、UUB、ISS
+还是安全不变，而不是笼统地说“稳定”；第三，证明里出现的残差上界、约束裕度和作用区域，是否真的和仿真场景一致。</p>
+<h2 id="本章证据层次及其与后续章节的关系">5.22
+本章证据层次及其与后续章节的关系</h2>
+<p>Lyapunov
+证明的证据层次，最好从“代数成立”走到“闭环可复核”，而不是停在公式变形本身。推荐写成如下层次：</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>层次</th>
+<th>应给出的内容</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>结构证据</td>
+<td>误差系统、候选函数、正定性和导数结构</td>
+<td>说明证明是否成立</td>
+</tr>
+<tr>
+<td>残差证据</td>
+<td>扰动、饱和、估计误差、分配残差和参考修正</td>
+<td>说明理想证明与工程实现之间的差别</td>
+</tr>
+<tr>
+<td>结论证据</td>
+<td>指数、渐近、UUB、ISS 或安全不变边界</td>
+<td>说明到底能声称什么</td>
+</tr>
+<tr>
+<td>场景证据</td>
+<td>标称、扰动、限幅、延迟和失败样本</td>
+<td>说明结论不是单场景偶然结果</td>
+</tr>
+<tr>
+<td>边界证据</td>
+<td>作用区域、飞行包线、模型可信域和禁止外推范围</td>
+<td>说明哪些话不能说太满</td>
+</tr>
+</tbody>
+</table>
+<p>这套证据会直接流向后续章节：第6章要把稳定性放进互联系统，第7章会把内外环带宽和慢快变量纳入证明，第10章会将自适应项和参数漂移并入误差系统，第12章和第13章则会把稳定性结论与约束可行性和优化可实现性一起检查。</p>
+
+      </article>
+      
+      <nav class="book-bottom-nav" aria-label="章节导航">
+        <a href="./04-nonlinear-systems-theory.html">上一章：第4章 非线性系统理论</a>
+        <a href="./index.html">卷首页</a>
+        <a href="./06-input-output-small-gain.html">下一章：第6章 输入输出稳定性与小增益理论</a>
+      </nav>
+    </main>
+  </div>
+</body>
+</html>

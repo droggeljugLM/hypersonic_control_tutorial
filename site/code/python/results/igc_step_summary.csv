@@ -1,0 +1,89 @@
+step,module,metric,value,passed,evidence_scope
+Step 1,guidance_3d,terminal_range_m,5038.25274925,True,teaching 3-D point-mass guidance only
+Step 1,guidance_3d,q_violation_integral,0,True,teaching 3-D point-mass guidance only
+Step 1,guidance_3d,load_factor_violation_integral,0,True,teaching 3-D point-mass guidance only
+Step 1,guidance_3d,terminal_pass,True,True,teaching 3-D point-mass guidance only
+Step 1,guidance_3d,path_pass,True,True,teaching 3-D point-mass guidance only
+Step 1,guidance_3d,pass,True,True,teaching 3-D point-mass guidance only
+Step 2,attitude_inner_loop,attitude_rms_rad,0.0515407866436,True,standalone teaching attitude inner loop only
+Step 2,attitude_inner_loop,rate_max_rad_s,0.173367913407,True,standalone teaching attitude inner loop only
+Step 2,attitude_inner_loop,moment_saturation_fraction,0.519600307456,True,standalone teaching attitude inner loop only
+Step 2,attitude_inner_loop,tracking_pass,True,True,standalone teaching attitude inner loop only
+Step 2,attitude_inner_loop,moment_pass,True,True,standalone teaching attitude inner loop only
+Step 2,attitude_inner_loop,moment_rate_pass,True,True,standalone teaching attitude inner loop only
+Step 2,attitude_inner_loop,pass,True,True,standalone teaching attitude inner loop only
+Step 3,control_allocation,allocation_residual_rms_nm,2.73433793802,True,standalone damped-pseudoinverse teaching allocator only
+Step 3,control_allocation,allocation_residual_max_nm,82.1482419871,True,standalone damped-pseudoinverse teaching allocator only
+Step 3,control_allocation,deflection_max_rad,0.122791936357,True,standalone damped-pseudoinverse teaching allocator only
+Step 3,control_allocation,deflection_rate_max_rad_s,0.243641102007,True,standalone damped-pseudoinverse teaching allocator only
+Step 3,control_allocation,residual_pass,True,True,standalone damped-pseudoinverse teaching allocator only
+Step 3,control_allocation,deflection_pass,True,True,standalone damped-pseudoinverse teaching allocator only
+Step 3,control_allocation,rate_pass,True,True,standalone damped-pseudoinverse teaching allocator only
+Step 3,control_allocation,pass,True,True,standalone damped-pseudoinverse teaching allocator only
+Step 4,guidance_attitude_interface,guidance_gamma_error_rms_rad,0.00636236190432,True,"guidance-to-attitude command compatibility, not closed-loop six-DOF"
+Step 4,guidance_attitude_interface,guidance_heading_error_rms_rad,0.689926041506,True,"guidance-to-attitude command compatibility, not closed-loop six-DOF"
+Step 4,guidance_attitude_interface,attitude_interface_rms_rad,0.0619650468524,True,"guidance-to-attitude command compatibility, not closed-loop six-DOF"
+Step 4,guidance_attitude_interface,allocation_residual_rms_nm,53.5047463795,True,"guidance-to-attitude command compatibility, not closed-loop six-DOF"
+Step 4,guidance_attitude_interface,deflection_max_rad,0.246426134846,True,"guidance-to-attitude command compatibility, not closed-loop six-DOF"
+Step 4,guidance_attitude_interface,command_pass,True,True,"guidance-to-attitude command compatibility, not closed-loop six-DOF"
+Step 4,guidance_attitude_interface,attitude_pass,True,True,"guidance-to-attitude command compatibility, not closed-loop six-DOF"
+Step 4,guidance_attitude_interface,allocation_pass,True,True,"guidance-to-attitude command compatibility, not closed-loop six-DOF"
+Step 4,guidance_attitude_interface,path_pass,True,True,"guidance-to-attitude command compatibility, not closed-loop six-DOF"
+Step 4,guidance_attitude_interface,pass,True,True,"guidance-to-attitude command compatibility, not closed-loop six-DOF"
+Step 5,coupled_six_dof_skeleton,terminal_range_m,14080.4436307,True,"teaching coupled guidance-attitude-allocation-aerotable skeleton with DCM force-transform and quaternion/DCM health checks, not high-fidelity six-DOF"
+Step 5,coupled_six_dof_skeleton,q_violation_integral,0,True,"teaching coupled guidance-attitude-allocation-aerotable skeleton with DCM force-transform and quaternion/DCM health checks, not high-fidelity six-DOF"
+Step 5,coupled_six_dof_skeleton,load_factor_violation_integral,0,True,"teaching coupled guidance-attitude-allocation-aerotable skeleton with DCM force-transform and quaternion/DCM health checks, not high-fidelity six-DOF"
+Step 5,coupled_six_dof_skeleton,attitude_rms_rad,0.103651451135,True,"teaching coupled guidance-attitude-allocation-aerotable skeleton with DCM force-transform and quaternion/DCM health checks, not high-fidelity six-DOF"
+Step 5,coupled_six_dof_skeleton,gamma_rate_error_rms_rad_s,0.00187452598004,True,"teaching coupled guidance-attitude-allocation-aerotable skeleton with DCM force-transform and quaternion/DCM health checks, not high-fidelity six-DOF"
+Step 5,coupled_six_dof_skeleton,heading_rate_error_rms_rad_s,0.0179647444873,True,"teaching coupled guidance-attitude-allocation-aerotable skeleton with DCM force-transform and quaternion/DCM health checks, not high-fidelity six-DOF"
+Step 5,coupled_six_dof_skeleton,allocation_residual_rms_nm,53.4640611449,True,"teaching coupled guidance-attitude-allocation-aerotable skeleton with DCM force-transform and quaternion/DCM health checks, not high-fidelity six-DOF"
+Step 5,coupled_six_dof_skeleton,aero_moment_error_rms_nm,4579.86634301,True,"teaching coupled guidance-attitude-allocation-aerotable skeleton with DCM force-transform and quaternion/DCM health checks, not high-fidelity six-DOF"
+Step 5,coupled_six_dof_skeleton,aero_force_projection_rms_n,7620.01408438,True,"teaching coupled guidance-attitude-allocation-aerotable skeleton with DCM force-transform and quaternion/DCM health checks, not high-fidelity six-DOF"
+Step 5,coupled_six_dof_skeleton,dcm_force_delta_rms_n,4711.28440009,True,"teaching coupled guidance-attitude-allocation-aerotable skeleton with DCM force-transform and quaternion/DCM health checks, not high-fidelity six-DOF"
+Step 5,coupled_six_dof_skeleton,dcm_force_delta_max_n,8407.63506767,True,"teaching coupled guidance-attitude-allocation-aerotable skeleton with DCM force-transform and quaternion/DCM health checks, not high-fidelity six-DOF"
+Step 5,coupled_six_dof_skeleton,quaternion_norm_error_max,2.22044604925e-16,True,"teaching coupled guidance-attitude-allocation-aerotable skeleton with DCM force-transform and quaternion/DCM health checks, not high-fidelity six-DOF"
+Step 5,coupled_six_dof_skeleton,dcm_orthogonality_error_max,2.22044604925e-16,True,"teaching coupled guidance-attitude-allocation-aerotable skeleton with DCM force-transform and quaternion/DCM health checks, not high-fidelity six-DOF"
+Step 5,coupled_six_dof_skeleton,alpha_max_rad,0.0542943337799,True,"teaching coupled guidance-attitude-allocation-aerotable skeleton with DCM force-transform and quaternion/DCM health checks, not high-fidelity six-DOF"
+Step 5,coupled_six_dof_skeleton,beta_max_rad,0.0394899418307,True,"teaching coupled guidance-attitude-allocation-aerotable skeleton with DCM force-transform and quaternion/DCM health checks, not high-fidelity six-DOF"
+Step 5,coupled_six_dof_skeleton,terminal_pass,True,True,"teaching coupled guidance-attitude-allocation-aerotable skeleton with DCM force-transform and quaternion/DCM health checks, not high-fidelity six-DOF"
+Step 5,coupled_six_dof_skeleton,path_pass,True,True,"teaching coupled guidance-attitude-allocation-aerotable skeleton with DCM force-transform and quaternion/DCM health checks, not high-fidelity six-DOF"
+Step 5,coupled_six_dof_skeleton,attitude_pass,True,True,"teaching coupled guidance-attitude-allocation-aerotable skeleton with DCM force-transform and quaternion/DCM health checks, not high-fidelity six-DOF"
+Step 5,coupled_six_dof_skeleton,allocation_pass,True,True,"teaching coupled guidance-attitude-allocation-aerotable skeleton with DCM force-transform and quaternion/DCM health checks, not high-fidelity six-DOF"
+Step 5,coupled_six_dof_skeleton,aero_feedback_pass,True,True,"teaching coupled guidance-attitude-allocation-aerotable skeleton with DCM force-transform and quaternion/DCM health checks, not high-fidelity six-DOF"
+Step 5,coupled_six_dof_skeleton,kinematics_pass,True,True,"teaching coupled guidance-attitude-allocation-aerotable skeleton with DCM force-transform and quaternion/DCM health checks, not high-fidelity six-DOF"
+Step 5,coupled_six_dof_skeleton,force_transform_pass,True,True,"teaching coupled guidance-attitude-allocation-aerotable skeleton with DCM force-transform and quaternion/DCM health checks, not high-fidelity six-DOF"
+Step 5,coupled_six_dof_skeleton,pass,True,True,"teaching coupled guidance-attitude-allocation-aerotable skeleton with DCM force-transform and quaternion/DCM health checks, not high-fidelity six-DOF"
+Support,aero_table_demo,clift_alpha_slope_per_rad,1.85,True,"teaching aerodynamic table interpolation, not integrated six-DOF aerodynamics"
+Support,aero_table_demo,drag_min,0.0650547307086,True,"teaching aerodynamic table interpolation, not integrated six-DOF aerodynamics"
+Support,aero_table_demo,lift_to_drag_min,0.404705831554,True,"teaching aerodynamic table interpolation, not integrated six-DOF aerodynamics"
+Support,aero_table_demo,moment_max_nm,27047.8563805,True,"teaching aerodynamic table interpolation, not integrated six-DOF aerodynamics"
+Support,aero_table_demo,pitch_body_flap_delta,-0.0335103216383,True,"teaching aerodynamic table interpolation, not integrated six-DOF aerodynamics"
+Support,aero_table_demo,side_force_beta_delta,-0.0157079632679,True,"teaching aerodynamic table interpolation, not integrated six-DOF aerodynamics"
+Support,aero_table_demo,yaw_rudder_delta,0.0226892802759,True,"teaching aerodynamic table interpolation, not integrated six-DOF aerodynamics"
+Support,aero_table_demo,lift_slope_pass,True,True,"teaching aerodynamic table interpolation, not integrated six-DOF aerodynamics"
+Support,aero_table_demo,drag_pass,True,True,"teaching aerodynamic table interpolation, not integrated six-DOF aerodynamics"
+Support,aero_table_demo,pitch_control_pass,True,True,"teaching aerodynamic table interpolation, not integrated six-DOF aerodynamics"
+Support,aero_table_demo,sideslip_pass,True,True,"teaching aerodynamic table interpolation, not integrated six-DOF aerodynamics"
+Support,aero_table_demo,rudder_pass,True,True,"teaching aerodynamic table interpolation, not integrated six-DOF aerodynamics"
+Support,aero_table_demo,pass,True,True,"teaching aerodynamic table interpolation, not integrated six-DOF aerodynamics"
+Support,six_dof_rigid_body_demo,duration_s,12,True,"standalone teaching six-DOF rigid-body propagation, not closed-loop IGC"
+Support,six_dof_rigid_body_demo,east_final_m,20407.8528506,True,"standalone teaching six-DOF rigid-body propagation, not closed-loop IGC"
+Support,six_dof_rigid_body_demo,north_final_m,-43.8988796557,True,"standalone teaching six-DOF rigid-body propagation, not closed-loop IGC"
+Support,six_dof_rigid_body_demo,altitude_final_m,30048.9825897,True,"standalone teaching six-DOF rigid-body propagation, not closed-loop IGC"
+Support,six_dof_rigid_body_demo,altitude_change_m,48.9825897145,True,"standalone teaching six-DOF rigid-body propagation, not closed-loop IGC"
+Support,six_dof_rigid_body_demo,speed_change_m_s,12.4963890607,True,"standalone teaching six-DOF rigid-body propagation, not closed-loop IGC"
+Support,six_dof_rigid_body_demo,altitude_min_m,30000,True,"standalone teaching six-DOF rigid-body propagation, not closed-loop IGC"
+Support,six_dof_rigid_body_demo,body_rate_max_rad_s,0.0930051364515,True,"standalone teaching six-DOF rigid-body propagation, not closed-loop IGC"
+Support,six_dof_rigid_body_demo,accel_rms_m_s2,2.55761608404,True,"standalone teaching six-DOF rigid-body propagation, not closed-loop IGC"
+Support,six_dof_rigid_body_demo,quaternion_norm_error_max,2.22044604925e-16,True,"standalone teaching six-DOF rigid-body propagation, not closed-loop IGC"
+Support,six_dof_rigid_body_demo,dcm_orthogonality_error_max,2.22044604925e-16,True,"standalone teaching six-DOF rigid-body propagation, not closed-loop IGC"
+Support,six_dof_rigid_body_demo,finite_pass,True,True,"standalone teaching six-DOF rigid-body propagation, not closed-loop IGC"
+Support,six_dof_rigid_body_demo,altitude_pass,True,True,"standalone teaching six-DOF rigid-body propagation, not closed-loop IGC"
+Support,six_dof_rigid_body_demo,kinematics_pass,True,True,"standalone teaching six-DOF rigid-body propagation, not closed-loop IGC"
+Support,six_dof_rigid_body_demo,rate_pass,True,True,"standalone teaching six-DOF rigid-body propagation, not closed-loop IGC"
+Support,six_dof_rigid_body_demo,pass,True,True,"standalone teaching six-DOF rigid-body propagation, not closed-loop IGC"
+Step 5 gap,six_dof_closed_loop,true_aero_moment_feedback_to_translation,teaching_only,False,"current feedback uses synthetic tables, teaching ENU force projection, and a DCM force-transform check; requires validated aerodynamic database and full rigid-body force propagation"
+Step 5 gap,six_dof_closed_loop,closed_loop_attack_sideslip_aerotable,teaching_only,False,current alpha/beta table is synthetic; requires validated alpha/beta coefficient tables over the flight envelope
+Step 5 gap,six_dof_closed_loop,quaternion_or_dcm_six_dof_rigid_body,teaching_rigid_body_propagation_only,False,"current code has standalone teaching rigid-body propagation; still requires coupling validated aerodynamics, guidance, allocation, and closed-loop terminal metrics"
+Step 5 gap,six_dof_closed_loop,high_fidelity_closed_loop_terminal_metrics,missing,False,requires terminal metrics from a coupled aerodynamic six-DOF plant
+Step 5 gap,six_dof_closed_loop,formal_igc_claim,not_supported,False,"current evidence is a teaching-level aero-coupled skeleton, not formal IGC validation"

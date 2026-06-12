@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>第50章 滑翔飞行与能量管理控制</title>
+  <style>
+    :root {
+      --paper: #f7f3eb;
+      --ink: #1f2937;
+      --muted: #5b6472;
+      --line: color-mix(in srgb, #f5dfe9 68%, #cbd5e1 32%);
+      --accent: #8b3f67;
+      --accent-soft: #f5dfe9;
+      --accent-deep: #522640;
+      color-scheme: light;
+    }
+    html {
+      -webkit-text-size-adjust: 100%;
+      background:
+        radial-gradient(circle at top left, #f5dfe9 0, rgba(255,255,255,0) 32%),
+        linear-gradient(180deg, #fbfaf6 0%, var(--paper) 18%, #f7f1e6 100%);
+    }
+    body {
+      margin: 0;
+      font-family: "Source Han Serif SC", "Songti SC", "Noto Serif CJK SC", "Microsoft YaHei", serif;
+      color: var(--ink);
+      line-height: 1.78;
+      letter-spacing: 0;
+    }
+    a { color: var(--accent-deep); }
+    .book-app {
+      display: grid;
+      grid-template-columns: 280px minmax(0, 1fr);
+      min-height: 100vh;
+    }
+    .book-sidebar {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow: auto;
+      padding: 1.2rem 1rem 1.2rem 1.15rem;
+      border-right: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(255,255,255,0.86), rgba(255,255,255,0.72));
+      backdrop-filter: blur(10px);
+    }
+    .sidebar-shell { position: sticky; top: 0; display: flex; flex-direction: column; gap: 1rem; }
+    .sidebar-brand {
+      padding: 0.95rem 0.95rem 1rem;
+      border-radius: 18px;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.95), rgba(255,255,255,0.84)),
+        linear-gradient(135deg, var(--accent-soft), rgba(255,255,255,0));
+      border: 1px solid var(--line);
+      box-shadow: 0 12px 28px rgba(31, 41, 55, 0.06);
+    }
+    .sidebar-brand .kicker { margin: 0; color: var(--accent); font-size: 0.82rem; font-weight: 700; }
+    .sidebar-brand h2 { margin: 0.45rem 0 0.25rem; font-size: 1.08rem; line-height: 1.3; color: var(--ink); }
+    .sidebar-brand p { margin: 0.35rem 0 0; color: var(--muted); font-size: 0.9rem; }
+    .sidebar-links { display: grid; gap: 0.45rem; }
+    .sidebar-link {
+      display: grid;
+      grid-template-columns: 2.2rem minmax(0, 1fr);
+      gap: 0.6rem;
+      align-items: start;
+      padding: 0.7rem 0.75rem;
+      border-radius: 14px;
+      text-decoration: none;
+      background: rgba(255,255,255,0.72);
+      border: 1px solid rgba(31,41,55,0.07);
+      color: var(--ink);
+    }
+    .sidebar-link:hover { background: rgba(255,255,255,0.95); border-color: var(--line); }
+    .sidebar-link.active {
+      background: linear-gradient(135deg, rgba(255,255,255,0.98), rgba(255,255,255,0.9));
+      border-color: var(--accent-soft);
+      box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent-soft) 68%, #ffffff 32%);
+    }
+    .sidebar-index {
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      min-width: 2rem;
+      height: 2rem;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent-deep);
+      font-size: 0.78rem;
+      font-weight: 800;
+    }
+    .sidebar-title { font-size: 0.94rem; line-height: 1.35; }
+    .book-main { min-width: 0; padding: 1.25rem 1.45rem 1.8rem; }
+    .book-page-header {
+      padding: 0.85rem 0 1rem;
+      margin-bottom: 1rem;
+      border-bottom: 1px solid var(--line);
+    }
+    .page-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.28rem 0.72rem;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.82);
+      border: 1px solid var(--line);
+      color: var(--accent-deep);
+      font-size: 0.8rem;
+      font-weight: 700;
+    }
+    .book-page-header h1 {
+      margin: 0.7rem 0 0;
+      font-size: 1.85rem;
+      line-height: 1.22;
+      color: var(--accent-deep);
+      border: 0;
+      padding: 0;
+    }
+    .book-page-header p { margin: 0.45rem 0 0; color: var(--muted); max-width: 62rem; }
+    .book-article { max-width: 900px; margin: 0; padding: 0 0 1.2rem; }
+    .book-article h1, .book-article h2, .book-article h3, .book-article h4, .book-article h5, .book-article h6 {
+      line-height: 1.28;
+      margin-top: 1.45em;
+      margin-bottom: 0.55em;
+      color: var(--accent-deep);
+    }
+    .book-article h1 { font-size: 2rem; border-bottom: 2px solid var(--line); padding-bottom: 0.42rem; }
+    .book-article h1:first-of-type { margin-top: 0; }
+    .book-article h2 { font-size: 1.42rem; }
+    .book-article h3 { font-size: 1.12rem; }
+    .book-article p, .book-article li, .book-article dd, .book-article td, .book-article th { text-align: justify; text-justify: inter-ideograph; }
+    .book-article p { margin: 0.85rem 0; }
+    .book-article code, .book-article pre { font-family: "Cascadia Mono", "Source Code Pro", Consolas, monospace; font-size: 0.94em; }
+    .book-article code {
+      padding: 0.02rem 0.24rem;
+      background: color-mix(in srgb, var(--accent-soft) 34%, #ffffff 66%);
+      border: 0;
+      border-bottom: 1px solid color-mix(in srgb, var(--accent-soft) 74%, #d1d5db 26%);
+      border-radius: 4px;
+      color: #253244;
+      box-decoration-break: clone;
+      -webkit-box-decoration-break: clone;
+    }
+    .book-article pre {
+      padding: 1rem 1.1rem;
+      overflow: auto;
+      background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,253,248,0.98));
+      border: 1px solid color-mix(in srgb, var(--accent-soft) 54%, #d1d5db 46%);
+      border-left: 5px solid var(--accent);
+      border-radius: 14px;
+      box-shadow: 0 8px 22px rgba(31, 41, 55, 0.05);
+    }
+    .book-article pre code { padding: 0; border: 0; background: transparent; color: inherit; }
+    .book-article table {
+      border-collapse: collapse;
+      width: 100%;
+      margin: 1rem 0 1.25rem;
+      background: rgba(255,255,255,0.82);
+      overflow: hidden;
+      border-radius: 12px;
+    }
+    .book-article th, .book-article td { border: 1px solid var(--line); padding: 0.5rem 0.7rem; vertical-align: top; }
+    .book-article th { background: color-mix(in srgb, var(--accent-soft) 42%, #ffffff 58%); }
+    .book-article blockquote {
+      margin: 1rem 0;
+      padding: 0.25rem 0 0.25rem 1rem;
+      border-left: 4px solid var(--accent);
+      color: #374151;
+      background: linear-gradient(90deg, rgba(255,255,255,0.72), rgba(255,255,255,0.48));
+      border-radius: 0 12px 12px 0;
+    }
+    .book-bottom-nav {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-top: 2.2rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--line);
+    }
+    .book-bottom-nav a {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.6rem 0.9rem;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.84);
+      text-decoration: none;
+      font-weight: 700;
+    }
+    .book-bottom-nav span {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.6rem 0.9rem;
+      border-radius: 999px;
+      border: 1px solid rgba(31,41,55,0.08);
+      background: rgba(255,255,255,0.54);
+      color: rgba(31,41,55,0.42);
+      font-weight: 700;
+    }
+    .book-bottom-nav a:hover { background: rgba(255,255,255,0.98); }
+    .book-volume-intro {
+      margin: 0 0 1.25rem;
+      padding: 1.2rem 1.25rem 1.1rem;
+      border-radius: 18px;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.96), rgba(255,255,255,0.78)),
+        linear-gradient(135deg, var(--accent-soft), rgba(255,255,255,0));
+      border: 1px solid var(--line);
+      box-shadow: 0 14px 34px rgba(31, 41, 55, 0.06);
+    }
+    .volume-intro-kicker {
+      margin: 0;
+      color: var(--accent);
+      font-size: 0.84rem;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    .book-volume-intro h2 {
+      margin: 0.55rem 0 0.55rem;
+      font-size: 1.28rem;
+      line-height: 1.35;
+      color: var(--accent-deep);
+    }
+    .volume-intro-summary {
+      margin: 0;
+      color: var(--muted);
+      max-width: 68rem;
+    }
+    .volume-intro-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.8rem;
+      margin-top: 1rem;
+    }
+    .volume-intro-box {
+      padding: 0.85rem 0.9rem;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.72);
+      border: 1px solid rgba(31,41,55,0.08);
+    }
+    .volume-intro-box span {
+      display: block;
+      color: var(--accent);
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+    }
+    .volume-intro-box strong {
+      display: block;
+      margin-top: 0.35rem;
+      color: var(--ink);
+      font-size: 0.95rem;
+      line-height: 1.45;
+    }
+    .volume-intro-note {
+      margin-top: 0.9rem;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+    @media (max-width: 1180px) {
+      .book-app { grid-template-columns: 1fr; }
+      .book-sidebar {
+        position: relative;
+        height: auto;
+        border-right: 0;
+        border-bottom: 1px solid var(--line);
+      }
+      .sidebar-shell { position: static; }
+    }
+    @media (max-width: 900px) {
+      .book-main { padding: 1rem 1rem 1.5rem; }
+      .book-bottom-nav { flex-direction: column; }
+      .volume-intro-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="book-app">
+    <aside class="book-sidebar">
+      <div class="sidebar-shell">
+        <div class="sidebar-brand">
+          <p class="kicker">高超声速飞行器控制教程</p>
+          <h2>第四卷 约束、安全、容错与制导控制一体化</h2>
+          <p>约束与安全</p>
+        </div>
+        <nav class="sidebar-links" aria-label="本卷目录">
+          <a class="sidebar-link" href="./index.html"><span class="sidebar-index">0</span><span class="sidebar-title">卷首页</span></a>
+<a class="sidebar-link" href="./40-hypersonic-flight-constraints.html"><span class="sidebar-index">01</span><span class="sidebar-title">第40章 高超声速飞行约束体系</span></a>
+<a class="sidebar-link" href="./41-input-saturation-anti-windup.html"><span class="sidebar-index">02</span><span class="sidebar-title">第41章 输入饱和与抗积分饱和控制</span></a>
+<a class="sidebar-link" href="./42-barrier-lyapunov-constrained-tracking.html"><span class="sidebar-index">03</span><span class="sidebar-title">第42章 障碍 Lyapunov 函数与约束跟踪控制</span></a>
+<a class="sidebar-link" href="./43-control-barrier-function-safety-filter.html"><span class="sidebar-index">04</span><span class="sidebar-title">第43章 控制障碍函数与安全滤波</span></a>
+<a class="sidebar-link" href="./44-model-predictive-control.html"><span class="sidebar-index">05</span><span class="sidebar-title">第44章 模型预测控制</span></a>
+<a class="sidebar-link" href="./45-control-allocation-theory.html"><span class="sidebar-index">06</span><span class="sidebar-title">第45章 控制分配理论</span></a>
+<a class="sidebar-link" href="./46-fault-diagnosis-fault-tolerant-control.html"><span class="sidebar-index">07</span><span class="sidebar-title">第46章 故障诊断与容错控制</span></a>
+<a class="sidebar-link" href="./47-guidance-theory-foundations.html"><span class="sidebar-index">08</span><span class="sidebar-title">第47章 制导理论基础</span></a>
+<a class="sidebar-link" href="./48-integrated-guidance-control.html"><span class="sidebar-index">09</span><span class="sidebar-title">第48章 制导控制一体化</span></a>
+<a class="sidebar-link" href="./49-reentry-flight-control.html"><span class="sidebar-index">10</span><span class="sidebar-title">第49章 再入飞行控制</span></a>
+<a class="sidebar-link active" href="./50-glide-energy-management-control.html"><span class="sidebar-index">11</span><span class="sidebar-title">第50章 滑翔飞行与能量管理控制</span></a>
+<a class="sidebar-link" href="./51-airbreathing-hypersonic-cruise-control.html"><span class="sidebar-index">12</span><span class="sidebar-title">第51章 吸气式高超声速巡航控制</span></a>
+        </nav>
+      </div>
+    </aside>
+    <main class="book-main">
+      <header class="book-page-header">
+        <div class="page-eyebrow">第4册·章节页11</div>
+        <h1 id="volume4--50-glide-energy-management-control">第50章 滑翔飞行与能量管理控制</h1>
+        <p>本页是章节正文页。左侧目录用于回到本卷其他章节，底部导航用于前后章跳转。</p>
+      </header>
+      <article class="book-article">
+        <h2 id="问题背景">50.1 问题背景</h2>
+<p>高超声速滑翔飞行通常没有持续大推力，主要依靠升阻特性、倾侧角、攻角和路径选择完成航程、横向机动和终端任务。滑翔控制的核心不是单纯让高度或速度跟踪某条曲线，而是在有限能量下满足路径约束和终端条件。</p>
+<p>滑翔问题看似和再入相近，实际控制重点却更偏向能量分配和横向机动组织。这里围绕“如何在有限升阻性能下把能量用在正确的地方”展开：先说明滑翔飞行和再入飞行在控制问题上的差别，再说明能量高度、航程和升阻比如何进入控制，以及滑翔走廊和横向机动如何建模。随后再讨论攻角、倾侧角和路径角如何影响能量消耗，以及轨迹优化、反馈制导和能量管理控制如何连接。</p>
+<h2 id="滑翔飞行状态">50.2 滑翔飞行状态</h2>
+<p>滑翔质点模型可用</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>x</mi><mo>=</mo><msup><mrow><mo stretchy="true" form="prefix">[</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><mi>V</mi></mtd><mtd columnalign="center" style="text-align: center"><mi>h</mi></mtd><mtd columnalign="center" style="text-align: center"><mi>γ</mi></mtd><mtd columnalign="center" style="text-align: center"><mi>χ</mi></mtd><mtd columnalign="center" style="text-align: center"><mi>s</mi></mtd><mtd columnalign="center" style="text-align: center"><mi>y</mi></mtd></mtr></mtable><mo stretchy="true" form="postfix">]</mo></mrow><mi>⊤</mi></msup></mrow><annotation encoding="application/x-tex">
+x=\begin{bmatrix}V &amp; h &amp; \gamma &amp; \chi &amp; s &amp; y\end{bmatrix}^\top
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>V</mi><annotation encoding="application/x-tex">V</annotation></semantics></math>
+是速度，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>h</mi><annotation encoding="application/x-tex">h</annotation></semantics></math>
+是高度，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>γ</mi><annotation encoding="application/x-tex">\gamma</annotation></semantics></math>
+是航迹角，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>χ</mi><annotation encoding="application/x-tex">\chi</annotation></semantics></math>
+是航向角，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>s</mi><annotation encoding="application/x-tex">s</annotation></semantics></math>
+是沿航程，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>y</mi><annotation encoding="application/x-tex">y</annotation></semantics></math>
+是横向偏差。</p>
+<p>控制量常取</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>u</mi><mo>=</mo><msup><mrow><mo stretchy="true" form="prefix">[</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><mi>α</mi></mtd><mtd columnalign="center" style="text-align: center"><mi>σ</mi></mtd></mtr></mtable><mo stretchy="true" form="postfix">]</mo></mrow><mi>⊤</mi></msup></mrow><annotation encoding="application/x-tex">
+u=\begin{bmatrix}\alpha &amp; \sigma\end{bmatrix}^\top
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>α</mi><annotation encoding="application/x-tex">\alpha</annotation></semantics></math>
+是攻角，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>σ</mi><annotation encoding="application/x-tex">\sigma</annotation></semantics></math>
+是倾侧角或升力方向角。若进一步考虑姿态和执行机构，则
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>α</mi><mo>,</mo><mi>σ</mi></mrow><annotation encoding="application/x-tex">\alpha,\sigma</annotation></semantics></math>
+只是制导或外环命令，必须由姿态控制和控制分配实现。</p>
+<h2 id="滑翔能量管理设计前的对象与接口检查">50.3
+滑翔能量管理设计前的对象与接口检查</h2>
+<p>第50章容易写偏的地方，是把滑翔控制简化成“高度保持”或“横程修正”。正文应先把能量管理对象、终端要求和命令接口写清楚。</p>
+<p>进入滑翔能量管理的设计之前，先把任务对象、模型层级、控制接口、能量接口、走廊接口、横向接口、姿态与分配关系，以及最终的证据对象想清楚。更具体地说，任务对象要分清是长航程滑翔、横向机动、终端进入还是走廊保持；模型层级要说明是质点、三维质点、六自由度，还是还叠加了姿态与执行机构状态；控制接口要说清输出究竟是
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>α</mi><mi>c</mi></msub><annotation encoding="application/x-tex">\alpha_c</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>σ</mi><mi>c</mi></msub><annotation encoding="application/x-tex">\sigma_c</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>χ</mi><mi>c</mi></msub><annotation encoding="application/x-tex">\chi_c</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>γ</mi><mi>c</mi></msub><annotation encoding="application/x-tex">\gamma_c</annotation></semantics></math>，还是姿态参考，其中
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>α</mi><mi>c</mi></msub><annotation encoding="application/x-tex">\alpha_c</annotation></semantics></math>
+表示攻角命令，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>σ</mi><mi>c</mi></msub><annotation encoding="application/x-tex">\sigma_c</annotation></semantics></math>
+表示倾侧角命令，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>χ</mi><mi>c</mi></msub><annotation encoding="application/x-tex">\chi_c</annotation></semantics></math>
+表示航向角命令，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>γ</mi><mi>c</mi></msub><annotation encoding="application/x-tex">\gamma_c</annotation></semantics></math>
+表示航迹角命令；能量接口要明确是否显式定义
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>E</mi><mi>h</mi></msub><annotation encoding="application/x-tex">E_h</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>E</mi><mi>c</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>s</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">E_c(s)</annotation></semantics></math>、能量预算和终端可达性，其中
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>E</mi><mi>c</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>s</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">E_c(s)</annotation></semantics></math>
+表示沿航程
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>s</mi><annotation encoding="application/x-tex">s</annotation></semantics></math>
+的参考能量，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>E</mi><mi>h</mi></msub><annotation encoding="application/x-tex">E_h</annotation></semantics></math>
+表示能量高度；走廊接口要说明能量-航程走廊、高度-速度走廊和禁飞区如何进入设计；横向接口要说清横程误差、航向误差与倾侧角命令怎样耦合。</p>
+<h2 id="能量高度">50.4 能量高度</h2>
+<p>能量高度定义为</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>E</mi><mi>h</mi></msub><mo>=</mo><mi>h</mi><mo>+</mo><mfrac><msup><mi>V</mi><mn>2</mn></msup><mrow><mn>2</mn><mi>g</mi></mrow></mfrac></mrow><annotation encoding="application/x-tex">
+E_h=h+\frac{V^2}{2g}
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>E</mi><mi>h</mi></msub><annotation encoding="application/x-tex">E_h</annotation></semantics></math>
+是能量高度，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>g</mi><annotation encoding="application/x-tex">g</annotation></semantics></math>
+是重力加速度。</p>
+<p>能量高度不是单纯的几何量，它反映了高度和速度的可交换性。若这一步不写清楚，滑翔能量管理就容易退化成“先给一条理想航路，再靠下游硬跟踪”。</p>
+<h2 id="能量走廊与参考可行化">50.5 能量走廊与参考可行化</h2>
+<p>滑翔任务通常要求能量参考落在走廊内。可写成</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>r</mi><mi>f</mi></msub><mo>∈</mo><msub><mi>ℛ</mi><mrow><mi mathvariant="normal">g</mi><mi mathvariant="normal">l</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">d</mi><mi mathvariant="normal">e</mi></mrow></msub><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
+r_f\in \mathcal{R}_{\mathrm{glide}}(x)
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ℛ</mi><mrow><mi mathvariant="normal">g</mi><mi mathvariant="normal">l</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">d</mi><mi mathvariant="normal">e</mi></mrow></msub><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\mathcal{R}_{\mathrm{glide}}(x)</annotation></semantics></math>
+由能量走廊、动压、热流、过载、姿态带宽和横向机动代价共同定义，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>x</mi><annotation encoding="application/x-tex">x</annotation></semantics></math>
+是当前状态。</p>
+<p>参考治理器可在命令进入控制层前检查是否满足可行性。如果命令不可行，应降低横向机动、改变航程计划或调整终端时间。滑翔任务中，提前修正比临近终端硬追更重要，因为能量不足通常不可逆。</p>
+<h2 id="纵向能量管理">50.6 纵向能量管理</h2>
+<p>定义能量误差</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>e</mi><mi>E</mi></msub><mo>=</mo><msub><mi>E</mi><mi>h</mi></msub><mo>−</mo><msub><mi>E</mi><mrow><mi>h</mi><mo>,</mo><mrow><mi mathvariant="normal">r</mi><mi mathvariant="normal">e</mi><mi mathvariant="normal">f</mi></mrow></mrow></msub></mrow><annotation encoding="application/x-tex">
+e_E=E_h-E_{h,\mathrm{ref}}
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>E</mi><mrow><mi>h</mi><mo>,</mo><mrow><mi mathvariant="normal">r</mi><mi mathvariant="normal">e</mi><mi mathvariant="normal">f</mi></mrow></mrow></msub><annotation encoding="application/x-tex">E_{h,\mathrm{ref}}</annotation></semantics></math>
+是参考能量高度。</p>
+<p>纵向能量管理通常由航迹角和攻角共同调节。可把航迹角误差表示为</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>e</mi><mi>γ</mi></msub><mo>=</mo><mi>γ</mi><mo>−</mo><msub><mi>γ</mi><mrow><mi mathvariant="normal">r</mi><mi mathvariant="normal">e</mi><mi mathvariant="normal">f</mi></mrow></msub></mrow><annotation encoding="application/x-tex">
+e_\gamma=\gamma-\gamma_{\mathrm{ref}}
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>γ</mi><mrow><mi mathvariant="normal">r</mi><mi mathvariant="normal">e</mi><mi mathvariant="normal">f</mi></mrow></msub><annotation encoding="application/x-tex">\gamma_{\mathrm{ref}}</annotation></semantics></math>
+是参考航迹角。</p>
+<p>该命令必须满足攻角和热/动压约束。横向控制可根据横向偏差
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>y</mi><annotation encoding="application/x-tex">y</annotation></semantics></math>
+和航向误差
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>e</mi><mi>χ</mi></msub><annotation encoding="application/x-tex">e_\chi</annotation></semantics></math>
+生成倾侧角命令。倾侧角越大，纵向升力分量越小，可能导致下滑加快和能量损失。因此横向机动不是免费能力，它会消耗纵向控制余度。</p>
+<h2 id="横向机动倾侧角与纵向代价边界">50.7
+横向机动、倾侧角与纵向代价边界</h2>
+<p>第50章不能把横向机动写成独立子问题。要把它讲清楚，先说明横向机动怎样进入能量走廊、路径约束和终端条件，再讨论它和纵向能量管理如何耦合。</p>
+<p>首先要说明横向机动是由横程误差、航向误差、禁飞区绕飞，还是终端角要求触发；其次要给出倾侧角限制，包括幅值、速率、最小驻留时间和翻转逻辑；然后要交代纵向代价，即倾侧增加后对能量消耗、下滑率和终端速度的影响；还要明确
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>σ</mi><mi>c</mi></msub><annotation encoding="application/x-tex">\sigma_c</annotation></semantics></math>
+如何映射到滚转或姿态参考；最后，验证证据必须同时包含横程收益、能量代价、倾侧峰值和输入峰值。</p>
+<h2 id="轨迹优化">50.8 轨迹优化</h2>
+<p>滑翔轨迹优化可写为</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>min</mi><mo>&#8289;</mo><mi>J</mi><mspace width="1.0em"></mspace><mtext mathvariant="normal">s.t.</mtext><mspace width="1.0em"></mspace><msub><mi>x</mi><mrow><mi>k</mi><mo>+</mo><mn>1</mn></mrow></msub><mo>=</mo><mi>f</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>x</mi><mi>k</mi></msub><mo>,</mo><msub><mi>u</mi><mi>k</mi></msub><mo stretchy="false" form="postfix">)</mo><mo>,</mo><mspace width="0.278em"></mspace><msub><mi>x</mi><mi>k</mi></msub><mo>∈</mo><msub><mi>ℛ</mi><mrow><mi mathvariant="normal">g</mi><mi mathvariant="normal">l</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">d</mi><mi mathvariant="normal">e</mi></mrow></msub><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
+\min J \quad \text{s.t.}\quad x_{k+1}=f(x_k,u_k),\; x_k\in\mathcal{R}_{\mathrm{glide}}(x)
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>J</mi><annotation encoding="application/x-tex">J</annotation></semantics></math>
+是代价函数，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>x</mi><mi>k</mi></msub><annotation encoding="application/x-tex">x_k</annotation></semantics></math>
+是离散时刻
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>k</mi><annotation encoding="application/x-tex">k</annotation></semantics></math>
+的状态，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>u</mi><mi>k</mi></msub><annotation encoding="application/x-tex">u_k</annotation></semantics></math>
+是离散时刻
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>k</mi><annotation encoding="application/x-tex">k</annotation></semantics></math>
+的控制输入，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mo stretchy="false" form="prefix">(</mo><mi>⋅</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">f(\cdot)</annotation></semantics></math>
+是离散系统更新函数。若把终端误差、横向偏差、走廊安全和命令使用代价都放进
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>J</mi><annotation encoding="application/x-tex">J</annotation></semantics></math>，滑翔轨迹优化就能自然兼顾目标和约束。</p>
+<h2 id="轨迹优化与参考治理的关系">50.9 轨迹优化与参考治理的关系</h2>
+<p>轨迹优化可以提供理想参考，但在控制层前仍要经过参考治理。若一个滑翔控制设计只给出能量误差反馈或一条航路参考，通常不足以复现。更适合正文的写法，是把任务对象、模型层级、命令接口、能量参考、走廊集合、横向接口、干扰与不确定性，以及验证证据顺着展开。</p>
+<h2 id="大范围机动">50.10 大范围机动</h2>
+<p>高超声速滑翔飞行可能需要大范围横向机动。大机动会带来横向升力需求增加、倾侧角增大、纵向升力减小、能量消耗加快、热流和动压风险变化，以及终端速度下降。</p>
+<p>因此大范围机动的控制指标必须同时包含横向误差和能量代价。只报告横向偏差降低，不能说明机动策略可接受。</p>
+<h2 id="不确定性和鲁棒性">50.11 不确定性和鲁棒性</h2>
+<p>滑翔飞行对大气密度、气动系数和初始能量敏感。可写为</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>x</mi><mo accent="true">̇</mo></mover><mo>=</mo><mi>f</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>u</mi><mo stretchy="false" form="postfix">)</mo><mo>+</mo><mi>d</mi></mrow><annotation encoding="application/x-tex">
+\dot x=f(x,u)+d
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>d</mi><annotation encoding="application/x-tex">d</annotation></semantics></math>
+是不确定性和扰动的合并项，可代表大气密度误差、气动系数偏差、外界扰动或建模残差。</p>
+<p>如果这一点不说清楚，就无法判断这里讨论的是滑翔制导层给出的参考、滑翔任务下的可执行命令层，还是已经包含姿态与执行层的闭环控制器。</p>
+<h2 id="验证指标">50.12 验证指标</h2>
+<p>滑翔飞行与能量管理至少应报告：</p>
+<table>
+<thead>
+<tr>
+<th>指标</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>terminal_range_error</td>
+<td>终端距离误差</td>
+</tr>
+<tr>
+<td>terminal_energy_error</td>
+<td>终端能量误差</td>
+</tr>
+<tr>
+<td>corridor_margin_min</td>
+<td>最小能量走廊裕度</td>
+</tr>
+<tr>
+<td>lateral_error</td>
+<td>横向误差</td>
+</tr>
+<tr>
+<td>q_violation_integral</td>
+<td>动压违反积分</td>
+</tr>
+<tr>
+<td>heat_violation_integral</td>
+<td>热流违反积分</td>
+</tr>
+<tr>
+<td>overload_violation_integral</td>
+<td>过载违反积分</td>
+</tr>
+<tr>
+<td>bank_angle_peak</td>
+<td>倾侧角峰值</td>
+</tr>
+<tr>
+<td>bank_rate_peak</td>
+<td>倾侧角速率峰值</td>
+</tr>
+<tr>
+<td>lift_drag_profile</td>
+<td>升阻比剖面</td>
+</tr>
+</tbody>
+</table>
+<h2 id="本章适用范围">50.13 本章适用范围</h2>
+<p>滑翔能量管理相关基础已齐备。第47章提供能量管理制导、终端要求和参考可行化接口；第48章提供滑翔命令进入
+IGC 的接口链；案例映射页说明了该滑翔案例的成熟度和扩展方向。</p>
+<p>边界必须写清楚：本章已铺开滑翔任务定义、能量走廊、横向机动和低阶教学案例主线；案例仍处于教学级证据；因此本章能够支撑“滑翔能量管理问题定义和低阶约束闭环证据已建立”，不能支撑高保真三维大范围机动、倾侧翻转和正式轨迹优化已经完成验证。</p>
+<h2 id="常见错误">50.14 常见错误</h2>
+<ol type="1">
+<li>把滑翔飞行写成普通高度跟踪。</li>
+<li>只看终端距离，不看终端能量。</li>
+<li>忽略横向机动对能量的消耗。</li>
+<li>只追求最大升阻比，不考虑热流和过载。</li>
+<li>能量不足时仍硬追原始航路。</li>
+<li>不做大气和气动不确定性验证。</li>
+</ol>
+<h2 id="练习">50.15 练习</h2>
+<ol type="1">
+<li>推导能量高度
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>E</mi><mi>h</mi></msub><mo>=</mo><mi>h</mi><mo>+</mo><msup><mi>V</mi><mn>2</mn></msup><mi>/</mi><mo stretchy="false" form="prefix">(</mo><mn>2</mn><mi>g</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">E_h=h+V^2/(2g)</annotation></semantics></math>
+对时间的导数，并解释阻力如何影响能量消耗。</li>
+<li>设计一个能量-航程走廊，并说明上下边界的物理意义。</li>
+<li>构造一个横向机动导致终端能量不足的仿真场景。</li>
+<li>写出滑翔轨迹优化问题，包含终端能量、横向误差和路径约束。</li>
+</ol>
+
+      </article>
+      
+      <nav class="book-bottom-nav" aria-label="章节导航">
+        <a href="./49-reentry-flight-control.html">上一章：第49章 再入飞行控制</a>
+        <a href="./index.html">卷首页</a>
+        <a href="./51-airbreathing-hypersonic-cruise-control.html">下一章：第51章 吸气式高超声速巡航控制</a>
+      </nav>
+    </main>
+  </div>
+</body>
+</html>

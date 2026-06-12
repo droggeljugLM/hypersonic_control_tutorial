@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>第21章 横侧向动力学模型</title>
+  <style>
+    :root {
+      --paper: #f7f3eb;
+      --ink: #1f2937;
+      --muted: #5b6472;
+      --line: color-mix(in srgb, #e3f5f2 68%, #cbd5e1 32%);
+      --accent: #18786f;
+      --accent-soft: #e3f5f2;
+      --accent-deep: #0e4b45;
+      color-scheme: light;
+    }
+    html {
+      -webkit-text-size-adjust: 100%;
+      background:
+        radial-gradient(circle at top left, #e3f5f2 0, rgba(255,255,255,0) 32%),
+        linear-gradient(180deg, #fbfaf6 0%, var(--paper) 18%, #f7f1e6 100%);
+    }
+    body {
+      margin: 0;
+      font-family: "Source Han Serif SC", "Songti SC", "Noto Serif CJK SC", "Microsoft YaHei", serif;
+      color: var(--ink);
+      line-height: 1.78;
+      letter-spacing: 0;
+    }
+    a { color: var(--accent-deep); }
+    .book-app {
+      display: grid;
+      grid-template-columns: 280px minmax(0, 1fr);
+      min-height: 100vh;
+    }
+    .book-sidebar {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow: auto;
+      padding: 1.2rem 1rem 1.2rem 1.15rem;
+      border-right: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(255,255,255,0.86), rgba(255,255,255,0.72));
+      backdrop-filter: blur(10px);
+    }
+    .sidebar-shell { position: sticky; top: 0; display: flex; flex-direction: column; gap: 1rem; }
+    .sidebar-brand {
+      padding: 0.95rem 0.95rem 1rem;
+      border-radius: 18px;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.95), rgba(255,255,255,0.84)),
+        linear-gradient(135deg, var(--accent-soft), rgba(255,255,255,0));
+      border: 1px solid var(--line);
+      box-shadow: 0 12px 28px rgba(31, 41, 55, 0.06);
+    }
+    .sidebar-brand .kicker { margin: 0; color: var(--accent); font-size: 0.82rem; font-weight: 700; }
+    .sidebar-brand h2 { margin: 0.45rem 0 0.25rem; font-size: 1.08rem; line-height: 1.3; color: var(--ink); }
+    .sidebar-brand p { margin: 0.35rem 0 0; color: var(--muted); font-size: 0.9rem; }
+    .sidebar-links { display: grid; gap: 0.45rem; }
+    .sidebar-link {
+      display: grid;
+      grid-template-columns: 2.2rem minmax(0, 1fr);
+      gap: 0.6rem;
+      align-items: start;
+      padding: 0.7rem 0.75rem;
+      border-radius: 14px;
+      text-decoration: none;
+      background: rgba(255,255,255,0.72);
+      border: 1px solid rgba(31,41,55,0.07);
+      color: var(--ink);
+    }
+    .sidebar-link:hover { background: rgba(255,255,255,0.95); border-color: var(--line); }
+    .sidebar-link.active {
+      background: linear-gradient(135deg, rgba(255,255,255,0.98), rgba(255,255,255,0.9));
+      border-color: var(--accent-soft);
+      box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent-soft) 68%, #ffffff 32%);
+    }
+    .sidebar-index {
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      min-width: 2rem;
+      height: 2rem;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent-deep);
+      font-size: 0.78rem;
+      font-weight: 800;
+    }
+    .sidebar-title { font-size: 0.94rem; line-height: 1.35; }
+    .book-main { min-width: 0; padding: 1.25rem 1.45rem 1.8rem; }
+    .book-page-header {
+      padding: 0.85rem 0 1rem;
+      margin-bottom: 1rem;
+      border-bottom: 1px solid var(--line);
+    }
+    .page-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.28rem 0.72rem;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.82);
+      border: 1px solid var(--line);
+      color: var(--accent-deep);
+      font-size: 0.8rem;
+      font-weight: 700;
+    }
+    .book-page-header h1 {
+      margin: 0.7rem 0 0;
+      font-size: 1.85rem;
+      line-height: 1.22;
+      color: var(--accent-deep);
+      border: 0;
+      padding: 0;
+    }
+    .book-page-header p { margin: 0.45rem 0 0; color: var(--muted); max-width: 62rem; }
+    .book-article { max-width: 900px; margin: 0; padding: 0 0 1.2rem; }
+    .book-article h1, .book-article h2, .book-article h3, .book-article h4, .book-article h5, .book-article h6 {
+      line-height: 1.28;
+      margin-top: 1.45em;
+      margin-bottom: 0.55em;
+      color: var(--accent-deep);
+    }
+    .book-article h1 { font-size: 2rem; border-bottom: 2px solid var(--line); padding-bottom: 0.42rem; }
+    .book-article h1:first-of-type { margin-top: 0; }
+    .book-article h2 { font-size: 1.42rem; }
+    .book-article h3 { font-size: 1.12rem; }
+    .book-article p, .book-article li, .book-article dd, .book-article td, .book-article th { text-align: justify; text-justify: inter-ideograph; }
+    .book-article p { margin: 0.85rem 0; }
+    .book-article code, .book-article pre { font-family: "Cascadia Mono", "Source Code Pro", Consolas, monospace; font-size: 0.94em; }
+    .book-article code {
+      padding: 0.02rem 0.24rem;
+      background: color-mix(in srgb, var(--accent-soft) 34%, #ffffff 66%);
+      border: 0;
+      border-bottom: 1px solid color-mix(in srgb, var(--accent-soft) 74%, #d1d5db 26%);
+      border-radius: 4px;
+      color: #253244;
+      box-decoration-break: clone;
+      -webkit-box-decoration-break: clone;
+    }
+    .book-article pre {
+      padding: 1rem 1.1rem;
+      overflow: auto;
+      background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,253,248,0.98));
+      border: 1px solid color-mix(in srgb, var(--accent-soft) 54%, #d1d5db 46%);
+      border-left: 5px solid var(--accent);
+      border-radius: 14px;
+      box-shadow: 0 8px 22px rgba(31, 41, 55, 0.05);
+    }
+    .book-article pre code { padding: 0; border: 0; background: transparent; color: inherit; }
+    .book-article table {
+      border-collapse: collapse;
+      width: 100%;
+      margin: 1rem 0 1.25rem;
+      background: rgba(255,255,255,0.82);
+      overflow: hidden;
+      border-radius: 12px;
+    }
+    .book-article th, .book-article td { border: 1px solid var(--line); padding: 0.5rem 0.7rem; vertical-align: top; }
+    .book-article th { background: color-mix(in srgb, var(--accent-soft) 42%, #ffffff 58%); }
+    .book-article blockquote {
+      margin: 1rem 0;
+      padding: 0.25rem 0 0.25rem 1rem;
+      border-left: 4px solid var(--accent);
+      color: #374151;
+      background: linear-gradient(90deg, rgba(255,255,255,0.72), rgba(255,255,255,0.48));
+      border-radius: 0 12px 12px 0;
+    }
+    .book-bottom-nav {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-top: 2.2rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--line);
+    }
+    .book-bottom-nav a {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.6rem 0.9rem;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.84);
+      text-decoration: none;
+      font-weight: 700;
+    }
+    .book-bottom-nav span {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.6rem 0.9rem;
+      border-radius: 999px;
+      border: 1px solid rgba(31,41,55,0.08);
+      background: rgba(255,255,255,0.54);
+      color: rgba(31,41,55,0.42);
+      font-weight: 700;
+    }
+    .book-bottom-nav a:hover { background: rgba(255,255,255,0.98); }
+    .book-volume-intro {
+      margin: 0 0 1.25rem;
+      padding: 1.2rem 1.25rem 1.1rem;
+      border-radius: 18px;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.96), rgba(255,255,255,0.78)),
+        linear-gradient(135deg, var(--accent-soft), rgba(255,255,255,0));
+      border: 1px solid var(--line);
+      box-shadow: 0 14px 34px rgba(31, 41, 55, 0.06);
+    }
+    .volume-intro-kicker {
+      margin: 0;
+      color: var(--accent);
+      font-size: 0.84rem;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    .book-volume-intro h2 {
+      margin: 0.55rem 0 0.55rem;
+      font-size: 1.28rem;
+      line-height: 1.35;
+      color: var(--accent-deep);
+    }
+    .volume-intro-summary {
+      margin: 0;
+      color: var(--muted);
+      max-width: 68rem;
+    }
+    .volume-intro-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.8rem;
+      margin-top: 1rem;
+    }
+    .volume-intro-box {
+      padding: 0.85rem 0.9rem;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.72);
+      border: 1px solid rgba(31,41,55,0.08);
+    }
+    .volume-intro-box span {
+      display: block;
+      color: var(--accent);
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+    }
+    .volume-intro-box strong {
+      display: block;
+      margin-top: 0.35rem;
+      color: var(--ink);
+      font-size: 0.95rem;
+      line-height: 1.45;
+    }
+    .volume-intro-note {
+      margin-top: 0.9rem;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+    @media (max-width: 1180px) {
+      .book-app { grid-template-columns: 1fr; }
+      .book-sidebar {
+        position: relative;
+        height: auto;
+        border-right: 0;
+        border-bottom: 1px solid var(--line);
+      }
+      .sidebar-shell { position: static; }
+    }
+    @media (max-width: 900px) {
+      .book-main { padding: 1rem 1rem 1.5rem; }
+      .book-bottom-nav { flex-direction: column; }
+      .volume-intro-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="book-app">
+    <aside class="book-sidebar">
+      <div class="sidebar-shell">
+        <div class="sidebar-brand">
+          <p class="kicker">高超声速飞行器控制教程</p>
+          <h2>第二卷 高超声速飞行器建模与飞行动力学</h2>
+          <p>对象与模型</p>
+        </div>
+        <nav class="sidebar-links" aria-label="本卷目录">
+          <a class="sidebar-link" href="./index.html"><span class="sidebar-index">0</span><span class="sidebar-title">卷首页</span></a>
+<a class="sidebar-link" href="./14-vehicle-types-mission-profiles.html"><span class="sidebar-index">01</span><span class="sidebar-title">第14章 高超声速飞行器类型与任务剖面</span></a>
+<a class="sidebar-link" href="./15-coordinate-kinematics-attitude.html"><span class="sidebar-index">02</span><span class="sidebar-title">第15章 坐标系、运动学与姿态描述</span></a>
+<a class="sidebar-link" href="./16-atmosphere-flight-conditions.html"><span class="sidebar-index">03</span><span class="sidebar-title">第16章 大气环境与飞行条件</span></a>
+<a class="sidebar-link" href="./17-aerodynamic-force-moment-modeling.html"><span class="sidebar-index">04</span><span class="sidebar-title">第17章 气动力与气动力矩建模</span></a>
+<a class="sidebar-link" href="./18-propulsion-aero-propulsive-coupling.html"><span class="sidebar-index">05</span><span class="sidebar-title">第18章 推进系统与气动推进耦合</span></a>
+<a class="sidebar-link" href="./19-point-mass-dynamics.html"><span class="sidebar-index">06</span><span class="sidebar-title">第19章 质点动力学模型</span></a>
+<a class="sidebar-link" href="./20-longitudinal-rigid-body-dynamics.html"><span class="sidebar-index">07</span><span class="sidebar-title">第20章 纵向刚体动力学模型</span></a>
+<a class="sidebar-link active" href="./21-lateral-directional-dynamics.html"><span class="sidebar-index">08</span><span class="sidebar-title">第21章 横侧向动力学模型</span></a>
+<a class="sidebar-link" href="./22-six-dof-rigid-body-model.html"><span class="sidebar-index">09</span><span class="sidebar-title">第22章 六自由度刚体模型</span></a>
+<a class="sidebar-link" href="./23-flexible-aeroelastic-modeling.html"><span class="sidebar-index">10</span><span class="sidebar-title">第23章 刚柔耦合与气动弹性模型</span></a>
+<a class="sidebar-link" href="./24-actuator-sensor-computation-modeling.html"><span class="sidebar-index">11</span><span class="sidebar-title">第24章 执行机构、传感器与计算系统建模</span></a>
+<a class="sidebar-link" href="./25-trim-linearization-modal-analysis.html"><span class="sidebar-index">12</span><span class="sidebar-title">第25章 配平、线性化与模态分析</span></a>
+        </nav>
+      </div>
+    </aside>
+    <main class="book-main">
+      <header class="book-page-header">
+        <div class="page-eyebrow">第2册·章节页08</div>
+        <h1 id="volume2--21-lateral-directional-dynamics">第21章 横侧向动力学模型</h1>
+        <p>本页是章节正文页。左侧目录用于回到本卷其他章节，底部导航用于前后章跳转。</p>
+      </header>
+      <article class="book-article">
+        <h2 id="问题背景">21.1 问题背景</h2>
+<p>横侧向动力学模型描述滚转、偏航、侧滑和倾侧角如何耦合。它是从纵向模型走向三维控制的关键一步，因为真实飞行器在三维空间中不仅要“飞得上去”，还要“转得过去、稳得住、分得开”。</p>
+<p>这一章的核心问题不是把所有横侧向细节都写满，而是说明：侧滑为什么重要，滚转和偏航如何相互影响，多执行机构如何产生三轴力矩，以及为什么三维制导和控制分配不能只用纵向模型替代。</p>
+<h2 id="模型层级中的位置">21.2 模型层级中的位置</h2>
+<p>第二卷的模型链路可以概括为：</p>
+<ul>
+<li>质点路径模型；</li>
+<li>纵向刚体模型；</li>
+<li>横侧向刚体模型；</li>
+<li>六自由度刚体模型；</li>
+<li>刚柔耦合与气动推进耦合模型。</li>
+</ul>
+<p>横侧向模型承接纵向模型中的速度、动压和气动效能，同时向六自由度模型提供滚转、偏航、侧滑和控制分配的局部理解。它适合训练滚转姿态稳定、侧滑抑制、偏航阻尼、倾侧角跟踪和三维机动的基础分析。</p>
+<h2 id="状态和输入">21.3 状态和输入</h2>
+<p>一个常见的横侧向状态向量写为</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>x</mi><mi>ℓ</mi></msub><mo>=</mo><msup><mrow><mo stretchy="true" form="prefix">[</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><mi>β</mi></mtd><mtd columnalign="center" style="text-align: center"><mi>ϕ</mi></mtd><mtd columnalign="center" style="text-align: center"><mi>ψ</mi></mtd><mtd columnalign="center" style="text-align: center"><mi>p</mi></mtd><mtd columnalign="center" style="text-align: center"><mi>r</mi></mtd></mtr></mtable><mo stretchy="true" form="postfix">]</mo></mrow><mi>⊤</mi></msup></mrow><annotation encoding="application/x-tex">
+x_\ell=\begin{bmatrix}\beta &amp; \phi &amp; \psi &amp; p &amp; r\end{bmatrix}^\top
+</annotation></semantics></math></p>
+<p>这里的
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>x</mi><mi>ℓ</mi></msub><annotation encoding="application/x-tex">x_\ell</annotation></semantics></math>
+是横侧向状态向量，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>β</mi><annotation encoding="application/x-tex">\beta</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ϕ</mi><annotation encoding="application/x-tex">\phi</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ψ</mi><annotation encoding="application/x-tex">\psi</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>p</mi><annotation encoding="application/x-tex">p</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>r</mi><annotation encoding="application/x-tex">r</annotation></semantics></math>
+分别表示侧滑角、滚转角、偏航角、滚转角速度和偏航角速度。这个状态向量把侧滑、滚转和偏航放进同一个分析对象里，便于后续统一分析。</p>
+<p>如果与三维任务接口对接，也常引入航向和横程信息，例如</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>x</mi><mi>g</mi></msub><mo>=</mo><msup><mrow><mo stretchy="true" form="prefix">[</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><mi>y</mi></mtd><mtd columnalign="center" style="text-align: center"><mi>χ</mi></mtd><mtd columnalign="center" style="text-align: center"><mi>σ</mi></mtd></mtr></mtable><mo stretchy="true" form="postfix">]</mo></mrow><mi>⊤</mi></msup></mrow><annotation encoding="application/x-tex">
+x_g=\begin{bmatrix}y &amp; \chi &amp; \sigma\end{bmatrix}^\top
+</annotation></semantics></math></p>
+<p>这里的
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>x</mi><mi>g</mi></msub><annotation encoding="application/x-tex">x_g</annotation></semantics></math>
+是三维任务接口状态，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>y</mi><annotation encoding="application/x-tex">y</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>χ</mi><annotation encoding="application/x-tex">\chi</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>σ</mi><annotation encoding="application/x-tex">\sigma</annotation></semantics></math>
+分别表示横向位置偏差、航向角和倾侧角。这个接口把横向位置、航向和倾侧角统一起来，用于把横侧向状态和三维制导连接起来。</p>
+<p>控制输入可写为</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>u</mi><mi>ℓ</mi></msub><mo>=</mo><msup><mrow><mo stretchy="true" form="prefix">[</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><msub><mi>δ</mi><mi>a</mi></msub></mtd><mtd columnalign="center" style="text-align: center"><msub><mi>δ</mi><mi>r</mi></msub></mtd><mtd columnalign="center" style="text-align: center"><msub><mi>δ</mi><mrow><mi mathvariant="normal">d</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">f</mi><mi mathvariant="normal">f</mi></mrow></msub></mtd><mtd columnalign="center" style="text-align: center"><msub><mi>u</mi><mrow><mi mathvariant="normal">r</mi><mi mathvariant="normal">c</mi><mi mathvariant="normal">s</mi></mrow></msub></mtd></mtr></mtable><mo stretchy="true" form="postfix">]</mo></mrow><mi>⊤</mi></msup></mrow><annotation encoding="application/x-tex">
+u_\ell=\begin{bmatrix}\delta_a &amp; \delta_r &amp; \delta_{\mathrm{diff}} &amp; u_{\mathrm{rcs}}\end{bmatrix}^\top
+</annotation></semantics></math></p>
+<p>这里的
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>u</mi><mi>ℓ</mi></msub><annotation encoding="application/x-tex">u_\ell</annotation></semantics></math>
+是横侧向控制输入向量，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>δ</mi><mi>a</mi></msub><annotation encoding="application/x-tex">\delta_a</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>δ</mi><mi>r</mi></msub><annotation encoding="application/x-tex">\delta_r</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>δ</mi><mrow><mi mathvariant="normal">d</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">f</mi><mi mathvariant="normal">f</mi></mrow></msub><annotation encoding="application/x-tex">\delta_{\mathrm{diff}}</annotation></semantics></math>
+和
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>u</mi><mrow><mi mathvariant="normal">r</mi><mi mathvariant="normal">c</mi><mi mathvariant="normal">s</mi></mrow></msub><annotation encoding="application/x-tex">u_{\mathrm{rcs}}</annotation></semantics></math>
+分别表示副翼、方向舵、差动升降副翼或体襟翼差动，以及反作用控制输入。这个输入向量把不同横向执行机构统一写成同一组控制变量。</p>
+<h2 id="侧滑角的控制意义">21.4 侧滑角的控制意义</h2>
+<p>侧滑角不是可以随意忽略的小量。它会影响侧向气动力、偏航和滚转力矩、进气道工作状态、非对称热载荷以及控制分配的可行性。</p>
+<p>在机体系速度分量已知时，侧滑角常按下式定义</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>β</mi><mo>=</mo><mi>arcsin</mi><mo>&#8289;</mo><mspace width="-0.167em"></mspace><mrow><mo stretchy="true" form="prefix">(</mo><mfrac><mi>v</mi><msqrt><mrow><msup><mi>u</mi><mn>2</mn></msup><mo>+</mo><msup><mi>v</mi><mn>2</mn></msup><mo>+</mo><msup><mi>w</mi><mn>2</mn></msup></mrow></msqrt></mfrac><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">
+\beta=\arcsin\!\left(\frac{v}{\sqrt{u^2+v^2+w^2}}\right)
+</annotation></semantics></math></p>
+<p>这里的
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>β</mi><annotation encoding="application/x-tex">\beta</annotation></semantics></math>
+是侧滑角，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>u</mi><annotation encoding="application/x-tex">u</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>v</mi><annotation encoding="application/x-tex">v</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>w</mi><annotation encoding="application/x-tex">w</annotation></semantics></math>
+分别是机体系前向、侧向和法向速度分量。
+这个定义把机体系速度分量直接映射成控制分析最常用的气动角。</p>
+<p>当飞行器出现侧滑时，气动导数和控制效能都会改变。对高超声速飞行器而言，侧滑还可能影响进气道入口条件，因此它不仅是姿态问题，也是推进和任务问题。</p>
+<h2 id="横侧向动力学结构">21.5 横侧向动力学结构</h2>
+<p>教学级横侧向线化模型通常可写为</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mover><mi>x</mi><mo accent="true">̇</mo></mover><mi>ℓ</mi></msub><mo>=</mo><msub><mi>A</mi><mi>ℓ</mi></msub><msub><mi>x</mi><mi>ℓ</mi></msub><mo>+</mo><msub><mi>B</mi><mi>ℓ</mi></msub><msub><mi>u</mi><mi>ℓ</mi></msub></mrow><annotation encoding="application/x-tex">
+\dot x_\ell=A_\ell x_\ell+B_\ell u_\ell
+</annotation></semantics></math></p>
+<p>这里的
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>A</mi><mi>ℓ</mi></msub><annotation encoding="application/x-tex">A_\ell</annotation></semantics></math>
+是横侧向系统矩阵，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>B</mi><mi>ℓ</mi></msub><annotation encoding="application/x-tex">B_\ell</annotation></semantics></math>
+是输入矩阵。这个式子给出了横侧向线化分析最常用的状态空间形式。</p>
+<p>在分量形式上，常见结构体现为</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mrow><mo stretchy="true" form="prefix">[</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><mover><mi>β</mi><mo accent="true">̇</mo></mover></mtd><mtd columnalign="center" style="text-align: center"><mover><mi>p</mi><mo accent="true">̇</mo></mover></mtd><mtd columnalign="center" style="text-align: center"><mover><mi>r</mi><mo accent="true">̇</mo></mover></mtd></mtr></mtable><mo stretchy="true" form="postfix">]</mo></mrow><mi>⊤</mi></msup><mo>=</mo><msup><mrow><mo stretchy="true" form="prefix">[</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><msub><mi>f</mi><mi>β</mi></msub><mo stretchy="false" form="prefix">(</mo><msub><mi>x</mi><mi>ℓ</mi></msub><mo>,</mo><msub><mi>u</mi><mi>ℓ</mi></msub><mo stretchy="false" form="postfix">)</mo></mtd><mtd columnalign="center" style="text-align: center"><msub><mi>f</mi><mi>p</mi></msub><mo stretchy="false" form="prefix">(</mo><msub><mi>x</mi><mi>ℓ</mi></msub><mo>,</mo><msub><mi>u</mi><mi>ℓ</mi></msub><mo stretchy="false" form="postfix">)</mo></mtd><mtd columnalign="center" style="text-align: center"><msub><mi>f</mi><mi>r</mi></msub><mo stretchy="false" form="prefix">(</mo><msub><mi>x</mi><mi>ℓ</mi></msub><mo>,</mo><msub><mi>u</mi><mi>ℓ</mi></msub><mo stretchy="false" form="postfix">)</mo></mtd></mtr></mtable><mo stretchy="true" form="postfix">]</mo></mrow><mi>⊤</mi></msup></mrow><annotation encoding="application/x-tex">
+\begin{bmatrix}\dot\beta &amp; \dot p &amp; \dot r\end{bmatrix}^\top
+=
+\begin{bmatrix}f_\beta(x_\ell,u_\ell) &amp; f_p(x_\ell,u_\ell) &amp; f_r(x_\ell,u_\ell)\end{bmatrix}^\top
+</annotation></semantics></math></p>
+<p>这里的
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>f</mi><mi>β</mi></msub><annotation encoding="application/x-tex">f_\beta</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>f</mi><mi>p</mi></msub><annotation encoding="application/x-tex">f_p</annotation></semantics></math>
+和
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>f</mi><mi>r</mi></msub><annotation encoding="application/x-tex">f_r</annotation></semantics></math>
+表示与飞行条件相关的动力学函数，分别描述侧滑、滚转和偏航的动态演化。这个分量形式说明横侧向三个主模态会互相耦合，而不是彼此独立。</p>
+<h2 id="典型导数和模态">21.6 典型导数和模态</h2>
+<p>横侧向线化模型中常见的稳定导数和控制导数包括</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtable><mtr><mtd columnalign="right" style="text-align: right; padding-right: 0"><mover><mi>β</mi><mo accent="true">̇</mo></mover></mtd><mtd columnalign="left" style="text-align: left; padding-left: 0"><mo>=</mo><msub><mi>Y</mi><mi>β</mi></msub><mi>β</mi><mo>+</mo><msub><mi>Y</mi><mi>p</mi></msub><mi>p</mi><mo>+</mo><msub><mi>Y</mi><mi>r</mi></msub><mi>r</mi><mo>+</mo><msub><mi>Y</mi><msub><mi>δ</mi><mi>a</mi></msub></msub><msub><mi>δ</mi><mi>a</mi></msub><mo>+</mo><msub><mi>Y</mi><msub><mi>δ</mi><mi>r</mi></msub></msub><msub><mi>δ</mi><mi>r</mi></msub><mo>,</mo></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right; padding-right: 0"><mover><mi>p</mi><mo accent="true">̇</mo></mover></mtd><mtd columnalign="left" style="text-align: left; padding-left: 0"><mo>=</mo><msub><mi>L</mi><mi>β</mi></msub><mi>β</mi><mo>+</mo><msub><mi>L</mi><mi>p</mi></msub><mi>p</mi><mo>+</mo><msub><mi>L</mi><mi>r</mi></msub><mi>r</mi><mo>+</mo><msub><mi>L</mi><msub><mi>δ</mi><mi>a</mi></msub></msub><msub><mi>δ</mi><mi>a</mi></msub><mo>+</mo><msub><mi>L</mi><msub><mi>δ</mi><mi>r</mi></msub></msub><msub><mi>δ</mi><mi>r</mi></msub><mo>,</mo></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right; padding-right: 0"><mover><mi>r</mi><mo accent="true">̇</mo></mover></mtd><mtd columnalign="left" style="text-align: left; padding-left: 0"><mo>=</mo><msub><mi>N</mi><mi>β</mi></msub><mi>β</mi><mo>+</mo><msub><mi>N</mi><mi>p</mi></msub><mi>p</mi><mo>+</mo><msub><mi>N</mi><mi>r</mi></msub><mi>r</mi><mo>+</mo><msub><mi>N</mi><msub><mi>δ</mi><mi>a</mi></msub></msub><msub><mi>δ</mi><mi>a</mi></msub><mo>+</mo><msub><mi>N</mi><msub><mi>δ</mi><mi>r</mi></msub></msub><msub><mi>δ</mi><mi>r</mi></msub><mi>.</mi></mtd></mtr></mtable><annotation encoding="application/x-tex">
+\begin{aligned}
+\dot\beta &amp;= Y_\beta\beta+Y_p p+Y_r r+Y_{\delta_a}\delta_a+Y_{\delta_r}\delta_r,\\
+\dot p &amp;= L_\beta\beta+L_p p+L_r r+L_{\delta_a}\delta_a+L_{\delta_r}\delta_r,\\
+\dot r &amp;= N_\beta\beta+N_p p+N_r r+N_{\delta_a}\delta_a+N_{\delta_r}\delta_r.
+\end{aligned}
+</annotation></semantics></math></p>
+<p>这里的
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>Y</mi><mi>β</mi></msub><annotation encoding="application/x-tex">Y_\beta</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>Y</mi><mi>p</mi></msub><annotation encoding="application/x-tex">Y_p</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>Y</mi><mi>r</mi></msub><annotation encoding="application/x-tex">Y_r</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>L</mi><mi>β</mi></msub><annotation encoding="application/x-tex">L_\beta</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>L</mi><mi>p</mi></msub><annotation encoding="application/x-tex">L_p</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>L</mi><mi>r</mi></msub><annotation encoding="application/x-tex">L_r</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>N</mi><mi>β</mi></msub><annotation encoding="application/x-tex">N_\beta</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>N</mi><mi>p</mi></msub><annotation encoding="application/x-tex">N_p</annotation></semantics></math>
+和
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>N</mi><mi>r</mi></msub><annotation encoding="application/x-tex">N_r</annotation></semantics></math>
+分别是侧力、滚转和偏航方向的稳定导数，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>δ</mi><mi>a</mi></msub><annotation encoding="application/x-tex">\delta_a</annotation></semantics></math>
+和
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>δ</mi><mi>r</mi></msub><annotation encoding="application/x-tex">\delta_r</annotation></semantics></math>
+则通过控制导数影响这些模态。三条方程把稳定导数和控制导数并排写出，便于看清三轴耦合。</p>
+<p>与控制输入有关的导数可整理为</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="true" form="prefix">[</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><msub><mi>Y</mi><msub><mi>δ</mi><mi>a</mi></msub></msub></mtd><mtd columnalign="center" style="text-align: center"><msub><mi>Y</mi><msub><mi>δ</mi><mi>r</mi></msub></msub></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><msub><mi>L</mi><msub><mi>δ</mi><mi>a</mi></msub></msub></mtd><mtd columnalign="center" style="text-align: center"><msub><mi>L</mi><msub><mi>δ</mi><mi>r</mi></msub></msub></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><msub><mi>N</mi><msub><mi>δ</mi><mi>a</mi></msub></msub></mtd><mtd columnalign="center" style="text-align: center"><msub><mi>N</mi><msub><mi>δ</mi><mi>r</mi></msub></msub></mtd></mtr></mtable><mo stretchy="true" form="postfix">]</mo></mrow><annotation encoding="application/x-tex">
+\begin{bmatrix}
+Y_{\delta_a} &amp; Y_{\delta_r}\\
+L_{\delta_a} &amp; L_{\delta_r}\\
+N_{\delta_a} &amp; N_{\delta_r}
+\end{bmatrix}
+</annotation></semantics></math></p>
+<p>这里的矩阵把副翼和方向舵对侧力、滚转力矩和偏航力矩的控制效能集中写出，对应执行机构到三轴横侧向力矩的局部灵敏度。</p>
+<p>横侧向模态分析通常重点关注荷兰滚、螺旋模态和滚转模态。若某个模态阻尼不足，或者控制导数在某些飞行点变号，就可能导致侧滑发散或分配失败。</p>
+<h2 id="倾侧角和滚转控制">21.7 倾侧角和滚转控制</h2>
+<p>在三维任务中，倾侧角常作为横向机动的中间命令。一个简化关系可以写为</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>σ</mi><mi>c</mi></msub><mo>≈</mo><mo>∫</mo><mi>p</mi><mspace width="0.167em"></mspace><mi>d</mi><mi>t</mi></mrow><annotation encoding="application/x-tex">
+\sigma_c \approx \int p\,dt
+</annotation></semantics></math></p>
+<p>这里的
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>σ</mi><mi>c</mi></msub><annotation encoding="application/x-tex">\sigma_c</annotation></semantics></math>
+是倾侧角命令，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>p</mi><annotation encoding="application/x-tex">p</annotation></semantics></math>
+是滚转角速度。</p>
+<p>对应的滚转变化率可近似写成</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>σ</mi><mo accent="true">̇</mo></mover><mo>≈</mo><mi>p</mi></mrow><annotation encoding="application/x-tex">
+\dot \sigma \approx p
+</annotation></semantics></math></p>
+<p>这里的
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mover><mi>σ</mi><mo accent="true">̇</mo></mover><annotation encoding="application/x-tex">\dot \sigma</annotation></semantics></math>
+是倾侧角变化率。</p>
+<p>因此，滚转控制不仅要跟踪命令，还要检查滚转过程中是否引入过大的侧滑、是否造成高度损失、是否触发舵面速率限制，以及是否挤占了纵向控制余度。</p>
+<h2 id="偏航阻尼和侧滑抑制">21.8 偏航阻尼和侧滑抑制</h2>
+<p>一个教学级偏航阻尼律可以写成</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>δ</mi><mrow><mi>r</mi><mo>,</mo><mi>c</mi></mrow></msub><mo>=</mo><mi>−</mi><msub><mi>k</mi><mi>β</mi></msub><mi>β</mi><mo>−</mo><msub><mi>k</mi><mi>r</mi></msub><mi>r</mi></mrow><annotation encoding="application/x-tex">
+\delta_{r,c}=-k_\beta\beta-k_r r
+</annotation></semantics></math></p>
+<p>这里的
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>δ</mi><mrow><mi>r</mi><mo>,</mo><mi>c</mi></mrow></msub><annotation encoding="application/x-tex">\delta_{r,c}</annotation></semantics></math>
+是方向舵命令，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>k</mi><mi>β</mi></msub><annotation encoding="application/x-tex">k_\beta</annotation></semantics></math>
+是侧滑反馈增益，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>k</mi><mi>r</mi></msub><annotation encoding="application/x-tex">k_r</annotation></semantics></math>
+是偏航角速度反馈增益。这个控制律通过侧滑和偏航角速度反馈共同抑制荷兰滚，并提供偏航阻尼。</p>
+<p>这类控制律的目标不是消灭所有横侧向耦合，而是在允许的输入范围内压制侧滑和荷兰滚。对于高超声速飞行器，偏航通道经常还要和进气道、热载荷和控制分配共同考虑。</p>
+<h2 id="控制分配">21.9 控制分配</h2>
+<p>横侧向控制往往不是“一个输入对应一个力矩”，而是多个执行机构共同产生目标力矩。控制分配可写成</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>τ</mi><mi>c</mi></msub><mo>=</mo><mi>G</mi><msub><mi>u</mi><mi>a</mi></msub></mrow><annotation encoding="application/x-tex">
+\tau_c=G u_a
+</annotation></semantics></math></p>
+<p>这里的
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>τ</mi><mi>c</mi></msub><annotation encoding="application/x-tex">\tau_c</annotation></semantics></math>
+是期望力矩向量，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>G</mi><annotation encoding="application/x-tex">G</annotation></semantics></math>
+是控制效能矩阵，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>u</mi><mi>a</mi></msub><annotation encoding="application/x-tex">u_a</annotation></semantics></math>
+是实际执行机构命令向量。这个式子把横侧向控制目标和执行机构通道直接联系起来。</p>
+<p>若执行机构多且有约束，常采用加权最小二乘形式</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>u</mi><mi>a</mi><mo>⋆</mo></msubsup><mo>=</mo><mi>arg</mi><mo>&#8289;</mo><munder><mi>min</mi><mo>&#8289;</mo><msub><mi>u</mi><mi>a</mi></msub></munder><msubsup><mrow><mo stretchy="true" form="prefix">∥</mo><mi>W</mi><mo stretchy="false" form="prefix">(</mo><mi>G</mi><msub><mi>u</mi><mi>a</mi></msub><mo>−</mo><msub><mi>τ</mi><mi>c</mi></msub><mo stretchy="false" form="postfix">)</mo><mo stretchy="true" form="postfix">∥</mo></mrow><mn>2</mn><mn>2</mn></msubsup></mrow><annotation encoding="application/x-tex">
+u_a^\star=\arg\min_{u_a}\left\|W(G u_a-\tau_c)\right\|_2^2
+</annotation></semantics></math></p>
+<p>这里的
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>W</mi><annotation encoding="application/x-tex">W</annotation></semantics></math>
+是权重矩阵，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msubsup><mi>u</mi><mi>a</mi><mo>⋆</mo></msubsup><annotation encoding="application/x-tex">u_a^\star</annotation></semantics></math>
+是最优分配结果。这个优化在约束下尽量逼近期望的横侧向力矩。</p>
+<p>控制分配的关键是把“可产生的力矩”与“必须保留的通道余度”同时考虑进去。若滚转和偏航通道满足了，但俯仰通道被牺牲，纵向安全仍可能失败。</p>
+<h2 id="横侧向控制结构">21.10 横侧向控制结构</h2>
+<p>常见横侧向控制结构包括：</p>
+<ul>
+<li>制导层：航向、横程或倾侧角命令；</li>
+<li>姿态层：滚转角或滚转角速度命令；</li>
+<li>稳定层：侧滑和偏航阻尼；</li>
+<li>分配层：将目标力矩分到舵面或 RCS。</li>
+</ul>
+<p>一个三轴姿态统一控制的接口可以写成</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>u</mi><mi>c</mi></msub><mo>=</mo><msub><mi>K</mi><mi>r</mi></msub><mo stretchy="false" form="prefix">(</mo><msub><mi>r</mi><mi>c</mi></msub><mo>−</mo><mi>r</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
+u_c=K_r(r_c-r)
+</annotation></semantics></math></p>
+<p>这里的
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>u</mi><mi>c</mi></msub><annotation encoding="application/x-tex">u_c</annotation></semantics></math>
+是控制器输出，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>K</mi><mi>r</mi></msub><annotation encoding="application/x-tex">K_r</annotation></semantics></math>
+是反馈增益矩阵，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>r</mi><mi>c</mi></msub><annotation encoding="application/x-tex">r_c</annotation></semantics></math>
+是姿态参考，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>r</mi><annotation encoding="application/x-tex">r</annotation></semantics></math>
+是实际姿态或角速度向量。这个接口把姿态误差直接映射成控制器输出，便于和分配层衔接。</p>
+<p>这个表达式只是结构说明。真正的三维飞行控制还必须把侧滑、推力通道、执行机构约束和安全边界一起纳入。</p>
+<h2 id="横侧向验证要点">21.11 横侧向验证要点</h2>
+<p>横侧向模型的验证至少应包括：</p>
+<ul>
+<li>侧滑是否被抑制；</li>
+<li>滚转是否稳定；</li>
+<li>偏航阻尼是否足够；</li>
+<li>倾侧角是否可跟踪；</li>
+<li>控制分配是否可行；</li>
+<li>舵面是否饱和；</li>
+<li>三轴通道之间是否互相挤占余度；</li>
+<li>不同飞行点下的模态是否都能接受。</li>
+</ul>
+<p>若某个控制器在单点仿真中表现良好，但在其它飞行点出现荷兰滚放大、侧滑发散或分配失败，就不能把它称为包线内可用控制律。</p>
+<h2 id="本章小结">21.12 本章小结</h2>
+<p>横侧向动力学模型把侧滑、滚转、偏航和控制分配放到了同一个分析框架中。它是从纵向控制走向三维控制的必要中间层，也是后续六自由度模型和控制分配理论的基础。对高超声速飞行器而言，三维能力不是纵向能力的简单延伸，而是一个必须单独建模和单独验证的对象。</p>
+<h2 id="练习">21.13 练习</h2>
+<ol type="1">
+<li>写出横侧向模型的常见状态和输入。</li>
+<li>解释为什么侧滑角在高超声速飞行中不能忽略。</li>
+<li>写出一个偏航阻尼律，并说明每个反馈项的作用。</li>
+<li>说明滚转收敛、荷兰滚和螺旋模态分别对应什么物理现象。</li>
+<li>写出一个控制分配的最小二乘形式。</li>
+<li>解释为什么横侧向控制不能只看单一飞行点。</li>
+</ol>
+
+      </article>
+      
+      <nav class="book-bottom-nav" aria-label="章节导航">
+        <a href="./20-longitudinal-rigid-body-dynamics.html">上一章：第20章 纵向刚体动力学模型</a>
+        <a href="./index.html">卷首页</a>
+        <a href="./22-six-dof-rigid-body-model.html">下一章：第22章 六自由度刚体模型</a>
+      </nav>
+    </main>
+  </div>
+</body>
+</html>

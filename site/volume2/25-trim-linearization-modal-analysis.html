@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>第25章 配平、线性化与模态分析</title>
+  <style>
+    :root {
+      --paper: #f7f3eb;
+      --ink: #1f2937;
+      --muted: #5b6472;
+      --line: color-mix(in srgb, #e3f5f2 68%, #cbd5e1 32%);
+      --accent: #18786f;
+      --accent-soft: #e3f5f2;
+      --accent-deep: #0e4b45;
+      color-scheme: light;
+    }
+    html {
+      -webkit-text-size-adjust: 100%;
+      background:
+        radial-gradient(circle at top left, #e3f5f2 0, rgba(255,255,255,0) 32%),
+        linear-gradient(180deg, #fbfaf6 0%, var(--paper) 18%, #f7f1e6 100%);
+    }
+    body {
+      margin: 0;
+      font-family: "Source Han Serif SC", "Songti SC", "Noto Serif CJK SC", "Microsoft YaHei", serif;
+      color: var(--ink);
+      line-height: 1.78;
+      letter-spacing: 0;
+    }
+    a { color: var(--accent-deep); }
+    .book-app {
+      display: grid;
+      grid-template-columns: 280px minmax(0, 1fr);
+      min-height: 100vh;
+    }
+    .book-sidebar {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow: auto;
+      padding: 1.2rem 1rem 1.2rem 1.15rem;
+      border-right: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(255,255,255,0.86), rgba(255,255,255,0.72));
+      backdrop-filter: blur(10px);
+    }
+    .sidebar-shell { position: sticky; top: 0; display: flex; flex-direction: column; gap: 1rem; }
+    .sidebar-brand {
+      padding: 0.95rem 0.95rem 1rem;
+      border-radius: 18px;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.95), rgba(255,255,255,0.84)),
+        linear-gradient(135deg, var(--accent-soft), rgba(255,255,255,0));
+      border: 1px solid var(--line);
+      box-shadow: 0 12px 28px rgba(31, 41, 55, 0.06);
+    }
+    .sidebar-brand .kicker { margin: 0; color: var(--accent); font-size: 0.82rem; font-weight: 700; }
+    .sidebar-brand h2 { margin: 0.45rem 0 0.25rem; font-size: 1.08rem; line-height: 1.3; color: var(--ink); }
+    .sidebar-brand p { margin: 0.35rem 0 0; color: var(--muted); font-size: 0.9rem; }
+    .sidebar-links { display: grid; gap: 0.45rem; }
+    .sidebar-link {
+      display: grid;
+      grid-template-columns: 2.2rem minmax(0, 1fr);
+      gap: 0.6rem;
+      align-items: start;
+      padding: 0.7rem 0.75rem;
+      border-radius: 14px;
+      text-decoration: none;
+      background: rgba(255,255,255,0.72);
+      border: 1px solid rgba(31,41,55,0.07);
+      color: var(--ink);
+    }
+    .sidebar-link:hover { background: rgba(255,255,255,0.95); border-color: var(--line); }
+    .sidebar-link.active {
+      background: linear-gradient(135deg, rgba(255,255,255,0.98), rgba(255,255,255,0.9));
+      border-color: var(--accent-soft);
+      box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent-soft) 68%, #ffffff 32%);
+    }
+    .sidebar-index {
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      min-width: 2rem;
+      height: 2rem;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent-deep);
+      font-size: 0.78rem;
+      font-weight: 800;
+    }
+    .sidebar-title { font-size: 0.94rem; line-height: 1.35; }
+    .book-main { min-width: 0; padding: 1.25rem 1.45rem 1.8rem; }
+    .book-page-header {
+      padding: 0.85rem 0 1rem;
+      margin-bottom: 1rem;
+      border-bottom: 1px solid var(--line);
+    }
+    .page-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.28rem 0.72rem;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.82);
+      border: 1px solid var(--line);
+      color: var(--accent-deep);
+      font-size: 0.8rem;
+      font-weight: 700;
+    }
+    .book-page-header h1 {
+      margin: 0.7rem 0 0;
+      font-size: 1.85rem;
+      line-height: 1.22;
+      color: var(--accent-deep);
+      border: 0;
+      padding: 0;
+    }
+    .book-page-header p { margin: 0.45rem 0 0; color: var(--muted); max-width: 62rem; }
+    .book-article { max-width: 900px; margin: 0; padding: 0 0 1.2rem; }
+    .book-article h1, .book-article h2, .book-article h3, .book-article h4, .book-article h5, .book-article h6 {
+      line-height: 1.28;
+      margin-top: 1.45em;
+      margin-bottom: 0.55em;
+      color: var(--accent-deep);
+    }
+    .book-article h1 { font-size: 2rem; border-bottom: 2px solid var(--line); padding-bottom: 0.42rem; }
+    .book-article h1:first-of-type { margin-top: 0; }
+    .book-article h2 { font-size: 1.42rem; }
+    .book-article h3 { font-size: 1.12rem; }
+    .book-article p, .book-article li, .book-article dd, .book-article td, .book-article th { text-align: justify; text-justify: inter-ideograph; }
+    .book-article p { margin: 0.85rem 0; }
+    .book-article code, .book-article pre { font-family: "Cascadia Mono", "Source Code Pro", Consolas, monospace; font-size: 0.94em; }
+    .book-article code {
+      padding: 0.02rem 0.24rem;
+      background: color-mix(in srgb, var(--accent-soft) 34%, #ffffff 66%);
+      border: 0;
+      border-bottom: 1px solid color-mix(in srgb, var(--accent-soft) 74%, #d1d5db 26%);
+      border-radius: 4px;
+      color: #253244;
+      box-decoration-break: clone;
+      -webkit-box-decoration-break: clone;
+    }
+    .book-article pre {
+      padding: 1rem 1.1rem;
+      overflow: auto;
+      background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,253,248,0.98));
+      border: 1px solid color-mix(in srgb, var(--accent-soft) 54%, #d1d5db 46%);
+      border-left: 5px solid var(--accent);
+      border-radius: 14px;
+      box-shadow: 0 8px 22px rgba(31, 41, 55, 0.05);
+    }
+    .book-article pre code { padding: 0; border: 0; background: transparent; color: inherit; }
+    .book-article table {
+      border-collapse: collapse;
+      width: 100%;
+      margin: 1rem 0 1.25rem;
+      background: rgba(255,255,255,0.82);
+      overflow: hidden;
+      border-radius: 12px;
+    }
+    .book-article th, .book-article td { border: 1px solid var(--line); padding: 0.5rem 0.7rem; vertical-align: top; }
+    .book-article th { background: color-mix(in srgb, var(--accent-soft) 42%, #ffffff 58%); }
+    .book-article blockquote {
+      margin: 1rem 0;
+      padding: 0.25rem 0 0.25rem 1rem;
+      border-left: 4px solid var(--accent);
+      color: #374151;
+      background: linear-gradient(90deg, rgba(255,255,255,0.72), rgba(255,255,255,0.48));
+      border-radius: 0 12px 12px 0;
+    }
+    .book-bottom-nav {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-top: 2.2rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--line);
+    }
+    .book-bottom-nav a {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.6rem 0.9rem;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.84);
+      text-decoration: none;
+      font-weight: 700;
+    }
+    .book-bottom-nav span {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.6rem 0.9rem;
+      border-radius: 999px;
+      border: 1px solid rgba(31,41,55,0.08);
+      background: rgba(255,255,255,0.54);
+      color: rgba(31,41,55,0.42);
+      font-weight: 700;
+    }
+    .book-bottom-nav a:hover { background: rgba(255,255,255,0.98); }
+    .book-volume-intro {
+      margin: 0 0 1.25rem;
+      padding: 1.2rem 1.25rem 1.1rem;
+      border-radius: 18px;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.96), rgba(255,255,255,0.78)),
+        linear-gradient(135deg, var(--accent-soft), rgba(255,255,255,0));
+      border: 1px solid var(--line);
+      box-shadow: 0 14px 34px rgba(31, 41, 55, 0.06);
+    }
+    .volume-intro-kicker {
+      margin: 0;
+      color: var(--accent);
+      font-size: 0.84rem;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    .book-volume-intro h2 {
+      margin: 0.55rem 0 0.55rem;
+      font-size: 1.28rem;
+      line-height: 1.35;
+      color: var(--accent-deep);
+    }
+    .volume-intro-summary {
+      margin: 0;
+      color: var(--muted);
+      max-width: 68rem;
+    }
+    .volume-intro-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.8rem;
+      margin-top: 1rem;
+    }
+    .volume-intro-box {
+      padding: 0.85rem 0.9rem;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.72);
+      border: 1px solid rgba(31,41,55,0.08);
+    }
+    .volume-intro-box span {
+      display: block;
+      color: var(--accent);
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+    }
+    .volume-intro-box strong {
+      display: block;
+      margin-top: 0.35rem;
+      color: var(--ink);
+      font-size: 0.95rem;
+      line-height: 1.45;
+    }
+    .volume-intro-note {
+      margin-top: 0.9rem;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+    @media (max-width: 1180px) {
+      .book-app { grid-template-columns: 1fr; }
+      .book-sidebar {
+        position: relative;
+        height: auto;
+        border-right: 0;
+        border-bottom: 1px solid var(--line);
+      }
+      .sidebar-shell { position: static; }
+    }
+    @media (max-width: 900px) {
+      .book-main { padding: 1rem 1rem 1.5rem; }
+      .book-bottom-nav { flex-direction: column; }
+      .volume-intro-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="book-app">
+    <aside class="book-sidebar">
+      <div class="sidebar-shell">
+        <div class="sidebar-brand">
+          <p class="kicker">高超声速飞行器控制教程</p>
+          <h2>第二卷 高超声速飞行器建模与飞行动力学</h2>
+          <p>对象与模型</p>
+        </div>
+        <nav class="sidebar-links" aria-label="本卷目录">
+          <a class="sidebar-link" href="./index.html"><span class="sidebar-index">0</span><span class="sidebar-title">卷首页</span></a>
+<a class="sidebar-link" href="./14-vehicle-types-mission-profiles.html"><span class="sidebar-index">01</span><span class="sidebar-title">第14章 高超声速飞行器类型与任务剖面</span></a>
+<a class="sidebar-link" href="./15-coordinate-kinematics-attitude.html"><span class="sidebar-index">02</span><span class="sidebar-title">第15章 坐标系、运动学与姿态描述</span></a>
+<a class="sidebar-link" href="./16-atmosphere-flight-conditions.html"><span class="sidebar-index">03</span><span class="sidebar-title">第16章 大气环境与飞行条件</span></a>
+<a class="sidebar-link" href="./17-aerodynamic-force-moment-modeling.html"><span class="sidebar-index">04</span><span class="sidebar-title">第17章 气动力与气动力矩建模</span></a>
+<a class="sidebar-link" href="./18-propulsion-aero-propulsive-coupling.html"><span class="sidebar-index">05</span><span class="sidebar-title">第18章 推进系统与气动推进耦合</span></a>
+<a class="sidebar-link" href="./19-point-mass-dynamics.html"><span class="sidebar-index">06</span><span class="sidebar-title">第19章 质点动力学模型</span></a>
+<a class="sidebar-link" href="./20-longitudinal-rigid-body-dynamics.html"><span class="sidebar-index">07</span><span class="sidebar-title">第20章 纵向刚体动力学模型</span></a>
+<a class="sidebar-link" href="./21-lateral-directional-dynamics.html"><span class="sidebar-index">08</span><span class="sidebar-title">第21章 横侧向动力学模型</span></a>
+<a class="sidebar-link" href="./22-six-dof-rigid-body-model.html"><span class="sidebar-index">09</span><span class="sidebar-title">第22章 六自由度刚体模型</span></a>
+<a class="sidebar-link" href="./23-flexible-aeroelastic-modeling.html"><span class="sidebar-index">10</span><span class="sidebar-title">第23章 刚柔耦合与气动弹性模型</span></a>
+<a class="sidebar-link" href="./24-actuator-sensor-computation-modeling.html"><span class="sidebar-index">11</span><span class="sidebar-title">第24章 执行机构、传感器与计算系统建模</span></a>
+<a class="sidebar-link active" href="./25-trim-linearization-modal-analysis.html"><span class="sidebar-index">12</span><span class="sidebar-title">第25章 配平、线性化与模态分析</span></a>
+        </nav>
+      </div>
+    </aside>
+    <main class="book-main">
+      <header class="book-page-header">
+        <div class="page-eyebrow">第2册·章节页12</div>
+        <h1 id="volume2--25-trim-linearization-modal-analysis">第25章 配平、线性化与模态分析</h1>
+        <p>本页是章节正文页。左侧目录用于回到本卷其他章节，底部导航用于前后章跳转。</p>
+      </header>
+      <article class="book-article">
+        <h2 id="问题背景">25.1 问题背景</h2>
+<p>前面章节已经建立了对象类型、坐标、大气、气动、推进、质点、纵向、横侧向、六自由度、柔性和执行链。控制器设计之前，还需要把非线性飞行动力学转化为可分析的工作点和局部模型。</p>
+<p>本章要说明三件事：什么是配平，如何从非线性模型得到线性小扰动模型，以及模态分析如何服务
+PID、LQR、鲁棒控制、增益调度和 LPV
+控制。它是第二卷通向第三卷的接口章。</p>
+<h2 id="配平的控制意义">25.2 配平的控制意义</h2>
+<p>配平表示在给定飞行条件下，飞行器处于某种稳态或准稳态。对巡航段，可要求：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>x</mi><mo accent="true">̇</mo></mover><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">
+\dot x=0
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>x</mi><annotation encoding="application/x-tex">x</annotation></semantics></math>
+是状态向量，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mover><mi>x</mi><mo accent="true">̇</mo></mover><annotation encoding="application/x-tex">\dot x</annotation></semantics></math>
+是状态导数。</p>
+<p>如果是定常转弯、定常滑翔或定常倾侧飞行，也可以允许某些状态保持恒定，而另一些状态以常值变化。关键不是“零导数”这个形式，而是要明确工作点到底对应什么飞行任务。</p>
+<p>若配平点已经接近舵偏、油门、攻角或动压边界，即使残差很小，也不是健康的控制设计点。</p>
+<h2 id="配平变量">25.3 配平变量</h2>
+<p>配平通常要求寻找状态和输入：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>x</mi><mn>0</mn></msub><mo>,</mo><msub><mi>u</mi><mn>0</mn></msub><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
+(x_0,u_0)
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>x</mi><mn>0</mn></msub><annotation encoding="application/x-tex">x_0</annotation></semantics></math>
+是配平状态，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>u</mi><mn>0</mn></msub><annotation encoding="application/x-tex">u_0</annotation></semantics></math>
+是配平输入。</p>
+<p>一个典型优化写法是：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>x</mi><mn>0</mn></msub><mo>,</mo><msub><mi>u</mi><mn>0</mn></msub><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mi>arg</mi><mo>&#8289;</mo><mi>min</mi><mo>&#8289;</mo><mo stretchy="false" form="postfix">∥</mo><mi>f</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>x</mi><mn>0</mn></msub><mo>,</mo><msub><mi>u</mi><mn>0</mn></msub><mo>,</mo><mi>p</mi><mo stretchy="false" form="postfix">)</mo><msup><mo stretchy="false" form="postfix">∥</mo><mn>2</mn></msup></mrow><annotation encoding="application/x-tex">
+(x_0,u_0)=\arg\min \|f(x_0,u_0,p)\|^2
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mo stretchy="false" form="prefix">(</mo><mi>⋅</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">f(\cdot)</annotation></semantics></math>
+是非线性动力学残差，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>p</mi><annotation encoding="application/x-tex">p</annotation></semantics></math>
+是飞行条件或参数。</p>
+<p>如果把约束加入问题，则还应检查：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>g</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>x</mi><mn>0</mn></msub><mo>,</mo><msub><mi>u</mi><mn>0</mn></msub><mo>,</mo><mi>p</mi><mo stretchy="false" form="postfix">)</mo><mo>≤</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">
+g(x_0,u_0,p)\le 0
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>g</mi><mo stretchy="false" form="prefix">(</mo><mi>⋅</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">g(\cdot)</annotation></semantics></math>
+表示攻角、侧滑角、动压、舵偏、舵速和推力等约束。</p>
+<h2 id="纵向配平">25.4 纵向配平</h2>
+<p>给定速度和高度后，纵向配平要解出攻角、俯仰角、舵面和推力。例如，在巡航或平飞条件下，通常希望：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>V</mi><mo accent="true">̇</mo></mover><mo>=</mo><mover><mi>γ</mi><mo accent="true">̇</mo></mover><mo>=</mo><mover><mi>h</mi><mo accent="true">̇</mo></mover><mo>=</mo><mover><mi>α</mi><mo accent="true">̇</mo></mover><mo>=</mo><mover><mi>θ</mi><mo accent="true">̇</mo></mover><mo>=</mo><mover><mi>q</mi><mo accent="true">̇</mo></mover><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">
+\dot V=\dot \gamma=\dot h=\dot \alpha=\dot \theta=\dot q=0
+</annotation></semantics></math></p>
+<p>其中，各状态含义与第20章一致。</p>
+<p>若求得的舵面角或推力命令接近极限，就说明这个飞行点控制余度不足。配平不是“算出一个点就完了”，而是要同时报告该点离约束边界有多远。</p>
+<h2 id="横侧向配平">25.5 横侧向配平</h2>
+<p>横侧向配平常用于定常直线飞行、定常倾侧滑翔或定常转弯。简单直线飞行可要求：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>β</mi><mn>0</mn></msub><mo>=</mo><msub><mi>ϕ</mi><mn>0</mn></msub><mo>=</mo><msub><mi>ψ</mi><mn>0</mn></msub><mo>=</mo><msub><mi>p</mi><mn>0</mn></msub><mo>=</mo><msub><mi>r</mi><mn>0</mn></msub><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">
+\beta_0=\phi_0=\psi_0=p_0=r_0=0
+</annotation></semantics></math></p>
+<p>其中，下标
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mn>0</mn><annotation encoding="application/x-tex">0</annotation></semantics></math>
+表示配平值。</p>
+<p>若是定常倾侧滑翔，还应允许滚转角或倾侧角保持某一常值，而横向力矩保持平衡。对于三维任务，配平结果必须明确是直线、转弯还是滑翔，不应把不同任务混成一个“稳态点”。</p>
+<h2 id="线性化">25.6 线性化</h2>
+<p>在配平点
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>x</mi><mn>0</mn></msub><mo>,</mo><msub><mi>u</mi><mn>0</mn></msub><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">(x_0,u_0)</annotation></semantics></math>
+附近定义小扰动：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Δ</mi><mi>x</mi><mo>=</mo><mi>x</mi><mo>−</mo><msub><mi>x</mi><mn>0</mn></msub><mo>,</mo><mspace width="2.0em"></mspace><mi mathvariant="normal">Δ</mi><mi>u</mi><mo>=</mo><mi>u</mi><mo>−</mo><msub><mi>u</mi><mn>0</mn></msub></mrow><annotation encoding="application/x-tex">
+\Delta x=x-x_0,\qquad \Delta u=u-u_0
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Δ</mi><mi>x</mi></mrow><annotation encoding="application/x-tex">\Delta x</annotation></semantics></math>
+是状态增量，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Δ</mi><mi>u</mi></mrow><annotation encoding="application/x-tex">\Delta u</annotation></semantics></math>
+是输入增量。</p>
+<p>一阶泰勒展开得到：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Δ</mi><mover><mi>x</mi><mo accent="true">̇</mo></mover><mo>=</mo><mi>A</mi><mi mathvariant="normal">Δ</mi><mi>x</mi><mo>+</mo><mi>B</mi><mi mathvariant="normal">Δ</mi><mi>u</mi></mrow><annotation encoding="application/x-tex">
+\Delta \dot x = A\Delta x+B\Delta u
+</annotation></semantics></math></p>
+<p>其中，</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>A</mi><mo>=</mo><msub><mrow><mfrac><mrow><mi>∂</mi><mi>f</mi></mrow><mrow><mi>∂</mi><mi>x</mi></mrow></mfrac><mo stretchy="true" form="postfix">|</mo></mrow><mrow><msub><mi>x</mi><mn>0</mn></msub><mo>,</mo><msub><mi>u</mi><mn>0</mn></msub></mrow></msub><mo>,</mo><mspace width="2.0em"></mspace><mi>B</mi><mo>=</mo><msub><mrow><mfrac><mrow><mi>∂</mi><mi>f</mi></mrow><mrow><mi>∂</mi><mi>u</mi></mrow></mfrac><mo stretchy="true" form="postfix">|</mo></mrow><mrow><msub><mi>x</mi><mn>0</mn></msub><mo>,</mo><msub><mi>u</mi><mn>0</mn></msub></mrow></msub></mrow><annotation encoding="application/x-tex">
+A=\left.\frac{\partial f}{\partial x}\right|_{x_0,u_0},\qquad B=\left.\frac{\partial f}{\partial u}\right|_{x_0,u_0}
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>A</mi><annotation encoding="application/x-tex">A</annotation></semantics></math>
+是状态矩阵，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>B</mi><annotation encoding="application/x-tex">B</annotation></semantics></math>
+是输入矩阵。</p>
+<p>线性化并不是把非线性问题“简化掉”，而是把“在某个工作点附近怎么响应”提取出来。这个局部模型是第三卷中经典控制和最优控制方法的基础。</p>
+<h2 id="模态分析">25.7 模态分析</h2>
+<p>对线性系统，模态由矩阵
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>A</mi><annotation encoding="application/x-tex">A</annotation></semantics></math>
+的特征值决定：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>det</mi><mo>&#8289;</mo><mo stretchy="false" form="prefix">(</mo><mi>s</mi><mi>I</mi><mo>−</mo><mi>A</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">
+\det(sI-A)=0
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>s</mi><annotation encoding="application/x-tex">s</annotation></semantics></math>
+是复变量，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>I</mi><annotation encoding="application/x-tex">I</annotation></semantics></math>
+是单位矩阵。</p>
+<p>每个特征值都对应一个模态的衰减速度、振荡频率和阻尼特性。对控制设计而言，模态分析的意义在于判断哪个模态慢、哪个模态敏感、哪个模态最接近不稳定。</p>
+<h2 id="纵向典型模态">25.8 纵向典型模态</h2>
+<p>纵向线化后常见模态包括：</p>
+<table>
+<thead>
+<tr>
+<th>模态</th>
+<th>主要特征</th>
+<th>控制含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>短周期</td>
+<td>攻角、俯仰角速度</td>
+<td>姿态快速响应与阻尼</td>
+</tr>
+<tr>
+<td>长周期或俯仰振荡</td>
+<td>速度、高度、航迹角</td>
+<td>能量交换与外环稳定性</td>
+</tr>
+</tbody>
+</table>
+<p>短周期通常由俯仰力矩导数和俯仰惯量决定，长周期则与速度、高度和升阻比耦合有关。若控制器只追求快响应而不看模态分离，就容易把短周期和执行机构动态推到危险区域。</p>
+<h2 id="横侧向典型模态">25.9 横侧向典型模态</h2>
+<p>横侧向线化后常见模态包括：</p>
+<table>
+<thead>
+<tr>
+<th>模态</th>
+<th>主要特征</th>
+<th>控制含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>滚转收敛</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi><mo>,</mo><mi>ϕ</mi></mrow><annotation encoding="application/x-tex">p,\phi</annotation></semantics></math></td>
+<td>滚转快速响应</td>
+</tr>
+<tr>
+<td>荷兰滚</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>β</mi><mo>,</mo><mi>r</mi><mo>,</mo><mi>ϕ</mi></mrow><annotation encoding="application/x-tex">\beta,r,\phi</annotation></semantics></math></td>
+<td>侧滑和偏航耦合振荡</td>
+</tr>
+<tr>
+<td>螺旋模态</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ϕ</mi><mo>,</mo><mi>ψ</mi></mrow><annotation encoding="application/x-tex">\phi,\psi</annotation></semantics></math></td>
+<td>慢发散或慢收敛的横向变化</td>
+</tr>
+</tbody>
+</table>
+<p>这些模态会随 Mach
+数、高度、攻角和舵效变化。某个配平点稳定，不代表整个飞行包线都稳定，所以线化和模态分析必须覆盖多点，而不是只算一个标称点。</p>
+<h2 id="多飞行点线化">25.10 多飞行点线化</h2>
+<p>高超声速飞行通常覆盖较宽的高度、速度和动压范围。控制设计应在多个工作点上重复配平、线化和模态分析，然后再做增益调度或
+LPV 建模。</p>
+<p>如果不同工作点的模态排序变化很大，说明控制器不能只用单一线性模型概括整个包线。</p>
+<h2 id="配平和线化的验证口径">25.11 配平和线化的验证口径</h2>
+<p>配平、线化和模态分析至少要记录：</p>
+<ul>
+<li>飞行点参数：高度、速度、Mach、动压；</li>
+<li>配平变量：状态和输入；</li>
+<li>残差：动力学残差和约束残差；</li>
+<li>线化矩阵：<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>A</mi><annotation encoding="application/x-tex">A</annotation></semantics></math>
+和
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>B</mi><annotation encoding="application/x-tex">B</annotation></semantics></math>；</li>
+<li>主要特征值和阻尼比；</li>
+<li>配平点与输入边界的距离；</li>
+<li>不同飞行点之间的变化趋势。</li>
+</ul>
+<p>如果这些结果不记录，后续的控制设计就无法复现，也无法比较不同模型、不同飞行点或不同控制律。</p>
+<h2 id="对后续章节的接口">25.12 对后续章节的接口</h2>
+<p>这章的输出直接进入第三卷：</p>
+<ul>
+<li>配平点进入 PID、LQR 和鲁棒控制设计；</li>
+<li>线性模型进入状态反馈、观测器和最优控制；</li>
+<li>模态信息进入带宽设计和稳定裕度分析；</li>
+<li>多工作点结果进入增益调度和 LPV 控制。</li>
+</ul>
+<p>因此，配平和线化不是单独的数学练习，而是把前面的非线性对象转换成后续控制方法能直接使用的局部接口。</p>
+<h2 id="本章小结">25.13 本章小结</h2>
+<p>配平、线性化与模态分析把非线性飞行动力学变成了可分析、可设计、可调试的局部模型。对高超声速飞行器控制而言，它们不是附属步骤，而是控制设计能否成立的前提。</p>
+<h2 id="练习">25.14 练习</h2>
+<ol type="1">
+<li>说明配平和稳态的关系。</li>
+<li>写出线性化的基本公式，并说明
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>A</mi><annotation encoding="application/x-tex">A</annotation></semantics></math>
+和
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>B</mi><annotation encoding="application/x-tex">B</annotation></semantics></math>
+的含义。</li>
+<li>解释为什么线性模型只在局部有效。</li>
+<li>说明短周期、长周期、滚转收敛、荷兰滚和螺旋模态分别代表什么。</li>
+<li>设计一个多飞行点配平和线化记录表。</li>
+</ol>
+
+      </article>
+      
+      <nav class="book-bottom-nav" aria-label="章节导航">
+        <a href="./24-actuator-sensor-computation-modeling.html">上一章：第24章 执行机构、传感器与计算系统建模</a>
+        <a href="./index.html">卷首页</a>
+        <span aria-disabled="true">下一章：无</span>
+      </nav>
+    </main>
+  </div>
+</body>
+</html>

@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>第57章 不确定性分析与 Monte Carlo 验证</title>
+  <style>
+    :root {
+      --paper: #f7f3eb;
+      --ink: #1f2937;
+      --muted: #5b6472;
+      --line: color-mix(in srgb, #e4e8fb 68%, #cbd5e1 32%);
+      --accent: #4a5fb2;
+      --accent-soft: #e4e8fb;
+      --accent-deep: #2a3568;
+      color-scheme: light;
+    }
+    html {
+      -webkit-text-size-adjust: 100%;
+      background:
+        radial-gradient(circle at top left, #e4e8fb 0, rgba(255,255,255,0) 32%),
+        linear-gradient(180deg, #fbfaf6 0%, var(--paper) 18%, #f7f1e6 100%);
+    }
+    body {
+      margin: 0;
+      font-family: "Source Han Serif SC", "Songti SC", "Noto Serif CJK SC", "Microsoft YaHei", serif;
+      color: var(--ink);
+      line-height: 1.78;
+      letter-spacing: 0;
+    }
+    a { color: var(--accent-deep); }
+    .book-app {
+      display: grid;
+      grid-template-columns: 280px minmax(0, 1fr);
+      min-height: 100vh;
+    }
+    .book-sidebar {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow: auto;
+      padding: 1.2rem 1rem 1.2rem 1.15rem;
+      border-right: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(255,255,255,0.86), rgba(255,255,255,0.72));
+      backdrop-filter: blur(10px);
+    }
+    .sidebar-shell { position: sticky; top: 0; display: flex; flex-direction: column; gap: 1rem; }
+    .sidebar-brand {
+      padding: 0.95rem 0.95rem 1rem;
+      border-radius: 18px;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.95), rgba(255,255,255,0.84)),
+        linear-gradient(135deg, var(--accent-soft), rgba(255,255,255,0));
+      border: 1px solid var(--line);
+      box-shadow: 0 12px 28px rgba(31, 41, 55, 0.06);
+    }
+    .sidebar-brand .kicker { margin: 0; color: var(--accent); font-size: 0.82rem; font-weight: 700; }
+    .sidebar-brand h2 { margin: 0.45rem 0 0.25rem; font-size: 1.08rem; line-height: 1.3; color: var(--ink); }
+    .sidebar-brand p { margin: 0.35rem 0 0; color: var(--muted); font-size: 0.9rem; }
+    .sidebar-links { display: grid; gap: 0.45rem; }
+    .sidebar-link {
+      display: grid;
+      grid-template-columns: 2.2rem minmax(0, 1fr);
+      gap: 0.6rem;
+      align-items: start;
+      padding: 0.7rem 0.75rem;
+      border-radius: 14px;
+      text-decoration: none;
+      background: rgba(255,255,255,0.72);
+      border: 1px solid rgba(31,41,55,0.07);
+      color: var(--ink);
+    }
+    .sidebar-link:hover { background: rgba(255,255,255,0.95); border-color: var(--line); }
+    .sidebar-link.active {
+      background: linear-gradient(135deg, rgba(255,255,255,0.98), rgba(255,255,255,0.9));
+      border-color: var(--accent-soft);
+      box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent-soft) 68%, #ffffff 32%);
+    }
+    .sidebar-index {
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      min-width: 2rem;
+      height: 2rem;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent-deep);
+      font-size: 0.78rem;
+      font-weight: 800;
+    }
+    .sidebar-title { font-size: 0.94rem; line-height: 1.35; }
+    .book-main { min-width: 0; padding: 1.25rem 1.45rem 1.8rem; }
+    .book-page-header {
+      padding: 0.85rem 0 1rem;
+      margin-bottom: 1rem;
+      border-bottom: 1px solid var(--line);
+    }
+    .page-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.28rem 0.72rem;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.82);
+      border: 1px solid var(--line);
+      color: var(--accent-deep);
+      font-size: 0.8rem;
+      font-weight: 700;
+    }
+    .book-page-header h1 {
+      margin: 0.7rem 0 0;
+      font-size: 1.85rem;
+      line-height: 1.22;
+      color: var(--accent-deep);
+      border: 0;
+      padding: 0;
+    }
+    .book-page-header p { margin: 0.45rem 0 0; color: var(--muted); max-width: 62rem; }
+    .book-article { max-width: 900px; margin: 0; padding: 0 0 1.2rem; }
+    .book-article h1, .book-article h2, .book-article h3, .book-article h4, .book-article h5, .book-article h6 {
+      line-height: 1.28;
+      margin-top: 1.45em;
+      margin-bottom: 0.55em;
+      color: var(--accent-deep);
+    }
+    .book-article h1 { font-size: 2rem; border-bottom: 2px solid var(--line); padding-bottom: 0.42rem; }
+    .book-article h1:first-of-type { margin-top: 0; }
+    .book-article h2 { font-size: 1.42rem; }
+    .book-article h3 { font-size: 1.12rem; }
+    .book-article p, .book-article li, .book-article dd, .book-article td, .book-article th { text-align: justify; text-justify: inter-ideograph; }
+    .book-article p { margin: 0.85rem 0; }
+    .book-article code, .book-article pre { font-family: "Cascadia Mono", "Source Code Pro", Consolas, monospace; font-size: 0.94em; }
+    .book-article code {
+      padding: 0.02rem 0.24rem;
+      background: color-mix(in srgb, var(--accent-soft) 34%, #ffffff 66%);
+      border: 0;
+      border-bottom: 1px solid color-mix(in srgb, var(--accent-soft) 74%, #d1d5db 26%);
+      border-radius: 4px;
+      color: #253244;
+      box-decoration-break: clone;
+      -webkit-box-decoration-break: clone;
+    }
+    .book-article pre {
+      padding: 1rem 1.1rem;
+      overflow: auto;
+      background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,253,248,0.98));
+      border: 1px solid color-mix(in srgb, var(--accent-soft) 54%, #d1d5db 46%);
+      border-left: 5px solid var(--accent);
+      border-radius: 14px;
+      box-shadow: 0 8px 22px rgba(31, 41, 55, 0.05);
+    }
+    .book-article pre code { padding: 0; border: 0; background: transparent; color: inherit; }
+    .book-article table {
+      border-collapse: collapse;
+      width: 100%;
+      margin: 1rem 0 1.25rem;
+      background: rgba(255,255,255,0.82);
+      overflow: hidden;
+      border-radius: 12px;
+    }
+    .book-article th, .book-article td { border: 1px solid var(--line); padding: 0.5rem 0.7rem; vertical-align: top; }
+    .book-article th { background: color-mix(in srgb, var(--accent-soft) 42%, #ffffff 58%); }
+    .book-article blockquote {
+      margin: 1rem 0;
+      padding: 0.25rem 0 0.25rem 1rem;
+      border-left: 4px solid var(--accent);
+      color: #374151;
+      background: linear-gradient(90deg, rgba(255,255,255,0.72), rgba(255,255,255,0.48));
+      border-radius: 0 12px 12px 0;
+    }
+    .book-bottom-nav {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-top: 2.2rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--line);
+    }
+    .book-bottom-nav a {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.6rem 0.9rem;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.84);
+      text-decoration: none;
+      font-weight: 700;
+    }
+    .book-bottom-nav span {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.6rem 0.9rem;
+      border-radius: 999px;
+      border: 1px solid rgba(31,41,55,0.08);
+      background: rgba(255,255,255,0.54);
+      color: rgba(31,41,55,0.42);
+      font-weight: 700;
+    }
+    .book-bottom-nav a:hover { background: rgba(255,255,255,0.98); }
+    .book-volume-intro {
+      margin: 0 0 1.25rem;
+      padding: 1.2rem 1.25rem 1.1rem;
+      border-radius: 18px;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.96), rgba(255,255,255,0.78)),
+        linear-gradient(135deg, var(--accent-soft), rgba(255,255,255,0));
+      border: 1px solid var(--line);
+      box-shadow: 0 14px 34px rgba(31, 41, 55, 0.06);
+    }
+    .volume-intro-kicker {
+      margin: 0;
+      color: var(--accent);
+      font-size: 0.84rem;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    .book-volume-intro h2 {
+      margin: 0.55rem 0 0.55rem;
+      font-size: 1.28rem;
+      line-height: 1.35;
+      color: var(--accent-deep);
+    }
+    .volume-intro-summary {
+      margin: 0;
+      color: var(--muted);
+      max-width: 68rem;
+    }
+    .volume-intro-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.8rem;
+      margin-top: 1rem;
+    }
+    .volume-intro-box {
+      padding: 0.85rem 0.9rem;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.72);
+      border: 1px solid rgba(31,41,55,0.08);
+    }
+    .volume-intro-box span {
+      display: block;
+      color: var(--accent);
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+    }
+    .volume-intro-box strong {
+      display: block;
+      margin-top: 0.35rem;
+      color: var(--ink);
+      font-size: 0.95rem;
+      line-height: 1.45;
+    }
+    .volume-intro-note {
+      margin-top: 0.9rem;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+    @media (max-width: 1180px) {
+      .book-app { grid-template-columns: 1fr; }
+      .book-sidebar {
+        position: relative;
+        height: auto;
+        border-right: 0;
+        border-bottom: 1px solid var(--line);
+      }
+      .sidebar-shell { position: static; }
+    }
+    @media (max-width: 900px) {
+      .book-main { padding: 1rem 1rem 1.5rem; }
+      .book-bottom-nav { flex-direction: column; }
+      .volume-intro-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="book-app">
+    <aside class="book-sidebar">
+      <div class="sidebar-shell">
+        <div class="sidebar-brand">
+          <p class="kicker">高超声速飞行器控制教程</p>
+          <h2>第五卷 仿真验证、工程实现与研究训练</h2>
+          <p>验证与训练</p>
+        </div>
+        <nav class="sidebar-links" aria-label="本卷目录">
+          <a class="sidebar-link" href="./index.html"><span class="sidebar-index">0</span><span class="sidebar-title">卷首页</span></a>
+<a class="sidebar-link" href="./52-hypersonic-control-simulation-platform.html"><span class="sidebar-index">01</span><span class="sidebar-title">第52章 高超声速控制仿真平台设计</span></a>
+<a class="sidebar-link" href="./53-numerical-integration-simulation-credibility.html"><span class="sidebar-index">02</span><span class="sidebar-title">第53章 数值积分与仿真可信性</span></a>
+<a class="sidebar-link" href="./54-aerodynamic-data-tables-parameter-management.html"><span class="sidebar-index">03</span><span class="sidebar-title">第54章 气动数据表、插值与参数管理</span></a>
+<a class="sidebar-link" href="./55-controller-discretization-real-time-implementation.html"><span class="sidebar-index">04</span><span class="sidebar-title">第55章 控制器离散化与实时实现</span></a>
+<a class="sidebar-link" href="./56-verification-metrics-system.html"><span class="sidebar-index">05</span><span class="sidebar-title">第56章 验证指标体系</span></a>
+<a class="sidebar-link active" href="./57-uncertainty-monte-carlo-verification.html"><span class="sidebar-index">06</span><span class="sidebar-title">第57章 不确定性分析与 Monte Carlo 验证</span></a>
+<a class="sidebar-link" href="./58-typical-case-library.html"><span class="sidebar-index">07</span><span class="sidebar-title">第58章 典型案例库</span></a>
+<a class="sidebar-link" href="./59-hypersonic-control-paper-reading-method.html"><span class="sidebar-index">08</span><span class="sidebar-title">第59章 高超声速控制论文阅读方法</span></a>
+<a class="sidebar-link" href="./60-frontiers-research-roadmap.html"><span class="sidebar-index">09</span><span class="sidebar-title">第60章 前沿问题与研究路线</span></a>
+<a class="sidebar-link" href="./case-library-code-mapping.html"><span class="sidebar-index">10</span><span class="sidebar-title">第五卷案例映射</span></a>
+        </nav>
+      </div>
+    </aside>
+    <main class="book-main">
+      <header class="book-page-header">
+        <div class="page-eyebrow">第5册·章节页06</div>
+        <h1 id="volume5--57-uncertainty-monte-carlo-verification">第57章 不确定性分析与 Monte Carlo 验证</h1>
+        <p>本页是章节正文页。左侧目录用于回到本卷其他章节，底部导航用于前后章跳转。</p>
+      </header>
+      <article class="book-article">
+        <h2 id="问题背景">57.1 问题背景</h2>
+<p>单一标称仿真只能说明控制器在一个模型、一个初值和一个扰动场景下的表现。高超声速飞行器存在气动、质量、惯量、大气、传感器、执行机构和故障不确定性。若不做不确定性分析，控制器的鲁棒性结论就没有证据支撑。</p>
+<p>本章先把对象、分布、相关性、通过判据和证据目标定义清楚，再讨论不确定性分类、参数化方式和
+Monte Carlo
+设计。随机仿真不是简单多跑几次，而是有意识地检查控制器在不同样本、不同故障和不同初值下是否仍保持可接受行为。</p>
+<p>本章与第一卷鲁棒控制、自适应控制和随机系统理论相连接，也与第五卷第56章指标体系直接相连。若没有前面的指标口径，Monte
+Carlo 只会变成一堆难以比较的图。</p>
+<p>本章更重要的作用，是把“鲁棒性”从单次成功仿真变成统计上的可讨论对象。也就是说，控制器不是在某一个样本里表现得好就算完，而是要在一组定义清楚的样本里保持可接受行为，并能说清楚失败样本为什么失败。</p>
+<p>因此，本章真正关心的不是样本数越多越好，而是样本设计是否覆盖了对象、约束和故障的主要变化方向。只有当采样方式、通过判据和失败记录都定义清楚时，Monte
+Carlo 才能从“多次仿真”变成“统计证据”。</p>
+<h2 id="不确定性分类">57.2 不确定性分类</h2>
+<p>高超声速控制常见不确定性包括：</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>类别</th>
+<th>示例</th>
+<th>进入模型的位置</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>气动不确定性</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>C</mi><mi>L</mi></msub><mo>,</mo><msub><mi>C</mi><mi>D</mi></msub><mo>,</mo><msub><mi>C</mi><mi>m</mi></msub></mrow><annotation encoding="application/x-tex">C_L,C_D,C_m</annotation></semantics></math>
+偏差，控制导数变化</td>
+<td>气动力、力矩、动态逆和配平</td>
+</tr>
+<tr>
+<td>质量和惯量</td>
+<td>质量变化、质心漂移、惯量误差</td>
+<td>平动和转动动力学</td>
+</tr>
+<tr>
+<td>大气不确定性</td>
+<td>密度、温度、风、声速偏差</td>
+<td>动压、Mach、热流和气动</td>
+</tr>
+<tr>
+<td>推进不确定性</td>
+<td>推力损失、油门滞后、进气道裕度变化</td>
+<td>速度、姿态和吸气式巡航</td>
+</tr>
+<tr>
+<td>执行机构不确定性</td>
+<td>带宽、延迟、饱和、效率下降</td>
+<td>控制输入实际实现</td>
+</tr>
+<tr>
+<td>传感器不确定性</td>
+<td>噪声、偏置、采样延迟、丢包</td>
+<td>估计器和反馈信号</td>
+</tr>
+<tr>
+<td>初值不确定性</td>
+<td>初始高度、速度、姿态、位置误差</td>
+<td>闭环初始条件</td>
+</tr>
+<tr>
+<td>故障场景</td>
+<td>卡滞、失效、偏置、突变</td>
+<td>容错控制和任务降级</td>
+</tr>
+</tbody>
+</table>
+<p>不同不确定性不能混成一个“随机扰动”。每类不确定性都应说明范围、分布和是否符合物理约束。</p>
+<h2 id="monte-carlo-设计前的对象分布与证据检查">57.3 Monte Carlo
+设计前的对象、分布与证据检查</h2>
+<p>第57章关注的不是“多跑几次随机仿真”本身，而是把对象、分布、相关性、通过判据和证据目标先定义清楚。采样方式只有建立在这些前提之上，才谈得上验证。</p>
+<p>进入随机采样之前，先把一些问题想清楚：</p>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>项目</th>
+<th>需要先说明的问题</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>对象与任务</td>
+<td>是姿态内环、巡航保持、再入、滑翔、终端制导还是容错过渡</td>
+</tr>
+<tr>
+<td>模型层级</td>
+<td>质点、纵向、三维质点、六自由度还是刚柔耦合</td>
+</tr>
+<tr>
+<td>不确定性来源</td>
+<td>气动、质量、惯量、大气、推进、执行机构、传感器、初值还是故障</td>
+</tr>
+<tr>
+<td>分布与边界</td>
+<td>区间、均匀、正态、截断正态还是离散场景，边界是否物理可接受</td>
+</tr>
+<tr>
+<td>相关结构</td>
+<td>哪些参数应相关采样，哪些可以独立</td>
+</tr>
+<tr>
+<td>成对比较</td>
+<td>基线方法和候选方法是否使用相同样本、相同随机种子</td>
+</tr>
+<tr>
+<td>失败记录</td>
+<td>异常终止、约束违反、数值失稳和回退触发是否保留</td>
+</tr>
+<tr>
+<td>证据目标</td>
+<td>是教学级趋势观察、研究原型比较还是更高层级鲁棒性结论</td>
+</tr>
+</tbody>
+</table>
+<p>因此，更自然的起点，是先问清楚到底想检验哪一类不确定性、它们怎样采样才有物理意义、结果准备支撑到什么强度的结论，再去随机化参数。</p>
+<h2 id="参数摄动模型">57.4 参数摄动模型</h2>
+<p>加性摄动：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mover><mi>θ</mi><mo accent="true">̃</mo></mover><mi>i</mi></msub><mo>=</mo><msub><mover><mi>θ</mi><mo accent="true">‾</mo></mover><mi>i</mi></msub><mo>+</mo><msub><mi>η</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">
+\tilde{\theta}_i=\bar{\theta}_i+\eta_i
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mover><mi>θ</mi><mo accent="true">̃</mo></mover><mi>i</mi></msub><annotation encoding="application/x-tex">\tilde{\theta}_i</annotation></semantics></math>
+是第
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>i</mi><annotation encoding="application/x-tex">i</annotation></semantics></math>
+个摄动参数，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mover><mi>θ</mi><mo accent="true">‾</mo></mover><mi>i</mi></msub><annotation encoding="application/x-tex">\bar{\theta}_i</annotation></semantics></math>
+是名义值，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>η</mi><mi>i</mi></msub><annotation encoding="application/x-tex">\eta_i</annotation></semantics></math>
+是随机摄动量。</p>
+<p>其中
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>η</mi><mi>i</mi></msub><annotation encoding="application/x-tex">\eta_i</annotation></semantics></math>
+可在区间内采样：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>η</mi><mi>i</mi></msub><mo>∼</mo><mi>𝒰</mi><mo stretchy="false" form="prefix">[</mo><mi>−</mi><msub><mi mathvariant="normal">Δ</mi><mi>i</mi></msub><mo>,</mo><msub><mi mathvariant="normal">Δ</mi><mi>i</mi></msub><mo stretchy="false" form="postfix">]</mo></mrow><annotation encoding="application/x-tex">
+\eta_i \sim \mathcal{U}[-\Delta_i,\Delta_i]
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝒰</mi><annotation encoding="application/x-tex">\mathcal{U}</annotation></semantics></math>
+表示均匀分布，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi mathvariant="normal">Δ</mi><mi>i</mi></msub><annotation encoding="application/x-tex">\Delta_i</annotation></semantics></math>
+是第
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>i</mi><annotation encoding="application/x-tex">i</annotation></semantics></math>
+个参数的最大摄动幅度。
+这意味着参数在给定区间内等可能取值，适合表示教学级或保守区间摄动。</p>
+<p>若某些参数相关，例如升力和阻力同时受 Mach
+插值误差影响，不应把它们简单设为完全独立。相关性可以用协方差矩阵或共同随机因子表示。</p>
+<h2 id="扰动风和噪声">57.5 扰动风和噪声</h2>
+<p>风场扰动可写为：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>w</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mover><mi>w</mi><mo accent="true">‾</mo></mover><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo>+</mo><mi>δ</mi><mi>w</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
+w(t)=\bar{w}(t)+\delta w(t)
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>w</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">w(t)</annotation></semantics></math>
+是实际风扰动，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>w</mi><mo accent="true">‾</mo></mover><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\bar{w}(t)</annotation></semantics></math>
+是名义风场，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>δ</mi><mi>w</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\delta w(t)</annotation></semantics></math>
+是随机风偏差。</p>
+<p>测量噪声可写为：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>y</mi><mi>k</mi></msub><mo>=</mo><msub><mover><mi>y</mi><mo accent="true">‾</mo></mover><mi>k</mi></msub><mo>+</mo><msub><mi>b</mi><mi>k</mi></msub><mo>+</mo><msub><mi>v</mi><mi>k</mi></msub></mrow><annotation encoding="application/x-tex">
+y_k=\bar{y}_k+b_k+v_k
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>y</mi><mi>k</mi></msub><annotation encoding="application/x-tex">y_k</annotation></semantics></math>
+是第
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>k</mi><annotation encoding="application/x-tex">k</annotation></semantics></math>
+个采样时刻的测量值，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mover><mi>y</mi><mo accent="true">‾</mo></mover><mi>k</mi></msub><annotation encoding="application/x-tex">\bar{y}_k</annotation></semantics></math>
+是无噪声量，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mi>k</mi></msub><annotation encoding="application/x-tex">b_k</annotation></semantics></math>
+是偏置，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>v</mi><mi>k</mi></msub><annotation encoding="application/x-tex">v_k</annotation></semantics></math>
+是随机噪声。噪声模型应记录均值、方差、采样周期、是否相关以及是否带滤波。</p>
+<p>若控制器使用数值微分、INDI、ESO
+或高增益观测器，噪声会显著影响控制输入和稳定裕度。因此 Monte Carlo
+不应只扰动初值和参数，也应考虑测量噪声和估计误差。</p>
+<h2 id="随机初值和任务场景">57.6 随机初值和任务场景</h2>
+<p>初始状态可按任务包线采样：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>𝐱</mi><mn>0</mn></msub><mo>∼</mo><mi>𝒮</mi><mo stretchy="false" form="prefix">(</mo><msub><mi mathvariant="normal">Ω</mi><mi>x</mi></msub><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
+\mathbf{x}_0 \sim \mathcal{S}(\Omega_x)
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>𝐱</mi><mn>0</mn></msub><annotation encoding="application/x-tex">\mathbf{x}_0</annotation></semantics></math>
+是初始状态，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝒮</mi><annotation encoding="application/x-tex">\mathcal{S}</annotation></semantics></math>
+是采样算子，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi mathvariant="normal">Ω</mi><mi>x</mi></msub><annotation encoding="application/x-tex">\Omega_x</annotation></semantics></math>
+是初始状态包线。
+这个写法强调采样来自预先定义的任务包线，而不是任意挑选初值。</p>
+<p>分位数比均值更能说明尾部风险，例如最小动压裕度的 5% 分位。</p>
+<h2 id="最坏情况分析">57.7 最坏情况分析</h2>
+<p>Monte Carlo
+随机抽样不保证找到真正最坏情况。仍应记录观测到的最坏样本：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>J</mi><mi>max</mi><mo>&#8289;</mo></msub><mo>=</mo><munder><mi>max</mi><mo>&#8289;</mo><mrow><mn>1</mn><mo>≤</mo><mi>i</mi><mo>≤</mo><mi>N</mi></mrow></munder><msub><mi>J</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">
+J_{\max}=\max_{1\leq i\leq N} J_i
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>J</mi><mi>i</mi></msub><annotation encoding="application/x-tex">J_i</annotation></semantics></math>
+是第
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>i</mi><annotation encoding="application/x-tex">i</annotation></semantics></math>
+个样本的性能指标，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>N</mi><annotation encoding="application/x-tex">N</annotation></semantics></math>
+是样本总数。若论文关注安全约束，也可以把最坏样本定义为</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>m</mi><mi>min</mi><mo>&#8289;</mo></msub><mo>=</mo><munder><mi>min</mi><mo>&#8289;</mo><mrow><mn>1</mn><mo>≤</mo><mi>i</mi><mo>≤</mo><mi>N</mi></mrow></munder><msub><mi>m</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">
+m_{\min}=\min_{1\leq i\leq N} m_i
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>m</mi><mi>i</mi></msub><annotation encoding="application/x-tex">m_i</annotation></semantics></math>
+是第
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>i</mi><annotation encoding="application/x-tex">i</annotation></semantics></math>
+个样本的最小安全裕度。
+这两个量分别对应“最坏性能”和“最坏安全裕度”，不能互相替代。
+这样区分后，读者就不会把性能最差和安全最差混为一谈。</p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝒪</mi><annotation encoding="application/x-tex">\mathcal{O}</annotation></semantics></math>
+表示对象与任务，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝒟</mi><annotation encoding="application/x-tex">\mathcal{D}</annotation></semantics></math>
+表示不确定性集合与分布，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝒮</mi><annotation encoding="application/x-tex">\mathcal{S}</annotation></semantics></math>
+表示样本协议，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝒫</mi><annotation encoding="application/x-tex">\mathcal{P}</annotation></semantics></math>
+表示成对比较与通过规则，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ℳ</mi><annotation encoding="application/x-tex">\mathcal{M}</annotation></semantics></math>
+表示指标字段，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ℱ</mi><annotation encoding="application/x-tex">\mathcal{F}</annotation></semantics></math>
+表示失败样本记录，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ℰ</mi><annotation encoding="application/x-tex">\mathcal{E}</annotation></semantics></math>
+表示证据边界。把这些量整理清楚后，Monte Carlo
+验证才真正可复现、可审查、可升级。</p>
+<h2 id="monte-carlo-证据层次及其与后续章节的关系">57.8 Monte Carlo
+证据层次及其与后续章节的关系</h2>
+<p>为了避免把“做过随机仿真”误写成“已经证明鲁棒性”，本章可把不确定性验证证据粗分为五级：</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>等级</th>
+<th>最低证据</th>
+<th>仍缺什么</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>U</mi><mi>v</mi><mn>0</mn></mrow><annotation encoding="application/x-tex">Uv0</annotation></semantics></math></td>
+<td>只有不确定性来源和范围说明</td>
+<td>没有样本协议、指标统计和失败记录</td>
+</tr>
+<tr>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>U</mi><mi>v</mi><mn>1</mn></mrow><annotation encoding="application/x-tex">Uv1</annotation></semantics></math></td>
+<td>已有少量样本或单类摄动实验</td>
+<td>没有成对比较、分位数和最坏样本分析</td>
+</tr>
+<tr>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>U</mi><mi>v</mi><mn>2</mn></mrow><annotation encoding="application/x-tex">Uv2</annotation></semantics></math></td>
+<td>已有可复现随机种子、成对样本和统一统计字段</td>
+<td>没有系统失败样本和多类不确定性联合验证</td>
+</tr>
+<tr>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>U</mi><mi>v</mi><mn>3</mn></mrow><annotation encoding="application/x-tex">Uv3</annotation></semantics></math></td>
+<td>已有失败机制、分位数、故障或多类不确定性联合报告</td>
+<td>仍缺多模型、多飞行点或更高保真扩展</td>
+</tr>
+<tr>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>U</mi><mi>v</mi><mn>4</mn></mrow><annotation encoding="application/x-tex">Uv4</annotation></semantics></math></td>
+<td>已形成跨案例、跨模型和更高保真层级的系统统计证据链</td>
+<td>才接近研究级鲁棒验证闭环</td>
+</tr>
+</tbody>
+</table>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>U</mi><mi>v</mi><mn>0</mn></mrow><annotation encoding="application/x-tex">Uv0</annotation></semantics></math>
+只是知道“要考虑不确定性”，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>U</mi><mi>v</mi><mn>1</mn></mrow><annotation encoding="application/x-tex">Uv1</annotation></semantics></math>
+说明“已经开始随机化”，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>U</mi><mi>v</mi><mn>2</mn></mrow><annotation encoding="application/x-tex">Uv2</annotation></semantics></math>
+说明“随机试验可以复现”，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>U</mi><mi>v</mi><mn>3</mn></mrow><annotation encoding="application/x-tex">Uv3</annotation></semantics></math>
+说明“失败样本也被纳入证据”，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>U</mi><mi>v</mi><mn>4</mn></mrow><annotation encoding="application/x-tex">Uv4</annotation></semantics></math>
+说明“统计结论已经可以跨模型比较”。这个分级的核心，不是强调样本数，而是强调样本协议、失败记录和结论边界是否同时存在。</p>
+<p>与相关章节的衔接关系可再概括为：</p>
+<table>
+<thead>
+<tr>
+<th>本章完成的内容</th>
+<th>相关章节继续完成的内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>随机样本、失败样本和分位数统计</td>
+<td>第58章继续把它们组织成案例证据</td>
+</tr>
+<tr>
+<td>基线公平性与成对比较</td>
+<td>第59章继续审查论文对比是否合法</td>
+</tr>
+<tr>
+<td>验证预算、样本矩阵和结论边界</td>
+<td>第60章继续把它们上升为研究路线协议</td>
+</tr>
+</tbody>
+</table>
+<p>因此，第57章建立一个对象、采样、失败样本和结论边界都可核查的统计验证框架。</p>
+<h2 id="本章内容的边界">57.9 本章内容的边界</h2>
+<p>与第57章相衔接的材料主要包括：</p>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>素材</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>第56章验证指标体系</td>
+<td>提供统一指标字段、阈值和组合通过判据</td>
+</tr>
+<tr>
+<td>第58章典型案例库</td>
+<td>提供案例条目、验收表和案例分级视角</td>
+</tr>
+<tr>
+<td>案例映射页</td>
+<td>提供成对比较、故障扫描和案例缺口导引</td>
+</tr>
+<tr>
+<td>现有 Monte Carlo 与故障扫描结果资料</td>
+<td>提供教学级成对比较、故障扫描和小样本统计材料</td>
+</tr>
+</tbody>
+</table>
+<p>本章边界必须写清楚：</p>
+<ul>
+<li>本书呈现不确定性分类、成对 Monte
+Carlo、故障随机化和报告模板主线；</li>
+<li>一些素材能支撑从教学复现到研究原型级的随机样本设计、失败样本分析和保守统计结论；</li>
+<li>但它还不是正式飞行器可靠性认证流程，也不是覆盖全部高保真模型的系统鲁棒性证明；</li>
+<li>因此，第57章能支撑“如何保守、系统地做不确定性分析与 Monte Carlo
+验证”，不能支撑“所有不确定性都已被完整覆盖并严格证明”。</li>
+</ul>
+<h2 id="monte-carlo-结果写法">57.10 Monte Carlo 结果写法</h2>
+<p>如果一个 Monte Carlo
+结果只写“通过率较高”，通常还不足以支撑控制结论。更适合正文的写法，是把对象、不确定性、样本协议、指标字段、失败样本和结论边界连成一条完整叙述。这样写出来的统计结果，才不是“做过随机仿真”这么简单，而是可以直接被后续案例、论文和研究路线调用的证据。</p>
+<table>
+<thead>
+<tr>
+<th>项目</th>
+<th>交代要点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>对象与任务</td>
+<td>研究对象、任务段和模型层级</td>
+</tr>
+<tr>
+<td>不确定性设计</td>
+<td>参数、风场、噪声、故障和初值如何采样</td>
+</tr>
+<tr>
+<td>样本协议</td>
+<td>样本数、随机种子、成对比较和故障矩阵</td>
+</tr>
+<tr>
+<td>指标字段</td>
+<td>跟踪、安全、输入、终端、计算量和异常终止</td>
+</tr>
+<tr>
+<td>统计形态</td>
+<td>均值、标准差、分位数、通过率和最坏样本</td>
+</tr>
+<tr>
+<td>失败样本</td>
+<td>失败机制、异常终止原因和是否可复现</td>
+</tr>
+<tr>
+<td>结论边界</td>
+<td>结论是样本内趋势、保守鲁棒性还是更强层级</td>
+</tr>
+</tbody>
+</table>
+<p>若写成抽象结果对象，至少可整理为：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">(</mo><mi>𝒪</mi><mo>,</mo><mi>𝒟</mi><mo>,</mo><mi>𝒮</mi><mo>,</mo><mi>ℳ</mi><mo>,</mo><mi>𝒫</mi><mo>,</mo><mi>ℱ</mi><mo>,</mo><mi>ℰ</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
+(\mathcal{O},\mathcal{D},\mathcal{S},\mathcal{M},\mathcal{P},\mathcal{F},\mathcal{E})
+</annotation></semantics></math></p>
+<p>其中
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝒪</mi><annotation encoding="application/x-tex">\mathcal{O}</annotation></semantics></math>
+表示对象与任务，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝒟</mi><annotation encoding="application/x-tex">\mathcal{D}</annotation></semantics></math>
+表示不确定性设计，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝒮</mi><annotation encoding="application/x-tex">\mathcal{S}</annotation></semantics></math>
+表示样本协议，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ℳ</mi><annotation encoding="application/x-tex">\mathcal{M}</annotation></semantics></math>
+表示指标字段，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝒫</mi><annotation encoding="application/x-tex">\mathcal{P}</annotation></semantics></math>
+表示通过判据，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ℱ</mi><annotation encoding="application/x-tex">\mathcal{F}</annotation></semantics></math>
+表示失败样本，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ℰ</mi><annotation encoding="application/x-tex">\mathcal{E}</annotation></semantics></math>
+表示证据边界。一样写，Monte Carlo 结果才真正能被阅读、复现和延展。
+这也是把随机实验从“跑图”提升为“统计证据”的关键一步。</p>
+<h2 id="常见错误">57.11 常见错误</h2>
+<ol type="1">
+<li>样本数很小，却声称强鲁棒性。</li>
+<li>不记录随机种子，导致结果无法复现。</li>
+<li>删除失败样本，只报告成功曲线。</li>
+<li>只扰动一个参数，却写成“考虑了模型不确定性”。</li>
+<li>基线方法和改进方法使用不同随机样本。</li>
+<li>只报告均值，不报告最差样本和分位数。</li>
+<li>把 Monte Carlo 经验通过率当成严格安全证明。</li>
+</ol>
+<h2 id="练习">57.12 练习</h2>
+<ol type="1">
+<li>为纵向动压约束控制设计一个包含气动、质量、大气和初值摄动的 Monte
+Carlo 实验。</li>
+<li>写出通过率、均值、标准差和 5% 分位数的计算方法。</li>
+<li>设计一个成对 Monte Carlo 表，用于比较基线方法和安全滤波器。</li>
+<li>对舵面效率下降故障设计随机故障注入方案。</li>
+<li>说明为什么 Monte Carlo 通过率不能替代 CBF 或 BLF 的安全性证明。</li>
+</ol>
+<h2 id="本章应形成的成果">57.13 本章应形成的成果</h2>
+<p>第57章的作用，不是把随机仿真次数做大，而是把不确定性、失败样本和统计结论写成可复现的证据对象。</p>
+<h3 id="样本对象">样本对象</h3>
+<p>本章应交付的样本对象至少包括：</p>
+<ul>
+<li>参数摄动样本；</li>
+<li>初值样本；</li>
+<li>扰动样本；</li>
+<li>故障样本；</li>
+<li>成对比较样本。</li>
+</ul>
+<h3 id="统计对象">统计对象</h3>
+<p>本章应明确统计对象，包括：</p>
+<ul>
+<li>均值；</li>
+<li>标准差；</li>
+<li>分位数；</li>
+<li>通过率；</li>
+<li>最坏样本；</li>
+<li>失败样本数。</li>
+</ul>
+<h3 id="协议对象">协议对象</h3>
+<p>Monte Carlo 不是任意抽样，而是协议化验证。本章应交代：</p>
+<ul>
+<li>样本数如何确定；</li>
+<li>随机种子如何记录；</li>
+<li>哪些变量联合采样，哪些变量单独采样；</li>
+<li>哪些场景必须成对比较；</li>
+<li>哪些失败样本必须保留。</li>
+</ul>
+<h3 id="结论对象">结论对象</h3>
+<p>本章最后应输出结论边界：</p>
+<ol type="1">
+<li>这个控制器在给定不确定性集合和样本预算下表现如何；</li>
+<li>哪些不确定性最容易触发失败；</li>
+<li>最坏样本暴露了什么共同机制；</li>
+<li>当前统计结论能支撑到什么层级，不能外推到什么层级。</li>
+</ol>
+<p>写到这里，Monte Carlo 才真正从“多跑几次”变成“统计验证方法”。</p>
+<h2 id="本章应保留的最小信息集">57.14 本章应保留的最小信息集</h2>
+<p>如果正文只写“我们做了 Monte Carlo
+验证”，读者仍然无法判断结论强度。第57章至少应保留以下信息：</p>
+<ul>
+<li>不确定性的类别、范围和相关结构；</li>
+<li>样本数、随机种子和成对比较协议；</li>
+<li>失败样本、异常终止和回退样本；</li>
+<li>均值、分位数、通过率和最坏样本；</li>
+<li>结论能够支撑到的证据层级；</li>
+<li>与第56章指标体系和第58章案例库之间的接口。</li>
+</ul>
+<p>把这些信息交代完整，随机仿真才算进入可审查的统计证据阶段。</p>
+
+      </article>
+      
+      <nav class="book-bottom-nav" aria-label="章节导航">
+        <a href="./56-verification-metrics-system.html">上一章：第56章 验证指标体系</a>
+        <a href="./index.html">卷首页</a>
+        <a href="./58-typical-case-library.html">下一章：第58章 典型案例库</a>
+      </nav>
+    </main>
+  </div>
+</body>
+</html>

@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>第10章 自适应控制理论</title>
+  <style>
+    :root {
+      --paper: #f7f3eb;
+      --ink: #1f2937;
+      --muted: #5b6472;
+      --line: color-mix(in srgb, #e7eef7 68%, #cbd5e1 32%);
+      --accent: #335c81;
+      --accent-soft: #e7eef7;
+      --accent-deep: #1e3d57;
+      color-scheme: light;
+    }
+    html {
+      -webkit-text-size-adjust: 100%;
+      background:
+        radial-gradient(circle at top left, #e7eef7 0, rgba(255,255,255,0) 32%),
+        linear-gradient(180deg, #fbfaf6 0%, var(--paper) 18%, #f7f1e6 100%);
+    }
+    body {
+      margin: 0;
+      font-family: "Source Han Serif SC", "Songti SC", "Noto Serif CJK SC", "Microsoft YaHei", serif;
+      color: var(--ink);
+      line-height: 1.78;
+      letter-spacing: 0;
+    }
+    a { color: var(--accent-deep); }
+    .book-app {
+      display: grid;
+      grid-template-columns: 280px minmax(0, 1fr);
+      min-height: 100vh;
+    }
+    .book-sidebar {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow: auto;
+      padding: 1.2rem 1rem 1.2rem 1.15rem;
+      border-right: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(255,255,255,0.86), rgba(255,255,255,0.72));
+      backdrop-filter: blur(10px);
+    }
+    .sidebar-shell { position: sticky; top: 0; display: flex; flex-direction: column; gap: 1rem; }
+    .sidebar-brand {
+      padding: 0.95rem 0.95rem 1rem;
+      border-radius: 18px;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.95), rgba(255,255,255,0.84)),
+        linear-gradient(135deg, var(--accent-soft), rgba(255,255,255,0));
+      border: 1px solid var(--line);
+      box-shadow: 0 12px 28px rgba(31, 41, 55, 0.06);
+    }
+    .sidebar-brand .kicker { margin: 0; color: var(--accent); font-size: 0.82rem; font-weight: 700; }
+    .sidebar-brand h2 { margin: 0.45rem 0 0.25rem; font-size: 1.08rem; line-height: 1.3; color: var(--ink); }
+    .sidebar-brand p { margin: 0.35rem 0 0; color: var(--muted); font-size: 0.9rem; }
+    .sidebar-links { display: grid; gap: 0.45rem; }
+    .sidebar-link {
+      display: grid;
+      grid-template-columns: 2.2rem minmax(0, 1fr);
+      gap: 0.6rem;
+      align-items: start;
+      padding: 0.7rem 0.75rem;
+      border-radius: 14px;
+      text-decoration: none;
+      background: rgba(255,255,255,0.72);
+      border: 1px solid rgba(31,41,55,0.07);
+      color: var(--ink);
+    }
+    .sidebar-link:hover { background: rgba(255,255,255,0.95); border-color: var(--line); }
+    .sidebar-link.active {
+      background: linear-gradient(135deg, rgba(255,255,255,0.98), rgba(255,255,255,0.9));
+      border-color: var(--accent-soft);
+      box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent-soft) 68%, #ffffff 32%);
+    }
+    .sidebar-index {
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      min-width: 2rem;
+      height: 2rem;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent-deep);
+      font-size: 0.78rem;
+      font-weight: 800;
+    }
+    .sidebar-title { font-size: 0.94rem; line-height: 1.35; }
+    .book-main { min-width: 0; padding: 1.25rem 1.45rem 1.8rem; }
+    .book-page-header {
+      padding: 0.85rem 0 1rem;
+      margin-bottom: 1rem;
+      border-bottom: 1px solid var(--line);
+    }
+    .page-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.28rem 0.72rem;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.82);
+      border: 1px solid var(--line);
+      color: var(--accent-deep);
+      font-size: 0.8rem;
+      font-weight: 700;
+    }
+    .book-page-header h1 {
+      margin: 0.7rem 0 0;
+      font-size: 1.85rem;
+      line-height: 1.22;
+      color: var(--accent-deep);
+      border: 0;
+      padding: 0;
+    }
+    .book-page-header p { margin: 0.45rem 0 0; color: var(--muted); max-width: 62rem; }
+    .book-article { max-width: 900px; margin: 0; padding: 0 0 1.2rem; }
+    .book-article h1, .book-article h2, .book-article h3, .book-article h4, .book-article h5, .book-article h6 {
+      line-height: 1.28;
+      margin-top: 1.45em;
+      margin-bottom: 0.55em;
+      color: var(--accent-deep);
+    }
+    .book-article h1 { font-size: 2rem; border-bottom: 2px solid var(--line); padding-bottom: 0.42rem; }
+    .book-article h1:first-of-type { margin-top: 0; }
+    .book-article h2 { font-size: 1.42rem; }
+    .book-article h3 { font-size: 1.12rem; }
+    .book-article p, .book-article li, .book-article dd, .book-article td, .book-article th { text-align: justify; text-justify: inter-ideograph; }
+    .book-article p { margin: 0.85rem 0; }
+    .book-article code, .book-article pre { font-family: "Cascadia Mono", "Source Code Pro", Consolas, monospace; font-size: 0.94em; }
+    .book-article code {
+      padding: 0.02rem 0.24rem;
+      background: color-mix(in srgb, var(--accent-soft) 34%, #ffffff 66%);
+      border: 0;
+      border-bottom: 1px solid color-mix(in srgb, var(--accent-soft) 74%, #d1d5db 26%);
+      border-radius: 4px;
+      color: #253244;
+      box-decoration-break: clone;
+      -webkit-box-decoration-break: clone;
+    }
+    .book-article pre {
+      padding: 1rem 1.1rem;
+      overflow: auto;
+      background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,253,248,0.98));
+      border: 1px solid color-mix(in srgb, var(--accent-soft) 54%, #d1d5db 46%);
+      border-left: 5px solid var(--accent);
+      border-radius: 14px;
+      box-shadow: 0 8px 22px rgba(31, 41, 55, 0.05);
+    }
+    .book-article pre code { padding: 0; border: 0; background: transparent; color: inherit; }
+    .book-article table {
+      border-collapse: collapse;
+      width: 100%;
+      margin: 1rem 0 1.25rem;
+      background: rgba(255,255,255,0.82);
+      overflow: hidden;
+      border-radius: 12px;
+    }
+    .book-article th, .book-article td { border: 1px solid var(--line); padding: 0.5rem 0.7rem; vertical-align: top; }
+    .book-article th { background: color-mix(in srgb, var(--accent-soft) 42%, #ffffff 58%); }
+    .book-article blockquote {
+      margin: 1rem 0;
+      padding: 0.25rem 0 0.25rem 1rem;
+      border-left: 4px solid var(--accent);
+      color: #374151;
+      background: linear-gradient(90deg, rgba(255,255,255,0.72), rgba(255,255,255,0.48));
+      border-radius: 0 12px 12px 0;
+    }
+    .book-bottom-nav {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-top: 2.2rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--line);
+    }
+    .book-bottom-nav a {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.6rem 0.9rem;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.84);
+      text-decoration: none;
+      font-weight: 700;
+    }
+    .book-bottom-nav span {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.6rem 0.9rem;
+      border-radius: 999px;
+      border: 1px solid rgba(31,41,55,0.08);
+      background: rgba(255,255,255,0.54);
+      color: rgba(31,41,55,0.42);
+      font-weight: 700;
+    }
+    .book-bottom-nav a:hover { background: rgba(255,255,255,0.98); }
+    .book-volume-intro {
+      margin: 0 0 1.25rem;
+      padding: 1.2rem 1.25rem 1.1rem;
+      border-radius: 18px;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.96), rgba(255,255,255,0.78)),
+        linear-gradient(135deg, var(--accent-soft), rgba(255,255,255,0));
+      border: 1px solid var(--line);
+      box-shadow: 0 14px 34px rgba(31, 41, 55, 0.06);
+    }
+    .volume-intro-kicker {
+      margin: 0;
+      color: var(--accent);
+      font-size: 0.84rem;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    .book-volume-intro h2 {
+      margin: 0.55rem 0 0.55rem;
+      font-size: 1.28rem;
+      line-height: 1.35;
+      color: var(--accent-deep);
+    }
+    .volume-intro-summary {
+      margin: 0;
+      color: var(--muted);
+      max-width: 68rem;
+    }
+    .volume-intro-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.8rem;
+      margin-top: 1rem;
+    }
+    .volume-intro-box {
+      padding: 0.85rem 0.9rem;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.72);
+      border: 1px solid rgba(31,41,55,0.08);
+    }
+    .volume-intro-box span {
+      display: block;
+      color: var(--accent);
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+    }
+    .volume-intro-box strong {
+      display: block;
+      margin-top: 0.35rem;
+      color: var(--ink);
+      font-size: 0.95rem;
+      line-height: 1.45;
+    }
+    .volume-intro-note {
+      margin-top: 0.9rem;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+    @media (max-width: 1180px) {
+      .book-app { grid-template-columns: 1fr; }
+      .book-sidebar {
+        position: relative;
+        height: auto;
+        border-right: 0;
+        border-bottom: 1px solid var(--line);
+      }
+      .sidebar-shell { position: static; }
+    }
+    @media (max-width: 900px) {
+      .book-main { padding: 1rem 1rem 1.5rem; }
+      .book-bottom-nav { flex-direction: column; }
+      .volume-intro-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="book-app">
+    <aside class="book-sidebar">
+      <div class="sidebar-shell">
+        <div class="sidebar-brand">
+          <p class="kicker">高超声速飞行器控制教程</p>
+          <h2>第一卷 数学基础与控制理论基础</h2>
+          <p>控制理论地基</p>
+        </div>
+        <nav class="sidebar-links" aria-label="本卷目录">
+          <a class="sidebar-link" href="./index.html"><span class="sidebar-index">0</span><span class="sidebar-title">卷首页</span></a>
+<a class="sidebar-link" href="./01-hypersonic-control-problem-intro.html"><span class="sidebar-index">01</span><span class="sidebar-title">第1章 高超声速飞行器控制问题导论</span></a>
+<a class="sidebar-link" href="./02-dynamical-systems-state-space.html"><span class="sidebar-index">02</span><span class="sidebar-title">第2章 动力系统与状态空间方法</span></a>
+<a class="sidebar-link" href="./03-linear-systems-theory.html"><span class="sidebar-index">03</span><span class="sidebar-title">第3章 线性系统理论</span></a>
+<a class="sidebar-link" href="./04-nonlinear-systems-theory.html"><span class="sidebar-index">04</span><span class="sidebar-title">第4章 非线性系统理论</span></a>
+<a class="sidebar-link" href="./05-lyapunov-stability-theory.html"><span class="sidebar-index">05</span><span class="sidebar-title">第5章 Lyapunov 稳定性理论</span></a>
+<a class="sidebar-link" href="./06-input-output-small-gain.html"><span class="sidebar-index">06</span><span class="sidebar-title">第6章 输入输出稳定性与小增益理论</span></a>
+<a class="sidebar-link" href="./07-singular-perturbation-multitime-scale.html"><span class="sidebar-index">07</span><span class="sidebar-title">第7章 奇异摄动与多时间尺度系统</span></a>
+<a class="sidebar-link" href="./08-optimal-control-theory.html"><span class="sidebar-index">08</span><span class="sidebar-title">第8章 最优控制理论</span></a>
+<a class="sidebar-link" href="./09-robust-control-theory.html"><span class="sidebar-index">09</span><span class="sidebar-title">第9章 鲁棒控制理论</span></a>
+<a class="sidebar-link active" href="./10-adaptive-control-theory.html"><span class="sidebar-index">10</span><span class="sidebar-title">第10章 自适应控制理论</span></a>
+<a class="sidebar-link" href="./11-stochastic-filtering-estimation.html"><span class="sidebar-index">11</span><span class="sidebar-title">第11章 随机系统、滤波与状态估计</span></a>
+<a class="sidebar-link" href="./12-constrained-safety-control-foundations.html"><span class="sidebar-index">12</span><span class="sidebar-title">第12章 约束系统与安全控制基础</span></a>
+<a class="sidebar-link" href="./13-numerical-convex-optimization.html"><span class="sidebar-index">13</span><span class="sidebar-title">第13章 数值优化与凸优化基础</span></a>
+<a class="sidebar-link" href="./13-hybrid-sampled-control.html"><span class="sidebar-index">14</span><span class="sidebar-title">混杂系统与采样控制专题</span></a>
+        </nav>
+      </div>
+    </aside>
+    <main class="book-main">
+      <header class="book-page-header">
+        <div class="page-eyebrow">第1册·章节页10</div>
+        <h1 id="volume1--10-adaptive-control-theory">第10章 自适应控制理论</h1>
+        <p>本页是章节正文页。左侧目录用于回到本卷其他章节，底部导航用于前后章跳转。</p>
+      </header>
+      <article class="book-article">
+        <h2 id="问题背景-9">10.1 问题背景</h2>
+<p>自适应控制回答的是：当系统参数未知或缓慢变化时，控制器能否在线调整，使闭环仍然稳定或至少有界。</p>
+<p>在高超声速飞行器中，气动参数、质量惯量、推力效率、舵面效率和大气参数都可能不准确。自适应控制为这些问题提供理论工具，但它不是”自动学习一切未知”的万能方法。</p>
+<p>典型的参数不确定系统可写为</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>x</mi><mo accent="true">̇</mo></mover><mo>=</mo><mi>f</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo>+</mo><mi>Y</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mi>θ</mi><mo>+</mo><mi>b</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mi>u</mi><mo>,</mo></mrow><annotation encoding="application/x-tex">
+\dot{x}=f(x)+Y(x)\theta+b(x)u,
+</annotation></semantics></math></p>
+<p>其中
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>x</mi><annotation encoding="application/x-tex">x</annotation></semantics></math>
+是状态，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">f(x)</annotation></semantics></math>
+是已知非线性项，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>Y</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">Y(x)</annotation></semantics></math>
+是回归矩阵，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>θ</mi><annotation encoding="application/x-tex">\theta</annotation></semantics></math>
+是未知常参数，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>b</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">b(x)</annotation></semantics></math>
+是输入通道增益，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>u</mi><annotation encoding="application/x-tex">u</annotation></semantics></math>
+是控制输入。</p>
+<p>自适应控制的核心是：未知参数可以在线估计或补偿，但稳定性证明必须始终和更新律、执行机构、噪声和约束一起看。</p>
+<h2 id="自适应控制的基本问题">10.2 自适应控制的基本问题</h2>
+<p>自适应控制至少包含三个对象：</p>
+<ol type="1">
+<li>被控对象中的不确定性；</li>
+<li>在线参数估计或增益调整机制；</li>
+<li>闭环稳定性或有界性证明。</li>
+</ol>
+<p>如果只写更新公式，而不说明未知项如何进入系统、估计误差如何进入
+Lyapunov
+导数、更新律是否依赖可测信号，就不能称为完整的自适应控制设计。</p>
+<p>常见不确定性可以分为：</p>
+<table>
+<thead>
+<tr>
+<th>类型</th>
+<th>数学表达</th>
+<th>高超声速例子</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>常参数不确定</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>Y</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mi>θ</mi></mrow><annotation encoding="application/x-tex">Y(x)\theta</annotation></semantics></math></td>
+<td>气动导数、质量、惯量</td>
+</tr>
+<tr>
+<td>慢时变参数</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>Y</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mi>θ</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">Y(x)\theta(t)</annotation></semantics></math></td>
+<td>质心变化、推力效率变化</td>
+</tr>
+<tr>
+<td>输入通道不确定</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>g</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mi mathvariant="normal">Λ</mi><mi>u</mi></mrow><annotation encoding="application/x-tex">g(x)\Lambda u</annotation></semantics></math></td>
+<td>舵面效率下降、推力有效性变化</td>
+</tr>
+<tr>
+<td>非参数不确定</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Δ</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\Delta(x,t)</annotation></semantics></math></td>
+<td>气动表误差、柔性未建模动态</td>
+</tr>
+<tr>
+<td>执行机构不确定</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>u</mi><mo>=</mo><mi>𝒜</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>u</mi><mi>c</mi></msub><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">u=\mathcal{A}(u_c)</annotation></semantics></math></td>
+<td>饱和、速率限制、卡滞、死区</td>
+</tr>
+</tbody>
+</table>
+<p>这里
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>u</mi><mi>c</mi></msub><annotation encoding="application/x-tex">u_c</annotation></semantics></math>
+是控制器命令，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>𝒜</mi><mo stretchy="false" form="prefix">(</mo><mi>⋅</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\mathcal{A}(\cdot)</annotation></semantics></math>
+表示执行机构映射。自适应控制最擅长处理能被合理参数化的不确定性；如果未知项主要来自饱和、非匹配扰动、延迟和未建模高频动态，就必须再加入鲁棒修正、观测器、约束控制或保守验证。</p>
+<h2 id="参数线性化和回归矩阵">10.3 参数线性化和回归矩阵</h2>
+<p>自适应控制中最常见的结构是参数线性化。设</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>e</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>u</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mi>Y</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mi>θ</mi><mo>,</mo></mrow><annotation encoding="application/x-tex">
+e(x,u)=Y(x)\theta,
+</annotation></semantics></math></p>
+<p>其中
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>e</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>u</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">e(x,u)</annotation></semantics></math>
+是可写成回归形式的未知项，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>Y</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">Y(x)</annotation></semantics></math>
+是已知回归矩阵，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>θ</mi><annotation encoding="application/x-tex">\theta</annotation></semantics></math>
+是未知常参数。</p>
+<p>注意”参数线性”不等于”系统线性”。系统可以对状态高度非线性，但只要未知部分能写成回归矩阵乘未知参数，自适应设计就有机会把它纳入更新律。</p>
+<p>参数化必须服务于控制问题本身。若飞行包线很宽，单个线性参数化可能失效；若气动表高度非线性，可能需要分段参数化、LPV
+表达或智能逼近，但稳定性证明也会更复杂。</p>
+<h2 id="直接自适应与间接自适应">10.4 直接自适应与间接自适应</h2>
+<p>自适应控制可分为直接自适应和间接自适应。</p>
+<p>直接自适应直接调整控制律参数，例如</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>u</mi><mo>=</mo><msup><mover><mi>K</mi><mo accent="true">̂</mo></mover><mi>⊤</mi></msup><mi>ϕ</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo>,</mo></mrow><annotation encoding="application/x-tex">
+u=\hat{K}^\top \phi(x),
+</annotation></semantics></math></p>
+<p>其中
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mover><mi>K</mi><mo accent="true">̂</mo></mover><annotation encoding="application/x-tex">\hat{K}</annotation></semantics></math>
+是在线估计的控制参数，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ϕ</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\phi(x)</annotation></semantics></math>
+是已知特征向量。</p>
+<p>间接自适应则先估计对象参数，再根据估计结果重构控制器。直接自适应更容易写稳定性证明，间接自适应更贴近参数辨识和故障诊断。</p>
+<p>对高超声速飞行器，如果目标是论文中的控制律稳定性，直接自适应往往更简洁；如果目标是气动参数辨识或故障诊断，间接自适应更自然。实际工程中常把两者结合：物理参数估计提供慢变化模型，控制律自适应提供快速误差补偿。</p>
+<h2 id="模型参考自适应控制">10.5 模型参考自适应控制</h2>
+<p>模型参考自适应控制，简称 MRAC。设期望模型为</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mover><mi>x</mi><mo accent="true">̇</mo></mover><mi>m</mi></msub><mo>=</mo><msub><mi>A</mi><mi>m</mi></msub><msub><mi>x</mi><mi>m</mi></msub><mo>+</mo><msub><mi>B</mi><mi>m</mi></msub><mi>r</mi><mo>,</mo></mrow><annotation encoding="application/x-tex">
+\dot{x}_m=A_m x_m+B_m r,
+</annotation></semantics></math></p>
+<p>其中
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>x</mi><mi>m</mi></msub><annotation encoding="application/x-tex">x_m</annotation></semantics></math>
+是参考模型状态，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>A</mi><mi>m</mi></msub><annotation encoding="application/x-tex">A_m</annotation></semantics></math>
+是 Hurwitz
+矩阵，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>B</mi><mi>m</mi></msub><annotation encoding="application/x-tex">B_m</annotation></semantics></math>
+是参考输入矩阵，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>r</mi><annotation encoding="application/x-tex">r</annotation></semantics></math>
+是参考信号。</p>
+<p>控制目标是让真实状态
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>x</mi><annotation encoding="application/x-tex">x</annotation></semantics></math>
+跟踪
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>x</mi><mi>m</mi></msub><annotation encoding="application/x-tex">x_m</annotation></semantics></math>。误差定义为</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>e</mi><mo>=</mo><mi>x</mi><mo>−</mo><msub><mi>x</mi><mi>m</mi></msub><mo>,</mo></mrow><annotation encoding="application/x-tex">
+e=x-x_m,
+</annotation></semantics></math></p>
+<p>其中
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>e</mi><annotation encoding="application/x-tex">e</annotation></semantics></math>
+是跟踪误差。</p>
+<p>若控制律取为</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>u</mi><mo>=</mo><msup><mover><mi>K</mi><mo accent="true">̂</mo></mover><mi>⊤</mi></msup><mi>x</mi><mo>+</mo><msub><mover><mi>k</mi><mo accent="true">̂</mo></mover><mi>r</mi></msub><mi>r</mi><mo>,</mo></mrow><annotation encoding="application/x-tex">
+u=\hat{K}^\top x+\hat{k}_r r,
+</annotation></semantics></math></p>
+<p>其中
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mover><mi>K</mi><mo accent="true">̂</mo></mover><annotation encoding="application/x-tex">\hat{K}</annotation></semantics></math>
+是状态反馈参数估计，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mover><mi>k</mi><mo accent="true">̂</mo></mover><mi>r</mi></msub><annotation encoding="application/x-tex">\hat{k}_r</annotation></semantics></math>
+是参考前馈参数估计，则可设计参数更新律使误差收敛或有界。</p>
+<p>MRAC
+的关键假设包括：匹配条件成立、输入方向已知、参考模型可实现、状态可测或可估计、执行机构能够实现控制命令。高超声速飞行器中，这些假设必须逐条检查。</p>
+<h2 id="lyapunov-自适应律的基本结构">10.6 Lyapunov
+自适应律的基本结构</h2>
+<p>设误差系统中出现未知项</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>e</mi><mo accent="true">̇</mo></mover><mo>=</mo><msub><mi>A</mi><mi>e</mi></msub><mi>e</mi><mo>+</mo><msub><mi>B</mi><mi>e</mi></msub><mover><mi>θ</mi><mo accent="true">̃</mo></mover><mo>,</mo></mrow><annotation encoding="application/x-tex">
+\dot{e}=A_e e+B_e \tilde{\theta},
+</annotation></semantics></math></p>
+<p>其中
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>A</mi><mi>e</mi></msub><annotation encoding="application/x-tex">A_e</annotation></semantics></math>
+是误差系统矩阵，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>B</mi><mi>e</mi></msub><annotation encoding="application/x-tex">B_e</annotation></semantics></math>
+是参数误差进入通道的矩阵，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>θ</mi><mo accent="true">̃</mo></mover><mo>=</mo><mover><mi>θ</mi><mo accent="true">̂</mo></mover><mo>−</mo><mi>θ</mi></mrow><annotation encoding="application/x-tex">\tilde{\theta}=\hat{\theta}-\theta</annotation></semantics></math>
+是参数估计误差。</p>
+<p>选取 Lyapunov 函数</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>V</mi><mo>=</mo><mfrac><mn>1</mn><mn>2</mn></mfrac><msup><mi>e</mi><mi>⊤</mi></msup><mi>P</mi><mi>e</mi><mo>+</mo><mfrac><mn>1</mn><mn>2</mn></mfrac><msup><mover><mi>θ</mi><mo accent="true">̃</mo></mover><mi>⊤</mi></msup><msup><mi mathvariant="normal">Γ</mi><mrow><mi>−</mi><mn>1</mn></mrow></msup><mover><mi>θ</mi><mo accent="true">̃</mo></mover><mo>,</mo></mrow><annotation encoding="application/x-tex">
+V=\frac{1}{2}e^\top P e+\frac{1}{2}\tilde{\theta}^\top \Gamma^{-1}\tilde{\theta},
+</annotation></semantics></math></p>
+<p>其中
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>P</mi><annotation encoding="application/x-tex">P</annotation></semantics></math>
+是正定矩阵，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi mathvariant="normal">Γ</mi><annotation encoding="application/x-tex">\Gamma</annotation></semantics></math>
+是自适应增益矩阵。</p>
+<p>若更新律设计成</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mover><mi>θ</mi><mo accent="true">̂</mo></mover><mo accent="true">̇</mo></mover><mo>=</mo><mi>−</mi><mi mathvariant="normal">Γ</mi><msup><mi>Y</mi><mi>⊤</mi></msup><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mi>e</mi><mo>,</mo></mrow><annotation encoding="application/x-tex">
+\dot{\hat{\theta}}=-\Gamma Y^\top(x)e,
+</annotation></semantics></math></p>
+<p>其中
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>Y</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">Y(x)</annotation></semantics></math>
+是回归矩阵，则可以抵消 Lyapunov 导数中的参数交叉项，从而证明
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>e</mi><annotation encoding="application/x-tex">e</annotation></semantics></math>
+和
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mover><mi>θ</mi><mo accent="true">̃</mo></mover><annotation encoding="application/x-tex">\tilde{\theta}</annotation></semantics></math>
+有界。</p>
+<p>但这个结论只说明误差和参数估计有界，并不自动说明
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>θ</mi><mo accent="true">̃</mo></mover><mo>→</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\tilde{\theta}\to 0</annotation></semantics></math>。参数收敛还需要持续激励。</p>
+<h2 id="参数估计梯度法和归一化">10.7 参数估计、梯度法和归一化</h2>
+<p>若测量模型为</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>y</mi><mo>=</mo><msup><mi>ϕ</mi><mi>⊤</mi></msup><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mi>θ</mi><mo>+</mo><mi>ε</mi><mo>,</mo></mrow><annotation encoding="application/x-tex">
+y=\phi^\top(x)\theta+\varepsilon,
+</annotation></semantics></math></p>
+<p>其中
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>y</mi><annotation encoding="application/x-tex">y</annotation></semantics></math>
+是测量输出，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ϕ</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\phi(x)</annotation></semantics></math>
+是回归向量，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ε</mi><annotation encoding="application/x-tex">\varepsilon</annotation></semantics></math>
+是建模误差或噪声，则可定义预测误差</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>y</mi><mo accent="true">̃</mo></mover><mo>=</mo><mi>y</mi><mo>−</mo><msup><mi>ϕ</mi><mi>⊤</mi></msup><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mover><mi>θ</mi><mo accent="true">̂</mo></mover><mo>,</mo></mrow><annotation encoding="application/x-tex">
+\tilde{y}=y-\phi^\top(x)\hat{\theta},
+</annotation></semantics></math></p>
+<p>其中
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mover><mi>θ</mi><mo accent="true">̂</mo></mover><annotation encoding="application/x-tex">\hat{\theta}</annotation></semantics></math>
+是参数估计值。</p>
+<p>梯度法常写成</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mover><mi>θ</mi><mo accent="true">̂</mo></mover><mo accent="true">̇</mo></mover><mo>=</mo><mi>−</mi><mi mathvariant="normal">Γ</mi><mi>ϕ</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mover><mi>y</mi><mo accent="true">̃</mo></mover><mo>,</mo></mrow><annotation encoding="application/x-tex">
+\dot{\hat{\theta}}=-\Gamma \phi(x)\tilde{y},
+</annotation></semantics></math></p>
+<p>其中
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi mathvariant="normal">Γ</mi><annotation encoding="application/x-tex">\Gamma</annotation></semantics></math>
+是正定增益矩阵。为了防止参数漂移，常加入归一化或投影：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mover><mi>θ</mi><mo accent="true">̂</mo></mover><mo accent="true">̇</mo></mover><mo>=</mo><msub><mi mathvariant="normal">Π</mi><msub><mi mathvariant="normal">Ω</mi><mi>θ</mi></msub></msub><mspace width="-0.167em"></mspace><mrow><mo stretchy="true" form="prefix">(</mo><mi>−</mi><mi mathvariant="normal">Γ</mi><mi>ϕ</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mover><mi>y</mi><mo accent="true">̃</mo></mover><mo stretchy="true" form="postfix">)</mo></mrow><mo>,</mo></mrow><annotation encoding="application/x-tex">
+\dot{\hat{\theta}}=\Pi_{\Omega_\theta}\!\left(-\Gamma \phi(x)\tilde{y}\right),
+</annotation></semantics></math></p>
+<p>其中
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi mathvariant="normal">Ω</mi><mi>θ</mi></msub><annotation encoding="application/x-tex">\Omega_\theta</annotation></semantics></math>
+是闭凸参数集合，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi mathvariant="normal">Π</mi><msub><mi mathvariant="normal">Ω</mi><mi>θ</mi></msub></msub><mo stretchy="false" form="prefix">(</mo><mi>⋅</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\Pi_{\Omega_\theta}(\cdot)</annotation></semantics></math>
+表示投影算子。</p>
+<p>这些修正能减轻参数漂移，但通常会把渐近收敛结论变成最终有界结论。写作时必须说明这种代价。</p>
+<h2 id="鲁棒修正和泄漏项">10.8 鲁棒修正和泄漏项</h2>
+<p>自适应控制常与鲁棒修正一起使用。一个常见形式是</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mover><mi>θ</mi><mo accent="true">̂</mo></mover><mo accent="true">̇</mo></mover><mo>=</mo><mi>−</mi><mi mathvariant="normal">Γ</mi><mi>ϕ</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mover><mi>y</mi><mo accent="true">̃</mo></mover><mo>−</mo><mi>σ</mi><mover><mi>θ</mi><mo accent="true">̂</mo></mover><mo>,</mo></mrow><annotation encoding="application/x-tex">
+\dot{\hat{\theta}}=-\Gamma \phi(x)\tilde{y}-\sigma \hat{\theta},
+</annotation></semantics></math></p>
+<p>其中
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>σ</mi><mo>&gt;</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\sigma&gt;0</annotation></semantics></math>
+是泄漏项系数。</p>
+<p>泄漏项的作用是抑制参数漂移和噪声驱动，但它会引入稳态偏差。也可以采用
+dead-zone 修正：当误差足够小时冻结更新，避免在噪声附近无意义地学习。</p>
+<p>高超声速控制里，这类修正很重要，因为测量噪声、执行机构饱和和未建模动态往往会让纯梯度更新过度敏感。</p>
+<h2 id="输入效能和自适应动态逆">10.9 输入效能和自适应动态逆</h2>
+<p>自适应动态逆使用估计模型反解伪控制量。若系统可写成</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>x</mi><mo accent="true">̇</mo></mover><mo>=</mo><mi>f</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo>+</mo><mi>b</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mi>η</mi><mi>u</mi><mo>,</mo></mrow><annotation encoding="application/x-tex">
+\dot{x}=f(x)+b(x)\eta u,
+</annotation></semantics></math></p>
+<p>其中
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>η</mi><annotation encoding="application/x-tex">\eta</annotation></semantics></math>
+是未知输入效能，那么控制器需要估计
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>η</mi><annotation encoding="application/x-tex">\eta</annotation></semantics></math>
+或其等效量。</p>
+<p>风险在于：如果
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mover><mi>η</mi><mo accent="true">̂</mo></mover><annotation encoding="application/x-tex">\hat{\eta}</annotation></semantics></math>
+接近零或符号错误，控制输入会被异常放大。因此高超声速飞行器中的自适应动态逆必须加入：</p>
+<ol type="1">
+<li>输入效能下界；</li>
+<li>投影或饱和保护；</li>
+<li>控制分配残差监测；</li>
+<li>执行机构速率限制；</li>
+<li>安全层对参考和输入的协调。</li>
+</ol>
+<p>INDI 通过增量关系减小对精确模型的依赖，例如</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Δ</mi><mi>u</mi><mo>=</mo><msup><mover><mi>b</mi><mo accent="true">̂</mo></mover><mrow><mi>−</mi><mn>1</mn></mrow></msup><mi mathvariant="normal">Δ</mi><mi>ν</mi><mo>,</mo></mrow><annotation encoding="application/x-tex">
+\Delta u = \hat{b}^{-1}\Delta \nu,
+</annotation></semantics></math></p>
+<p>其中
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Δ</mi><mi>u</mi></mrow><annotation encoding="application/x-tex">\Delta u</annotation></semantics></math>
+是输入增量，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Δ</mi><mi>ν</mi></mrow><annotation encoding="application/x-tex">\Delta \nu</annotation></semantics></math>
+是伪控制量增量，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mover><mi>b</mi><mo accent="true">̂</mo></mover><annotation encoding="application/x-tex">\hat{b}</annotation></semantics></math>
+是估计输入效能。</p>
+<p>这里的重点不是建立复杂结构模型，而是把动压边界对可用输入能力的影响进入闭环，使控制器和验证指标能看到这种变化。</p>
+<h2 id="神经网络模糊逼近和自适应边界">10.10
+神经网络、模糊逼近和自适应边界</h2>
+<p>神经网络或模糊系统常用于逼近未知非线性：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><msup><mi>W</mi><mrow><mi>⋆</mi><mi>⊤</mi></mrow></msup><mi>σ</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo>+</mo><mi>ε</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo>,</mo></mrow><annotation encoding="application/x-tex">
+f(x)=W^{\star\top}\sigma(x)+\varepsilon(x),
+</annotation></semantics></math></p>
+<p>其中
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>W</mi><mo>⋆</mo></msup><annotation encoding="application/x-tex">W^\star</annotation></semantics></math>
+是理想权重，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>σ</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\sigma(x)</annotation></semantics></math>
+是特征向量，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ε</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\varepsilon(x)</annotation></semantics></math>
+是逼近误差。</p>
+<p>这种方法的稳定性证明必须处理逼近误差，而不是把网络当成自动正确的黑箱。若自适应律仍把未实现的命令
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>u</mi><mi>c</mi></msub><annotation encoding="application/x-tex">u_c</annotation></semantics></math>
+当作真实输入，会产生错误学习。饱和时误差变大，自适应律可能继续增大参数，导致更强饱和和参数漂移。</p>
+<p>常见处理包括：</p>
+<ol type="1">
+<li>anti-windup 辅助系统；</li>
+<li>饱和残差进入 Lyapunov 分析；</li>
+<li>参数更新死区；</li>
+<li>饱和时冻结或减缓自适应；</li>
+<li>控制输入投影；</li>
+<li>参考治理降低不可实现命令。</li>
+</ol>
+<h2 id="验证指标与实验矩阵">10.11 验证指标与实验矩阵</h2>
+<p>自适应控制的验证不能只画跟踪误差。至少应报告：</p>
+<table>
+<thead>
+<tr>
+<th>指标</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>跟踪误差 RMS/峰值</td>
+<td>控制性能</td>
+</tr>
+<tr>
+<td>参数估计轨迹</td>
+<td>是否漂移、是否超出物理范围</td>
+</tr>
+<tr>
+<td>投影触发次数</td>
+<td>估计是否频繁撞边界</td>
+</tr>
+<tr>
+<td>自适应增益敏感性</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi mathvariant="normal">Γ</mi><annotation encoding="application/x-tex">\Gamma</annotation></semantics></math>
+改变后性能是否稳定</td>
+</tr>
+<tr>
+<td>控制输入和舵速峰值</td>
+<td>是否触发执行机构限制</td>
+</tr>
+<tr>
+<td>饱和持续时间</td>
+<td>证明假设是否被破坏</td>
+</tr>
+<tr>
+<td>约束裕度</td>
+<td>动压、热流、攻角、过载是否安全</td>
+</tr>
+<tr>
+<td>扰动/故障场景</td>
+<td>自适应是否改善鲁棒性</td>
+</tr>
+<tr>
+<td>参数收敛证据</td>
+<td>是否满足持续激励或历史数据条件</td>
+</tr>
+</tbody>
+</table>
+<p>自适应控制至少应覆盖固定增益与自适应、无投影与有投影、无鲁棒修正与有鲁棒修正、无门控与约束活跃门控几组对比。若只在一个无噪声、无饱和、无约束活跃的样本中表现良好，只能说明理论演示成立，不能说明高超声速闭环可信。</p>
+<h2 id="自适应控制写法">10.12 自适应控制写法</h2>
+<p>自适应控制如果只给误差系统和更新律，很难被后续方法章、约束章和工程验证章直接复用。更稳妥的参考书写法，是把对象、未知项、更新门控、执行接口和验证字段整理成一个可交接的控制包。</p>
+<p>一个最小自适应控制包至少应包含：</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>字段</th>
+<th>必须写清的内容</th>
+<th>控制含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>任务与通道</td>
+<td>速度、高度、攻角、姿态、制导误差或控制分配残差中的哪一类</td>
+<td>防止把不同任务变量混成同一更新律</td>
+</tr>
+<tr>
+<td>对象层级</td>
+<td>质点、纵向刚体、姿态内环、六自由度或故障重构层</td>
+<td>明确结论适用到哪一层模型</td>
+</tr>
+<tr>
+<td>未知项结构</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>Y</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mi>θ</mi></mrow><annotation encoding="application/x-tex">Y(x)\theta</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>u</mi><mrow><mi mathvariant="normal">e</mi><mi mathvariant="normal">f</mi><mi mathvariant="normal">f</mi></mrow></msub><mo>=</mo><mi>η</mi><mi>u</mi></mrow><annotation encoding="application/x-tex">u_{\mathrm{eff}}=\eta u</annotation></semantics></math>、总扰动补偿或偏置扩张状态</td>
+<td>判断是否满足参数线性化和匹配条件</td>
+</tr>
+<tr>
+<td>自适应状态</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mover><mi>θ</mi><mo accent="true">̂</mo></mover><annotation encoding="application/x-tex">\hat{\theta}</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mover><mi>η</mi><mo accent="true">̂</mo></mover><annotation encoding="application/x-tex">\hat{\eta}</annotation></semantics></math>、滤波器状态、更新速率和泄漏项</td>
+<td>让学习过程可记录、可复查</td>
+</tr>
+<tr>
+<td>更新律</td>
+<td>梯度法、MRAC、最小二乘、投影、死区、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>σ</mi><annotation encoding="application/x-tex">\sigma</annotation></semantics></math>
+修正</td>
+<td>区分“基本自适应”和“带鲁棒保护的自适应”</td>
+</tr>
+<tr>
+<td>物理边界</td>
+<td>参数上下界、输入效能正下界、速率上界和重置规则</td>
+<td>防止参数估计进入无物理意义区域</td>
+</tr>
+<tr>
+<td>门控条件</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>I</mi><mrow><mi mathvariant="normal">s</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">t</mi></mrow></msub><annotation encoding="application/x-tex">I_{\mathrm{sat}}</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>I</mi><mrow><mi mathvariant="normal">s</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">f</mi><mi mathvariant="normal">e</mi></mrow></msub><annotation encoding="application/x-tex">I_{\mathrm{safe}}</annotation></semantics></math>、激励是否充分、残差是否可信</td>
+<td>防止约束活跃或命令未实现时错误学习</td>
+</tr>
+<tr>
+<td>命令链</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>u</mi><mrow><mi mathvariant="normal">c</mi><mi mathvariant="normal">m</mi><mi mathvariant="normal">d</mi></mrow></msub><mo>→</mo><msub><mi>u</mi><mrow><mi mathvariant="normal">s</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">f</mi><mi mathvariant="normal">e</mi></mrow></msub><mo>→</mo><msub><mi>u</mi><mrow><mi mathvariant="normal">a</mi><mi mathvariant="normal">c</mi><mi mathvariant="normal">t</mi></mrow></msub></mrow><annotation encoding="application/x-tex">u_{\mathrm{cmd}}\rightarrow u_{\mathrm{safe}}\rightarrow u_{\mathrm{act}}</annotation></semantics></math></td>
+<td>区分原始控制律、保护层修正和真实执行输入</td>
+</tr>
+<tr>
+<td>安全接口</td>
+<td>与 BLF、CBF、参考治理、安全滤波和约束判定的连接方式</td>
+<td>判断自适应补偿是否会破坏安全层假设</td>
+</tr>
+<tr>
+<td>故障接口</td>
+<td>是否估计舵面效率、推力效率、传感器偏置或分配残差</td>
+<td>为第46章容错控制提供清晰入口</td>
+</tr>
+<tr>
+<td>验证输出</td>
+<td>跟踪误差、参数峰值、投影次数、冻结比例、饱和比例、约束裕度</td>
+<td>让后续章节可直接接收结果</td>
+</tr>
+<tr>
+<td>结论边界</td>
+<td>标称、带噪声、带饱和、带安全层、多飞行点或 Monte Carlo 层级</td>
+<td>防止把样本内表现写成严格保证</td>
+</tr>
+</tbody>
+</table>
+<p>如果没有这个交付包，自适应控制很容易只剩”更新律看起来工作了”的表象，而无法和后续的安全控制、容错控制和实时实现对接。</p>
+<h2 id="本章小结-9">10.13 本章小结</h2>
+<p>自适应控制解决的是”对象参数会变、我们能否在线补偿”的问题。它不是万能修正器，也不是鲁棒控制的替代品。</p>
+<p>对高超声速飞行器，自适应控制应当与物理边界、门控逻辑、安全层和执行机构状态一起使用，才能把参数学习变成真正可核查的闭环能力。</p>
+
+      </article>
+      
+      <nav class="book-bottom-nav" aria-label="章节导航">
+        <a href="./09-robust-control-theory.html">上一章：第9章 鲁棒控制理论</a>
+        <a href="./index.html">卷首页</a>
+        <a href="./11-stochastic-filtering-estimation.html">下一章：第11章 随机系统、滤波与状态估计</a>
+      </nav>
+    </main>
+  </div>
+</body>
+</html>

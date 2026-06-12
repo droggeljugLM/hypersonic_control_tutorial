@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>第18章 推进系统与气动推进耦合</title>
+  <style>
+    :root {
+      --paper: #f7f3eb;
+      --ink: #1f2937;
+      --muted: #5b6472;
+      --line: color-mix(in srgb, #e3f5f2 68%, #cbd5e1 32%);
+      --accent: #18786f;
+      --accent-soft: #e3f5f2;
+      --accent-deep: #0e4b45;
+      color-scheme: light;
+    }
+    html {
+      -webkit-text-size-adjust: 100%;
+      background:
+        radial-gradient(circle at top left, #e3f5f2 0, rgba(255,255,255,0) 32%),
+        linear-gradient(180deg, #fbfaf6 0%, var(--paper) 18%, #f7f1e6 100%);
+    }
+    body {
+      margin: 0;
+      font-family: "Source Han Serif SC", "Songti SC", "Noto Serif CJK SC", "Microsoft YaHei", serif;
+      color: var(--ink);
+      line-height: 1.78;
+      letter-spacing: 0;
+    }
+    a { color: var(--accent-deep); }
+    .book-app {
+      display: grid;
+      grid-template-columns: 280px minmax(0, 1fr);
+      min-height: 100vh;
+    }
+    .book-sidebar {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow: auto;
+      padding: 1.2rem 1rem 1.2rem 1.15rem;
+      border-right: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(255,255,255,0.86), rgba(255,255,255,0.72));
+      backdrop-filter: blur(10px);
+    }
+    .sidebar-shell { position: sticky; top: 0; display: flex; flex-direction: column; gap: 1rem; }
+    .sidebar-brand {
+      padding: 0.95rem 0.95rem 1rem;
+      border-radius: 18px;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.95), rgba(255,255,255,0.84)),
+        linear-gradient(135deg, var(--accent-soft), rgba(255,255,255,0));
+      border: 1px solid var(--line);
+      box-shadow: 0 12px 28px rgba(31, 41, 55, 0.06);
+    }
+    .sidebar-brand .kicker { margin: 0; color: var(--accent); font-size: 0.82rem; font-weight: 700; }
+    .sidebar-brand h2 { margin: 0.45rem 0 0.25rem; font-size: 1.08rem; line-height: 1.3; color: var(--ink); }
+    .sidebar-brand p { margin: 0.35rem 0 0; color: var(--muted); font-size: 0.9rem; }
+    .sidebar-links { display: grid; gap: 0.45rem; }
+    .sidebar-link {
+      display: grid;
+      grid-template-columns: 2.2rem minmax(0, 1fr);
+      gap: 0.6rem;
+      align-items: start;
+      padding: 0.7rem 0.75rem;
+      border-radius: 14px;
+      text-decoration: none;
+      background: rgba(255,255,255,0.72);
+      border: 1px solid rgba(31,41,55,0.07);
+      color: var(--ink);
+    }
+    .sidebar-link:hover { background: rgba(255,255,255,0.95); border-color: var(--line); }
+    .sidebar-link.active {
+      background: linear-gradient(135deg, rgba(255,255,255,0.98), rgba(255,255,255,0.9));
+      border-color: var(--accent-soft);
+      box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent-soft) 68%, #ffffff 32%);
+    }
+    .sidebar-index {
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      min-width: 2rem;
+      height: 2rem;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent-deep);
+      font-size: 0.78rem;
+      font-weight: 800;
+    }
+    .sidebar-title { font-size: 0.94rem; line-height: 1.35; }
+    .book-main { min-width: 0; padding: 1.25rem 1.45rem 1.8rem; }
+    .book-page-header {
+      padding: 0.85rem 0 1rem;
+      margin-bottom: 1rem;
+      border-bottom: 1px solid var(--line);
+    }
+    .page-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.28rem 0.72rem;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.82);
+      border: 1px solid var(--line);
+      color: var(--accent-deep);
+      font-size: 0.8rem;
+      font-weight: 700;
+    }
+    .book-page-header h1 {
+      margin: 0.7rem 0 0;
+      font-size: 1.85rem;
+      line-height: 1.22;
+      color: var(--accent-deep);
+      border: 0;
+      padding: 0;
+    }
+    .book-page-header p { margin: 0.45rem 0 0; color: var(--muted); max-width: 62rem; }
+    .book-article { max-width: 900px; margin: 0; padding: 0 0 1.2rem; }
+    .book-article h1, .book-article h2, .book-article h3, .book-article h4, .book-article h5, .book-article h6 {
+      line-height: 1.28;
+      margin-top: 1.45em;
+      margin-bottom: 0.55em;
+      color: var(--accent-deep);
+    }
+    .book-article h1 { font-size: 2rem; border-bottom: 2px solid var(--line); padding-bottom: 0.42rem; }
+    .book-article h1:first-of-type { margin-top: 0; }
+    .book-article h2 { font-size: 1.42rem; }
+    .book-article h3 { font-size: 1.12rem; }
+    .book-article p, .book-article li, .book-article dd, .book-article td, .book-article th { text-align: justify; text-justify: inter-ideograph; }
+    .book-article p { margin: 0.85rem 0; }
+    .book-article code, .book-article pre { font-family: "Cascadia Mono", "Source Code Pro", Consolas, monospace; font-size: 0.94em; }
+    .book-article code {
+      padding: 0.02rem 0.24rem;
+      background: color-mix(in srgb, var(--accent-soft) 34%, #ffffff 66%);
+      border: 0;
+      border-bottom: 1px solid color-mix(in srgb, var(--accent-soft) 74%, #d1d5db 26%);
+      border-radius: 4px;
+      color: #253244;
+      box-decoration-break: clone;
+      -webkit-box-decoration-break: clone;
+    }
+    .book-article pre {
+      padding: 1rem 1.1rem;
+      overflow: auto;
+      background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,253,248,0.98));
+      border: 1px solid color-mix(in srgb, var(--accent-soft) 54%, #d1d5db 46%);
+      border-left: 5px solid var(--accent);
+      border-radius: 14px;
+      box-shadow: 0 8px 22px rgba(31, 41, 55, 0.05);
+    }
+    .book-article pre code { padding: 0; border: 0; background: transparent; color: inherit; }
+    .book-article table {
+      border-collapse: collapse;
+      width: 100%;
+      margin: 1rem 0 1.25rem;
+      background: rgba(255,255,255,0.82);
+      overflow: hidden;
+      border-radius: 12px;
+    }
+    .book-article th, .book-article td { border: 1px solid var(--line); padding: 0.5rem 0.7rem; vertical-align: top; }
+    .book-article th { background: color-mix(in srgb, var(--accent-soft) 42%, #ffffff 58%); }
+    .book-article blockquote {
+      margin: 1rem 0;
+      padding: 0.25rem 0 0.25rem 1rem;
+      border-left: 4px solid var(--accent);
+      color: #374151;
+      background: linear-gradient(90deg, rgba(255,255,255,0.72), rgba(255,255,255,0.48));
+      border-radius: 0 12px 12px 0;
+    }
+    .book-bottom-nav {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-top: 2.2rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--line);
+    }
+    .book-bottom-nav a {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.6rem 0.9rem;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.84);
+      text-decoration: none;
+      font-weight: 700;
+    }
+    .book-bottom-nav span {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.6rem 0.9rem;
+      border-radius: 999px;
+      border: 1px solid rgba(31,41,55,0.08);
+      background: rgba(255,255,255,0.54);
+      color: rgba(31,41,55,0.42);
+      font-weight: 700;
+    }
+    .book-bottom-nav a:hover { background: rgba(255,255,255,0.98); }
+    .book-volume-intro {
+      margin: 0 0 1.25rem;
+      padding: 1.2rem 1.25rem 1.1rem;
+      border-radius: 18px;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.96), rgba(255,255,255,0.78)),
+        linear-gradient(135deg, var(--accent-soft), rgba(255,255,255,0));
+      border: 1px solid var(--line);
+      box-shadow: 0 14px 34px rgba(31, 41, 55, 0.06);
+    }
+    .volume-intro-kicker {
+      margin: 0;
+      color: var(--accent);
+      font-size: 0.84rem;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    .book-volume-intro h2 {
+      margin: 0.55rem 0 0.55rem;
+      font-size: 1.28rem;
+      line-height: 1.35;
+      color: var(--accent-deep);
+    }
+    .volume-intro-summary {
+      margin: 0;
+      color: var(--muted);
+      max-width: 68rem;
+    }
+    .volume-intro-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.8rem;
+      margin-top: 1rem;
+    }
+    .volume-intro-box {
+      padding: 0.85rem 0.9rem;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.72);
+      border: 1px solid rgba(31,41,55,0.08);
+    }
+    .volume-intro-box span {
+      display: block;
+      color: var(--accent);
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+    }
+    .volume-intro-box strong {
+      display: block;
+      margin-top: 0.35rem;
+      color: var(--ink);
+      font-size: 0.95rem;
+      line-height: 1.45;
+    }
+    .volume-intro-note {
+      margin-top: 0.9rem;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+    @media (max-width: 1180px) {
+      .book-app { grid-template-columns: 1fr; }
+      .book-sidebar {
+        position: relative;
+        height: auto;
+        border-right: 0;
+        border-bottom: 1px solid var(--line);
+      }
+      .sidebar-shell { position: static; }
+    }
+    @media (max-width: 900px) {
+      .book-main { padding: 1rem 1rem 1.5rem; }
+      .book-bottom-nav { flex-direction: column; }
+      .volume-intro-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="book-app">
+    <aside class="book-sidebar">
+      <div class="sidebar-shell">
+        <div class="sidebar-brand">
+          <p class="kicker">高超声速飞行器控制教程</p>
+          <h2>第二卷 高超声速飞行器建模与飞行动力学</h2>
+          <p>对象与模型</p>
+        </div>
+        <nav class="sidebar-links" aria-label="本卷目录">
+          <a class="sidebar-link" href="./index.html"><span class="sidebar-index">0</span><span class="sidebar-title">卷首页</span></a>
+<a class="sidebar-link" href="./14-vehicle-types-mission-profiles.html"><span class="sidebar-index">01</span><span class="sidebar-title">第14章 高超声速飞行器类型与任务剖面</span></a>
+<a class="sidebar-link" href="./15-coordinate-kinematics-attitude.html"><span class="sidebar-index">02</span><span class="sidebar-title">第15章 坐标系、运动学与姿态描述</span></a>
+<a class="sidebar-link" href="./16-atmosphere-flight-conditions.html"><span class="sidebar-index">03</span><span class="sidebar-title">第16章 大气环境与飞行条件</span></a>
+<a class="sidebar-link" href="./17-aerodynamic-force-moment-modeling.html"><span class="sidebar-index">04</span><span class="sidebar-title">第17章 气动力与气动力矩建模</span></a>
+<a class="sidebar-link active" href="./18-propulsion-aero-propulsive-coupling.html"><span class="sidebar-index">05</span><span class="sidebar-title">第18章 推进系统与气动推进耦合</span></a>
+<a class="sidebar-link" href="./19-point-mass-dynamics.html"><span class="sidebar-index">06</span><span class="sidebar-title">第19章 质点动力学模型</span></a>
+<a class="sidebar-link" href="./20-longitudinal-rigid-body-dynamics.html"><span class="sidebar-index">07</span><span class="sidebar-title">第20章 纵向刚体动力学模型</span></a>
+<a class="sidebar-link" href="./21-lateral-directional-dynamics.html"><span class="sidebar-index">08</span><span class="sidebar-title">第21章 横侧向动力学模型</span></a>
+<a class="sidebar-link" href="./22-six-dof-rigid-body-model.html"><span class="sidebar-index">09</span><span class="sidebar-title">第22章 六自由度刚体模型</span></a>
+<a class="sidebar-link" href="./23-flexible-aeroelastic-modeling.html"><span class="sidebar-index">10</span><span class="sidebar-title">第23章 刚柔耦合与气动弹性模型</span></a>
+<a class="sidebar-link" href="./24-actuator-sensor-computation-modeling.html"><span class="sidebar-index">11</span><span class="sidebar-title">第24章 执行机构、传感器与计算系统建模</span></a>
+<a class="sidebar-link" href="./25-trim-linearization-modal-analysis.html"><span class="sidebar-index">12</span><span class="sidebar-title">第25章 配平、线性化与模态分析</span></a>
+        </nav>
+      </div>
+    </aside>
+    <main class="book-main">
+      <header class="book-page-header">
+        <div class="page-eyebrow">第2册·章节页05</div>
+        <h1 id="volume2--18-propulsion-aero-propulsive-coupling">第18章 推进系统与气动推进耦合</h1>
+        <p>本页是章节正文页。左侧目录用于回到本卷其他章节，底部导航用于前后章跳转。</p>
+      </header>
+      <article class="book-article">
+        <h2 id="问题背景">18.1 问题背景</h2>
+<p>在常规入门飞行力学中，推力有时被简化成沿机体轴或速度方向的标量输入。对高超声速飞行器，尤其是吸气式高超声速飞行器，这个简化经常不够。推进系统不仅决定速度变化，还会影响姿态力矩、进气道稳定性、热环境和飞行包线。</p>
+<p>本章从控制科学角度讨论推进系统。核心问题不是发动机细节本身，而是：推力如何进入动力学方程，推进状态是否需要作为控制状态，油门、燃料流量或当量比是否存在动态和约束，攻角、侧滑角、高度和
+Mach
+数如何影响推力，以及推进系统如何反过来限制姿态、轨迹和控制器带宽。</p>
+<h2 id="高超声速推进类型">18.2 高超声速推进类型</h2>
+<p>高超声速任务中常见推进和控制力来源包括：</p>
+<ul>
+<li>火箭推进：更关注推力大小、推力矢量、质量变化以及关机和点火模式；</li>
+<li>冲压发动机：更关注进气道、燃烧效率以及推力随 Mach
+和高度变化的规律；</li>
+<li>超燃冲压发动机：进一步牵涉超声速燃烧、进气道敏感性、当量比动态和热约束；</li>
+<li>组合循环推进：重点在模式切换、控制权限变化和切换稳定性；</li>
+<li>反作用控制系统：主要用于稀薄大气或高空姿态控制，其典型约束是脉冲输入和燃料限制；</li>
+<li>助推器：则更关心助推段姿态稳定、分离条件和初始能量注入。</li>
+</ul>
+<p>不同推进类型对应不同模型。控制教程可以先建立低阶推进模型，但必须清楚说明适用边界。</p>
+<h2 id="最小推力模型">18.3 最小推力模型</h2>
+<p>最简单的控制模型可把推力写成：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>T</mi><mo>=</mo><msub><mi>T</mi><mi>max</mi><mo>&#8289;</mo></msub><msub><mi>ϕ</mi><mi>T</mi></msub></mrow><annotation encoding="application/x-tex">
+T = T_{\max}\phi_T
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>T</mi><annotation encoding="application/x-tex">T</annotation></semantics></math>
+是推力，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>T</mi><mi>max</mi><mo>&#8289;</mo></msub><annotation encoding="application/x-tex">T_{\max}</annotation></semantics></math>
+是最大推力，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ϕ</mi><mi>T</mi></msub><annotation encoding="application/x-tex">\phi_T</annotation></semantics></math>
+是油门、燃料当量比或等效推力命令。</p>
+<p>考虑执行动态后，可写成一阶模型：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mover><mi>ϕ</mi><mo accent="true">̇</mo></mover><mi>T</mi></msub><mo>=</mo><mfrac><mrow><msub><mi>ϕ</mi><mrow><mi>T</mi><mo>,</mo><mi>c</mi></mrow></msub><mo>−</mo><msub><mi>ϕ</mi><mi>T</mi></msub></mrow><msub><mi>τ</mi><mi>T</mi></msub></mfrac></mrow><annotation encoding="application/x-tex">
+\dot{\phi}_T = \frac{\phi_{T,c}-\phi_T}{\tau_T}
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ϕ</mi><mrow><mi>T</mi><mo>,</mo><mi>c</mi></mrow></msub><annotation encoding="application/x-tex">\phi_{T,c}</annotation></semantics></math>
+是命令油门，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ϕ</mi><mi>T</mi></msub><annotation encoding="application/x-tex">\phi_T</annotation></semantics></math>
+是实际油门，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>τ</mi><mi>T</mi></msub><annotation encoding="application/x-tex">\tau_T</annotation></semantics></math>
+是推进时间常数。</p>
+<p>因此，油门不是纯粹的速度通道输入。</p>
+<h2 id="吸气式推进的控制变量">18.4 吸气式推进的控制变量</h2>
+<p>吸气式高超声速推进系统常用变量包括：</p>
+<ul>
+<li>燃料质量流量；</li>
+<li>当量比；</li>
+<li>进气道几何量；</li>
+<li>喷管调节量；</li>
+<li>隔离段压力；</li>
+<li>燃烧室压力；</li>
+<li>推力估计值；</li>
+<li>进气道稳定裕度。</li>
+</ul>
+<p>控制系统不一定直接控制所有变量，但必须知道哪些变量影响飞行器闭环。一个抽象推进状态可写为：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>x</mi><mi>p</mi></msub><mo>=</mo><msup><mrow><mo stretchy="true" form="prefix">[</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><msub><mover><mi>m</mi><mo accent="true">̇</mo></mover><mi>f</mi></msub></mtd><mtd columnalign="center" style="text-align: center"><msub><mi>p</mi><mrow><mi mathvariant="normal">i</mi><mi mathvariant="normal">n</mi><mi mathvariant="normal">l</mi><mi mathvariant="normal">e</mi><mi mathvariant="normal">t</mi></mrow></msub></mtd><mtd columnalign="center" style="text-align: center"><msub><mi>p</mi><mrow><mi mathvariant="normal">c</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">m</mi><mi mathvariant="normal">b</mi></mrow></msub></mtd><mtd columnalign="center" style="text-align: center"><msub><mi>η</mi><mrow><mi mathvariant="normal">t</mi><mi mathvariant="normal">h</mi></mrow></msub></mtd></mtr></mtable><mo stretchy="true" form="postfix">]</mo></mrow><mi>⊤</mi></msup></mrow><annotation encoding="application/x-tex">
+x_p = \begin{bmatrix} \dot m_f &amp; p_{\mathrm{inlet}} &amp; p_{\mathrm{comb}} &amp; \eta_{\mathrm{th}} \end{bmatrix}^\top
+</annotation></semantics></math></p>
+<p>这里的
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>x</mi><mi>p</mi></msub><annotation encoding="application/x-tex">x_p</annotation></semantics></math>
+是推进状态向量，包含燃料流量、进气道压力、燃烧室压力和推进效率。</p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mover><mi>m</mi><mo accent="true">̇</mo></mover><mi>f</mi></msub><annotation encoding="application/x-tex">\dot m_f</annotation></semantics></math>
+是燃料质量流量，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>p</mi><mrow><mi mathvariant="normal">i</mi><mi mathvariant="normal">n</mi><mi mathvariant="normal">l</mi><mi mathvariant="normal">e</mi><mi mathvariant="normal">t</mi></mrow></msub><annotation encoding="application/x-tex">p_{\mathrm{inlet}}</annotation></semantics></math>
+是进气道压力，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>p</mi><mrow><mi mathvariant="normal">c</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">m</mi><mi mathvariant="normal">b</mi></mrow></msub><annotation encoding="application/x-tex">p_{\mathrm{comb}}</annotation></semantics></math>
+是燃烧室压力，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>η</mi><mrow><mi mathvariant="normal">t</mi><mi mathvariant="normal">h</mi></mrow></msub><annotation encoding="application/x-tex">\eta_{\mathrm{th}}</annotation></semantics></math>
+是推力效率或推进效率。</p>
+<h2 id="气动推进耦合通道">18.5 气动推进耦合通道</h2>
+<p>气动推进耦合可以从输入、状态和约束三个角度理解。</p>
+<table>
+<thead>
+<tr>
+<th>耦合通道</th>
+<th>控制含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Mach 数影响推力</td>
+<td>速度环增益随飞行条件变化</td>
+</tr>
+<tr>
+<td>高度影响进气密度</td>
+<td>同一油门命令在不同高度推力不同</td>
+</tr>
+<tr>
+<td>攻角影响进气道</td>
+<td>姿态命令可能破坏推进稳定性</td>
+</tr>
+<tr>
+<td>侧滑角影响进气对称性</td>
+<td>横侧向控制可能影响推力和偏航力矩</td>
+</tr>
+<tr>
+<td>推力作用线产生力矩</td>
+<td>油门变化会扰动俯仰或偏航</td>
+</tr>
+<tr>
+<td>燃烧和热释放影响结构</td>
+<td>热约束进入控制可行域</td>
+</tr>
+<tr>
+<td>机体前体是压缩面</td>
+<td>机体姿态本身是推进系统边界条件</td>
+</tr>
+</tbody>
+</table>
+<p>因此，吸气式高超声速控制常不能把气动和推进分成两个互不影响的模块。</p>
+<h2 id="推进约束">18.6 推进约束</h2>
+<p>推进系统常见约束可抽象为：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0</mn><mo>≤</mo><msub><mi>ϕ</mi><mi>T</mi></msub><mo>≤</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">
+0 \le \phi_T \le 1
+</annotation></semantics></math></p>
+<p>这里的
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ϕ</mi><mi>T</mi></msub><annotation encoding="application/x-tex">\phi_T</annotation></semantics></math>
+是油门命令，它被限制在
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mn>0</mn><annotation encoding="application/x-tex">0</annotation></semantics></math>
+到
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mn>1</mn><annotation encoding="application/x-tex">1</annotation></semantics></math>
+的范围内。</p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ϕ</mi><mi>T</mi></msub><annotation encoding="application/x-tex">\phi_T</annotation></semantics></math>
+是油门或等效推力命令。</p>
+<p>推进约束还可包括：</p>
+<ul>
+<li>油门速率限制；</li>
+<li>推力下限和上限；</li>
+<li>当量比范围；</li>
+<li>进气道稳定裕度；</li>
+<li>燃烧室压力边界；</li>
+<li>喷管调节边界；</li>
+<li>模式切换条件。</li>
+</ul>
+<p>这些约束说明推进效应可以和气动力矩一起进入气动表或广义力矩模型。</p>
+<h2 id="推进和飞行状态的联合模型">18.7 推进和飞行状态的联合模型</h2>
+<p>若推进动态不能忽略，控制设计模型应扩展为：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mover><mi>x</mi><mo accent="true">̇</mo></mover><mi>f</mi></msub><mo>=</mo><msub><mi>f</mi><mi>f</mi></msub><mo stretchy="false" form="prefix">(</mo><msub><mi>x</mi><mi>f</mi></msub><mo>,</mo><msub><mi>u</mi><mi>a</mi></msub><mo>,</mo><msub><mi>u</mi><mi>p</mi></msub><mo stretchy="false" form="postfix">)</mo><mo>,</mo><mspace width="2.0em"></mspace><msub><mover><mi>x</mi><mo accent="true">̇</mo></mover><mi>p</mi></msub><mo>=</mo><msub><mi>f</mi><mi>p</mi></msub><mo stretchy="false" form="prefix">(</mo><msub><mi>x</mi><mi>p</mi></msub><mo>,</mo><msub><mi>u</mi><mi>p</mi></msub><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
+\dot x_f = f_f(x_f,u_a,u_p),\qquad \dot x_p = f_p(x_p,u_p)
+</annotation></semantics></math></p>
+<p>这里的
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>x</mi><mi>f</mi></msub><annotation encoding="application/x-tex">x_f</annotation></semantics></math>
+是飞行动力学状态，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>x</mi><mi>p</mi></msub><annotation encoding="application/x-tex">x_p</annotation></semantics></math>
+是推进状态，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>u</mi><mi>a</mi></msub><annotation encoding="application/x-tex">u_a</annotation></semantics></math>
+是舵面输入，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>u</mi><mi>p</mi></msub><annotation encoding="application/x-tex">u_p</annotation></semantics></math>
+是推进输入。</p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>x</mi><mi>f</mi></msub><annotation encoding="application/x-tex">x_f</annotation></semantics></math>
+是飞行动力学状态，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>x</mi><mi>p</mi></msub><annotation encoding="application/x-tex">x_p</annotation></semantics></math>
+是推进状态，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>u</mi><mi>a</mi></msub><annotation encoding="application/x-tex">u_a</annotation></semantics></math>
+是舵面或姿态执行输入，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>u</mi><mi>p</mi></msub><annotation encoding="application/x-tex">u_p</annotation></semantics></math>
+是推进控制输入。</p>
+<p>合并后可写成：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>x</mi><mo accent="true">̇</mo></mover><mo>=</mo><mi>f</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>u</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
+\dot x = f(x,u)
+</annotation></semantics></math></p>
+<p>这里的
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>x</mi><annotation encoding="application/x-tex">x</annotation></semantics></math>
+是合并后的总状态，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>u</mi><annotation encoding="application/x-tex">u</annotation></semantics></math>
+是合并后的总输入，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>f</mi><annotation encoding="application/x-tex">f</annotation></semantics></math>
+表示推进与飞行耦合后的动力学。</p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>x</mi><mo>=</mo><mo stretchy="false" form="prefix">[</mo><msubsup><mi>x</mi><mi>f</mi><mi>⊤</mi></msubsup><mo>,</mo><msubsup><mi>x</mi><mi>p</mi><mi>⊤</mi></msubsup><msup><mo stretchy="false" form="postfix">]</mo><mi>⊤</mi></msup></mrow><annotation encoding="application/x-tex">x=[x_f^\top,x_p^\top]^\top</annotation></semantics></math>，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>u</mi><mo>=</mo><mo stretchy="false" form="prefix">[</mo><msubsup><mi>u</mi><mi>a</mi><mi>⊤</mi></msubsup><mo>,</mo><msubsup><mi>u</mi><mi>p</mi><mi>⊤</mi></msubsup><msup><mo stretchy="false" form="postfix">]</mo><mi>⊤</mi></msup></mrow><annotation encoding="application/x-tex">u=[u_a^\top,u_p^\top]^\top</annotation></semantics></math>。</p>
+<h2 id="推进执行动态和抗积分饱和">18.8 推进执行动态和抗积分饱和</h2>
+<p>速度控制器给出油门命令：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ϕ</mi><mrow><mi>T</mi><mo>,</mo><mi>c</mi></mrow></msub><mo>=</mo><msub><mi>k</mi><mi>V</mi></msub><msub><mi>e</mi><mi>V</mi></msub><mo>+</mo><msub><mi>k</mi><mi>I</mi></msub><mo>∫</mo><msub><mi>e</mi><mi>V</mi></msub><mi>d</mi><mi>t</mi></mrow><annotation encoding="application/x-tex">
+\phi_{T,c} = k_V e_V + k_I \int e_V dt
+</annotation></semantics></math></p>
+<p>这里的
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ϕ</mi><mrow><mi>T</mi><mo>,</mo><mi>c</mi></mrow></msub><annotation encoding="application/x-tex">\phi_{T,c}</annotation></semantics></math>
+是速度环给出的油门命令，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>e</mi><mi>V</mi></msub><annotation encoding="application/x-tex">e_V</annotation></semantics></math>
+是速度误差。</p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>e</mi><mi>V</mi></msub><annotation encoding="application/x-tex">e_V</annotation></semantics></math>
+是速度误差，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>k</mi><mi>V</mi></msub><annotation encoding="application/x-tex">k_V</annotation></semantics></math>
+是比例增益，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>k</mi><mi>I</mi></msub><annotation encoding="application/x-tex">k_I</annotation></semantics></math>
+是积分增益。</p>
+<p>若参考速度突然增大，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ϕ</mi><mrow><mi>T</mi><mo>,</mo><mi>c</mi></mrow></msub><annotation encoding="application/x-tex">\phi_{T,c}</annotation></semantics></math>
+可能长时间饱和在上限，而真实油门
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ϕ</mi><mi>T</mi></msub><annotation encoding="application/x-tex">\phi_T</annotation></semantics></math>
+因滞后不能立即达到。此时速度误差仍然存在，积分项继续积累，解除饱和后会产生速度超调。这就是推进执行动态和抗积分饱和的连接。</p>
+<p>工程处理方式包括：</p>
+<ul>
+<li>把
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ϕ</mi><mi>T</mi></msub><mo>−</mo><msub><mi>ϕ</mi><mrow><mi>T</mi><mo>,</mo><mi>c</mi></mrow></msub></mrow><annotation encoding="application/x-tex">\phi_T-\phi_{T,c}</annotation></semantics></math>
+作为执行残差记录；</li>
+<li>在油门饱和或速率受限时冻结或回算积分项；</li>
+<li>限制速度参考变化率；</li>
+<li>在 MPC 或参考治理中把推进响应时间作为约束；</li>
+<li>报告油门饱和时间、速率限制时间和速度恢复时间。</li>
+</ul>
+<h2 id="推进约束和飞行约束的联合验证矩阵">18.9
+推进约束和飞行约束的联合验证矩阵</h2>
+<p>气动推进耦合验证应同时覆盖飞行状态、推进状态和控制输入。一个入门矩阵可写为：</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>场景</th>
+<th>扫描变量</th>
+<th>主要检查</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>油门阶跃</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ϕ</mi><mrow><mi>T</mi><mo>,</mo><mi>c</mi></mrow></msub><annotation encoding="application/x-tex">\phi_{T,c}</annotation></semantics></math></td>
+<td>推力响应、油门速率、速度超调</td>
+</tr>
+<tr>
+<td>Mach 扫描</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>M</mi><mi>a</mi></mrow><annotation encoding="application/x-tex">Ma</annotation></semantics></math></td>
+<td>推力趋势、进气道裕度、调度连续性</td>
+</tr>
+<tr>
+<td>高度扫描</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>h</mi><annotation encoding="application/x-tex">h</annotation></semantics></math></td>
+<td>密度变化下推力和燃料流量趋势</td>
+</tr>
+<tr>
+<td>攻角扫描</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>α</mi><annotation encoding="application/x-tex">\alpha</annotation></semantics></math></td>
+<td>进气道裕度、推力损失和俯仰耦合</td>
+</tr>
+<tr>
+<td>侧滑扫描</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>β</mi><annotation encoding="application/x-tex">\beta</annotation></semantics></math></td>
+<td>推力不对称、偏航力矩和横侧向风险</td>
+</tr>
+<tr>
+<td>动压边界逼近</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mover><mi>q</mi><mo accent="true">‾</mo></mover><annotation encoding="application/x-tex">\bar q</annotation></semantics></math>
+接近上限</td>
+<td>推进约束和飞行约束是否共同进入闭环</td>
+</tr>
+<tr>
+<td>低动压段</td>
+<td>高空低密度</td>
+<td>推力需求、舵面效能和速度环余量</td>
+</tr>
+<tr>
+<td>模式切换</td>
+<td>助推/巡航或组合循环切换</td>
+<td>状态连续性、瞬态峰值和安全裕度</td>
+</tr>
+</tbody>
+</table>
+<p>其中动压边界逼近场景需要特别谨慎。若控制器为了降低动压而减小速度参考或油门命令，推进系统的滞后会改变实际减速效果；若同时存在舵面输入效能下降，则姿态和速度环可能共同受限。</p>
+<h2 id="当前配套算例的支撑范围">18.10 当前配套算例的支撑范围</h2>
+<p>教程还没有独立高保真推进模型，但已经有若干配套算例可用于建立低阶接口意识：</p>
+<table>
+<thead>
+<tr>
+<th>配套算例</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>纵向模型中的低阶推力接口</td>
+<td>低阶推力与纵向速度方程</td>
+</tr>
+<tr>
+<td>油门饱和与抗积分饱和示例</td>
+<td>展示油门饱和如何影响闭环</td>
+</tr>
+<tr>
+<td>受限滚动优化示例</td>
+<td>展示有限候选油门命令和路径约束预测</td>
+</tr>
+<tr>
+<td>故障注入示例</td>
+<td>展示推力损失和输入延迟故障</td>
+</tr>
+<tr>
+<td>MATLAB 低阶推力示例</td>
+<td>提供 MATLAB 侧的低阶推力计算</td>
+</tr>
+</tbody>
+</table>
+<p>这些示例只能支撑教学级推力输入、油门饱和和推力损失场景。它们不能支撑吸气式推进高保真结论，因为还没有进气道、燃烧室、喷管、热状态和模式切换数据。</p>
+<h2 id="建模验证与常见错误">18.11 建模验证与常见错误</h2>
+<p>推进模型至少应通过下列检查：</p>
+<ul>
+<li>推力随 Mach、高度和油门变化趋势是否合理；</li>
+<li>推力延迟和速率限制是否进入仿真；</li>
+<li>推进力矩方向是否符合坐标定义；</li>
+<li>推进约束是否在日志中可计算；</li>
+<li>油门饱和和速率饱和是否单独统计；</li>
+<li>攻角和侧滑变化是否影响推进裕度；</li>
+<li>模式切换是否记录切换时间和切换前后瞬态。</li>
+</ul>
+<p>常见错误包括：</p>
+<ol type="1">
+<li>把吸气式推进简化成恒定推力，却讨论进气道安全。</li>
+<li>油门命令没有动态和速率限制。</li>
+<li>推力方向和机体系坐标定义不一致。</li>
+<li>忽略推力作用线偏移带来的俯仰力矩。</li>
+<li>只报告速度误差，不报告油门饱和和推进约束裕度。</li>
+<li>把推进约束和飞行约束割裂处理。</li>
+<li>模式切换时不检查瞬态峰值。</li>
+<li>用未验证的合成模型支撑工程级结论。</li>
+<li>动力学方程使用命令油门，而不是实际油门。</li>
+<li>只看速度跟踪，不记录推进裕度、油门残差和安全层修正。</li>
+</ol>
+<h2 id="本章小结">18.12 本章小结</h2>
+<p>推进系统在高超声速控制中不是外部常数，而是动力学、约束和不确定性的组成部分。对吸气式高超声速飞行器，气动推进耦合会把
+Mach、高度、攻角、侧滑角、油门、进气道和姿态力矩连接起来。控制器设计必须说明推进模型层级、状态、约束、延迟和验证边界。后续巡航控制、MPC、安全滤波、增益调度和
+IGC 都应继承这一建模边界。</p>
+<h2 id="练习">18.13 练习</h2>
+<ol type="1">
+<li>写出带一阶油门动态的纵向速度方程。</li>
+<li>说明为什么油门变化可能影响俯仰控制。</li>
+<li>列出吸气式高超声速飞行器至少 5 个推进约束。</li>
+<li>给出一个包含飞行动力学状态和推进状态的扩展状态向量。</li>
+<li>解释进气道约束为什么会限制攻角命令。</li>
+<li>设计一个推进模型仿真日志字段表，至少包含推力、油门、油门速率、推进裕度和饱和时间。</li>
+<li>对油门滞后速度环，说明为什么积分项可能在饱和期间累积。</li>
+<li>设计一个同时检查动压、油门残差和进气道裕度的验证场景。</li>
+</ol>
+
+      </article>
+      
+      <nav class="book-bottom-nav" aria-label="章节导航">
+        <a href="./17-aerodynamic-force-moment-modeling.html">上一章：第17章 气动力与气动力矩建模</a>
+        <a href="./index.html">卷首页</a>
+        <a href="./19-point-mass-dynamics.html">下一章：第19章 质点动力学模型</a>
+      </nav>
+    </main>
+  </div>
+</body>
+</html>

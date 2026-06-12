@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>第41章 输入饱和与抗积分饱和控制</title>
+  <style>
+    :root {
+      --paper: #f7f3eb;
+      --ink: #1f2937;
+      --muted: #5b6472;
+      --line: color-mix(in srgb, #f5dfe9 68%, #cbd5e1 32%);
+      --accent: #8b3f67;
+      --accent-soft: #f5dfe9;
+      --accent-deep: #522640;
+      color-scheme: light;
+    }
+    html {
+      -webkit-text-size-adjust: 100%;
+      background:
+        radial-gradient(circle at top left, #f5dfe9 0, rgba(255,255,255,0) 32%),
+        linear-gradient(180deg, #fbfaf6 0%, var(--paper) 18%, #f7f1e6 100%);
+    }
+    body {
+      margin: 0;
+      font-family: "Source Han Serif SC", "Songti SC", "Noto Serif CJK SC", "Microsoft YaHei", serif;
+      color: var(--ink);
+      line-height: 1.78;
+      letter-spacing: 0;
+    }
+    a { color: var(--accent-deep); }
+    .book-app {
+      display: grid;
+      grid-template-columns: 280px minmax(0, 1fr);
+      min-height: 100vh;
+    }
+    .book-sidebar {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow: auto;
+      padding: 1.2rem 1rem 1.2rem 1.15rem;
+      border-right: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(255,255,255,0.86), rgba(255,255,255,0.72));
+      backdrop-filter: blur(10px);
+    }
+    .sidebar-shell { position: sticky; top: 0; display: flex; flex-direction: column; gap: 1rem; }
+    .sidebar-brand {
+      padding: 0.95rem 0.95rem 1rem;
+      border-radius: 18px;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.95), rgba(255,255,255,0.84)),
+        linear-gradient(135deg, var(--accent-soft), rgba(255,255,255,0));
+      border: 1px solid var(--line);
+      box-shadow: 0 12px 28px rgba(31, 41, 55, 0.06);
+    }
+    .sidebar-brand .kicker { margin: 0; color: var(--accent); font-size: 0.82rem; font-weight: 700; }
+    .sidebar-brand h2 { margin: 0.45rem 0 0.25rem; font-size: 1.08rem; line-height: 1.3; color: var(--ink); }
+    .sidebar-brand p { margin: 0.35rem 0 0; color: var(--muted); font-size: 0.9rem; }
+    .sidebar-links { display: grid; gap: 0.45rem; }
+    .sidebar-link {
+      display: grid;
+      grid-template-columns: 2.2rem minmax(0, 1fr);
+      gap: 0.6rem;
+      align-items: start;
+      padding: 0.7rem 0.75rem;
+      border-radius: 14px;
+      text-decoration: none;
+      background: rgba(255,255,255,0.72);
+      border: 1px solid rgba(31,41,55,0.07);
+      color: var(--ink);
+    }
+    .sidebar-link:hover { background: rgba(255,255,255,0.95); border-color: var(--line); }
+    .sidebar-link.active {
+      background: linear-gradient(135deg, rgba(255,255,255,0.98), rgba(255,255,255,0.9));
+      border-color: var(--accent-soft);
+      box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent-soft) 68%, #ffffff 32%);
+    }
+    .sidebar-index {
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      min-width: 2rem;
+      height: 2rem;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent-deep);
+      font-size: 0.78rem;
+      font-weight: 800;
+    }
+    .sidebar-title { font-size: 0.94rem; line-height: 1.35; }
+    .book-main { min-width: 0; padding: 1.25rem 1.45rem 1.8rem; }
+    .book-page-header {
+      padding: 0.85rem 0 1rem;
+      margin-bottom: 1rem;
+      border-bottom: 1px solid var(--line);
+    }
+    .page-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.28rem 0.72rem;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.82);
+      border: 1px solid var(--line);
+      color: var(--accent-deep);
+      font-size: 0.8rem;
+      font-weight: 700;
+    }
+    .book-page-header h1 {
+      margin: 0.7rem 0 0;
+      font-size: 1.85rem;
+      line-height: 1.22;
+      color: var(--accent-deep);
+      border: 0;
+      padding: 0;
+    }
+    .book-page-header p { margin: 0.45rem 0 0; color: var(--muted); max-width: 62rem; }
+    .book-article { max-width: 900px; margin: 0; padding: 0 0 1.2rem; }
+    .book-article h1, .book-article h2, .book-article h3, .book-article h4, .book-article h5, .book-article h6 {
+      line-height: 1.28;
+      margin-top: 1.45em;
+      margin-bottom: 0.55em;
+      color: var(--accent-deep);
+    }
+    .book-article h1 { font-size: 2rem; border-bottom: 2px solid var(--line); padding-bottom: 0.42rem; }
+    .book-article h1:first-of-type { margin-top: 0; }
+    .book-article h2 { font-size: 1.42rem; }
+    .book-article h3 { font-size: 1.12rem; }
+    .book-article p, .book-article li, .book-article dd, .book-article td, .book-article th { text-align: justify; text-justify: inter-ideograph; }
+    .book-article p { margin: 0.85rem 0; }
+    .book-article code, .book-article pre { font-family: "Cascadia Mono", "Source Code Pro", Consolas, monospace; font-size: 0.94em; }
+    .book-article code {
+      padding: 0.02rem 0.24rem;
+      background: color-mix(in srgb, var(--accent-soft) 34%, #ffffff 66%);
+      border: 0;
+      border-bottom: 1px solid color-mix(in srgb, var(--accent-soft) 74%, #d1d5db 26%);
+      border-radius: 4px;
+      color: #253244;
+      box-decoration-break: clone;
+      -webkit-box-decoration-break: clone;
+    }
+    .book-article pre {
+      padding: 1rem 1.1rem;
+      overflow: auto;
+      background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,253,248,0.98));
+      border: 1px solid color-mix(in srgb, var(--accent-soft) 54%, #d1d5db 46%);
+      border-left: 5px solid var(--accent);
+      border-radius: 14px;
+      box-shadow: 0 8px 22px rgba(31, 41, 55, 0.05);
+    }
+    .book-article pre code { padding: 0; border: 0; background: transparent; color: inherit; }
+    .book-article table {
+      border-collapse: collapse;
+      width: 100%;
+      margin: 1rem 0 1.25rem;
+      background: rgba(255,255,255,0.82);
+      overflow: hidden;
+      border-radius: 12px;
+    }
+    .book-article th, .book-article td { border: 1px solid var(--line); padding: 0.5rem 0.7rem; vertical-align: top; }
+    .book-article th { background: color-mix(in srgb, var(--accent-soft) 42%, #ffffff 58%); }
+    .book-article blockquote {
+      margin: 1rem 0;
+      padding: 0.25rem 0 0.25rem 1rem;
+      border-left: 4px solid var(--accent);
+      color: #374151;
+      background: linear-gradient(90deg, rgba(255,255,255,0.72), rgba(255,255,255,0.48));
+      border-radius: 0 12px 12px 0;
+    }
+    .book-bottom-nav {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-top: 2.2rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--line);
+    }
+    .book-bottom-nav a {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.6rem 0.9rem;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.84);
+      text-decoration: none;
+      font-weight: 700;
+    }
+    .book-bottom-nav span {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.6rem 0.9rem;
+      border-radius: 999px;
+      border: 1px solid rgba(31,41,55,0.08);
+      background: rgba(255,255,255,0.54);
+      color: rgba(31,41,55,0.42);
+      font-weight: 700;
+    }
+    .book-bottom-nav a:hover { background: rgba(255,255,255,0.98); }
+    .book-volume-intro {
+      margin: 0 0 1.25rem;
+      padding: 1.2rem 1.25rem 1.1rem;
+      border-radius: 18px;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.96), rgba(255,255,255,0.78)),
+        linear-gradient(135deg, var(--accent-soft), rgba(255,255,255,0));
+      border: 1px solid var(--line);
+      box-shadow: 0 14px 34px rgba(31, 41, 55, 0.06);
+    }
+    .volume-intro-kicker {
+      margin: 0;
+      color: var(--accent);
+      font-size: 0.84rem;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    .book-volume-intro h2 {
+      margin: 0.55rem 0 0.55rem;
+      font-size: 1.28rem;
+      line-height: 1.35;
+      color: var(--accent-deep);
+    }
+    .volume-intro-summary {
+      margin: 0;
+      color: var(--muted);
+      max-width: 68rem;
+    }
+    .volume-intro-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.8rem;
+      margin-top: 1rem;
+    }
+    .volume-intro-box {
+      padding: 0.85rem 0.9rem;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.72);
+      border: 1px solid rgba(31,41,55,0.08);
+    }
+    .volume-intro-box span {
+      display: block;
+      color: var(--accent);
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+    }
+    .volume-intro-box strong {
+      display: block;
+      margin-top: 0.35rem;
+      color: var(--ink);
+      font-size: 0.95rem;
+      line-height: 1.45;
+    }
+    .volume-intro-note {
+      margin-top: 0.9rem;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+    @media (max-width: 1180px) {
+      .book-app { grid-template-columns: 1fr; }
+      .book-sidebar {
+        position: relative;
+        height: auto;
+        border-right: 0;
+        border-bottom: 1px solid var(--line);
+      }
+      .sidebar-shell { position: static; }
+    }
+    @media (max-width: 900px) {
+      .book-main { padding: 1rem 1rem 1.5rem; }
+      .book-bottom-nav { flex-direction: column; }
+      .volume-intro-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="book-app">
+    <aside class="book-sidebar">
+      <div class="sidebar-shell">
+        <div class="sidebar-brand">
+          <p class="kicker">高超声速飞行器控制教程</p>
+          <h2>第四卷 约束、安全、容错与制导控制一体化</h2>
+          <p>约束与安全</p>
+        </div>
+        <nav class="sidebar-links" aria-label="本卷目录">
+          <a class="sidebar-link" href="./index.html"><span class="sidebar-index">0</span><span class="sidebar-title">卷首页</span></a>
+<a class="sidebar-link" href="./40-hypersonic-flight-constraints.html"><span class="sidebar-index">01</span><span class="sidebar-title">第40章 高超声速飞行约束体系</span></a>
+<a class="sidebar-link active" href="./41-input-saturation-anti-windup.html"><span class="sidebar-index">02</span><span class="sidebar-title">第41章 输入饱和与抗积分饱和控制</span></a>
+<a class="sidebar-link" href="./42-barrier-lyapunov-constrained-tracking.html"><span class="sidebar-index">03</span><span class="sidebar-title">第42章 障碍 Lyapunov 函数与约束跟踪控制</span></a>
+<a class="sidebar-link" href="./43-control-barrier-function-safety-filter.html"><span class="sidebar-index">04</span><span class="sidebar-title">第43章 控制障碍函数与安全滤波</span></a>
+<a class="sidebar-link" href="./44-model-predictive-control.html"><span class="sidebar-index">05</span><span class="sidebar-title">第44章 模型预测控制</span></a>
+<a class="sidebar-link" href="./45-control-allocation-theory.html"><span class="sidebar-index">06</span><span class="sidebar-title">第45章 控制分配理论</span></a>
+<a class="sidebar-link" href="./46-fault-diagnosis-fault-tolerant-control.html"><span class="sidebar-index">07</span><span class="sidebar-title">第46章 故障诊断与容错控制</span></a>
+<a class="sidebar-link" href="./47-guidance-theory-foundations.html"><span class="sidebar-index">08</span><span class="sidebar-title">第47章 制导理论基础</span></a>
+<a class="sidebar-link" href="./48-integrated-guidance-control.html"><span class="sidebar-index">09</span><span class="sidebar-title">第48章 制导控制一体化</span></a>
+<a class="sidebar-link" href="./49-reentry-flight-control.html"><span class="sidebar-index">10</span><span class="sidebar-title">第49章 再入飞行控制</span></a>
+<a class="sidebar-link" href="./50-glide-energy-management-control.html"><span class="sidebar-index">11</span><span class="sidebar-title">第50章 滑翔飞行与能量管理控制</span></a>
+<a class="sidebar-link" href="./51-airbreathing-hypersonic-cruise-control.html"><span class="sidebar-index">12</span><span class="sidebar-title">第51章 吸气式高超声速巡航控制</span></a>
+        </nav>
+      </div>
+    </aside>
+    <main class="book-main">
+      <header class="book-page-header">
+        <div class="page-eyebrow">第4册·章节页02</div>
+        <h1 id="volume4--41-input-saturation-anti-windup">第41章 输入饱和与抗积分饱和控制</h1>
+        <p>本页是章节正文页。左侧目录用于回到本卷其他章节，底部导航用于前后章跳转。</p>
+      </header>
+      <article class="book-article">
+        <h2 id="问题背景">41.1 问题背景</h2>
+<p>第三卷中的许多控制律默认输入可以按公式连续施加。但真实飞行器的舵面、推力、反作用控制系统和控制分配结果都有幅值、速率、死区、回差、延迟和故障限制。输入饱和会直接改变闭环动力学，甚至破坏原本在无约束模型下成立的稳定性证明。</p>
+<p>输入饱和和速率饱和一旦出现，闭环性质就会明显改变。对高超声速飞行器而言，这意味着控制器不能只在理想输出层面成立，还必须面对执行机构边界和内部状态积累。</p>
+<h2 id="饱和模型">41.2 饱和模型</h2>
+<p>最基本的幅值饱和为</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>u</mi><mo>=</mo><mi>sat</mi><mo>&#8289;</mo><mo stretchy="false" form="prefix">(</mo><msub><mi>u</mi><mi>c</mi></msub><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
+u = \operatorname{sat}(u_c)
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>u</mi><mi>c</mi></msub><annotation encoding="application/x-tex">u_c</annotation></semantics></math>
+是控制器命令，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>u</mi><annotation encoding="application/x-tex">u</annotation></semantics></math>
+是实际输入。</p>
+<p>速率饱和可写为</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>u</mi><mo accent="true">̇</mo></mover><mo>=</mo><msub><mi>sat</mi><mo>&#8289;</mo><mi>r</mi></msub><mo stretchy="false" form="prefix">(</mo><msub><mover><mi>u</mi><mo accent="true">̇</mo></mover><mi>c</mi></msub><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
+\dot u = \operatorname{sat}_r(\dot u_c)
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mover><mi>u</mi><mo accent="true">̇</mo></mover><mi>c</mi></msub><annotation encoding="application/x-tex">\dot u_c</annotation></semantics></math>
+是命令变化率，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mover><mi>u</mi><mo accent="true">̇</mo></mover><annotation encoding="application/x-tex">\dot u</annotation></semantics></math>
+是实际变化率，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>sat</mi><mo>&#8289;</mo><mi>r</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>⋅</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\operatorname{sat}_r(\cdot)</annotation></semantics></math>
+表示速率限幅。</p>
+<p>速率饱和比幅值饱和更隐蔽，因为命令没有超出上下界时，执行机构也可能跟不上。</p>
+<h2 id="死区回差和离散执行">41.3 死区、回差和离散执行</h2>
+<p>死区可写为</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>u</mi><mo>=</mo><mrow><mo stretchy="true" form="prefix">{</mo><mtable><mtr><mtd columnalign="left" style="text-align: left"><mn>0</mn><mo>,</mo></mtd><mtd columnalign="left" style="text-align: left"><mo stretchy="false" form="prefix">|</mo><msub><mi>u</mi><mi>c</mi></msub><mo stretchy="false" form="prefix">|</mo><mo>≤</mo><mi mathvariant="normal">Δ</mi><mo>,</mo></mtd></mtr><mtr><mtd columnalign="left" style="text-align: left"><msub><mi>u</mi><mi>c</mi></msub><mo>−</mo><mi mathvariant="normal">Δ</mi><mspace width="0.167em"></mspace><mi>sgn</mi><mo>&#8289;</mo><mo stretchy="false" form="prefix">(</mo><msub><mi>u</mi><mi>c</mi></msub><mo stretchy="false" form="postfix">)</mo><mo>,</mo></mtd><mtd columnalign="left" style="text-align: left"><mo stretchy="false" form="prefix">|</mo><msub><mi>u</mi><mi>c</mi></msub><mo stretchy="false" form="prefix">|</mo><mo>&gt;</mo><mi mathvariant="normal">Δ</mi><mo>,</mo></mtd></mtr></mtable></mrow></mrow><annotation encoding="application/x-tex">
+u =
+\begin{cases}
+0, &amp; |u_c|\le \Delta,\\
+u_c-\Delta\,\operatorname{sgn}(u_c), &amp; |u_c|&gt;\Delta,
+\end{cases}
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi mathvariant="normal">Δ</mi><annotation encoding="application/x-tex">\Delta</annotation></semantics></math>
+是死区宽度，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>sgn</mi><mo>&#8289;</mo><mo stretchy="false" form="prefix">(</mo><mi>⋅</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\operatorname{sgn}(\cdot)</annotation></semantics></math>
+是符号函数。</p>
+<p>这些非线性会使连续控制律的实际效果发生偏差。若教学模型先使用连续近似，应明确说明该近似不能支持燃料消耗、脉冲宽度、开关抖振和热约束结论。</p>
+<h2 id="饱和为什么危险">41.4 饱和为什么危险</h2>
+<p>考虑线性系统</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>x</mi><mo accent="true">̇</mo></mover><mo>=</mo><mi>A</mi><mi>x</mi><mo>+</mo><mi>B</mi><mi>u</mi></mrow><annotation encoding="application/x-tex">
+\dot x = Ax + Bu
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>x</mi><annotation encoding="application/x-tex">x</annotation></semantics></math>
+是状态，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>A</mi><annotation encoding="application/x-tex">A</annotation></semantics></math>
+是系统矩阵，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>B</mi><annotation encoding="application/x-tex">B</annotation></semantics></math>
+是输入矩阵。</p>
+<p>若设计状态反馈</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>u</mi><mi>c</mi></msub><mo>=</mo><mi>−</mi><mi>K</mi><mi>x</mi><mo>+</mo><mi>z</mi></mrow><annotation encoding="application/x-tex">
+u_c = -Kx + z
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>K</mi><annotation encoding="application/x-tex">K</annotation></semantics></math>
+是反馈增益，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>z</mi><annotation encoding="application/x-tex">z</annotation></semantics></math>
+是积分状态，若误差持续存在，则
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>z</mi><annotation encoding="application/x-tex">z</annotation></semantics></math>
+继续积累。实际输入若被饱和为
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>u</mi><mo>=</mo><mi>sat</mi><mo>&#8289;</mo><mo stretchy="false" form="prefix">(</mo><msub><mi>u</mi><mi>c</mi></msub><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">u=\operatorname{sat}(u_c)</annotation></semantics></math>，则积分器看到的命令和真正执行的输入不一致，就会出现积分
+windup。</p>
+<h2 id="积分风up">41.5 积分风up</h2>
+<p>积分器常写为</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>z</mi><mo accent="true">̇</mo></mover><mo>=</mo><mi>e</mi></mrow><annotation encoding="application/x-tex">
+\dot z = e
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>e</mi><mo>=</mo><mi>r</mi><mo>−</mo><mi>y</mi></mrow><annotation encoding="application/x-tex">e=r-y</annotation></semantics></math>
+是跟踪误差，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>r</mi><annotation encoding="application/x-tex">r</annotation></semantics></math>
+是参考，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>y</mi><annotation encoding="application/x-tex">y</annotation></semantics></math>
+是输出。</p>
+<p>当
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>u</mi><mi>c</mi></msub><annotation encoding="application/x-tex">u_c</annotation></semantics></math>
+已经饱和时，继续积分会让
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>z</mi><annotation encoding="application/x-tex">z</annotation></semantics></math>
+越积越大。等误差反向后，系统仍要先“还债”，这会导致大超调和长恢复时间。</p>
+<h2 id="抗积分饱和结构">41.6 抗积分饱和结构</h2>
+<p>常见抗饱和结构包括：</p>
+<ul>
+<li>反算抗饱和；</li>
+<li>条件积分；</li>
+<li>辅助反馈；</li>
+<li>模式切换冻结；</li>
+<li>参考修正。</li>
+</ul>
+<p>其中最简单的一种可写为</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>z</mi><mo accent="true">̇</mo></mover><mo>=</mo><mi>e</mi><mo>+</mo><msub><mi>k</mi><mrow><mi mathvariant="normal">a</mi><mi mathvariant="normal">w</mi></mrow></msub><mo stretchy="false" form="prefix">(</mo><mi>u</mi><mo>−</mo><msub><mi>u</mi><mi>c</mi></msub><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
+\dot z = e + k_{\mathrm{aw}}(u-u_c)
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>k</mi><mrow><mi mathvariant="normal">a</mi><mi mathvariant="normal">w</mi></mrow></msub><annotation encoding="application/x-tex">k_{\mathrm{aw}}</annotation></semantics></math>
+是抗饱和增益，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>u</mi><mo>−</mo><msub><mi>u</mi><mi>c</mi></msub></mrow><annotation encoding="application/x-tex">u-u_c</annotation></semantics></math>
+是饱和误差。</p>
+<h2 id="抗饱和为什么有效">41.7 抗饱和为什么有效</h2>
+<p>抗饱和的基本思想是把饱和误差反馈回积分状态或控制器内部状态，让控制器知道“命令没有真的被执行”。它的优点是容易实现，缺点是切换逻辑需要谨慎设计。</p>
+<h2 id="反算补偿">41.8 反算补偿</h2>
+<p>反算方法使用命令和实际输入差值</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>u</mi><mo>−</mo><msub><mi>u</mi><mi>c</mi></msub></mrow><annotation encoding="application/x-tex">
+u-u_c
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>u</mi><annotation encoding="application/x-tex">u</annotation></semantics></math>
+是实际输入，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>u</mi><mi>c</mi></msub><annotation encoding="application/x-tex">u_c</annotation></semantics></math>
+是未饱和命令。</p>
+<p>若把这个差值反馈到控制器内部，则可减弱
+windup。此时饱和误差不再只是执行机构的“末端现象”，而是控制器状态更新的一部分。</p>
+<h2 id="饱和辅助系统">41.9 饱和辅助系统</h2>
+<p>非线性控制中常引入辅助动态处理饱和误差。设名义控制律为
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>u</mi><mi>c</mi></msub><annotation encoding="application/x-tex">u_c</annotation></semantics></math>，实际输入为饱和后的
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>u</mi><annotation encoding="application/x-tex">u</annotation></semantics></math>，可设计辅助状态
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ξ</mi><annotation encoding="application/x-tex">\xi</annotation></semantics></math>：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>ξ</mi><mo accent="true">̇</mo></mover><mo>=</mo><mi>−</mi><msub><mi>a</mi><mi>ξ</mi></msub><mi>ξ</mi><mo>+</mo><mo stretchy="false" form="prefix">(</mo><mi>u</mi><mo>−</mo><msub><mi>u</mi><mi>c</mi></msub><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
+\dot \xi = -a_\xi \xi + (u-u_c)
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ξ</mi><annotation encoding="application/x-tex">\xi</annotation></semantics></math>
+是辅助状态，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>a</mi><mi>ξ</mi></msub><annotation encoding="application/x-tex">a_\xi</annotation></semantics></math>
+是衰减系数。</p>
+<p>辅助系统的作用，是把输入边界的影响显式写进闭环状态。</p>
+<h2 id="饱和与控制分配">41.10 饱和与控制分配</h2>
+<p>多执行机构系统通常先由主控制器给出期望力矩</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>τ</mi><mi>c</mi></msub><mo>=</mo><mi>G</mi><msub><mi>u</mi><mi>a</mi></msub></mrow><annotation encoding="application/x-tex">
+\tau_c = G u_a
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>τ</mi><mi>c</mi></msub><annotation encoding="application/x-tex">\tau_c</annotation></semantics></math>
+是期望广义力矩，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>G</mi><annotation encoding="application/x-tex">G</annotation></semantics></math>
+是控制效能矩阵，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>u</mi><mi>a</mi></msub><annotation encoding="application/x-tex">u_a</annotation></semantics></math>
+是执行机构命令。</p>
+<p>若控制分配可行，则进一步要求</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>u</mi><mi>min</mi><mo>&#8289;</mo></msub><mo>≤</mo><msub><mi>u</mi><mi>a</mi></msub><mo>≤</mo><msub><mi>u</mi><mi>max</mi><mo>&#8289;</mo></msub></mrow><annotation encoding="application/x-tex">
+u_{\min}\le u_a \le u_{\max}
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>u</mi><mi>min</mi><mo>&#8289;</mo></msub><annotation encoding="application/x-tex">u_{\min}</annotation></semantics></math>
+和
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>u</mi><mi>max</mi><mo>&#8289;</mo></msub><annotation encoding="application/x-tex">u_{\max}</annotation></semantics></math>
+是执行机构边界。</p>
+<p>控制分配不是饱和之后才考虑的补丁，而是与饱和一起设计的可实现性层。</p>
+<h2 id="与高超声速任务的关系">41.11 与高超声速任务的关系</h2>
+<p>高超声速飞行器在高动压段执行机构效能强但结构载荷风险高，在低动压段舵面效能下降更容易饱和。因此，输入饱和是闭环失败的第一触发点之一。</p>
+<h2 id="最小验证协议">41.12 最小验证协议</h2>
+<p>输入饱和与抗积分饱和至少应报告：</p>
+<table>
+<thead>
+<tr>
+<th>类别</th>
+<th>指标</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>饱和</td>
+<td>峰值饱和、饱和持续时间、饱和次数</td>
+</tr>
+<tr>
+<td>速率</td>
+<td>峰值速率、速率受限时间、恢复时间</td>
+</tr>
+<tr>
+<td>积分</td>
+<td>积分状态峰值、windup 时间、恢复时间</td>
+</tr>
+<tr>
+<td>分配</td>
+<td>分配残差、可行性、通道优先级</td>
+</tr>
+<tr>
+<td>安全</td>
+<td>动压、热流、攻角、过载裕度</td>
+</tr>
+</tbody>
+</table>
+<h2 id="本章小结">41.13 本章小结</h2>
+<p>输入饱和会直接改变闭环动力学。抗积分饱和的作用，是让控制器在执行机构边界内仍能保持可用，而不是把饱和当作一个可以忽略的小细节。</p>
+<h2 id="练习">41.14 练习</h2>
+<ol type="1">
+<li>写出幅值饱和和速率饱和的基本形式。</li>
+<li>解释为什么积分风up会破坏闭环性能。</li>
+<li>写出一种抗积分饱和结构。</li>
+<li>说明控制分配为什么和饱和问题直接相关。</li>
+<li>设计一个输入饱和最小验证表。</li>
+</ol>
+
+      </article>
+      
+      <nav class="book-bottom-nav" aria-label="章节导航">
+        <a href="./40-hypersonic-flight-constraints.html">上一章：第40章 高超声速飞行约束体系</a>
+        <a href="./index.html">卷首页</a>
+        <a href="./42-barrier-lyapunov-constrained-tracking.html">下一章：第42章 障碍 Lyapunov 函数与约束跟踪控制</a>
+      </nav>
+    </main>
+  </div>
+</body>
+</html>

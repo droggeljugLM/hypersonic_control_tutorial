@@ -1,0 +1,1822 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>第7章 奇异摄动与多时间尺度系统</title>
+  <style>
+    :root {
+      --paper: #f7f3eb;
+      --ink: #1f2937;
+      --muted: #5b6472;
+      --line: color-mix(in srgb, #e7eef7 68%, #cbd5e1 32%);
+      --accent: #335c81;
+      --accent-soft: #e7eef7;
+      --accent-deep: #1e3d57;
+      color-scheme: light;
+    }
+    html {
+      -webkit-text-size-adjust: 100%;
+      background:
+        radial-gradient(circle at top left, #e7eef7 0, rgba(255,255,255,0) 32%),
+        linear-gradient(180deg, #fbfaf6 0%, var(--paper) 18%, #f7f1e6 100%);
+    }
+    body {
+      margin: 0;
+      font-family: "Source Han Serif SC", "Songti SC", "Noto Serif CJK SC", "Microsoft YaHei", serif;
+      color: var(--ink);
+      line-height: 1.78;
+      letter-spacing: 0;
+    }
+    a { color: var(--accent-deep); }
+    .book-app {
+      display: grid;
+      grid-template-columns: 280px minmax(0, 1fr);
+      min-height: 100vh;
+    }
+    .book-sidebar {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow: auto;
+      padding: 1.2rem 1rem 1.2rem 1.15rem;
+      border-right: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(255,255,255,0.86), rgba(255,255,255,0.72));
+      backdrop-filter: blur(10px);
+    }
+    .sidebar-shell { position: sticky; top: 0; display: flex; flex-direction: column; gap: 1rem; }
+    .sidebar-brand {
+      padding: 0.95rem 0.95rem 1rem;
+      border-radius: 18px;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.95), rgba(255,255,255,0.84)),
+        linear-gradient(135deg, var(--accent-soft), rgba(255,255,255,0));
+      border: 1px solid var(--line);
+      box-shadow: 0 12px 28px rgba(31, 41, 55, 0.06);
+    }
+    .sidebar-brand .kicker { margin: 0; color: var(--accent); font-size: 0.82rem; font-weight: 700; }
+    .sidebar-brand h2 { margin: 0.45rem 0 0.25rem; font-size: 1.08rem; line-height: 1.3; color: var(--ink); }
+    .sidebar-brand p { margin: 0.35rem 0 0; color: var(--muted); font-size: 0.9rem; }
+    .sidebar-links { display: grid; gap: 0.45rem; }
+    .sidebar-link {
+      display: grid;
+      grid-template-columns: 2.2rem minmax(0, 1fr);
+      gap: 0.6rem;
+      align-items: start;
+      padding: 0.7rem 0.75rem;
+      border-radius: 14px;
+      text-decoration: none;
+      background: rgba(255,255,255,0.72);
+      border: 1px solid rgba(31,41,55,0.07);
+      color: var(--ink);
+    }
+    .sidebar-link:hover { background: rgba(255,255,255,0.95); border-color: var(--line); }
+    .sidebar-link.active {
+      background: linear-gradient(135deg, rgba(255,255,255,0.98), rgba(255,255,255,0.9));
+      border-color: var(--accent-soft);
+      box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent-soft) 68%, #ffffff 32%);
+    }
+    .sidebar-index {
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      min-width: 2rem;
+      height: 2rem;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent-deep);
+      font-size: 0.78rem;
+      font-weight: 800;
+    }
+    .sidebar-title { font-size: 0.94rem; line-height: 1.35; }
+    .book-main { min-width: 0; padding: 1.25rem 1.45rem 1.8rem; }
+    .book-page-header {
+      padding: 0.85rem 0 1rem;
+      margin-bottom: 1rem;
+      border-bottom: 1px solid var(--line);
+    }
+    .page-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.28rem 0.72rem;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.82);
+      border: 1px solid var(--line);
+      color: var(--accent-deep);
+      font-size: 0.8rem;
+      font-weight: 700;
+    }
+    .book-page-header h1 {
+      margin: 0.7rem 0 0;
+      font-size: 1.85rem;
+      line-height: 1.22;
+      color: var(--accent-deep);
+      border: 0;
+      padding: 0;
+    }
+    .book-page-header p { margin: 0.45rem 0 0; color: var(--muted); max-width: 62rem; }
+    .book-article { max-width: 900px; margin: 0; padding: 0 0 1.2rem; }
+    .book-article h1, .book-article h2, .book-article h3, .book-article h4, .book-article h5, .book-article h6 {
+      line-height: 1.28;
+      margin-top: 1.45em;
+      margin-bottom: 0.55em;
+      color: var(--accent-deep);
+    }
+    .book-article h1 { font-size: 2rem; border-bottom: 2px solid var(--line); padding-bottom: 0.42rem; }
+    .book-article h1:first-of-type { margin-top: 0; }
+    .book-article h2 { font-size: 1.42rem; }
+    .book-article h3 { font-size: 1.12rem; }
+    .book-article p, .book-article li, .book-article dd, .book-article td, .book-article th { text-align: justify; text-justify: inter-ideograph; }
+    .book-article p { margin: 0.85rem 0; }
+    .book-article code, .book-article pre { font-family: "Cascadia Mono", "Source Code Pro", Consolas, monospace; font-size: 0.94em; }
+    .book-article code {
+      padding: 0.02rem 0.24rem;
+      background: color-mix(in srgb, var(--accent-soft) 34%, #ffffff 66%);
+      border: 0;
+      border-bottom: 1px solid color-mix(in srgb, var(--accent-soft) 74%, #d1d5db 26%);
+      border-radius: 4px;
+      color: #253244;
+      box-decoration-break: clone;
+      -webkit-box-decoration-break: clone;
+    }
+    .book-article pre {
+      padding: 1rem 1.1rem;
+      overflow: auto;
+      background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,253,248,0.98));
+      border: 1px solid color-mix(in srgb, var(--accent-soft) 54%, #d1d5db 46%);
+      border-left: 5px solid var(--accent);
+      border-radius: 14px;
+      box-shadow: 0 8px 22px rgba(31, 41, 55, 0.05);
+    }
+    .book-article pre code { padding: 0; border: 0; background: transparent; color: inherit; }
+    .book-article table {
+      border-collapse: collapse;
+      width: 100%;
+      margin: 1rem 0 1.25rem;
+      background: rgba(255,255,255,0.82);
+      overflow: hidden;
+      border-radius: 12px;
+    }
+    .book-article th, .book-article td { border: 1px solid var(--line); padding: 0.5rem 0.7rem; vertical-align: top; }
+    .book-article th { background: color-mix(in srgb, var(--accent-soft) 42%, #ffffff 58%); }
+    .book-article blockquote {
+      margin: 1rem 0;
+      padding: 0.25rem 0 0.25rem 1rem;
+      border-left: 4px solid var(--accent);
+      color: #374151;
+      background: linear-gradient(90deg, rgba(255,255,255,0.72), rgba(255,255,255,0.48));
+      border-radius: 0 12px 12px 0;
+    }
+    .book-bottom-nav {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-top: 2.2rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--line);
+    }
+    .book-bottom-nav a {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.6rem 0.9rem;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.84);
+      text-decoration: none;
+      font-weight: 700;
+    }
+    .book-bottom-nav span {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.6rem 0.9rem;
+      border-radius: 999px;
+      border: 1px solid rgba(31,41,55,0.08);
+      background: rgba(255,255,255,0.54);
+      color: rgba(31,41,55,0.42);
+      font-weight: 700;
+    }
+    .book-bottom-nav a:hover { background: rgba(255,255,255,0.98); }
+    .book-volume-intro {
+      margin: 0 0 1.25rem;
+      padding: 1.2rem 1.25rem 1.1rem;
+      border-radius: 18px;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.96), rgba(255,255,255,0.78)),
+        linear-gradient(135deg, var(--accent-soft), rgba(255,255,255,0));
+      border: 1px solid var(--line);
+      box-shadow: 0 14px 34px rgba(31, 41, 55, 0.06);
+    }
+    .volume-intro-kicker {
+      margin: 0;
+      color: var(--accent);
+      font-size: 0.84rem;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    .book-volume-intro h2 {
+      margin: 0.55rem 0 0.55rem;
+      font-size: 1.28rem;
+      line-height: 1.35;
+      color: var(--accent-deep);
+    }
+    .volume-intro-summary {
+      margin: 0;
+      color: var(--muted);
+      max-width: 68rem;
+    }
+    .volume-intro-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.8rem;
+      margin-top: 1rem;
+    }
+    .volume-intro-box {
+      padding: 0.85rem 0.9rem;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.72);
+      border: 1px solid rgba(31,41,55,0.08);
+    }
+    .volume-intro-box span {
+      display: block;
+      color: var(--accent);
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+    }
+    .volume-intro-box strong {
+      display: block;
+      margin-top: 0.35rem;
+      color: var(--ink);
+      font-size: 0.95rem;
+      line-height: 1.45;
+    }
+    .volume-intro-note {
+      margin-top: 0.9rem;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+    @media (max-width: 1180px) {
+      .book-app { grid-template-columns: 1fr; }
+      .book-sidebar {
+        position: relative;
+        height: auto;
+        border-right: 0;
+        border-bottom: 1px solid var(--line);
+      }
+      .sidebar-shell { position: static; }
+    }
+    @media (max-width: 900px) {
+      .book-main { padding: 1rem 1rem 1.5rem; }
+      .book-bottom-nav { flex-direction: column; }
+      .volume-intro-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="book-app">
+    <aside class="book-sidebar">
+      <div class="sidebar-shell">
+        <div class="sidebar-brand">
+          <p class="kicker">高超声速飞行器控制教程</p>
+          <h2>第一卷 数学基础与控制理论基础</h2>
+          <p>控制理论地基</p>
+        </div>
+        <nav class="sidebar-links" aria-label="本卷目录">
+          <a class="sidebar-link" href="./index.html"><span class="sidebar-index">0</span><span class="sidebar-title">卷首页</span></a>
+<a class="sidebar-link" href="./01-hypersonic-control-problem-intro.html"><span class="sidebar-index">01</span><span class="sidebar-title">第1章 高超声速飞行器控制问题导论</span></a>
+<a class="sidebar-link" href="./02-dynamical-systems-state-space.html"><span class="sidebar-index">02</span><span class="sidebar-title">第2章 动力系统与状态空间方法</span></a>
+<a class="sidebar-link" href="./03-linear-systems-theory.html"><span class="sidebar-index">03</span><span class="sidebar-title">第3章 线性系统理论</span></a>
+<a class="sidebar-link" href="./04-nonlinear-systems-theory.html"><span class="sidebar-index">04</span><span class="sidebar-title">第4章 非线性系统理论</span></a>
+<a class="sidebar-link" href="./05-lyapunov-stability-theory.html"><span class="sidebar-index">05</span><span class="sidebar-title">第5章 Lyapunov 稳定性理论</span></a>
+<a class="sidebar-link" href="./06-input-output-small-gain.html"><span class="sidebar-index">06</span><span class="sidebar-title">第6章 输入输出稳定性与小增益理论</span></a>
+<a class="sidebar-link active" href="./07-singular-perturbation-multitime-scale.html"><span class="sidebar-index">07</span><span class="sidebar-title">第7章 奇异摄动与多时间尺度系统</span></a>
+<a class="sidebar-link" href="./08-optimal-control-theory.html"><span class="sidebar-index">08</span><span class="sidebar-title">第8章 最优控制理论</span></a>
+<a class="sidebar-link" href="./09-robust-control-theory.html"><span class="sidebar-index">09</span><span class="sidebar-title">第9章 鲁棒控制理论</span></a>
+<a class="sidebar-link" href="./10-adaptive-control-theory.html"><span class="sidebar-index">10</span><span class="sidebar-title">第10章 自适应控制理论</span></a>
+<a class="sidebar-link" href="./11-stochastic-filtering-estimation.html"><span class="sidebar-index">11</span><span class="sidebar-title">第11章 随机系统、滤波与状态估计</span></a>
+<a class="sidebar-link" href="./12-constrained-safety-control-foundations.html"><span class="sidebar-index">12</span><span class="sidebar-title">第12章 约束系统与安全控制基础</span></a>
+<a class="sidebar-link" href="./13-numerical-convex-optimization.html"><span class="sidebar-index">13</span><span class="sidebar-title">第13章 数值优化与凸优化基础</span></a>
+<a class="sidebar-link" href="./13-hybrid-sampled-control.html"><span class="sidebar-index">14</span><span class="sidebar-title">混杂系统与采样控制专题</span></a>
+        </nav>
+      </div>
+    </aside>
+    <main class="book-main">
+      <header class="book-page-header">
+        <div class="page-eyebrow">第1册·章节页07</div>
+        <h1 id="volume1--07-singular-perturbation-multitime-scale">第7章 奇异摄动与多时间尺度系统</h1>
+        <p>本页是章节正文页。左侧目录用于回到本卷其他章节，底部导航用于前后章跳转。</p>
+      </header>
+      <article class="book-article">
+        <h2 id="问题背景">7.1 问题背景</h2>
+<p>高超声速飞行器控制经常采用分层结构：</p>
+<ul>
+<li><strong>制导层</strong>：轨迹或加速度命令；姿态参考；角速度或力矩命令；执行机构；飞行器动力学</li>
+</ul>
+<p>这种结构背后有一个关键假设：内环足够快，外环可以把内环近似看成已经实现命令。</p>
+<p>奇异摄动和多时间尺度理论就是用来分析这个假设什么时候成立、什么时候失效。没有这部分理论，制导控制分离、姿态内外环、执行机构动态忽略、观测器-控制器互联等做法都只是经验。</p>
+<p>本章的核心模型为：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>x</mi><mo accent="true">̇</mo></mover><mo>=</mo><mi>f</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>z</mi><mo>,</mo><mi>u</mi><mo>,</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo>,</mo></mrow><annotation encoding="application/x-tex">
+\dot{x}=f(x,z,u,t),
+</annotation></semantics></math></p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ϵ</mi><mover><mi>z</mi><mo accent="true">̇</mo></mover><mo>=</mo><mi>g</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>z</mi><mo>,</mo><mi>u</mi><mo>,</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo>,</mo><mspace width="2.0em"></mspace><mn>0</mn><mo>&lt;</mo><mi>ϵ</mi><mo>≪</mo><mn>1</mn><mi>.</mi></mrow><annotation encoding="application/x-tex">
+\epsilon\dot{z}=g(x,z,u,t),\qquad 0&lt;\epsilon\ll 1.
+</annotation></semantics></math></p>
+<p>其中
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>x</mi><annotation encoding="application/x-tex">x</annotation></semantics></math>
+是慢变量，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>z</mi><annotation encoding="application/x-tex">z</annotation></semantics></math>
+是快变量，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ϵ</mi><annotation encoding="application/x-tex">\epsilon</annotation></semantics></math>
+表示时间尺度分离程度。</p>
+<p>本章不把”内外环分离”当作经验规则，而是把它拆成三个可检查问题：</p>
+<ol type="1">
+<li>快子系统是否真的比慢子系统快；</li>
+<li>快子系统收敛后的准稳态是否能支撑慢系统稳定；</li>
+<li>饱和、限速、采样、延迟和模式切换是否破坏了上述结论。</li>
+</ol>
+<h2 id="快变量和慢变量">7.2 快变量和慢变量</h2>
+<p>在高超声速控制中，可能的慢变量包括：</p>
+<ul>
+<li>位置；</li>
+<li>高度；</li>
+<li>速度；</li>
+<li>航迹角；</li>
+<li>能量；</li>
+<li>终端相对距离。</li>
+</ul>
+<p>可能的快变量包括：</p>
+<ul>
+<li>姿态角；</li>
+<li>角速度；</li>
+<li>执行机构状态；</li>
+<li>某些估计器状态；</li>
+<li>控制分配内部动态。</li>
+</ul>
+<p>但”快”和”慢”不是绝对概念，而是相对控制目标而言。例如角速度相对制导层可能是快变量，但相对执行机构电机电流可能是慢变量。</p>
+<p>典型的级联飞控假设是：</p>
+<ul>
+<li><strong>执行机构最快</strong>：角速度环较快；姿态环中等；航迹/速度/高度外环较慢；任务管理和制导更慢</li>
+</ul>
+<p>高超声速飞行器中，这一假设并不总成立。高动压、大攻角、执行机构饱和、弹性模态和传感延迟都可能破坏时间尺度分离。</p>
+<h3 id="时间常数和带宽的粗略判断">时间常数和带宽的粗略判断</h3>
+<p>工程上常用时间常数或带宽做第一轮判断。若外环主要响应时间为
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>T</mi><mi>g</mi></msub><annotation encoding="application/x-tex">T_g</annotation></semantics></math>，内环主要响应时间为
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>T</mi><mi>c</mi></msub><annotation encoding="application/x-tex">T_c</annotation></semantics></math>，执行机构响应时间为
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>T</mi><mi>a</mi></msub><annotation encoding="application/x-tex">T_a</annotation></semantics></math>，通常希望：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mi>a</mi></msub><mo>≪</mo><msub><mi>T</mi><mi>c</mi></msub><mo>≪</mo><msub><mi>T</mi><mi>g</mi></msub><mi>.</mi></mrow><annotation encoding="application/x-tex">
+T_a\ll T_c\ll T_g.
+</annotation></semantics></math></p>
+<p>等价地，若用闭环带宽
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ω</mi><mi>a</mi></msub><mo>,</mo><msub><mi>ω</mi><mi>c</mi></msub><mo>,</mo><msub><mi>ω</mi><mi>g</mi></msub></mrow><annotation encoding="application/x-tex">\omega_a,\omega_c,\omega_g</annotation></semantics></math>
+表示，则希望：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ω</mi><mi>a</mi></msub><mo>≫</mo><msub><mi>ω</mi><mi>c</mi></msub><mo>≫</mo><msub><mi>ω</mi><mi>g</mi></msub><mi>.</mi></mrow><annotation encoding="application/x-tex">
+\omega_a\gg \omega_c\gg \omega_g.
+</annotation></semantics></math></p>
+<p>这不是严格定理，但它能作为仿真前的快速检查。若制导层每 0.1 s
+改变一次期望过载，而姿态内环需要 2 s
+才能把姿态误差压下去，就不应假设”姿态已经实现命令”。</p>
+<h2 id="标准奇异摄动形式">7.3 标准奇异摄动形式</h2>
+<p>考虑系统：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>x</mi><mo accent="true">̇</mo></mover><mo>=</mo><mi>f</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>z</mi><mo>,</mo><mi>t</mi><mo>,</mo><mi>ϵ</mi><mo stretchy="false" form="postfix">)</mo><mo>,</mo></mrow><annotation encoding="application/x-tex">
+\dot{x}=f(x,z,t,\epsilon),
+</annotation></semantics></math></p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ϵ</mi><mover><mi>z</mi><mo accent="true">̇</mo></mover><mo>=</mo><mi>g</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>z</mi><mo>,</mo><mi>t</mi><mo>,</mo><mi>ϵ</mi><mo stretchy="false" form="postfix">)</mo><mi>.</mi></mrow><annotation encoding="application/x-tex">
+\epsilon\dot{z}=g(x,z,t,\epsilon).
+</annotation></semantics></math></p>
+<p>令
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ϵ</mi><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\epsilon=0</annotation></semantics></math>，得到代数方程：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0</mn><mo>=</mo><mi>g</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>z</mi><mo>,</mo><mi>t</mi><mo>,</mo><mn>0</mn><mo stretchy="false" form="postfix">)</mo><mi>.</mi></mrow><annotation encoding="application/x-tex">
+0=g(x,z,t,0).
+</annotation></semantics></math></p>
+<p>若可解出：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>z</mi><mo>=</mo><mover><mi>z</mi><mo accent="true">‾</mo></mover><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo>,</mo></mrow><annotation encoding="application/x-tex">
+z=\bar{z}(x,t),
+</annotation></semantics></math></p>
+<p>则慢子系统为：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>x</mi><mo accent="true">̇</mo></mover><mo>=</mo><mi>f</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo>,</mo><mover><mi>z</mi><mo accent="true">‾</mo></mover><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo>,</mo><mi>t</mi><mo>,</mo><mn>0</mn><mo stretchy="false" form="postfix">)</mo><mi>.</mi></mrow><annotation encoding="application/x-tex">
+\dot{x}=f(x,\bar{z}(x,t),t,0).
+</annotation></semantics></math></p>
+<p>为了分析快变量，定义快时间：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>τ</mi><mo>=</mo><mfrac><mrow><mi>t</mi><mo>−</mo><msub><mi>t</mi><mn>0</mn></msub></mrow><mi>ϵ</mi></mfrac><mi>.</mi></mrow><annotation encoding="application/x-tex">
+\tau=\frac{t-t_0}{\epsilon}.
+</annotation></semantics></math></p>
+<p>边界层系统通常写为：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mfrac><mrow><mi>d</mi><mi>z</mi></mrow><mrow><mi>d</mi><mi>τ</mi></mrow></mfrac><mo>=</mo><mi>g</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>z</mi><mo>,</mo><mi>t</mi><mo>,</mo><mn>0</mn><mo stretchy="false" form="postfix">)</mo><mo>,</mo></mrow><annotation encoding="application/x-tex">
+\frac{dz}{d\tau}=g(x,z,t,0),
+</annotation></semantics></math></p>
+<p>其中
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>x</mi><annotation encoding="application/x-tex">x</annotation></semantics></math>
+和
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>t</mi><annotation encoding="application/x-tex">t</annotation></semantics></math>
+在快时间尺度上近似冻结。</p>
+<p>奇异摄动理论的直观含义是：如果慢子系统稳定，边界层系统也稳定，并且两者耦合足够光滑，则原系统在足够小
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ϵ</mi><annotation encoding="application/x-tex">\epsilon</annotation></semantics></math>
+下保持稳定。</p>
+<h3 id="初始层和组合近似">初始层和组合近似</h3>
+<p>快变量通常会先经历一个很短的初始层。若初始值
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>z</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>t</mi><mn>0</mn></msub><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">z(t_0)</annotation></semantics></math>
+不等于准稳态
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>z</mi><mo accent="true">‾</mo></mover><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>t</mi><mn>0</mn></msub><mo stretchy="false" form="postfix">)</mo><mo>,</mo><msub><mi>t</mi><mn>0</mn></msub><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\bar{z}(x(t_0),t_0)</annotation></semantics></math>，则在快时间
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>τ</mi><annotation encoding="application/x-tex">\tau</annotation></semantics></math>
+上，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>z</mi><annotation encoding="application/x-tex">z</annotation></semantics></math>
+会先快速靠近准稳态。慢变量
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>x</mi><annotation encoding="application/x-tex">x</annotation></semantics></math>
+在这段时间里变化较小。</p>
+<p>因此原系统解常被近似为：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>x</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo>,</mo><mi>ϵ</mi><mo stretchy="false" form="postfix">)</mo><mo>≈</mo><msub><mi>x</mi><mn>0</mn></msub><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo>,</mo></mrow><annotation encoding="application/x-tex">
+x(t,\epsilon)\approx x_0(t),
+</annotation></semantics></math></p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>z</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo>,</mo><mi>ϵ</mi><mo stretchy="false" form="postfix">)</mo><mo>≈</mo><mover><mi>z</mi><mo accent="true">‾</mo></mover><mo stretchy="false" form="prefix">(</mo><msub><mi>x</mi><mn>0</mn></msub><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo>,</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo>+</mo><msub><mi>z</mi><mi>b</mi></msub><mspace width="-0.167em"></mspace><mrow><mo stretchy="true" form="prefix">(</mo><mfrac><mrow><mi>t</mi><mo>−</mo><msub><mi>t</mi><mn>0</mn></msub></mrow><mi>ϵ</mi></mfrac><mo stretchy="true" form="postfix">)</mo></mrow><mo>,</mo></mrow><annotation encoding="application/x-tex">
+z(t,\epsilon)\approx \bar{z}(x_0(t),t)+z_b\!\left(\frac{t-t_0}{\epsilon}\right),
+</annotation></semantics></math></p>
+<p>其中
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>x</mi><mn>0</mn></msub><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">x_0(t)</annotation></semantics></math>
+是降阶慢系统解，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>z</mi><mi>b</mi></msub><annotation encoding="application/x-tex">z_b</annotation></semantics></math>
+是边界层修正项。这个组合近似提醒我们：即使长期行为稳定，初始阶段也可能出现姿态角速度峰值、舵面峰值或安全裕度下降。高超声速飞行器的初始层不能只在数学上忽略，因为短时峰值可能已经触发热流、过载或执行机构约束。</p>
+<h2 id="tikhonov-定理的控制含义">7.4 Tikhonov 定理的控制含义</h2>
+<p>Tikhonov
+定理给出了慢快分解成立的典型条件。对控制教程而言，不必一开始追求最一般形式，但必须理解它的工程含义：</p>
+<ol type="1">
+<li>快子系统必须能快速收敛到准稳态
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>z</mi><mo accent="true">‾</mo></mover><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\bar{z}(x,t)</annotation></semantics></math>；</li>
+<li>慢子系统在快变量准稳态下必须稳定；</li>
+<li>初始快变量偏差不能把系统推出有效区域；</li>
+<li>时间尺度分离参数
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ϵ</mi><annotation encoding="application/x-tex">\epsilon</annotation></semantics></math>
+必须足够小；</li>
+<li>饱和、限速、延迟和模式切换可能破坏这些条件。</li>
+</ol>
+<p>在高超声速飞行器中，若姿态内环不能足够快地跟踪制导层给出的姿态参考，则制导层基于”姿态命令已实现”的假设就会失效。此时即使制导律在质点模型中表现良好，真实闭环也可能终端误差增大、攻角超限或舵面饱和。</p>
+<h3 id="更可核查的定理口径">更可核查的定理口径</h3>
+<p>对下面的系统：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>x</mi><mo accent="true">̇</mo></mover><mo>=</mo><mi>f</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>z</mi><mo>,</mo><mi>ϵ</mi><mo stretchy="false" form="postfix">)</mo><mo>,</mo><mspace width="2.0em"></mspace><mi>ϵ</mi><mover><mi>z</mi><mo accent="true">̇</mo></mover><mo>=</mo><mi>g</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>z</mi><mo>,</mo><mi>ϵ</mi><mo stretchy="false" form="postfix">)</mo><mo>,</mo></mrow><annotation encoding="application/x-tex">
+\dot{x}=f(x,z,\epsilon),\qquad
+\epsilon\dot{z}=g(x,z,\epsilon),
+</annotation></semantics></math></p>
+<p>若存在准稳态
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>z</mi><mo>=</mo><mover><mi>z</mi><mo accent="true">‾</mo></mover><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">z=\bar{z}(x)</annotation></semantics></math>，并且：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>g</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo>,</mo><mover><mi>z</mi><mo accent="true">‾</mo></mover><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo>,</mo><mn>0</mn><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mn>0</mn><mo>,</mo></mrow><annotation encoding="application/x-tex">
+g(x,\bar{z}(x),0)=0,
+</annotation></semantics></math></p>
+<p>降阶慢系统：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>x</mi><mo accent="true">̇</mo></mover><mo>=</mo><mi>f</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo>,</mo><mover><mi>z</mi><mo accent="true">‾</mo></mover><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo>,</mo><mn>0</mn><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
+\dot{x}=f(x,\bar{z}(x),0)
+</annotation></semantics></math></p>
+<p>在研究区域内稳定，边界层系统：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mfrac><mrow><mi>d</mi><mi>η</mi></mrow><mrow><mi>d</mi><mi>τ</mi></mrow></mfrac><mo>=</mo><mi>g</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>η</mi><mo>+</mo><mover><mi>z</mi><mo accent="true">‾</mo></mover><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo>,</mo><mn>0</mn><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
+\frac{d\eta}{d\tau}=g(x,\eta+\bar{z}(x),0)
+</annotation></semantics></math></p>
+<p>对冻结的
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>x</mi><annotation encoding="application/x-tex">x</annotation></semantics></math>
+一致渐近稳定，同时
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mo>,</mo><mi>g</mi><mo>,</mo><mover><mi>z</mi><mo accent="true">‾</mo></mover></mrow><annotation encoding="application/x-tex">f,g,\bar{z}</annotation></semantics></math>
+足够光滑，则当
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ϵ</mi><annotation encoding="application/x-tex">\epsilon</annotation></semantics></math>
+足够小时，原系统解在有限时间区间上接近降阶解和边界层解的组合。若还满足更强的稳定和有界条件，可进一步得到长期稳定结论。</p>
+<p>写作时应注意两个边界：</p>
+<ul>
+<li>“<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ϵ</mi><annotation encoding="application/x-tex">\epsilon</annotation></semantics></math>
+足够小”不是自动成立，必须由带宽、时间常数或仿真指标支撑；</li>
+<li>“研究区域内稳定”不是全飞行包线稳定，必须说明
+Mach、高度、攻角、舵偏、热流和气动数据范围。</li>
+</ul>
+<h2 id="一个可算例子慢速高度和快速姿态">7.5
+一个可算例子：慢速高度和快速姿态</h2>
+<p>考虑一个极简外环-内环模型：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mover><mi>e</mi><mo accent="true">̇</mo></mover><mi>h</mi></msub><mo>=</mo><mi>−</mi><mi>a</mi><msub><mi>e</mi><mi>h</mi></msub><mo>+</mo><mi>b</mi><msub><mi>e</mi><mi>θ</mi></msub><mo>,</mo></mrow><annotation encoding="application/x-tex">
+\dot{e}_h=-a e_h+b e_\theta,
+</annotation></semantics></math></p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ϵ</mi><msub><mover><mi>e</mi><mo accent="true">̇</mo></mover><mi>θ</mi></msub><mo>=</mo><mi>−</mi><msub><mi>e</mi><mi>θ</mi></msub><mo>+</mo><mi>k</mi><msub><mi>e</mi><mi>h</mi></msub><mo>,</mo></mrow><annotation encoding="application/x-tex">
+\epsilon\dot{e}_\theta=-e_\theta+k e_h,
+</annotation></semantics></math></p>
+<p>其中
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>e</mi><mi>h</mi></msub><annotation encoding="application/x-tex">e_h</annotation></semantics></math>
+是高度误差，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>e</mi><mi>θ</mi></msub><annotation encoding="application/x-tex">e_\theta</annotation></semantics></math>
+是姿态或航迹实现误差，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0</mn><mo>&lt;</mo><mi>ϵ</mi><mo>≪</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">0&lt;\epsilon\ll 1</annotation></semantics></math>
+表示姿态内环相对高度外环更快。令
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ϵ</mi><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\epsilon=0</annotation></semantics></math>，得到准稳态：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>e</mi><mi>θ</mi></msub><mo>=</mo><mi>k</mi><msub><mi>e</mi><mi>h</mi></msub><mi>.</mi></mrow><annotation encoding="application/x-tex">
+e_\theta=k e_h.
+</annotation></semantics></math></p>
+<p>降阶慢系统为：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mover><mi>e</mi><mo accent="true">̇</mo></mover><mi>h</mi></msub><mo>=</mo><mi>−</mi><mo stretchy="false" form="prefix">(</mo><mi>a</mi><mo>−</mo><mi>b</mi><mi>k</mi><mo stretchy="false" form="postfix">)</mo><msub><mi>e</mi><mi>h</mi></msub><mi>.</mi></mrow><annotation encoding="application/x-tex">
+\dot{e}_h=-(a-bk)e_h.
+</annotation></semantics></math></p>
+<p>因此需要：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>a</mi><mo>−</mo><mi>b</mi><mi>k</mi><mo>&gt;</mo><mn>0</mn><mi>.</mi></mrow><annotation encoding="application/x-tex">
+a-bk&gt;0.
+</annotation></semantics></math></p>
+<p>边界层变量取：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>η</mi><mo>=</mo><msub><mi>e</mi><mi>θ</mi></msub><mo>−</mo><mi>k</mi><msub><mi>e</mi><mi>h</mi></msub><mi>.</mi></mrow><annotation encoding="application/x-tex">
+\eta=e_\theta-k e_h.
+</annotation></semantics></math></p>
+<p>在快时间尺度上，近似有：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mfrac><mrow><mi>d</mi><mi>η</mi></mrow><mrow><mi>d</mi><mi>τ</mi></mrow></mfrac><mo>=</mo><mi>−</mi><mi>η</mi><mo>,</mo></mrow><annotation encoding="application/x-tex">
+\frac{d\eta}{d\tau}=-\eta,
+</annotation></semantics></math></p>
+<p>边界层稳定。于是，当
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ϵ</mi><annotation encoding="application/x-tex">\epsilon</annotation></semantics></math>
+足够小时，整体系统保持慢系统和快系统组合意义下的稳定。</p>
+<p>这个例子有三个教学含义：</p>
+<ul>
+<li>外环参数
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>a</mi><mo>,</mo><mi>b</mi><mo>,</mo><mi>k</mi></mrow><annotation encoding="application/x-tex">a,b,k</annotation></semantics></math>
+必须让降阶慢系统稳定；</li>
+<li>内环快只是必要条件之一，不能补救错误的外环符号或错误的姿态命令方向；</li>
+<li>若
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ϵ</mi><annotation encoding="application/x-tex">\epsilon</annotation></semantics></math>
+不小，实际
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>e</mi><mi>θ</mi></msub><annotation encoding="application/x-tex">e_\theta</annotation></semantics></math>
+滞后会进入高度误差动态，跟踪性能会下降。</li>
+</ul>
+<h3 id="从带宽比估计小参数">7.5.1 从带宽比估计小参数</h3>
+<p>在论文和仿真中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ϵ</mi><annotation encoding="application/x-tex">\epsilon</annotation></semantics></math>
+不应只是符号。可以用时间常数或带宽给出一个工程估计。设外环速度/高度通道闭环带宽为
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ω</mi><mi>g</mi></msub><annotation encoding="application/x-tex">\omega_g</annotation></semantics></math>，姿态内环带宽为
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ω</mi><mi>c</mi></msub><annotation encoding="application/x-tex">\omega_c</annotation></semantics></math>，执行机构带宽为
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ω</mi><mi>a</mi></msub><annotation encoding="application/x-tex">\omega_a</annotation></semantics></math>。若把外环作为慢系统、姿态内环作为快系统，可定义：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ϵ</mi><mi>c</mi></msub><mo>=</mo><mfrac><msub><mi>ω</mi><mi>g</mi></msub><msub><mi>ω</mi><mi>c</mi></msub></mfrac><mi>.</mi></mrow><annotation encoding="application/x-tex">
+\epsilon_c=\frac{\omega_g}{\omega_c}.
+</annotation></semantics></math></p>
+<p>若还把执行机构作为更快子系统，可定义：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ϵ</mi><mi>a</mi></msub><mo>=</mo><mfrac><msub><mi>ω</mi><mi>c</mi></msub><msub><mi>ω</mi><mi>a</mi></msub></mfrac><mi>.</mi></mrow><annotation encoding="application/x-tex">
+\epsilon_a=\frac{\omega_c}{\omega_a}.
+</annotation></semantics></math></p>
+<p>通常希望：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ϵ</mi><mi>c</mi></msub><mo>≪</mo><mn>1</mn><mo>,</mo><mspace width="2.0em"></mspace><msub><mi>ϵ</mi><mi>a</mi></msub><mo>≪</mo><mn>1</mn><mi>.</mi></mrow><annotation encoding="application/x-tex">
+\epsilon_c\ll1,\qquad \epsilon_a\ll1.
+</annotation></semantics></math></p>
+<p>例如速度/高度外环带宽为
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0.3</mn><mspace width="0.167em"></mspace><mrow><mi mathvariant="normal">r</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">d</mi><mi mathvariant="normal">/</mi><mi mathvariant="normal">s</mi></mrow></mrow><annotation encoding="application/x-tex">0.3\,\mathrm{rad/s}</annotation></semantics></math>，姿态内环带宽为
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>3</mn><mspace width="0.167em"></mspace><mrow><mi mathvariant="normal">r</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">d</mi><mi mathvariant="normal">/</mi><mi mathvariant="normal">s</mi></mrow></mrow><annotation encoding="application/x-tex">3\,\mathrm{rad/s}</annotation></semantics></math>，执行机构带宽为
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>18</mn><mspace width="0.167em"></mspace><mrow><mi mathvariant="normal">r</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">d</mi><mi mathvariant="normal">/</mi><mi mathvariant="normal">s</mi></mrow></mrow><annotation encoding="application/x-tex">18\,\mathrm{rad/s}</annotation></semantics></math>，则：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ϵ</mi><mi>c</mi></msub><mo>=</mo><mn>0.1</mn><mo>,</mo><mspace width="2.0em"></mspace><msub><mi>ϵ</mi><mi>a</mi></msub><mo>=</mo><mfrac><mn>1</mn><mn>6</mn></mfrac><mi>.</mi></mrow><annotation encoding="application/x-tex">
+\epsilon_c=0.1,\qquad \epsilon_a=\frac{1}{6}.
+</annotation></semantics></math></p>
+<p>这只说明分层设计具有初步合理性，还不能替代闭环验证。若高动压导致舵面效率下降，姿态内环有效带宽可能从
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>3</mn><mspace width="0.167em"></mspace><mrow><mi mathvariant="normal">r</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">d</mi><mi mathvariant="normal">/</mi><mi mathvariant="normal">s</mi></mrow></mrow><annotation encoding="application/x-tex">3\,\mathrm{rad/s}</annotation></semantics></math>
+降到
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1.2</mn><mspace width="0.167em"></mspace><mrow><mi mathvariant="normal">r</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">d</mi><mi mathvariant="normal">/</mi><mi mathvariant="normal">s</mi></mrow></mrow><annotation encoding="application/x-tex">1.2\,\mathrm{rad/s}</annotation></semantics></math>，则：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ϵ</mi><mi>c</mi></msub><mo>=</mo><mfrac><mn>0.3</mn><mn>1.2</mn></mfrac><mo>=</mo><mn>0.25</mn><mi>.</mi></mrow><annotation encoding="application/x-tex">
+\epsilon_c=\frac{0.3}{1.2}=0.25.
+</annotation></semantics></math></p>
+<p>此时外环仍按”内环很快”设计就会变得危险。外环命令变化率、姿态误差、舵面速率和动压裕度都应重新检查。</p>
+<h3 id="带宽比输入效能和动压闭环">7.5.2 带宽比、输入效能和动压闭环</h3>
+<p>动压约束在多时间尺度系统中至少有两种闭环位置。</p>
+<p>第一，它可以通过参考治理或安全滤波改变慢变量参考：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>r</mi><mi>m</mi></msub><mo>=</mo><msub><mi mathvariant="normal">Π</mi><msub><mi>ℛ</mi><mi>q</mi></msub></msub><mo stretchy="false" form="prefix">(</mo><mi>r</mi><mo>,</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo>,</mo></mrow><annotation encoding="application/x-tex">
+r_m=\Pi_{\mathcal{R}_q}(r,x),
+</annotation></semantics></math></p>
+<p>使外环不再追踪原始不可行参考，而是追踪动压裕度允许的可执行参考。</p>
+<p>第二，它可以通过输入效能影响快子系统：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>u</mi><mrow><mi mathvariant="normal">e</mi><mi mathvariant="normal">f</mi><mi mathvariant="normal">f</mi></mrow></msub><mo>=</mo><msub><mi>η</mi><mi>q</mi></msub><mo stretchy="false" form="prefix">(</mo><mover><mi>q</mi><mo accent="true">‾</mo></mover><mo stretchy="false" form="postfix">)</mo><mi>u</mi><mo>,</mo><mspace width="2.0em"></mspace><mn>0</mn><mo>&lt;</mo><msub><mi>η</mi><mi>min</mi><mo>&#8289;</mo></msub><mo>≤</mo><msub><mi>η</mi><mi>q</mi></msub><mo stretchy="false" form="prefix">(</mo><mover><mi>q</mi><mo accent="true">‾</mo></mover><mo stretchy="false" form="postfix">)</mo><mo>≤</mo><mn>1</mn><mi>.</mi></mrow><annotation encoding="application/x-tex">
+u_{\mathrm{eff}}=\eta_q(\bar{q})u,\qquad 0&lt;\eta_{\min}\le\eta_q(\bar{q})\le1.
+</annotation></semantics></math></p>
+<p>当
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mover><mi>q</mi><mo accent="true">‾</mo></mover><annotation encoding="application/x-tex">\bar{q}</annotation></semantics></math>
+接近约束边界时，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>η</mi><mi>q</mi></msub><mo stretchy="false" form="prefix">(</mo><mover><mi>q</mi><mo accent="true">‾</mo></mover><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\eta_q(\bar{q})</annotation></semantics></math>
+下降，相当于姿态内环或执行机构通道变慢、变弱。于是时间尺度分离条件不再只由标称带宽决定，而要由有效带宽决定：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ω</mi><mrow><mi>c</mi><mo>,</mo><mrow><mi mathvariant="normal">e</mi><mi mathvariant="normal">f</mi><mi mathvariant="normal">f</mi></mrow></mrow></msub><mo>≈</mo><msub><mi>η</mi><mi>q</mi></msub><mo stretchy="false" form="prefix">(</mo><mover><mi>q</mi><mo accent="true">‾</mo></mover><mo stretchy="false" form="postfix">)</mo><msub><mi>ω</mi><mi>c</mi></msub><mi>.</mi></mrow><annotation encoding="application/x-tex">
+\omega_{c,\mathrm{eff}}\approx \eta_q(\bar{q})\omega_c.
+</annotation></semantics></math></p>
+<p>若
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>η</mi><mi>q</mi></msub><mo>=</mo><mn>0.6</mn></mrow><annotation encoding="application/x-tex">\eta_q=0.6</annotation></semantics></math>，标称
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ω</mi><mi>c</mi></msub><mo>=</mo><mn>3</mn><mspace width="0.167em"></mspace><mrow><mi mathvariant="normal">r</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">d</mi><mi mathvariant="normal">/</mi><mi mathvariant="normal">s</mi></mrow></mrow><annotation encoding="application/x-tex">\omega_c=3\,\mathrm{rad/s}</annotation></semantics></math>，则有效姿态带宽约为：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ω</mi><mrow><mi>c</mi><mo>,</mo><mrow><mi mathvariant="normal">e</mi><mi mathvariant="normal">f</mi><mi mathvariant="normal">f</mi></mrow></mrow></msub><mo>≈</mo><mn>1.8</mn><mspace width="0.167em"></mspace><mrow><mi mathvariant="normal">r</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">d</mi><mi mathvariant="normal">/</mi><mi mathvariant="normal">s</mi></mrow><mi>.</mi></mrow><annotation encoding="application/x-tex">
+\omega_{c,\mathrm{eff}}\approx1.8\,\mathrm{rad/s}.
+</annotation></semantics></math></p>
+<p>对应：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ϵ</mi><mrow><mi>c</mi><mo>,</mo><mrow><mi mathvariant="normal">e</mi><mi mathvariant="normal">f</mi><mi mathvariant="normal">f</mi></mrow></mrow></msub><mo>=</mo><mfrac><msub><mi>ω</mi><mi>g</mi></msub><msub><mi>ω</mi><mrow><mi>c</mi><mo>,</mo><mrow><mi mathvariant="normal">e</mi><mi mathvariant="normal">f</mi><mi mathvariant="normal">f</mi></mrow></mrow></msub></mfrac><mi>.</mi></mrow><annotation encoding="application/x-tex">
+\epsilon_{c,\mathrm{eff}}=\frac{\omega_g}{\omega_{c,\mathrm{eff}}}.
+</annotation></semantics></math></p>
+<p>这说明动压不仅是安全指标，也会改变慢快系统的等效时间尺度。合格的闭环分析应同时报告：</p>
+<table>
+<thead>
+<tr>
+<th>项目</th>
+<th>应报告内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>标称带宽比</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ω</mi><mi>g</mi></msub><mi>/</mi><msub><mi>ω</mi><mi>c</mi></msub></mrow><annotation encoding="application/x-tex">\omega_g/\omega_c</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ω</mi><mi>c</mi></msub><mi>/</mi><msub><mi>ω</mi><mi>a</mi></msub></mrow><annotation encoding="application/x-tex">\omega_c/\omega_a</annotation></semantics></math></td>
+</tr>
+<tr>
+<td>约束附近有效带宽</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ω</mi><mi>g</mi></msub><mi>/</mi><msub><mi>ω</mi><mrow><mi>c</mi><mo>,</mo><mrow><mi mathvariant="normal">e</mi><mi mathvariant="normal">f</mi><mi mathvariant="normal">f</mi></mrow></mrow></msub></mrow><annotation encoding="application/x-tex">\omega_g/\omega_{c,\mathrm{eff}}</annotation></semantics></math></td>
+</tr>
+<tr>
+<td>参考治理代价</td>
+<td>原始参考和可行参考的差值</td>
+</tr>
+<tr>
+<td>快变量峰值</td>
+<td>姿态误差、角速度、舵偏、舵速</td>
+</tr>
+<tr>
+<td>安全裕度</td>
+<td>动压、热流、攻角或过载最小裕度</td>
+</tr>
+</tbody>
+</table>
+<p>这类分析把动压约束、输入效能和内外环分离放在同一个闭环证据链中，而不是把动压放在仿真结束后单独统计。</p>
+<h2 id="内外环级联模型">7.6 内外环级联模型</h2>
+<p>设外环状态为
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>x</mi><mi>g</mi></msub><annotation encoding="application/x-tex">x_g</annotation></semantics></math>，内环状态为
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>x</mi><mi>c</mi></msub><annotation encoding="application/x-tex">x_c</annotation></semantics></math>。一种简化级联系统为：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mover><mi>x</mi><mo accent="true">̇</mo></mover><mi>g</mi></msub><mo>=</mo><msub><mi>f</mi><mi>g</mi></msub><mo stretchy="false" form="prefix">(</mo><msub><mi>x</mi><mi>g</mi></msub><mo>,</mo><msub><mi>r</mi><mi>c</mi></msub><mo>,</mo><msub><mi>d</mi><mi>g</mi></msub><mo stretchy="false" form="postfix">)</mo><mo>,</mo></mrow><annotation encoding="application/x-tex">
+\dot{x}_g=f_g(x_g,r_c,d_g),
+</annotation></semantics></math></p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ϵ</mi><msub><mover><mi>x</mi><mo accent="true">̇</mo></mover><mi>c</mi></msub><mo>=</mo><msub><mi>f</mi><mi>c</mi></msub><mo stretchy="false" form="prefix">(</mo><msub><mi>x</mi><mi>c</mi></msub><mo>,</mo><msub><mi>r</mi><mi>c</mi></msub><mo>,</mo><msub><mi>x</mi><mi>g</mi></msub><mo>,</mo><msub><mi>d</mi><mi>c</mi></msub><mo stretchy="false" form="postfix">)</mo><mo>,</mo></mrow><annotation encoding="application/x-tex">
+\epsilon\dot{x}_c=f_c(x_c,r_c,x_g,d_c),
+</annotation></semantics></math></p>
+<p>其中
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>r</mi><mi>c</mi></msub><annotation encoding="application/x-tex">r_c</annotation></semantics></math>
+是外环给内环的命令。</p>
+<p>若内环能快速实现：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>x</mi><mi>c</mi></msub><mo>≈</mo><msub><mover><mi>x</mi><mo accent="true">‾</mo></mover><mi>c</mi></msub><mo stretchy="false" form="prefix">(</mo><msub><mi>x</mi><mi>g</mi></msub><mo>,</mo><msub><mi>r</mi><mi>c</mi></msub><mo stretchy="false" form="postfix">)</mo><mo>,</mo></mrow><annotation encoding="application/x-tex">
+x_c\approx \bar{x}_c(x_g,r_c),
+</annotation></semantics></math></p>
+<p>则外环可使用降阶模型设计。但若内环误差为：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>e</mi><mi>c</mi></msub><mo>=</mo><msub><mi>x</mi><mi>c</mi></msub><mo>−</mo><msub><mover><mi>x</mi><mo accent="true">‾</mo></mover><mi>c</mi></msub><mo>,</mo></mrow><annotation encoding="application/x-tex">
+e_c=x_c-\bar{x}_c,
+</annotation></semantics></math></p>
+<p>外环真实动态应写成：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mover><mi>x</mi><mo accent="true">̇</mo></mover><mi>g</mi></msub><mo>=</mo><msub><mi>f</mi><mi>g</mi></msub><mo stretchy="false" form="prefix">(</mo><msub><mi>x</mi><mi>g</mi></msub><mo>,</mo><msub><mover><mi>x</mi><mo accent="true">‾</mo></mover><mi>c</mi></msub><mo>+</mo><msub><mi>e</mi><mi>c</mi></msub><mo>,</mo><msub><mi>d</mi><mi>g</mi></msub><mo stretchy="false" form="postfix">)</mo><mi>.</mi></mrow><annotation encoding="application/x-tex">
+\dot{x}_g=f_g(x_g,\bar{x}_c+e_c,d_g).
+</annotation></semantics></math></p>
+<p>因此，外环稳定性通常需要内环误差足够小，或者外环对内环误差具有 ISS
+性质。</p>
+<h3 id="级联-lyapunov-检查">级联 Lyapunov 检查</h3>
+<p>一种实用检查方式是构造：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>V</mi><mo>=</mo><msub><mi>V</mi><mi>g</mi></msub><mo stretchy="false" form="prefix">(</mo><msub><mi>x</mi><mi>g</mi></msub><mo stretchy="false" form="postfix">)</mo><mo>+</mo><mi>ρ</mi><msub><mi>V</mi><mi>c</mi></msub><mo stretchy="false" form="prefix">(</mo><msub><mi>e</mi><mi>c</mi></msub><mo stretchy="false" form="postfix">)</mo><mo>,</mo></mrow><annotation encoding="application/x-tex">
+V=V_g(x_g)+\rho V_c(e_c),
+</annotation></semantics></math></p>
+<p>其中
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>V</mi><mi>g</mi></msub><annotation encoding="application/x-tex">V_g</annotation></semantics></math>
+描述外环误差，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>V</mi><mi>c</mi></msub><annotation encoding="application/x-tex">V_c</annotation></semantics></math>
+描述内环跟踪误差。若能得到：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mover><mi>V</mi><mo accent="true">̇</mo></mover><mi>g</mi></msub><mo>≤</mo><mi>−</mi><msub><mi>α</mi><mi>g</mi></msub><mo stretchy="false" form="postfix">∥</mo><msub><mi>x</mi><mi>g</mi></msub><msup><mo stretchy="false" form="postfix">∥</mo><mn>2</mn></msup><mo>+</mo><msub><mi>χ</mi><mi>g</mi></msub><mo stretchy="false" form="postfix">∥</mo><msub><mi>x</mi><mi>g</mi></msub><mo stretchy="false" form="postfix">∥</mo><mo stretchy="false" form="postfix">∥</mo><msub><mi>e</mi><mi>c</mi></msub><mo stretchy="false" form="postfix">∥</mo><mo>+</mo><msub><mi>σ</mi><mi>g</mi></msub><mo stretchy="false" form="postfix">∥</mo><msub><mi>d</mi><mi>g</mi></msub><msup><mo stretchy="false" form="postfix">∥</mo><mn>2</mn></msup><mo>,</mo></mrow><annotation encoding="application/x-tex">
+\dot{V}_g\le -\alpha_g\|x_g\|^2+\chi_g\|x_g\|\|e_c\|+\sigma_g\|d_g\|^2,
+</annotation></semantics></math></p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mover><mi>V</mi><mo accent="true">̇</mo></mover><mi>c</mi></msub><mo>≤</mo><mi>−</mi><msub><mi>α</mi><mi>c</mi></msub><mo stretchy="false" form="postfix">∥</mo><msub><mi>e</mi><mi>c</mi></msub><msup><mo stretchy="false" form="postfix">∥</mo><mn>2</mn></msup><mo>+</mo><msub><mi>σ</mi><mi>c</mi></msub><mo stretchy="false" form="postfix">∥</mo><msub><mi>d</mi><mi>c</mi></msub><msup><mo stretchy="false" form="postfix">∥</mo><mn>2</mn></msup><mo>,</mo></mrow><annotation encoding="application/x-tex">
+\dot{V}_c\le -\alpha_c\|e_c\|^2+\sigma_c\|d_c\|^2,
+</annotation></semantics></math></p>
+<p>则可通过选择
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ρ</mi><annotation encoding="application/x-tex">\rho</annotation></semantics></math>
+和带宽参数，使内环负项压住耦合项。这一做法把”内环足够快”转化为可以写在证明里的不等式。</p>
+<p>若存在执行机构饱和，则第二个不等式可能变成：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mover><mi>V</mi><mo accent="true">̇</mo></mover><mi>c</mi></msub><mo>≤</mo><mi>−</mi><msub><mi>α</mi><mi>c</mi></msub><mo stretchy="false" form="postfix">∥</mo><msub><mi>e</mi><mi>c</mi></msub><msup><mo stretchy="false" form="postfix">∥</mo><mn>2</mn></msup><mo>+</mo><msub><mi>σ</mi><mi>c</mi></msub><mo stretchy="false" form="postfix">∥</mo><msub><mi>d</mi><mi>c</mi></msub><msup><mo stretchy="false" form="postfix">∥</mo><mn>2</mn></msup><mo>+</mo><msub><mi>σ</mi><mi>s</mi></msub><mo stretchy="false" form="postfix">∥</mo><mi mathvariant="normal">Δ</mi><msub><mi>u</mi><mrow><mi mathvariant="normal">s</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">t</mi></mrow></msub><msup><mo stretchy="false" form="postfix">∥</mo><mn>2</mn></msup><mi>.</mi></mrow><annotation encoding="application/x-tex">
+\dot{V}_c\le -\alpha_c\|e_c\|^2+\sigma_c\|d_c\|^2+\sigma_s\|\Delta u_{\mathrm{sat}}\|^2.
+</annotation></semantics></math></p>
+<p>此时外环结论必须包含饱和残差，而不能只报告理想内环收敛。</p>
+<h2 id="姿态内环与轨迹外环">7.7 姿态内环与轨迹外环</h2>
+<p>高超声速飞行器轨迹外环常输出期望航迹角、航向角、过载或加速度。姿态内环负责把这些命令转化为可实现的姿态和力矩。</p>
+<p>一个教学链路可以写成：</p>
+<ul>
+<li><strong>命令链</strong>：航迹角/航向角命令；滚转/俯仰/偏航参考；三轴力矩命令；控制分配；舵面；气动力/力矩</li>
+</ul>
+<p>若姿态内环快，外环可以近似认为：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ϕ</mi><mo>≈</mo><msub><mi>ϕ</mi><mi>c</mi></msub><mo>,</mo><mspace width="2.0em"></mspace><mi>θ</mi><mo>≈</mo><msub><mi>θ</mi><mi>c</mi></msub><mo>,</mo><mspace width="2.0em"></mspace><mi>ψ</mi><mo>≈</mo><msub><mi>ψ</mi><mi>c</mi></msub><mi>.</mi></mrow><annotation encoding="application/x-tex">
+\phi\approx \phi_c,\qquad \theta\approx \theta_c,\qquad \psi\approx \psi_c.
+</annotation></semantics></math></p>
+<p>若姿态内环慢，则实际升力方向和期望升力方向不同，导致航迹角和航向角变化率偏离制导命令。此时需要：</p>
+<ul>
+<li>限制制导命令变化率；</li>
+<li>在制导层考虑姿态带宽；</li>
+<li>在 IGC 中把制导误差和姿态误差同时纳入误差系统；</li>
+<li>用指标记录制导命令和实际实现之间的差异。</li>
+</ul>
+<h3
+id="命令滤波和动态面的时间尺度含义">命令滤波和动态面的时间尺度含义</h3>
+<p>反步和动态逆中常会出现虚拟控制或期望姿态命令。若直接对复杂虚拟控制求导，推导会变得很难，工程实现也会放大噪声。动态面控制和命令滤波常写成：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>τ</mi><mi>f</mi></msub><msub><mover><mi>α</mi><mo accent="true">̇</mo></mover><mi>f</mi></msub><mo>=</mo><mi>−</mi><msub><mi>α</mi><mi>f</mi></msub><mo>+</mo><msub><mi>α</mi><mi>c</mi></msub><mo>,</mo></mrow><annotation encoding="application/x-tex">
+\tau_f\dot{\alpha}_f=-\alpha_f+\alpha_c,
+</annotation></semantics></math></p>
+<p>其中
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>α</mi><mi>c</mi></msub><annotation encoding="application/x-tex">\alpha_c</annotation></semantics></math>
+是原始命令，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>α</mi><mi>f</mi></msub><annotation encoding="application/x-tex">\alpha_f</annotation></semantics></math>
+是滤波后的可实现命令。若
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>τ</mi><mi>f</mi></msub><annotation encoding="application/x-tex">\tau_f</annotation></semantics></math>
+太小，滤波器接近理想跟踪，但可能产生过快命令；若
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>τ</mi><mi>f</mi></msub><annotation encoding="application/x-tex">\tau_f</annotation></semantics></math>
+太大，命令滞后会破坏外环误差收敛。</p>
+<p>因此命令滤波不是单纯的数值技巧，而是多时间尺度设计的一部分。滤波时间常数要和姿态内环、执行机构、采样周期和安全约束一起选。</p>
+<h2 id="执行机构动态不是总能忽略">7.8 执行机构动态不是总能忽略</h2>
+<p>执行机构常被建模为一阶系统：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>τ</mi><mi>a</mi></msub><mover><mi>δ</mi><mo accent="true">̇</mo></mover><mo>=</mo><mi>−</mi><mi>δ</mi><mo>+</mo><msub><mi>δ</mi><mi>c</mi></msub><mi>.</mi></mrow><annotation encoding="application/x-tex">
+\tau_a\dot{\delta}=-\delta+\delta_c.
+</annotation></semantics></math></p>
+<p>若
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>τ</mi><mi>a</mi></msub><annotation encoding="application/x-tex">\tau_a</annotation></semantics></math>
+很小，可以近似：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>δ</mi><mo>≈</mo><msub><mi>δ</mi><mi>c</mi></msub><mi>.</mi></mrow><annotation encoding="application/x-tex">
+\delta\approx \delta_c.
+</annotation></semantics></math></p>
+<p>但高超声速控制中，执行机构还常有：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">|</mo><mi>δ</mi><mo stretchy="false" form="prefix">|</mo><mo>≤</mo><msub><mi>δ</mi><mi>max</mi><mo>&#8289;</mo></msub><mo>,</mo><mspace width="2.0em"></mspace><mo stretchy="false" form="prefix">|</mo><mover><mi>δ</mi><mo accent="true">̇</mo></mover><mo stretchy="false" form="prefix">|</mo><mo>≤</mo><msub><mover><mi>δ</mi><mo accent="true">̇</mo></mover><mi>max</mi><mo>&#8289;</mo></msub><mi>.</mi></mrow><annotation encoding="application/x-tex">
+|\delta|\le \delta_{\max},\qquad |\dot{\delta}|\le \dot{\delta}_{\max}.
+</annotation></semantics></math></p>
+<p>限幅和限速使执行机构不再只是快的一阶系统。若控制器忽略这一点，Lyapunov
+推导中的实际输入
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>u</mi><annotation encoding="application/x-tex">u</annotation></semantics></math>
+和命令输入
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>u</mi><mi>c</mi></msub><annotation encoding="application/x-tex">u_c</annotation></semantics></math>
+会出现残差：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>u</mi><mo>=</mo><msub><mi>u</mi><mi>c</mi></msub><mo>+</mo><mi mathvariant="normal">Δ</mi><msub><mi>u</mi><mrow><mi mathvariant="normal">s</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">t</mi></mrow></msub><mi>.</mi></mrow><annotation encoding="application/x-tex">
+u=u_c+\Delta u_{\mathrm{sat}}.
+</annotation></semantics></math></p>
+<p>这个残差会进入闭环误差系统。若不分析或不记录它，就不能说明控制器在执行机构约束下有效。</p>
+<h3 id="执行机构奇异摄动例子">执行机构奇异摄动例子</h3>
+<p>设控制器设计时使用理想舵面
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>δ</mi><mi>c</mi></msub><annotation encoding="application/x-tex">\delta_c</annotation></semantics></math>，实际舵面满足：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ϵ</mi><mi>a</mi></msub><mover><mi>δ</mi><mo accent="true">̇</mo></mover><mo>=</mo><mi>−</mi><mi>δ</mi><mo>+</mo><msub><mi>δ</mi><mi>c</mi></msub><mi>.</mi></mrow><annotation encoding="application/x-tex">
+\epsilon_a\dot{\delta}=-\delta+\delta_c.
+</annotation></semantics></math></p>
+<p>当
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ϵ</mi><mi>a</mi></msub><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\epsilon_a=0</annotation></semantics></math>
+时，得到
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>δ</mi><mo>=</mo><msub><mi>δ</mi><mi>c</mi></msub></mrow><annotation encoding="application/x-tex">\delta=\delta_c</annotation></semantics></math>，这是多数控制律推导中的理想输入假设。边界层变量：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>η</mi><mo>=</mo><mi>δ</mi><mo>−</mo><msub><mi>δ</mi><mi>c</mi></msub></mrow><annotation encoding="application/x-tex">
+\eta=\delta-\delta_c
+</annotation></semantics></math></p>
+<p>若暂时冻结
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>δ</mi><mi>c</mi></msub><annotation encoding="application/x-tex">\delta_c</annotation></semantics></math>，则：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mfrac><mrow><mi>d</mi><mi>η</mi></mrow><mrow><mi>d</mi><msub><mi>τ</mi><mi>a</mi></msub></mrow></mfrac><mo>=</mo><mi>−</mi><mi>η</mi><mi>.</mi></mrow><annotation encoding="application/x-tex">
+\frac{d\eta}{d\tau_a}=-\eta.
+</annotation></semantics></math></p>
+<p>这说明理想舵面近似在一阶无饱和模型下是合理的。但若加入限速：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">|</mo><mover><mi>δ</mi><mo accent="true">̇</mo></mover><mo stretchy="false" form="prefix">|</mo><mo>≤</mo><msub><mover><mi>δ</mi><mo accent="true">̇</mo></mover><mi>max</mi><mo>&#8289;</mo></msub><mo>,</mo></mrow><annotation encoding="application/x-tex">
+|\dot{\delta}|\le \dot{\delta}_{\max},
+</annotation></semantics></math></p>
+<p>边界层收敛速度不再只由
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ϵ</mi><mi>a</mi></msub><annotation encoding="application/x-tex">\epsilon_a</annotation></semantics></math>
+决定，而受限速约束决定。此时”执行机构快”必须通过舵速受限时间和实际命令误差来验证。</p>
+<h2 id="观测器和控制器的时间尺度">7.9 观测器和控制器的时间尺度</h2>
+<p>估计器通常也有带宽。高增益观测器或扩张状态观测器可以快速估计状态或扰动，但带宽过高会放大噪声。</p>
+<p>观测器-控制器互联可写为：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>x</mi><mo accent="true">̇</mo></mover><mo>=</mo><mi>f</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>u</mi><mo>,</mo><mi>d</mi><mo stretchy="false" form="postfix">)</mo><mo>,</mo></mrow><annotation encoding="application/x-tex">
+\dot{x}=f(x,u,d),
+</annotation></semantics></math></p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mover><mi>x</mi><mo accent="true">̂</mo></mover><mo accent="true">̇</mo></mover><mo>=</mo><mi>F</mi><mo stretchy="false" form="prefix">(</mo><mover><mi>x</mi><mo accent="true">̂</mo></mover><mo>,</mo><mi>u</mi><mo>,</mo><mi>y</mi><mo stretchy="false" form="postfix">)</mo><mo>,</mo></mrow><annotation encoding="application/x-tex">
+\dot{\hat{x}}=F(\hat{x},u,y),
+</annotation></semantics></math></p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>u</mi><mo>=</mo><mi>π</mi><mo stretchy="false" form="prefix">(</mo><mover><mi>x</mi><mo accent="true">̂</mo></mover><mo>,</mo><mi>r</mi><mo stretchy="false" form="postfix">)</mo><mi>.</mi></mrow><annotation encoding="application/x-tex">
+u=\pi(\hat{x},r).
+</annotation></semantics></math></p>
+<p>若估计误差：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>e</mi><mi>o</mi></msub><mo>=</mo><mi>x</mi><mo>−</mo><mover><mi>x</mi><mo accent="true">̂</mo></mover></mrow><annotation encoding="application/x-tex">
+e_o=x-\hat{x}
+</annotation></semantics></math></p>
+<p>足够快地衰减，控制器可以近似使用真实状态。但若传感器噪声、延迟或模型不匹配导致估计误差较大，闭环控制输入会出现偏差，约束判断也可能错误。</p>
+<p>对高超声速飞行器，攻角、侧滑角和气动扰动估计尤为关键。估计误差不仅影响跟踪，还会影响动压、热流、攻角和进气道安全裕度的判断。</p>
+<h3 id="分离原则不是无条件成立">分离原则不是无条件成立</h3>
+<p>线性系统中常讲控制器和观测器的分离原则，但在高超声速非线性、约束和饱和闭环中，分离设计往往只是近似。若控制律使用估计的攻角判断约束，而攻角估计有延迟，则安全滤波器可能在真实攻角已经接近边界时仍然给出激进命令。</p>
+<p>因此估计器带宽应同时检查：</p>
+<ul>
+<li>估计误差收敛时间；</li>
+<li>噪声放大；</li>
+<li>约束变量估计误差；</li>
+<li>控制输入对估计误差的灵敏度；</li>
+<li>估计延迟对安全裕度的影响。</li>
+</ul>
+<h2 id="采样控制和延迟的时间尺度">7.10 采样控制和延迟的时间尺度</h2>
+<p>连续时间证明常默认控制输入立即作用，但真实控制器一般离散运行。采样周期
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>T</mi><mi>s</mi></msub><annotation encoding="application/x-tex">T_s</annotation></semantics></math>、计算延迟
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>T</mi><mi>d</mi></msub><annotation encoding="application/x-tex">T_d</annotation></semantics></math>
+和通信延迟会形成新的时间尺度。若外环、内环和执行机构的时间常数分别为
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mi>g</mi></msub><mo>,</mo><msub><mi>T</mi><mi>c</mi></msub><mo>,</mo><msub><mi>T</mi><mi>a</mi></msub></mrow><annotation encoding="application/x-tex">T_g,T_c,T_a</annotation></semantics></math>，则至少应检查：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mi>s</mi></msub><mo>≪</mo><msub><mi>T</mi><mi>c</mi></msub><mo>,</mo><mspace width="2.0em"></mspace><msub><mi>T</mi><mi>d</mi></msub><mo>≪</mo><msub><mi>T</mi><mi>c</mi></msub><mi>.</mi></mrow><annotation encoding="application/x-tex">
+T_s\ll T_c,\qquad T_d\ll T_c.
+</annotation></semantics></math></p>
+<p>若
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>T</mi><mi>s</mi></msub><annotation encoding="application/x-tex">T_s</annotation></semantics></math>
+接近内环响应时间，离散控制器可能出现相位滞后、超调增加甚至不稳定。若
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>T</mi><mi>d</mi></msub><annotation encoding="application/x-tex">T_d</annotation></semantics></math>
+接近执行机构响应时间，控制命令会系统性落后于姿态误差，导致舵面峰值和角速度峰值增加。</p>
+<p>高超声速控制中，采样和延迟还会影响安全约束。例如动压、热流和攻角变化很快时，安全滤波器若以过低频率更新，可能在两次采样之间穿越边界。第五卷讨论实时实现时，应把采样周期、计算时间、最差延迟和事件检测误差列为验证字段。</p>
+<h2 id="多时间尺度与制导控制一体化">7.11 多时间尺度与制导控制一体化</h2>
+<p>分离式设计的典型假设可以概括为”制导慢，控制快”。</p>
+<p>但三维 IGC
+中，制导误差、姿态误差和执行机构约束强耦合。此时可定义组合误差：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>e</mi><mo>=</mo><msup><mrow><mo stretchy="true" form="prefix">[</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><msubsup><mi>e</mi><mi>g</mi><mi>⊤</mi></msubsup></mtd><mtd columnalign="center" style="text-align: center"><msubsup><mi>e</mi><mi>c</mi><mi>⊤</mi></msubsup></mtd></mtr></mtable><mo stretchy="true" form="postfix">]</mo></mrow><mi>⊤</mi></msup><mo>,</mo></mrow><annotation encoding="application/x-tex">
+e=
+\begin{bmatrix}
+e_g^\top &amp; e_c^\top
+\end{bmatrix}^\top,
+</annotation></semantics></math></p>
+<p>并分析：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>e</mi><mo accent="true">̇</mo></mover><mo>=</mo><mi>F</mi><mo stretchy="false" form="prefix">(</mo><mi>e</mi><mo>,</mo><mi>x</mi><mo>,</mo><mi>u</mi><mo>,</mo><mi>d</mi><mo stretchy="false" form="postfix">)</mo><mi>.</mi></mrow><annotation encoding="application/x-tex">
+\dot{e}=F(e,x,u,d).
+</annotation></semantics></math></p>
+<p>若存在：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>V</mi><mo stretchy="false" form="prefix">(</mo><mi>e</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><msub><mi>V</mi><mi>g</mi></msub><mo stretchy="false" form="prefix">(</mo><msub><mi>e</mi><mi>g</mi></msub><mo stretchy="false" form="postfix">)</mo><mo>+</mo><msub><mi>V</mi><mi>c</mi></msub><mo stretchy="false" form="prefix">(</mo><msub><mi>e</mi><mi>c</mi></msub><mo stretchy="false" form="postfix">)</mo><mo>,</mo></mrow><annotation encoding="application/x-tex">
+V(e)=V_g(e_g)+V_c(e_c),
+</annotation></semantics></math></p>
+<p>并能推出：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>V</mi><mo accent="true">̇</mo></mover><mo>≤</mo><mi>−</mi><msub><mi>c</mi><mi>g</mi></msub><mo stretchy="false" form="postfix">∥</mo><msub><mi>e</mi><mi>g</mi></msub><msup><mo stretchy="false" form="postfix">∥</mo><mn>2</mn></msup><mo>−</mo><msub><mi>c</mi><mi>c</mi></msub><mo stretchy="false" form="postfix">∥</mo><msub><mi>e</mi><mi>c</mi></msub><msup><mo stretchy="false" form="postfix">∥</mo><mn>2</mn></msup><mo>+</mo><mi>ρ</mi><mo stretchy="false" form="postfix">∥</mo><mi>d</mi><msup><mo stretchy="false" form="postfix">∥</mo><mn>2</mn></msup><mo>+</mo><msub><mi>ϵ</mi><mrow><mi mathvariant="normal">s</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">t</mi></mrow></msub><mo>,</mo></mrow><annotation encoding="application/x-tex">
+\dot{V}\le -c_g\|e_g\|^2-c_c\|e_c\|^2+\rho\|d\|^2+\epsilon_{\mathrm{sat}},
+</annotation></semantics></math></p>
+<p>则可以得到扰动和饱和残差影响下的有界性结论。这里
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ϵ</mi><mrow><mi mathvariant="normal">s</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">t</mi></mrow></msub><annotation encoding="application/x-tex">\epsilon_{\mathrm{sat}}</annotation></semantics></math>
+不能省略，因为执行机构和控制分配是 IGC 的工程核心。</p>
+<h2 id="模式切换和飞行阶段">7.12 模式切换和飞行阶段</h2>
+<p>高超声速任务常有多个阶段：</p>
+<ul>
+<li>助推；</li>
+<li>巡航；</li>
+<li>滑翔；</li>
+<li>再入；</li>
+<li>俯冲；</li>
+<li>终端制导。</li>
+</ul>
+<p>每个阶段可能使用不同模型、控制器和约束。切换系统可写成：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>x</mi><mo accent="true">̇</mo></mover><mo>=</mo><msub><mi>f</mi><mrow><mi>σ</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo></mrow></msub><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>u</mi><mo stretchy="false" form="postfix">)</mo><mo>,</mo></mrow><annotation encoding="application/x-tex">
+\dot{x}=f_{\sigma(t)}(x,u),
+</annotation></semantics></math></p>
+<p>其中
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>σ</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\sigma(t)</annotation></semantics></math>
+是模式。若切换过于频繁，或切换前后控制器不匹配，闭环可能发生瞬态峰值、舵面跳变或安全裕度下降。</p>
+<p>严格分析混杂系统需要单独章节。本章只强调：时间尺度问题和模式切换问题不能被”增益调度”四个字自动解决。参考书级教程应要求记录：</p>
+<ul>
+<li>模式切换时刻；</li>
+<li>控制器切换逻辑；</li>
+<li>切换前后状态连续性；</li>
+<li>舵偏和舵速峰值；</li>
+<li>安全裕度变化；</li>
+<li>是否存在滞回或防抖逻辑。</li>
+</ul>
+<h3 id="驻留时间和切换瞬态">驻留时间和切换瞬态</h3>
+<p>若多个控制模式共享一个 Lyapunov
+函数，切换分析较简单；若每个模式有不同 Lyapunov
+函数，则需要限制切换频率或给出驻留时间条件。直观地说，系统需要在一个模式下停留足够久，让误差下降能够抵消切换瞬间的能量上升。</p>
+<p>参考书中可以用下面的工程口径训练读者：</p>
+<ul>
+<li><strong>切换前误差是否已进入允许集合</strong>：切换瞬间命令是否连续或限速；切换后是否出现短时约束裕度下降；若失败，是否需要滞回、防抖或过渡控制器</li>
+</ul>
+<p>对于助推、滑翔、再入和终端制导这类阶段切换，不能只给阶段流程图，还要说明切换触发量、保护条件和切换后的闭环恢复指标。</p>
+<h2 id="仿真指标">7.13 仿真指标</h2>
+<p>多时间尺度假设应通过指标检查，而不是只靠口头说明。</p>
+<table>
+<thead>
+<tr>
+<th>假设</th>
+<th>应检查的指标</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>姿态内环足够快</td>
+<td>姿态误差 RMS、姿态误差峰值、角速度峰值</td>
+</tr>
+<tr>
+<td>执行机构足够快</td>
+<td>舵偏峰值、舵速峰值、饱和时间、速率受限时间</td>
+</tr>
+<tr>
+<td>观测器足够快</td>
+<td>估计误差 RMS、残差峰值、噪声放大</td>
+</tr>
+<tr>
+<td>外环命令可实现</td>
+<td>制导命令变化率、姿态参考峰值、分配残差</td>
+</tr>
+<tr>
+<td>模式切换平滑</td>
+<td>切换瞬态误差、舵面跳变、安全裕度最低值</td>
+</tr>
+<tr>
+<td>采样和延迟可接受</td>
+<td>采样周期、计算时间、控制延迟、离散相位滞后</td>
+</tr>
+<tr>
+<td>命令滤波合理</td>
+<td>滤波命令误差、滤波延迟、命令变化率和约束裕度</td>
+</tr>
+</tbody>
+</table>
+<p>若这些指标不达标，说明时间尺度分离假设可能不成立，应降低外环命令、重设带宽、加入命令滤波或采用一体化设计。</p>
+<h3 id="多时间尺度核查要点">7.13.1 多时间尺度核查要点</h3>
+<p>参考书写作中，不能只说”内环足够快”。应至少给出一张核查要点。下面是一种可复核口径：</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>检查项</th>
+<th>通过口径</th>
+<th>失败含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>带宽比</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ω</mi><mi>c</mi></msub><mi>/</mi><msub><mi>ω</mi><mi>g</mi></msub></mrow><annotation encoding="application/x-tex">\omega_c/\omega_g</annotation></semantics></math>
+和
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ω</mi><mi>a</mi></msub><mi>/</mi><msub><mi>ω</mi><mi>c</mi></msub></mrow><annotation encoding="application/x-tex">\omega_a/\omega_c</annotation></semantics></math>
+足够大</td>
+<td>分层近似不可信</td>
+</tr>
+<tr>
+<td>有效带宽</td>
+<td>约束附近
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ω</mi><mrow><mi>c</mi><mo>,</mo><mrow><mi mathvariant="normal">e</mi><mi mathvariant="normal">f</mi><mi mathvariant="normal">f</mi></mrow></mrow></msub><annotation encoding="application/x-tex">\omega_{c,\mathrm{eff}}</annotation></semantics></math>
+仍支撑外环命令</td>
+<td>动压或故障削弱输入通道</td>
+</tr>
+<tr>
+<td>命令变化率</td>
+<td>外环命令变化率不超过内环和执行机构能力</td>
+<td>外环给出不可执行参考</td>
+</tr>
+<tr>
+<td>初始层峰值</td>
+<td>初始层姿态、角速度、舵偏峰值不触发约束</td>
+<td>奇异摄动近似掩盖短时风险</td>
+</tr>
+<tr>
+<td>饱和残差</td>
+<td>饱和时间和分配残差在允许范围内</td>
+<td>快子系统并未实现虚拟控制</td>
+</tr>
+<tr>
+<td>采样延迟</td>
+<td>采样周期和计算延迟小于关键时间常数</td>
+<td>离散实现破坏连续证明</td>
+</tr>
+<tr>
+<td>模式切换</td>
+<td>切换瞬态、驻留时间和防抖逻辑已记录</td>
+<td>阶段切换可能造成能量函数跳变</td>
+</tr>
+<tr>
+<td>安全裕度</td>
+<td>动压、热流、攻角和过载裕度在快慢瞬态中均满足</td>
+<td>只看长期误差会漏掉安全风险</td>
+</tr>
+</tbody>
+</table>
+<p>若这些检查中任一项失败，合理处理不是继续宣称分层控制成立，而是：</p>
+<ol type="1">
+<li>降低外环带宽或命令变化率；</li>
+<li>增强内环带宽，但同时检查噪声和舵速；</li>
+<li>加入命令滤波、参考治理或安全滤波；</li>
+<li>将执行机构动态和饱和残差纳入证明；</li>
+<li>改用制导控制一体化或 MPC 等更直接处理耦合和约束的方法。</li>
+</ol>
+<h3 id="低阶问题卡外环航迹角与内环攻角-舵机快链">7.13.2
+低阶问题卡：外环航迹角与内环攻角-舵机快链</h3>
+<p>这一节给出一个可以手算、也可以直接转成仿真的低阶问题卡，用来训练读者把”内环足够快”从口头判断变成可核查结论。</p>
+<h4 id="问题背景-1">问题背景</h4>
+<p>考虑一个简化的纵向分层闭环：</p>
+<ul>
+<li>外环根据高度误差和航迹角误差生成期望攻角
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>α</mi><mi>c</mi></msub><annotation encoding="application/x-tex">\alpha_c</annotation></semantics></math>；</li>
+<li>内环通过俯仰角速度和舵机把实际攻角
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>α</mi><annotation encoding="application/x-tex">\alpha</annotation></semantics></math>
+拉到
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>α</mi><mi>c</mi></msub><annotation encoding="application/x-tex">\alpha_c</annotation></semantics></math>；</li>
+<li>动压变化会改变升力斜率和舵面效能，从而改变快链有效带宽。</li>
+</ul>
+<p>为了突出多时间尺度本身，这里只保留最小状态：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>x</mi><mi>s</mi></msub><mo>=</mo><msup><mrow><mo stretchy="true" form="prefix">[</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><msub><mi>e</mi><mi>h</mi></msub></mtd><mtd columnalign="center" style="text-align: center"><msub><mi>e</mi><mi>γ</mi></msub></mtd></mtr></mtable><mo stretchy="true" form="postfix">]</mo></mrow><mi>⊤</mi></msup><mo>,</mo><mspace width="2.0em"></mspace><msub><mi>x</mi><mi>f</mi></msub><mo>=</mo><msup><mrow><mo stretchy="true" form="prefix">[</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><msub><mi>e</mi><mi>α</mi></msub></mtd><mtd columnalign="center" style="text-align: center"><msub><mi>e</mi><mi>q</mi></msub></mtd><mtd columnalign="center" style="text-align: center"><mi>δ</mi></mtd></mtr></mtable><mo stretchy="true" form="postfix">]</mo></mrow><mi>⊤</mi></msup><mo>,</mo></mrow><annotation encoding="application/x-tex">
+x_s=
+\begin{bmatrix}
+e_h &amp; e_\gamma
+\end{bmatrix}^\top,
+\qquad
+x_f=
+\begin{bmatrix}
+e_\alpha &amp; e_q &amp; \delta
+\end{bmatrix}^\top,
+</annotation></semantics></math></p>
+<p>其中：</p>
+<ul>
+<li><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>e</mi><mi>h</mi></msub><mo>=</mo><mi>h</mi><mo>−</mo><msub><mi>h</mi><mi>c</mi></msub></mrow><annotation encoding="application/x-tex">e_h=h-h_c</annotation></semantics></math>
+是高度误差；</li>
+<li><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>e</mi><mi>γ</mi></msub><mo>=</mo><mi>γ</mi><mo>−</mo><msub><mi>γ</mi><mi>c</mi></msub></mrow><annotation encoding="application/x-tex">e_\gamma=\gamma-\gamma_c</annotation></semantics></math>
+是航迹角误差；</li>
+<li><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>e</mi><mi>α</mi></msub><mo>=</mo><mi>α</mi><mo>−</mo><msub><mi>α</mi><mi>c</mi></msub></mrow><annotation encoding="application/x-tex">e_\alpha=\alpha-\alpha_c</annotation></semantics></math>
+是攻角跟踪误差；</li>
+<li><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>e</mi><mi>q</mi></msub><mo>=</mo><mi>q</mi><mo>−</mo><msub><mi>q</mi><mi>c</mi></msub></mrow><annotation encoding="application/x-tex">e_q=q-q_c</annotation></semantics></math>
+是俯仰角速度误差；</li>
+<li><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>δ</mi><annotation encoding="application/x-tex">\delta</annotation></semantics></math>
+是实际舵偏。</li>
+</ul>
+<h4 id="低阶闭环模型">低阶闭环模型</h4>
+<p>可用下面的教学模型刻画慢链和快链：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mover><mi>e</mi><mo accent="true">̇</mo></mover><mi>h</mi></msub><mo>=</mo><mi>V</mi><msub><mi>e</mi><mi>γ</mi></msub><mo>,</mo></mrow><annotation encoding="application/x-tex">
+\dot{e}_h=V e_\gamma,
+</annotation></semantics></math></p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mover><mi>e</mi><mo accent="true">̇</mo></mover><mi>γ</mi></msub><mo>=</mo><mi>−</mi><msub><mi>a</mi><mi>γ</mi></msub><msub><mi>e</mi><mi>γ</mi></msub><mo>+</mo><msub><mi>b</mi><mi>α</mi></msub><msub><mi>e</mi><mi>α</mi></msub><mo>+</mo><msub><mi>d</mi><mi>γ</mi></msub><mo>,</mo></mrow><annotation encoding="application/x-tex">
+\dot{e}_\gamma=-a_\gamma e_\gamma+b_\alpha e_\alpha+d_\gamma,
+</annotation></semantics></math></p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ϵ</mi><mi>α</mi></msub><msub><mover><mi>e</mi><mo accent="true">̇</mo></mover><mi>α</mi></msub><mo>=</mo><mi>−</mi><msub><mi>e</mi><mi>α</mi></msub><mo>+</mo><msub><mi>c</mi><mi>q</mi></msub><msub><mi>e</mi><mi>q</mi></msub><mo>,</mo></mrow><annotation encoding="application/x-tex">
+\epsilon_\alpha \dot{e}_\alpha=-e_\alpha+c_q e_q,
+</annotation></semantics></math></p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ϵ</mi><mi>q</mi></msub><msub><mover><mi>e</mi><mo accent="true">̇</mo></mover><mi>q</mi></msub><mo>=</mo><mi>−</mi><msub><mi>e</mi><mi>q</mi></msub><mo>+</mo><msub><mi>c</mi><mi>δ</mi></msub><mi>δ</mi><mo>+</mo><msub><mi>d</mi><mi>q</mi></msub><mo>,</mo></mrow><annotation encoding="application/x-tex">
+\epsilon_q \dot{e}_q=-e_q+c_\delta \delta+d_q,
+</annotation></semantics></math></p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ϵ</mi><mi>a</mi></msub><mover><mi>δ</mi><mo accent="true">̇</mo></mover><mo>=</mo><mi>−</mi><mi>δ</mi><mo>+</mo><msub><mi>k</mi><mi>δ</mi></msub><msub><mi>α</mi><mi>c</mi></msub><mo>,</mo></mrow><annotation encoding="application/x-tex">
+\epsilon_a \dot{\delta}=-\delta+k_\delta \alpha_c,
+</annotation></semantics></math></p>
+<p>其中
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0</mn><mo>&lt;</mo><msub><mi>ϵ</mi><mi>a</mi></msub><mo>≤</mo><msub><mi>ϵ</mi><mi>q</mi></msub><mo>≤</mo><msub><mi>ϵ</mi><mi>α</mi></msub><mo>≪</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">0&lt;\epsilon_a\le \epsilon_q\le \epsilon_\alpha\ll1</annotation></semantics></math>。它们分别表示：</p>
+<ul>
+<li><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ϵ</mi><mi>α</mi></msub><annotation encoding="application/x-tex">\epsilon_\alpha</annotation></semantics></math>：攻角误差相对外环的快尺度；</li>
+<li><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ϵ</mi><mi>q</mi></msub><annotation encoding="application/x-tex">\epsilon_q</annotation></semantics></math>：角速度环相对外环的快尺度；</li>
+<li><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ϵ</mi><mi>a</mi></msub><annotation encoding="application/x-tex">\epsilon_a</annotation></semantics></math>：舵机相对角速度环的快尺度。</li>
+</ul>
+<p>若外环使用线性反馈：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>α</mi><mi>c</mi></msub><mo>=</mo><mi>−</mi><msub><mi>k</mi><mi>h</mi></msub><msub><mi>e</mi><mi>h</mi></msub><mo>−</mo><msub><mi>k</mi><mi>γ</mi></msub><msub><mi>e</mi><mi>γ</mi></msub><mo>,</mo></mrow><annotation encoding="application/x-tex">
+\alpha_c=-k_h e_h-k_\gamma e_\gamma,
+</annotation></semantics></math></p>
+<p>则理想分层假设对应：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>e</mi><mi>α</mi></msub><mo>≈</mo><mn>0</mn><mo>,</mo><mspace width="2.0em"></mspace><msub><mi>e</mi><mi>q</mi></msub><mo>≈</mo><mn>0</mn><mo>,</mo><mspace width="2.0em"></mspace><mi>δ</mi><mo>≈</mo><msub><mi>k</mi><mi>δ</mi></msub><msub><mi>α</mi><mi>c</mi></msub><mi>.</mi></mrow><annotation encoding="application/x-tex">
+e_\alpha\approx0,\qquad e_q\approx0,\qquad \delta\approx k_\delta \alpha_c.
+</annotation></semantics></math></p>
+<p>这时外环降阶模型近似为：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mover><mi>e</mi><mo accent="true">̇</mo></mover><mi>h</mi></msub><mo>=</mo><mi>V</mi><msub><mi>e</mi><mi>γ</mi></msub><mo>,</mo></mrow><annotation encoding="application/x-tex">
+\dot{e}_h=V e_\gamma,
+</annotation></semantics></math></p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mover><mi>e</mi><mo accent="true">̇</mo></mover><mi>γ</mi></msub><mo>=</mo><mi>−</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>a</mi><mi>γ</mi></msub><mo>+</mo><msub><mi>b</mi><mi>α</mi></msub><msub><mi>k</mi><mi>γ</mi></msub><mo stretchy="false" form="postfix">)</mo><msub><mi>e</mi><mi>γ</mi></msub><mo>−</mo><msub><mi>b</mi><mi>α</mi></msub><msub><mi>k</mi><mi>h</mi></msub><msub><mi>e</mi><mi>h</mi></msub><mo>+</mo><msub><mi>d</mi><mi>γ</mi></msub><mi>.</mi></mrow><annotation encoding="application/x-tex">
+\dot{e}_\gamma=-(a_\gamma+b_\alpha k_\gamma)e_\gamma-b_\alpha k_h e_h+d_\gamma.
+</annotation></semantics></math></p>
+<p>因此读者首先要检查的不是”快链快不快”，而是：</p>
+<ol type="1">
+<li>降阶慢系统在标称参数下是否稳定；</li>
+<li><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mi>α</mi></msub><annotation encoding="application/x-tex">b_\alpha</annotation></semantics></math>
+的符号是否与气动和坐标定义一致；</li>
+<li><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>α</mi><mi>c</mi></msub><annotation encoding="application/x-tex">\alpha_c</annotation></semantics></math>
+的幅值和变化率是否落在舵机可实现范围内。</li>
+</ol>
+<h4 id="动压进入快链的位置">动压进入快链的位置</h4>
+<p>在高超声速条件下，快链的真实问题常常不是结构错了，而是有效控制效能变了。可把动压影响压缩成：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>c</mi><mi>δ</mi></msub><mo>=</mo><msub><mi>c</mi><mrow><mi>δ</mi><mo>,</mo><mn>0</mn></mrow></msub><msub><mi>η</mi><mi>q</mi></msub><mo stretchy="false" form="prefix">(</mo><mover><mi>q</mi><mo accent="true">‾</mo></mover><mo stretchy="false" form="postfix">)</mo><mo>,</mo><mspace width="2.0em"></mspace><mn>0</mn><mo>&lt;</mo><msub><mi>η</mi><mi>min</mi><mo>&#8289;</mo></msub><mo>≤</mo><msub><mi>η</mi><mi>q</mi></msub><mo stretchy="false" form="prefix">(</mo><mover><mi>q</mi><mo accent="true">‾</mo></mover><mo stretchy="false" form="postfix">)</mo><mo>≤</mo><mn>1</mn><mi>.</mi></mrow><annotation encoding="application/x-tex">
+c_\delta=c_{\delta,0}\eta_q(\bar{q}),
+\qquad
+0&lt;\eta_{\min}\le \eta_q(\bar{q})\le1.
+</annotation></semantics></math></p>
+<p>于是角速度环有效带宽近似变为：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ω</mi><mrow><mi>q</mi><mo>,</mo><mrow><mi mathvariant="normal">e</mi><mi mathvariant="normal">f</mi><mi mathvariant="normal">f</mi></mrow></mrow></msub><mo>≈</mo><msub><mi>η</mi><mi>q</mi></msub><mo stretchy="false" form="prefix">(</mo><mover><mi>q</mi><mo accent="true">‾</mo></mover><mo stretchy="false" form="postfix">)</mo><msub><mi>ω</mi><mi>q</mi></msub><mi>.</mi></mrow><annotation encoding="application/x-tex">
+\omega_{q,\mathrm{eff}}\approx \eta_q(\bar{q})\omega_q.
+</annotation></semantics></math></p>
+<p>若标称
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ω</mi><mi>g</mi></msub><mo>=</mo><mn>0.4</mn><mspace width="0.167em"></mspace><mrow><mi mathvariant="normal">r</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">d</mi><mi mathvariant="normal">/</mi><mi mathvariant="normal">s</mi></mrow></mrow><annotation encoding="application/x-tex">\omega_g=0.4\,\mathrm{rad/s}</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ω</mi><mi>α</mi></msub><mo>=</mo><mn>3.2</mn><mspace width="0.167em"></mspace><mrow><mi mathvariant="normal">r</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">d</mi><mi mathvariant="normal">/</mi><mi mathvariant="normal">s</mi></mrow></mrow><annotation encoding="application/x-tex">\omega_\alpha=3.2\,\mathrm{rad/s}</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ω</mi><mi>q</mi></msub><mo>=</mo><mn>6</mn><mspace width="0.167em"></mspace><mrow><mi mathvariant="normal">r</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">d</mi><mi mathvariant="normal">/</mi><mi mathvariant="normal">s</mi></mrow></mrow><annotation encoding="application/x-tex">\omega_q=6\,\mathrm{rad/s}</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ω</mi><mi>a</mi></msub><mo>=</mo><mn>20</mn><mspace width="0.167em"></mspace><mrow><mi mathvariant="normal">r</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">d</mi><mi mathvariant="normal">/</mi><mi mathvariant="normal">s</mi></mrow></mrow><annotation encoding="application/x-tex">\omega_a=20\,\mathrm{rad/s}</annotation></semantics></math>，则：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ϵ</mi><mi>α</mi></msub><mo>=</mo><mfrac><mn>0.4</mn><mn>3.2</mn></mfrac><mo>=</mo><mn>0.125</mn><mo>,</mo><mspace width="2.0em"></mspace><msub><mi>ϵ</mi><mi>q</mi></msub><mo>=</mo><mfrac><mn>0.4</mn><mn>6</mn></mfrac><mo>≈</mo><mn>0.067</mn><mo>,</mo><mspace width="2.0em"></mspace><msub><mi>ϵ</mi><mi>a</mi></msub><mo>=</mo><mfrac><mn>6</mn><mn>20</mn></mfrac><mo>=</mo><mn>0.3</mn><mi>.</mi></mrow><annotation encoding="application/x-tex">
+\epsilon_\alpha=\frac{0.4}{3.2}=0.125,\qquad
+\epsilon_q=\frac{0.4}{6}\approx0.067,\qquad
+\epsilon_a=\frac{6}{20}=0.3.
+</annotation></semantics></math></p>
+<p>若约束附近
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>η</mi><mi>q</mi></msub><mo stretchy="false" form="prefix">(</mo><mover><mi>q</mi><mo accent="true">‾</mo></mover><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mn>0.45</mn></mrow><annotation encoding="application/x-tex">\eta_q(\bar{q})=0.45</annotation></semantics></math>，则：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ω</mi><mrow><mi>q</mi><mo>,</mo><mrow><mi mathvariant="normal">e</mi><mi mathvariant="normal">f</mi><mi mathvariant="normal">f</mi></mrow></mrow></msub><mo>≈</mo><mn>2.7</mn><mspace width="0.167em"></mspace><mrow><mi mathvariant="normal">r</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">d</mi><mi mathvariant="normal">/</mi><mi mathvariant="normal">s</mi></mrow><mo>,</mo><mspace width="2.0em"></mspace><msub><mi>ϵ</mi><mrow><mi>q</mi><mo>,</mo><mrow><mi mathvariant="normal">e</mi><mi mathvariant="normal">f</mi><mi mathvariant="normal">f</mi></mrow></mrow></msub><mo>=</mo><mfrac><mn>0.4</mn><mn>2.7</mn></mfrac><mo>≈</mo><mn>0.148</mn><mi>.</mi></mrow><annotation encoding="application/x-tex">
+\omega_{q,\mathrm{eff}}\approx2.7\,\mathrm{rad/s},
+\qquad
+\epsilon_{q,\mathrm{eff}}=\frac{0.4}{2.7}\approx0.148.
+</annotation></semantics></math></p>
+<p>这说明原先”角速度环比外环快很多”的结论会明显变弱。此时即使标称调参时分层成立，约束附近也可能出现：</p>
+<ul>
+<li>外环把
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>α</mi><mi>c</mi></msub><annotation encoding="application/x-tex">\alpha_c</annotation></semantics></math>
+推得过快；</li>
+<li><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>e</mi><mi>α</mi></msub><annotation encoding="application/x-tex">e_\alpha</annotation></semantics></math>
+在初始层和约束活跃段明显增大；</li>
+<li>舵机速率先饱和，随后角速度误差累积；</li>
+<li><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>e</mi><mi>γ</mi></msub><annotation encoding="application/x-tex">e_\gamma</annotation></semantics></math>
+的恢复速度比降阶模型预测更慢。</li>
+</ul>
+<h4 id="这张问题卡要交付什么">这张问题卡要交付什么</h4>
+<p>若把它写进章节、作业或仿真报告，至少应给出下面五组证据：</p>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>证据项</th>
+<th>至少应报告的内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>慢链稳定性</td>
+<td>降阶外环矩阵、极点或 Lyapunov 判断</td>
+</tr>
+<tr>
+<td>快链尺度</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ϵ</mi><mi>α</mi></msub><mo>,</mo><msub><mi>ϵ</mi><mi>q</mi></msub><mo>,</mo><msub><mi>ϵ</mi><mi>a</mi></msub></mrow><annotation encoding="application/x-tex">\epsilon_\alpha,\epsilon_q,\epsilon_a</annotation></semantics></math>
+的定义与数值</td>
+</tr>
+<tr>
+<td>约束附近尺度退化</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>η</mi><mi>q</mi></msub><mo stretchy="false" form="prefix">(</mo><mover><mi>q</mi><mo accent="true">‾</mo></mover><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\eta_q(\bar{q})</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ω</mi><mrow><mi>q</mi><mo>,</mo><mrow><mi mathvariant="normal">e</mi><mi mathvariant="normal">f</mi><mi mathvariant="normal">f</mi></mrow></mrow></msub><annotation encoding="application/x-tex">\omega_{q,\mathrm{eff}}</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ϵ</mi><mrow><mi>q</mi><mo>,</mo><mrow><mi mathvariant="normal">e</mi><mi mathvariant="normal">f</mi><mi mathvariant="normal">f</mi></mrow></mrow></msub><annotation encoding="application/x-tex">\epsilon_{q,\mathrm{eff}}</annotation></semantics></math></td>
+</tr>
+<tr>
+<td>初始层峰值</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>e</mi><mi>α</mi></msub><annotation encoding="application/x-tex">e_\alpha</annotation></semantics></math>
+峰值、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>e</mi><mi>q</mi></msub><annotation encoding="application/x-tex">e_q</annotation></semantics></math>
+峰值、舵偏/舵速峰值</td>
+</tr>
+<tr>
+<td>闭环后果</td>
+<td>高度误差恢复时间、航迹角误差峰值、安全裕度最小值</td>
+</tr>
+</tbody>
+</table>
+<p>这张问题卡的教学目的不是做复杂模型，而是训练读者建立这样一条证据链：</p>
+<ul>
+<li><strong>外环设计</strong>：快链有效带宽；初始层和约束活跃段；命令可实现性；慢变量闭环性能</li>
+</ul>
+<h3 id="多时间尺度最小验证协议与失败诊断">7.13.3
+多时间尺度最小验证协议与失败诊断</h3>
+<p>前面的核查要点告诉读者”要看什么”，这一节进一步规定”最少怎么验”。它适用于：</p>
+<ul>
+<li>内外环分层飞控；</li>
+<li>执行机构显著快于姿态环的串级控制；</li>
+<li>带命令滤波、参考治理或安全滤波的快慢耦合闭环；</li>
+<li>模式切换前后需要保持内环快速实现的场景。</li>
+</ul>
+<h4 id="最小验证协议">最小验证协议</h4>
+<p>若作者要声称”多时间尺度分层近似在该问题上成立”，至少应完成下面六步。</p>
+<p><strong>第一步：给出显式慢变量、快变量和小参数定义</strong></p>
+<p>至少要写清：</p>
+<ul>
+<li>慢变量是什么，例如
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>e</mi><mi>h</mi></msub><mo>,</mo><msub><mi>e</mi><mi>γ</mi></msub><mo>,</mo><msub><mi>e</mi><mi>V</mi></msub></mrow><annotation encoding="application/x-tex">e_h,e_\gamma,e_V</annotation></semantics></math>；</li>
+<li>快变量是什么，例如
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>e</mi><mi>α</mi></msub><mo>,</mo><msub><mi>e</mi><mi>q</mi></msub><mo>,</mo><mi>δ</mi><mo>,</mo><mover><mi>d</mi><mo accent="true">̂</mo></mover></mrow><annotation encoding="application/x-tex">e_\alpha,e_q,\delta,\hat d</annotation></semantics></math>；</li>
+<li>小参数如何从时间常数或带宽比计算，而不是只写
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ϵ</mi><mo>≪</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">\epsilon\ll1</annotation></semantics></math>。</li>
+</ul>
+<p>推荐最小口径：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ϵ</mi><mi>c</mi></msub><mo>=</mo><mfrac><msub><mi>ω</mi><mi>g</mi></msub><msub><mi>ω</mi><mi>c</mi></msub></mfrac><mo>,</mo><mspace width="2.0em"></mspace><msub><mi>ϵ</mi><mi>a</mi></msub><mo>=</mo><mfrac><msub><mi>ω</mi><mi>c</mi></msub><msub><mi>ω</mi><mi>a</mi></msub></mfrac><mo>,</mo><mspace width="2.0em"></mspace><msub><mi>ϵ</mi><mi>o</mi></msub><mo>=</mo><mfrac><msub><mi>ω</mi><mi>c</mi></msub><msub><mi>ω</mi><mi>o</mi></msub></mfrac><mi>.</mi></mrow><annotation encoding="application/x-tex">
+\epsilon_c=\frac{\omega_g}{\omega_c},\qquad
+\epsilon_a=\frac{\omega_c}{\omega_a},\qquad
+\epsilon_o=\frac{\omega_c}{\omega_o}.
+</annotation></semantics></math></p>
+<p>若有约束或故障削弱输入通道，还应报告：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ω</mi><mrow><mi>c</mi><mo>,</mo><mrow><mi mathvariant="normal">e</mi><mi mathvariant="normal">f</mi><mi mathvariant="normal">f</mi></mrow></mrow></msub><mo>,</mo><mspace width="2.0em"></mspace><msub><mi>ϵ</mi><mrow><mi>c</mi><mo>,</mo><mrow><mi mathvariant="normal">e</mi><mi mathvariant="normal">f</mi><mi mathvariant="normal">f</mi></mrow></mrow></msub><mo>=</mo><mfrac><msub><mi>ω</mi><mi>g</mi></msub><msub><mi>ω</mi><mrow><mi>c</mi><mo>,</mo><mrow><mi mathvariant="normal">e</mi><mi mathvariant="normal">f</mi><mi mathvariant="normal">f</mi></mrow></mrow></msub></mfrac><mi>.</mi></mrow><annotation encoding="application/x-tex">
+\omega_{c,\mathrm{eff}},\qquad
+\epsilon_{c,\mathrm{eff}}=\frac{\omega_g}{\omega_{c,\mathrm{eff}}}.
+</annotation></semantics></math></p>
+<p><strong>第二步：给出降阶慢系统和边界层系统</strong></p>
+<p>至少要明确：</p>
+<ol type="1">
+<li><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ϵ</mi><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\epsilon=0</annotation></semantics></math>
+后的准稳态关系；</li>
+<li>降阶慢系统如何得到；</li>
+<li>快时间变量和边界层误差变量如何定义。</li>
+</ol>
+<p>没有这一步，就谈不上奇异摄动验证，最多只是”串级结构调得还行”。</p>
+<p><strong>第三步：报告初始层和快链峰值</strong></p>
+<p>最少应记录：</p>
+<ul>
+<li><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>e</mi><mi>α</mi></msub><annotation encoding="application/x-tex">e_\alpha</annotation></semantics></math>
+或姿态误差峰值；</li>
+<li><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>e</mi><mi>q</mi></msub><annotation encoding="application/x-tex">e_q</annotation></semantics></math>
+或角速度峰值；</li>
+<li>舵偏峰值和舵速峰值；</li>
+<li>初始层持续时间估计。</li>
+</ul>
+<p>原因很直接：很多闭环长期稳定，但初始层已经触发了攻角、热流、动压或执行机构约束。</p>
+<p><strong>第四步：报告命令可实现性</strong></p>
+<p>至少要比较：</p>
+<ul>
+<li>外环给出的原始命令；</li>
+<li>经过滤波或参考治理后的可执行命令；</li>
+<li>执行机构真实实现量。</li>
+</ul>
+<p>推荐最小误差链：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>r</mi><mo>→</mo><msub><mi>r</mi><mi>f</mi></msub><mo>→</mo><msub><mi>α</mi><mi>c</mi></msub><mo>→</mo><msub><mi>δ</mi><mi>c</mi></msub><mo>→</mo><mi>δ</mi><mi>.</mi></mrow><annotation encoding="application/x-tex">
+r \rightarrow r_f \rightarrow \alpha_c \rightarrow \delta_c \rightarrow \delta.
+</annotation></semantics></math></p>
+<p>若这条链上任何一环出现大残差，外环的降阶分析都要重审。</p>
+<p><strong>第五步：报告离散实现和模式切换影响</strong></p>
+<p>至少要给出：</p>
+<ul>
+<li>采样周期
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>T</mi><mi>s</mi></msub><annotation encoding="application/x-tex">T_s</annotation></semantics></math>；</li>
+<li>计算或通信延迟
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>T</mi><mi>d</mi></msub><annotation encoding="application/x-tex">T_d</annotation></semantics></math>；</li>
+<li>模式切换触发量和切换时刻；</li>
+<li>切换前后姿态误差、舵速和安全裕度最低值。</li>
+</ul>
+<p>连续时间证明若不经过这一步，结论边界通常是不完整的。</p>
+<p><strong>第六步：把时间尺度验证和闭环任务指标联结起来</strong></p>
+<p>至少要把下列两类量一起报告：</p>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>类别</th>
+<th>指标示例</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>快链实现指标</td>
+<td>姿态误差峰值、角速度峰值、舵偏峰值、舵速峰值、饱和时间</td>
+</tr>
+<tr>
+<td>任务指标</td>
+<td>高度误差、速度误差、终端误差、约束最小裕度、恢复时间</td>
+</tr>
+</tbody>
+</table>
+<p>若只报告任务误差而不报告快链实现，就无法判断”结果好”是因为理论成立，还是因为工况过于温和。</p>
+<h4 id="失败诊断表">失败诊断表</h4>
+<p>多时间尺度问题最容易出错的地方，不是在公式，而是在证据链断裂。下面给出一张最小失败诊断表。</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>现象</th>
+<th>更可能的原因</th>
+<th>应先补查什么</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>外环仿真很好，加入舵机后性能明显变差</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ϵ</mi><mi>a</mi></msub><annotation encoding="application/x-tex">\epsilon_a</annotation></semantics></math>
+不小，或舵速先饱和</td>
+<td>舵速峰值、速率受限时间、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>δ</mi><mo>−</mo><msub><mi>δ</mi><mi>c</mi></msub></mrow><annotation encoding="application/x-tex">\delta-\delta_c</annotation></semantics></math>
+残差</td>
+</tr>
+<tr>
+<td>标称工况分层成立，约束附近突然失效</td>
+<td>输入效能下降导致
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ω</mi><mrow><mi>c</mi><mo>,</mo><mrow><mi mathvariant="normal">e</mi><mi mathvariant="normal">f</mi><mi mathvariant="normal">f</mi></mrow></mrow></msub><annotation encoding="application/x-tex">\omega_{c,\mathrm{eff}}</annotation></semantics></math>
+变小</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>η</mi><mi>q</mi></msub><mo stretchy="false" form="prefix">(</mo><mover><mi>q</mi><mo accent="true">‾</mo></mover><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\eta_q(\bar q)</annotation></semantics></math>、有效带宽、约束活跃段误差峰值</td>
+</tr>
+<tr>
+<td>长期误差可接受，但起始几秒安全裕度掉得很快</td>
+<td>初始层峰值被忽略</td>
+<td>初始层时间、姿态/舵机峰值、热流/攻角/动压最小裕度</td>
+</tr>
+<tr>
+<td>连续时间分析稳定，离散实现振荡</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>T</mi><mi>s</mi></msub><annotation encoding="application/x-tex">T_s</annotation></semantics></math>
+或
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>T</mi><mi>d</mi></msub><annotation encoding="application/x-tex">T_d</annotation></semantics></math>
+接近快链时间常数</td>
+<td>采样周期、延迟、离散相位滞后、执行节拍</td>
+</tr>
+<tr>
+<td>模式切换后短时超调明显</td>
+<td>切换逻辑无滞回或命令不连续</td>
+<td>守卫条件、驻留时间、切换瞬间命令跳变量</td>
+</tr>
+<tr>
+<td>外环结论和高保真仿真矛盾</td>
+<td>把快链误差近似成零过于乐观</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>e</mi><mi>α</mi></msub><mo>,</mo><msub><mi>e</mi><mi>q</mi></msub><mo>,</mo><mi>δ</mi></mrow><annotation encoding="application/x-tex">e_\alpha,e_q,\delta</annotation></semantics></math>
+的真实轨迹和命令残差链</td>
+</tr>
+</tbody>
+</table>
+<h4 id="最低合格交付">最低合格交付</h4>
+<p>如果读者或作者时间有限，至少也要交出下面这份最小包：</p>
+<ol type="1">
+<li>一张慢变量/快变量/小参数定义表；</li>
+<li>一组标称与约束附近的带宽比；</li>
+<li>一张初始层与快链峰值统计表；</li>
+<li>一张任务指标与安全裕度统计表；</li>
+<li>一段失败原因解释，而不是只给”调参后通过”。</li>
+</ol>
+<p>只有做到这一步，“内环足够快”才算从经验判断提升为控制科学意义上的可核查结论。</p>
+<h2 id="多时间尺度问题写法">7.14 多时间尺度问题写法</h2>
+<p>多时间尺度章节如果只给”内环快于外环”的口头判断，后续章节很难复用。更稳妥的参考书写法，是把慢变量、快变量、时间尺度、命令链、约束边界和实现假设整理成一个可交付的问题包。它的作用不是追求形式整齐，而是防止后续第
+24、34、47、48、55、58
+章在引用这一章时重新猜测：哪些环节被当成快链，哪些结论只在标称工况成立，哪些约束会让有效带宽退化。</p>
+<p>一个最小多时间尺度问题包至少应包含：</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>字段</th>
+<th>必须写清的内容</th>
+<th>控制含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>任务与层级</td>
+<td>高度-速度外环/姿态内环、制导-控制分层、分配-执行机构分层或估计-控制分层</td>
+<td>防止把不同时间尺度问题混成同一个近似</td>
+</tr>
+<tr>
+<td>慢变量</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>x</mi><mi>s</mi></msub><annotation encoding="application/x-tex">x_s</annotation></semantics></math>，或
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>e</mi><mi>h</mi></msub><mo>,</mo><msub><mi>e</mi><mi>V</mi></msub><mo>,</mo><msub><mi>e</mi><mi>γ</mi></msub></mrow><annotation encoding="application/x-tex">e_h,e_V,e_\gamma</annotation></semantics></math>
+等的定义、单位和物理含义</td>
+<td>明确降阶慢系统真正关注什么</td>
+</tr>
+<tr>
+<td>快变量</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>z</mi><mi>f</mi></msub><annotation encoding="application/x-tex">z_f</annotation></semantics></math>，或
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>e</mi><mi>α</mi></msub><mo>,</mo><msub><mi>e</mi><mi>q</mi></msub><mo>,</mo><mi>δ</mi><mo>,</mo><mover><mi>d</mi><mo accent="true">̂</mo></mover></mrow><annotation encoding="application/x-tex">e_\alpha,e_q,\delta,\hat d</annotation></semantics></math>
+等的定义、单位和物理含义</td>
+<td>明确边界层系统和初始层峰值来自哪里</td>
+</tr>
+<tr>
+<td>小参数</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ϵ</mi><mi>c</mi></msub><mo>,</mo><msub><mi>ϵ</mi><mi>a</mi></msub><mo>,</mo><msub><mi>ϵ</mi><mi>o</mi></msub></mrow><annotation encoding="application/x-tex">\epsilon_c,\epsilon_a,\epsilon_o</annotation></semantics></math>
+的定义、计算方式和适用工况</td>
+<td>把“快很多”变成可核查的量</td>
+</tr>
+<tr>
+<td>标称带宽</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ω</mi><mi>g</mi></msub><mo>,</mo><msub><mi>ω</mi><mi>c</mi></msub><mo>,</mo><msub><mi>ω</mi><mi>a</mi></msub><mo>,</mo><msub><mi>ω</mi><mi>o</mi></msub></mrow><annotation encoding="application/x-tex">\omega_g,\omega_c,\omega_a,\omega_o</annotation></semantics></math>
+或等价时间常数</td>
+<td>给分层判断提供基础尺度</td>
+</tr>
+<tr>
+<td>有效带宽退化</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>η</mi><mi>q</mi></msub><mo stretchy="false" form="prefix">(</mo><mover><mi>q</mi><mo accent="true">‾</mo></mover><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\eta_q(\bar q)</annotation></semantics></math>、饱和、故障、模式切换或滤波导致的
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ω</mi><mrow><mi mathvariant="normal">e</mi><mi mathvariant="normal">f</mi><mi mathvariant="normal">f</mi></mrow></msub><annotation encoding="application/x-tex">\omega_{\mathrm{eff}}</annotation></semantics></math></td>
+<td>说明为什么标称分层可能在约束附近失效</td>
+</tr>
+<tr>
+<td>降阶慢系统</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ϵ</mi><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\epsilon=0</annotation></semantics></math>
+后的准稳态关系、慢系统模型和适用范围</td>
+<td>支撑后续外环设计与证明</td>
+</tr>
+<tr>
+<td>边界层系统</td>
+<td>快时间变量、边界层误差变量和局部稳定性判断</td>
+<td>支撑“快链足够快且可收敛”的结论</td>
+</tr>
+<tr>
+<td>命令链</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>r</mi><mo>→</mo><msub><mi>r</mi><mi>f</mi></msub><mo>→</mo><msub><mi>α</mi><mi>c</mi></msub><mo>→</mo><msub><mi>δ</mi><mi>c</mi></msub><mo>→</mo><mi>δ</mi></mrow><annotation encoding="application/x-tex">r \rightarrow r_f \rightarrow \alpha_c \rightarrow \delta_c \rightarrow \delta</annotation></semantics></math>
+或等价链路</td>
+<td>区分原始命令、可执行命令和真实执行量</td>
+</tr>
+<tr>
+<td>初始层指标</td>
+<td>姿态误差峰值、角速度峰值、舵偏峰值、舵速峰值、初始层持续时间</td>
+<td>防止长期稳定掩盖短时超限</td>
+</tr>
+<tr>
+<td>采样与切换</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mi>s</mi></msub><mo>,</mo><msub><mi>T</mi><mi>d</mi></msub></mrow><annotation encoding="application/x-tex">T_s,T_d</annotation></semantics></math>、切换守卫、驻留时间和切换瞬间命令跳变量</td>
+<td>把连续时间结论连接到真实实现</td>
+</tr>
+<tr>
+<td>约束接口</td>
+<td>动压、热流、过载、攻角、舵偏、舵速最小裕度与触发段</td>
+<td>说明时间尺度退化如何影响安全边界</td>
+</tr>
+<tr>
+<td>验证输出</td>
+<td>带宽比、命令残差、快链峰值、任务误差、恢复时间和失败样本</td>
+<td>让第 55、57、58 章可直接接收验证字段</td>
+</tr>
+<tr>
+<td>结论边界</td>
+<td>标称工况、约束附近、离散实现、多模态切换或故障场景的适用范围</td>
+<td>防止把局部证据写成普遍结论</td>
+</tr>
+</tbody>
+</table>
+<p>若把多时间尺度对象整理成后续可复用的交付表，建议至少记录下表内容：</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>字段</th>
+<th>建议记录内容</th>
+<th>控制作用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>任务标识</td>
+<td>例如“外制导-内姿态-执行机构链”</td>
+<td>区分不同分层对象</td>
+</tr>
+<tr>
+<td>慢层与快层</td>
+<td>慢层如制导误差、高度误差、速度误差；快层如攻角误差、俯仰角速度误差、舵机偏转</td>
+<td>明确快慢变量分工</td>
+</tr>
+<tr>
+<td>标称带宽</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ω</mi><mi>g</mi></msub><mo>,</mo><msub><mi>ω</mi><mi>c</mi></msub><mo>,</mo><msub><mi>ω</mi><mi>a</mi></msub><mo>,</mo><msub><mi>ω</mi><mi>o</mi></msub></mrow><annotation encoding="application/x-tex">\omega_g,\omega_c,\omega_a,\omega_o</annotation></semantics></math></td>
+<td>支撑时间尺度分离判断</td>
+</tr>
+<tr>
+<td>小参数</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ϵ</mi><mi>c</mi></msub><mo>,</mo><msub><mi>ϵ</mi><mi>a</mi></msub><mo>,</mo><msub><mi>ϵ</mi><mi>o</mi></msub></mrow><annotation encoding="application/x-tex">\epsilon_c,\epsilon_a,\epsilon_o</annotation></semantics></math>
+或等价比值</td>
+<td>量化分层强弱</td>
+</tr>
+<tr>
+<td>效能退化信息</td>
+<td>输入效能边界、有效带宽和退化后的等效小参数</td>
+<td>说明约束附近为何可能失去分层</td>
+</tr>
+<tr>
+<td>降阶慢系统</td>
+<td>准稳态关系与慢系统动力学</td>
+<td>服务外环设计和证明</td>
+</tr>
+<tr>
+<td>边界层系统</td>
+<td>快时间变量、快误差状态和局部稳定证据</td>
+<td>支撑“快链足够快”的结论</td>
+</tr>
+<tr>
+<td>命令链</td>
+<td>从原始参考到滤波参考、内环命令、执行机构命令和真实执行量的完整链条</td>
+<td>避免把命令实现问题藏起来</td>
+</tr>
+<tr>
+<td>实现信息</td>
+<td>采样周期、延迟、模式切换逻辑</td>
+<td>连接连续分析和真实实现</td>
+</tr>
+<tr>
+<td>证据字段</td>
+<td>快链峰值、命令残差、安全裕度和任务指标</td>
+<td>让第 55、57、58 章可直接接收结果</td>
+</tr>
+<tr>
+<td>结论边界</td>
+<td>适用飞行区域和排除场景</td>
+<td>防止局部证据写成普遍结论</td>
+</tr>
+</tbody>
+</table>
+<p>这个模板的核心价值，是把”时间尺度分离结论”固定到一条完整接口链上。若没有命令链、有效带宽和约束接口字段，后续章节很容易把外环成功误读为理论成立；实际上它也可能只是因为参考变化太慢、工况太温和，或者安全层替代了原本应由快链完成的工作。</p>
+<h2 id="多时间尺度证据层次及其与后续章节的关系">7.15
+多时间尺度证据层次及其与后续章节的关系</h2>
+<p>多时间尺度问题的证据强度差异也很大。单个标称仿真、带执行机构的峰值记录、带约束退化的扫描和带采样/切换的闭环验证，能支持的结论完全不同。更稳妥的写法，是把证据等级和下游交接一起说明。</p>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr>
+<th>等级</th>
+<th>证据</th>
+<th>能支持的结论</th>
+<th>不能支持的结论</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>T0</td>
+<td>只给分层框图和“内环更快”的经验判断</td>
+<td>结构上存在快慢分层意图</td>
+<td>不能证明小参数足够小、快链可实现或约束兼容</td>
+</tr>
+<tr>
+<td>T1</td>
+<td>增加慢/快变量定义、带宽比和降阶慢系统</td>
+<td>能说明标称工况下为何尝试分层设计</td>
+<td>不能证明执行机构、采样、约束附近仍成立</td>
+</tr>
+<tr>
+<td>T2</td>
+<td>增加边界层系统、初始层峰值、命令残差链和执行机构指标</td>
+<td>能说明标称闭环中快链实现情况被记录</td>
+<td>不能替代约束附近、多飞行点或切换场景验证</td>
+</tr>
+<tr>
+<td>T3</td>
+<td>增加输入效能退化、饱和、参考治理/安全层活跃和边界样本</td>
+<td>能支持“给定包线和约束附近”的时间尺度结论</td>
+<td>不能直接写成全包线严格保证</td>
+</tr>
+<tr>
+<td>T4</td>
+<td>增加采样、延迟、模式切换、故障或高保真闭环的对比指标</td>
+<td>能说明多时间尺度分析已进入工程实现链</td>
+<td>仍不能替代飞行试验或更高保真全模型结论</td>
+</tr>
+</tbody>
+</table>
+<p>第7章向后续章节交接时，建议至少按下表组织：</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>后续章节或模块</th>
+<th>从第7章接收什么</th>
+<th>还必须补什么</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>第24章 执行机构、传感器与计算系统建模</td>
+<td>带宽比、舵机时间常数、命令残差链和采样/延迟接口</td>
+<td>执行机构非线性、量化、噪声和实现节拍</td>
+</tr>
+<tr>
+<td>第34章 INDI</td>
+<td>姿态快链、角加速度测量链、有效带宽和滤波时间尺度</td>
+<td>差分噪声、滤波相位滞后和输入增量限制</td>
+</tr>
+<tr>
+<td>第47章 制导理论基础</td>
+<td>外环命令频率、可执行参考链和约束附近有效带宽</td>
+<td>路径走廊、终端约束、制导参考可行化</td>
+</tr>
+<tr>
+<td>第48章 制导控制一体化</td>
+<td>原始命令到姿态/分配/执行机构的时间尺度接口</td>
+<td>三维姿态链、控制分配残差、可分配性余量</td>
+</tr>
+<tr>
+<td>第51章 吸气式高超声速巡航控制</td>
+<td>推进慢链、姿态快链、进气道保护对有效带宽的影响</td>
+<td>推进状态、油门速率、进气道/热流耦合</td>
+</tr>
+<tr>
+<td>第55章 控制器离散化与实时实现</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mi>s</mi></msub><mo>,</mo><msub><mi>T</mi><mi>d</mi></msub></mrow><annotation encoding="application/x-tex">T_s,T_d</annotation></semantics></math>、切换时刻、初始层峰值和快链时间常数</td>
+<td>离散化误差、调度节拍、计算负担和最坏情况</td>
+</tr>
+<tr>
+<td>第57章 不确定性与 Monte Carlo 验证</td>
+<td>带宽扫描、约束附近样本、切换样本和失败分类</td>
+<td>样本分布、统计汇总和最差样本解释</td>
+</tr>
+<tr>
+<td>第58章 典型案例库</td>
+<td>多时间尺度问题包、证据等级和最小验证字段</td>
+<td>案例化对象、脚本入口、图表和结果表</td>
+</tr>
+</tbody>
+</table>
+<p>保守表述应当是：若只有 T0 或 T1
+级证据，只能说”系统具有分层设计意图”或”标称工况下带宽比看起来可接受”；若没有初始层峰值、命令残差和约束附近有效带宽记录，就不能声称”多时间尺度近似已足以支撑工程闭环设计”。</p>
+<h2 id="常见错误">7.16 常见错误</h2>
+<ol type="1">
+<li>只画外环轨迹，不检查内环是否实现命令。</li>
+<li>把舵面命令直接当舵面实际偏角。</li>
+<li>在证明中忽略执行机构饱和残差。</li>
+<li>观测器带宽无限增大，却不讨论噪声放大。</li>
+<li>制导律在质点模型中成功，就声称 IGC 成功。</li>
+<li>增益调度切换没有滞回、防抖或平滑处理。</li>
+<li>把”内环快于外环”当成无需验证的事实。</li>
+<li>忽略初始层峰值，只讨论长期收敛。</li>
+<li>命令滤波时间常数随意选取，没有检查滤波滞后和约束裕度。</li>
+<li>连续时间控制律证明后，不检查采样周期和计算延迟。</li>
+</ol>
+<h2 id="本章小结">7.17 本章小结</h2>
+<p>奇异摄动与多时间尺度理论为高超声速分层控制提供理论依据。它告诉读者：分层设计可以成立，但需要快子系统稳定、慢子系统稳定、时间尺度分离充分、饱和和延迟残差可控。本教程后续讨论制导控制分离、姿态内外环、执行机构建模、观测器和
+IGC 时，都应回到这些条件，而不是只给框图。</p>
+<h2 id="练习">7.18 练习</h2>
+<ol type="1">
+<li>写出一个包含慢变量
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>x</mi><annotation encoding="application/x-tex">x</annotation></semantics></math>
+和快变量
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>z</mi><annotation encoding="application/x-tex">z</annotation></semantics></math>
+的奇异摄动系统。</li>
+<li>解释为什么姿态内环带宽不足会破坏三维制导律。</li>
+<li>对执行机构一阶模型
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>τ</mi><mi>a</mi></msub><mover><mi>δ</mi><mo accent="true">̇</mo></mover><mo>=</mo><mi>−</mi><mi>δ</mi><mo>+</mo><msub><mi>δ</mi><mi>c</mi></msub></mrow><annotation encoding="application/x-tex">\tau_a\dot{\delta}=-\delta+\delta_c</annotation></semantics></math>，说明何时可以近似
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>δ</mi><mo>=</mo><msub><mi>δ</mi><mi>c</mi></msub></mrow><annotation encoding="application/x-tex">\delta=\delta_c</annotation></semantics></math>。</li>
+<li>给出三个能检查时间尺度分离假设的仿真指标。</li>
+<li>解释为什么高增益观测器不一定适合高噪声传感器场景。</li>
+<li>设计一个飞行阶段切换检查表，至少包含 5 个应记录的量。</li>
+<li>对 7.5
+节的极简外环-内环模型，推导降阶慢系统和边界层系统，并给出稳定条件。</li>
+<li>说明初始层为什么可能带来舵面峰值或安全裕度下降。</li>
+<li>选择一组
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mi>g</mi></msub><mo>,</mo><msub><mi>T</mi><mi>c</mi></msub><mo>,</mo><msub><mi>T</mi><mi>a</mi></msub><mo>,</mo><msub><mi>T</mi><mi>s</mi></msub><mo>,</mo><msub><mi>T</mi><mi>d</mi></msub></mrow><annotation encoding="application/x-tex">T_g,T_c,T_a,T_s,T_d</annotation></semantics></math>，判断制导、控制、执行机构和采样时间尺度是否合理。</li>
+<li>给出一个命令滤波时间常数过大导致外环性能下降的例子。</li>
+<li>已知
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ω</mi><mi>g</mi></msub><mo>=</mo><mn>0.25</mn><mspace width="0.167em"></mspace><mrow><mi mathvariant="normal">r</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">d</mi><mi mathvariant="normal">/</mi><mi mathvariant="normal">s</mi></mrow></mrow><annotation encoding="application/x-tex">\omega_g=0.25\,\mathrm{rad/s}</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ω</mi><mi>c</mi></msub><mo>=</mo><mn>2.5</mn><mspace width="0.167em"></mspace><mrow><mi mathvariant="normal">r</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">d</mi><mi mathvariant="normal">/</mi><mi mathvariant="normal">s</mi></mrow></mrow><annotation encoding="application/x-tex">\omega_c=2.5\,\mathrm{rad/s}</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ω</mi><mi>a</mi></msub><mo>=</mo><mn>15</mn><mspace width="0.167em"></mspace><mrow><mi mathvariant="normal">r</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">d</mi><mi mathvariant="normal">/</mi><mi mathvariant="normal">s</mi></mrow></mrow><annotation encoding="application/x-tex">\omega_a=15\,\mathrm{rad/s}</annotation></semantics></math>，计算
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ϵ</mi><mi>c</mi></msub><annotation encoding="application/x-tex">\epsilon_c</annotation></semantics></math>
+和
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ϵ</mi><mi>a</mi></msub><annotation encoding="application/x-tex">\epsilon_a</annotation></semantics></math>，并判断是否满足初步分层条件。</li>
+<li>若动压附近输入效能下降为
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>η</mi><mi>q</mi></msub><mo>=</mo><mn>0.5</mn></mrow><annotation encoding="application/x-tex">\eta_q=0.5</annotation></semantics></math>，重新计算有效姿态带宽和
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ϵ</mi><mrow><mi>c</mi><mo>,</mo><mrow><mi mathvariant="normal">e</mi><mi mathvariant="normal">f</mi><mi mathvariant="normal">f</mi></mrow></mrow></msub><annotation encoding="application/x-tex">\epsilon_{c,\mathrm{eff}}</annotation></semantics></math>。</li>
+</ol>
+<h2 id="飞行控制里的典型快慢链">7.19 飞行控制里的典型快慢链</h2>
+<p>把奇异摄动理论真正用到高超声速飞行器上时，最重要的是把”快”和”慢”放回具体变量。一个最常见的分解是：</p>
+<ul>
+<li>慢链：速度、高度、航迹角、能量、终端距离；</li>
+<li>中间链：姿态角、攻角、角速度、控制分配残差；</li>
+<li>快链：执行机构状态、滤波器状态、某些观测器状态和命令滤波器状态。</li>
+</ul>
+<p>这个分解之所以有用，是因为它能解释很多看似矛盾的现象。比如：</p>
+<ol type="1">
+<li>外环命令在数学上是平滑的，但进入内环后仍可能引起舵面峰值，这是因为中间链的准稳态还没来得及建立；</li>
+<li>内环看似稳定，但执行机构饱和后姿态误差仍然持续积累，这是因为快链被限幅打断后，慢链已不再看到同一个输入；</li>
+<li>参考治理或安全滤波看似只改了”一个小量”，但如果它改变的是命令链的时间尺度，就会把原来的分层结构推翻。</li>
+</ol>
+<p>因此，飞行控制中的时间尺度分析不能只问”系统有没有快变量”，还要问：</p>
+<ol type="1">
+<li>快变量是否真的足够快？</li>
+<li>快变量收敛后是否能立即支撑慢变量设计？</li>
+<li>快变量的峰值是否已经违反动压、热流或舵速约束？</li>
+</ol>
+<p>一旦答案是否定的，就不能继续沿用原来的分层假设，而应考虑更强的命令滤波、更保守的外环带宽、显式的执行机构模型，或者直接改用制导控制一体化和
+MPC。</p>
+<h2 id="多时间尺度的整定顺序">7.20 多时间尺度的整定顺序</h2>
+<p>多时间尺度设计的一个实用顺序是：</p>
+<ol type="1">
+<li>先定任务层，确认外环命令的变化范围；</li>
+<li>再定执行机构层，确认最大舵偏、最大舵速和最坏响应时间；</li>
+<li>再定姿态内环，保证它比外环快，但又不会把噪声和柔性模态放大；</li>
+<li>最后定滤波器、安全层和估计器，检查这些附加模块是否改变了原来的时间尺度排序。</li>
+</ol>
+<p>若整定后发现：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mi>a</mi></msub><mo>≈</mo><msub><mi>T</mi><mi>c</mi></msub></mrow><annotation encoding="application/x-tex">
+T_a\approx T_c
+</annotation></semantics></math></p>
+<p>或者：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ω</mi><mi>a</mi></msub><mo>≫̸</mo><msub><mi>ω</mi><mi>c</mi></msub><mo>,</mo></mrow><annotation encoding="application/x-tex">
+\omega_a\not\gg \omega_c,
+</annotation></semantics></math></p>
+<p>就不能再把执行机构当作”瞬时实现命令”的理想块。此时正确的做法不是继续口头强调分层，而是把执行机构动态、限速和延迟纳入闭环模型，再重新检查稳定性、峰值和安全裕度。</p>
+<h2 id="面向后续章节的接口小结">7.21 面向后续章节的接口小结</h2>
+<p>奇异摄动与多时间尺度理论的作用，是把”内环快、外环慢”变成可以检验、可以证明、也可以在失败时明确追责的工程假设。对高超声速飞行器来说，这一章直接关系到制导和控制能否分层、命令滤波是否合理、执行机构动态是否可以忽略，以及安全层和控制器之间会不会把原本的快慢结构打乱。后续章节如果要讨论反步、动态面控制、控制分配或
+IGC，都应先回答本章留下的三个问题：快变量是否真的足够快，准稳态是否可用，以及初始层是否会触发约束边界。</p>
+<h2 id="多时间尺度对象包的最小交付格式">7.22
+多时间尺度对象包的最小交付格式</h2>
+<p>奇异摄动和多时间尺度章节如果只写”内环比外环快”，还不够让后续章节直接复用。更稳妥的做法，是把分层对象整理成对象包，明确慢链、快链、命令链、约束边界和实现条件。这样后面的
+IGC、执行机构、离散实现和验证章节才能直接接这章的分析结果，而不用重新猜测时间尺度怎么分。</p>
+<p>一个最小多时间尺度对象包建议至少包含：</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>字段</th>
+<th>建议记录内容</th>
+<th>控制作用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>任务名称</td>
+<td>外环-内环、制导-控制、估计-控制或控制-分配分层问题</td>
+<td>说明是哪一类分层对象</td>
+</tr>
+<tr>
+<td>慢变量</td>
+<td>速度、高度、航迹角、终端误差或等效慢状态</td>
+<td>明确慢系统真正关心什么</td>
+</tr>
+<tr>
+<td>快变量</td>
+<td>攻角、角速度、舵机状态、滤波状态或快误差</td>
+<td>明确初始层和边界层来自哪里</td>
+</tr>
+<tr>
+<td>小参数</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ϵ</mi><annotation encoding="application/x-tex">\epsilon</annotation></semantics></math>
+的定义、计算方式和适用区域</td>
+<td>把“快很多”变成可核查量</td>
+</tr>
+<tr>
+<td>命令链</td>
+<td>原始参考、滤波参考、内环命令、执行机构命令和真实执行量</td>
+<td>防止把命令实现问题藏起来</td>
+</tr>
+<tr>
+<td>带宽信息</td>
+<td>标称带宽、有效带宽、退化带宽和时间常数</td>
+<td>说明分层在何时会失效</td>
+</tr>
+<tr>
+<td>约束接口</td>
+<td>动压、热流、过载、攻角、舵偏、舵速和切换条件</td>
+<td>说明时间尺度和安全边界如何耦合</td>
+</tr>
+<tr>
+<td>初始层证据</td>
+<td>姿态峰值、舵偏峰值、舵速峰值、持续时间和恢复时间</td>
+<td>说明快链是否真的够快</td>
+</tr>
+<tr>
+<td>实现条件</td>
+<td>采样周期、延迟、模式切换和命令限幅</td>
+<td>说明连续时间结论如何落地</td>
+</tr>
+<tr>
+<td>验证字段</td>
+<td>带宽比、命令残差、任务误差、最小裕度和失败样本</td>
+<td>让结论可复查</td>
+</tr>
+<tr>
+<td>结论边界</td>
+<td>标称工况、约束附近、离散实现和切换场景的适用范围</td>
+<td>防止把局部结论写成普遍保证</td>
+</tr>
+</tbody>
+</table>
+<p>这个对象包最有用的地方，是把”时间尺度分离”从经验判断变成一份可交接材料。后续章节要判断分层是否成立，至少得看慢变量、快变量、命令链、有效带宽和初始层峰值这几项，而不是只看一张框图。</p>
+<p>若要让多时间尺度对象继续服务后续章节，还应再补三类接口。第一是估计接口：快链里哪些量需要第11章的滤波器或观测器支撑，噪声和延迟如何改变有效带宽。第二是优化接口：哪些命令链、带宽比和约束裕度需要送入第13章的最优控制、MPC
+或参考治理问题。第三是安全接口：哪些动压、热流、过载和舵速边界会在分层被打破时首先失效，以及第12章的安全层应如何接管。</p>
+<p>这三类接口的意义，是让时间尺度分析不仅说明”内环更快”，还说明快链、命令链和安全边界如何一起进入闭环。对高超声速飞行器而言，若没有这些接口，多时间尺度结论就只能停留在标称工况的经验判断，而不能作为后续控制设计的统一入口。</p>
+<h2 id="本章证据层次及其与后续章节的关系">7.23
+本章证据层次及其与后续章节的关系</h2>
+<p>多时间尺度分析的证据强度差异很大。为了让后续章节可以直接引用，建议把证据层次写清楚，而不是只写”满足
+Tikhonov 条件”。</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>层次</th>
+<th>应给出的内容</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>分层证据</td>
+<td>慢变量、快变量、小参数和带宽比</td>
+<td>说明对象上是否存在时间尺度分离</td>
+</tr>
+<tr>
+<td>初始层证据</td>
+<td>快变量峰值、舵速峰值、持续时间和恢复情况</td>
+<td>说明快链是否能承担过渡过程</td>
+</tr>
+<tr>
+<td>约束证据</td>
+<td>动压、热流、过载、攻角和舵偏裕度</td>
+<td>说明分层是否破坏安全边界</td>
+</tr>
+<tr>
+<td>实现证据</td>
+<td>采样、延迟、模式切换和命令限幅</td>
+<td>说明连续分析能否进入数字实现</td>
+</tr>
+<tr>
+<td>场景证据</td>
+<td>标称、退化、约束附近和失败样本</td>
+<td>说明结论是否经得起场景变化</td>
+</tr>
+</tbody>
+</table>
+<p>若把这套证据继续整理成对象包，建议至少再记录：</p>
+<ul>
+<li>估计字段：快链测量、滤波输出、噪声统计和时间戳，便于第11章接收；</li>
+<li>优化字段：命令链、带宽比、约束裕度和参数包，便于第13章接收；</li>
+<li>安全字段：动压、热流、过载、攻角和舵速最小裕度，便于第12章接收。</li>
+</ul>
+<p>这套证据会直接服务后续章节：第24章会把执行机构和传感器建模接到快链上，第34章会把
+INDI 与有效带宽连接起来，第 47、48
+章会把制导和控制一体化的命令链写清楚，第55章会把采样和实时实现放进时间尺度分析，第
+57、58
+章则会把多飞行点和案例证据补成完整验证链。多时间尺度章节因此不是一句”分层设计有效”的口号，而是一份能继续向后传递的分层对象。</p>
+
+      </article>
+      
+      <nav class="book-bottom-nav" aria-label="章节导航">
+        <a href="./06-input-output-small-gain.html">上一章：第6章 输入输出稳定性与小增益理论</a>
+        <a href="./index.html">卷首页</a>
+        <a href="./08-optimal-control-theory.html">下一章：第8章 最优控制理论</a>
+      </nav>
+    </main>
+  </div>
+</body>
+</html>

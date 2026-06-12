@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>第9章 鲁棒控制理论</title>
+  <style>
+    :root {
+      --paper: #f7f3eb;
+      --ink: #1f2937;
+      --muted: #5b6472;
+      --line: color-mix(in srgb, #e7eef7 68%, #cbd5e1 32%);
+      --accent: #335c81;
+      --accent-soft: #e7eef7;
+      --accent-deep: #1e3d57;
+      color-scheme: light;
+    }
+    html {
+      -webkit-text-size-adjust: 100%;
+      background:
+        radial-gradient(circle at top left, #e7eef7 0, rgba(255,255,255,0) 32%),
+        linear-gradient(180deg, #fbfaf6 0%, var(--paper) 18%, #f7f1e6 100%);
+    }
+    body {
+      margin: 0;
+      font-family: "Source Han Serif SC", "Songti SC", "Noto Serif CJK SC", "Microsoft YaHei", serif;
+      color: var(--ink);
+      line-height: 1.78;
+      letter-spacing: 0;
+    }
+    a { color: var(--accent-deep); }
+    .book-app {
+      display: grid;
+      grid-template-columns: 280px minmax(0, 1fr);
+      min-height: 100vh;
+    }
+    .book-sidebar {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow: auto;
+      padding: 1.2rem 1rem 1.2rem 1.15rem;
+      border-right: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(255,255,255,0.86), rgba(255,255,255,0.72));
+      backdrop-filter: blur(10px);
+    }
+    .sidebar-shell { position: sticky; top: 0; display: flex; flex-direction: column; gap: 1rem; }
+    .sidebar-brand {
+      padding: 0.95rem 0.95rem 1rem;
+      border-radius: 18px;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.95), rgba(255,255,255,0.84)),
+        linear-gradient(135deg, var(--accent-soft), rgba(255,255,255,0));
+      border: 1px solid var(--line);
+      box-shadow: 0 12px 28px rgba(31, 41, 55, 0.06);
+    }
+    .sidebar-brand .kicker { margin: 0; color: var(--accent); font-size: 0.82rem; font-weight: 700; }
+    .sidebar-brand h2 { margin: 0.45rem 0 0.25rem; font-size: 1.08rem; line-height: 1.3; color: var(--ink); }
+    .sidebar-brand p { margin: 0.35rem 0 0; color: var(--muted); font-size: 0.9rem; }
+    .sidebar-links { display: grid; gap: 0.45rem; }
+    .sidebar-link {
+      display: grid;
+      grid-template-columns: 2.2rem minmax(0, 1fr);
+      gap: 0.6rem;
+      align-items: start;
+      padding: 0.7rem 0.75rem;
+      border-radius: 14px;
+      text-decoration: none;
+      background: rgba(255,255,255,0.72);
+      border: 1px solid rgba(31,41,55,0.07);
+      color: var(--ink);
+    }
+    .sidebar-link:hover { background: rgba(255,255,255,0.95); border-color: var(--line); }
+    .sidebar-link.active {
+      background: linear-gradient(135deg, rgba(255,255,255,0.98), rgba(255,255,255,0.9));
+      border-color: var(--accent-soft);
+      box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent-soft) 68%, #ffffff 32%);
+    }
+    .sidebar-index {
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      min-width: 2rem;
+      height: 2rem;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent-deep);
+      font-size: 0.78rem;
+      font-weight: 800;
+    }
+    .sidebar-title { font-size: 0.94rem; line-height: 1.35; }
+    .book-main { min-width: 0; padding: 1.25rem 1.45rem 1.8rem; }
+    .book-page-header {
+      padding: 0.85rem 0 1rem;
+      margin-bottom: 1rem;
+      border-bottom: 1px solid var(--line);
+    }
+    .page-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.28rem 0.72rem;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.82);
+      border: 1px solid var(--line);
+      color: var(--accent-deep);
+      font-size: 0.8rem;
+      font-weight: 700;
+    }
+    .book-page-header h1 {
+      margin: 0.7rem 0 0;
+      font-size: 1.85rem;
+      line-height: 1.22;
+      color: var(--accent-deep);
+      border: 0;
+      padding: 0;
+    }
+    .book-page-header p { margin: 0.45rem 0 0; color: var(--muted); max-width: 62rem; }
+    .book-article { max-width: 900px; margin: 0; padding: 0 0 1.2rem; }
+    .book-article h1, .book-article h2, .book-article h3, .book-article h4, .book-article h5, .book-article h6 {
+      line-height: 1.28;
+      margin-top: 1.45em;
+      margin-bottom: 0.55em;
+      color: var(--accent-deep);
+    }
+    .book-article h1 { font-size: 2rem; border-bottom: 2px solid var(--line); padding-bottom: 0.42rem; }
+    .book-article h1:first-of-type { margin-top: 0; }
+    .book-article h2 { font-size: 1.42rem; }
+    .book-article h3 { font-size: 1.12rem; }
+    .book-article p, .book-article li, .book-article dd, .book-article td, .book-article th { text-align: justify; text-justify: inter-ideograph; }
+    .book-article p { margin: 0.85rem 0; }
+    .book-article code, .book-article pre { font-family: "Cascadia Mono", "Source Code Pro", Consolas, monospace; font-size: 0.94em; }
+    .book-article code {
+      padding: 0.02rem 0.24rem;
+      background: color-mix(in srgb, var(--accent-soft) 34%, #ffffff 66%);
+      border: 0;
+      border-bottom: 1px solid color-mix(in srgb, var(--accent-soft) 74%, #d1d5db 26%);
+      border-radius: 4px;
+      color: #253244;
+      box-decoration-break: clone;
+      -webkit-box-decoration-break: clone;
+    }
+    .book-article pre {
+      padding: 1rem 1.1rem;
+      overflow: auto;
+      background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,253,248,0.98));
+      border: 1px solid color-mix(in srgb, var(--accent-soft) 54%, #d1d5db 46%);
+      border-left: 5px solid var(--accent);
+      border-radius: 14px;
+      box-shadow: 0 8px 22px rgba(31, 41, 55, 0.05);
+    }
+    .book-article pre code { padding: 0; border: 0; background: transparent; color: inherit; }
+    .book-article table {
+      border-collapse: collapse;
+      width: 100%;
+      margin: 1rem 0 1.25rem;
+      background: rgba(255,255,255,0.82);
+      overflow: hidden;
+      border-radius: 12px;
+    }
+    .book-article th, .book-article td { border: 1px solid var(--line); padding: 0.5rem 0.7rem; vertical-align: top; }
+    .book-article th { background: color-mix(in srgb, var(--accent-soft) 42%, #ffffff 58%); }
+    .book-article blockquote {
+      margin: 1rem 0;
+      padding: 0.25rem 0 0.25rem 1rem;
+      border-left: 4px solid var(--accent);
+      color: #374151;
+      background: linear-gradient(90deg, rgba(255,255,255,0.72), rgba(255,255,255,0.48));
+      border-radius: 0 12px 12px 0;
+    }
+    .book-bottom-nav {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-top: 2.2rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--line);
+    }
+    .book-bottom-nav a {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.6rem 0.9rem;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.84);
+      text-decoration: none;
+      font-weight: 700;
+    }
+    .book-bottom-nav span {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.6rem 0.9rem;
+      border-radius: 999px;
+      border: 1px solid rgba(31,41,55,0.08);
+      background: rgba(255,255,255,0.54);
+      color: rgba(31,41,55,0.42);
+      font-weight: 700;
+    }
+    .book-bottom-nav a:hover { background: rgba(255,255,255,0.98); }
+    .book-volume-intro {
+      margin: 0 0 1.25rem;
+      padding: 1.2rem 1.25rem 1.1rem;
+      border-radius: 18px;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.96), rgba(255,255,255,0.78)),
+        linear-gradient(135deg, var(--accent-soft), rgba(255,255,255,0));
+      border: 1px solid var(--line);
+      box-shadow: 0 14px 34px rgba(31, 41, 55, 0.06);
+    }
+    .volume-intro-kicker {
+      margin: 0;
+      color: var(--accent);
+      font-size: 0.84rem;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    .book-volume-intro h2 {
+      margin: 0.55rem 0 0.55rem;
+      font-size: 1.28rem;
+      line-height: 1.35;
+      color: var(--accent-deep);
+    }
+    .volume-intro-summary {
+      margin: 0;
+      color: var(--muted);
+      max-width: 68rem;
+    }
+    .volume-intro-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.8rem;
+      margin-top: 1rem;
+    }
+    .volume-intro-box {
+      padding: 0.85rem 0.9rem;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.72);
+      border: 1px solid rgba(31,41,55,0.08);
+    }
+    .volume-intro-box span {
+      display: block;
+      color: var(--accent);
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+    }
+    .volume-intro-box strong {
+      display: block;
+      margin-top: 0.35rem;
+      color: var(--ink);
+      font-size: 0.95rem;
+      line-height: 1.45;
+    }
+    .volume-intro-note {
+      margin-top: 0.9rem;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+    @media (max-width: 1180px) {
+      .book-app { grid-template-columns: 1fr; }
+      .book-sidebar {
+        position: relative;
+        height: auto;
+        border-right: 0;
+        border-bottom: 1px solid var(--line);
+      }
+      .sidebar-shell { position: static; }
+    }
+    @media (max-width: 900px) {
+      .book-main { padding: 1rem 1rem 1.5rem; }
+      .book-bottom-nav { flex-direction: column; }
+      .volume-intro-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="book-app">
+    <aside class="book-sidebar">
+      <div class="sidebar-shell">
+        <div class="sidebar-brand">
+          <p class="kicker">高超声速飞行器控制教程</p>
+          <h2>第一卷 数学基础与控制理论基础</h2>
+          <p>控制理论地基</p>
+        </div>
+        <nav class="sidebar-links" aria-label="本卷目录">
+          <a class="sidebar-link" href="./index.html"><span class="sidebar-index">0</span><span class="sidebar-title">卷首页</span></a>
+<a class="sidebar-link" href="./01-hypersonic-control-problem-intro.html"><span class="sidebar-index">01</span><span class="sidebar-title">第1章 高超声速飞行器控制问题导论</span></a>
+<a class="sidebar-link" href="./02-dynamical-systems-state-space.html"><span class="sidebar-index">02</span><span class="sidebar-title">第2章 动力系统与状态空间方法</span></a>
+<a class="sidebar-link" href="./03-linear-systems-theory.html"><span class="sidebar-index">03</span><span class="sidebar-title">第3章 线性系统理论</span></a>
+<a class="sidebar-link" href="./04-nonlinear-systems-theory.html"><span class="sidebar-index">04</span><span class="sidebar-title">第4章 非线性系统理论</span></a>
+<a class="sidebar-link" href="./05-lyapunov-stability-theory.html"><span class="sidebar-index">05</span><span class="sidebar-title">第5章 Lyapunov 稳定性理论</span></a>
+<a class="sidebar-link" href="./06-input-output-small-gain.html"><span class="sidebar-index">06</span><span class="sidebar-title">第6章 输入输出稳定性与小增益理论</span></a>
+<a class="sidebar-link" href="./07-singular-perturbation-multitime-scale.html"><span class="sidebar-index">07</span><span class="sidebar-title">第7章 奇异摄动与多时间尺度系统</span></a>
+<a class="sidebar-link" href="./08-optimal-control-theory.html"><span class="sidebar-index">08</span><span class="sidebar-title">第8章 最优控制理论</span></a>
+<a class="sidebar-link active" href="./09-robust-control-theory.html"><span class="sidebar-index">09</span><span class="sidebar-title">第9章 鲁棒控制理论</span></a>
+<a class="sidebar-link" href="./10-adaptive-control-theory.html"><span class="sidebar-index">10</span><span class="sidebar-title">第10章 自适应控制理论</span></a>
+<a class="sidebar-link" href="./11-stochastic-filtering-estimation.html"><span class="sidebar-index">11</span><span class="sidebar-title">第11章 随机系统、滤波与状态估计</span></a>
+<a class="sidebar-link" href="./12-constrained-safety-control-foundations.html"><span class="sidebar-index">12</span><span class="sidebar-title">第12章 约束系统与安全控制基础</span></a>
+<a class="sidebar-link" href="./13-numerical-convex-optimization.html"><span class="sidebar-index">13</span><span class="sidebar-title">第13章 数值优化与凸优化基础</span></a>
+<a class="sidebar-link" href="./13-hybrid-sampled-control.html"><span class="sidebar-index">14</span><span class="sidebar-title">混杂系统与采样控制专题</span></a>
+        </nav>
+      </div>
+    </aside>
+    <main class="book-main">
+      <header class="book-page-header">
+        <div class="page-eyebrow">第1册·章节页09</div>
+        <h1 id="volume1--09-robust-control-theory">第9章 鲁棒控制理论</h1>
+        <p>本页是章节正文页。左侧目录用于回到本卷其他章节，底部导航用于前后章跳转。</p>
+      </header>
+      <article class="book-article">
+        <h2 id="问题背景-8">9.1 问题背景</h2>
+<p>鲁棒控制回答的是：当模型不准确时，闭环还能否稳定并满足性能指标。</p>
+<p>高超声速飞行器中，不确定性不是例外，而是常态。气动数据库、推进模型、大气密度、质量惯量、执行机构和传感器都会存在误差。一个常见的写法是把真实对象表示为</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>P</mi><mo>=</mo><msub><mi>P</mi><mn>0</mn></msub><mo>+</mo><mi mathvariant="normal">Δ</mi><mo>,</mo></mrow><annotation encoding="application/x-tex">
+P = P_0 + \Delta,
+</annotation></semantics></math></p>
+<p>其中
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>P</mi><annotation encoding="application/x-tex">P</annotation></semantics></math>
+表示真实对象，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>P</mi><mn>0</mn></msub><annotation encoding="application/x-tex">P_0</annotation></semantics></math>
+表示标称模型，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi mathvariant="normal">Δ</mi><annotation encoding="application/x-tex">\Delta</annotation></semantics></math>
+表示不确定性项。</p>
+<p>鲁棒控制关心的不是”误差是否存在”，而是”误差在什么范围内时闭环还能保持稳定和性能”。因此，本章的核心任务有三件事：</p>
+<ol type="1">
+<li>先把不确定集合写清楚；</li>
+<li>再区分鲁棒稳定和鲁棒性能；</li>
+<li>最后说明频域分析、多飞行点分析和 Monte Carlo 验证如何互相补充。</li>
+</ol>
+<h2 id="不确定性的类型">9.2 不确定性的类型</h2>
+<p>高超声速控制中常见的不确定性包括：</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>类型</th>
+<th>例子</th>
+<th>典型处理方式</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>参数不确定</td>
+<td>质量、惯量、气动导数、推力效率</td>
+<td>增益调度、自适应、多模型方法</td>
+</tr>
+<tr>
+<td>加性不确定</td>
+<td>未建模力、外部扰动、风场</td>
+<td>鲁棒频域设计、扰动抑制</td>
+</tr>
+<tr>
+<td>乘性不确定</td>
+<td>通道增益误差</td>
+<td>灵敏度整形、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>H</mi><mi>∞</mi></msub><annotation encoding="application/x-tex">H_\infty</annotation></semantics></math>
+设计</td>
+</tr>
+<tr>
+<td>非结构不确定</td>
+<td>高频未建模动态、弹性模态</td>
+<td>鲁棒稳定分析、权重设计</td>
+</tr>
+<tr>
+<td>时变不确定</td>
+<td>大气变化、热变形、燃料消耗</td>
+<td>调度、在线修正、保守裕度</td>
+</tr>
+<tr>
+<td>故障等效不确定</td>
+<td>舵面效率下降、传感器偏置</td>
+<td>故障诊断、隔离和重构</td>
+</tr>
+</tbody>
+</table>
+<p>这里的关键不是把名称记住，而是要把不确定性的来源、频率特征和闭环影响对应起来。参数不确定通常影响低频和中频行为；高频未建模动态更容易破坏稳定裕度；故障则可能同时改变可控性和可观性。</p>
+<h2 id="不确定集合和归一化建模">9.3 不确定集合和归一化建模</h2>
+<p>鲁棒控制不是对所有可能误差都保证稳定，而是在给定集合内保证结论。常见写法是</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>P</mi><mo>=</mo><msub><mi>P</mi><mn>0</mn></msub><mo>+</mo><msub><mi>W</mi><mi mathvariant="normal">Δ</mi></msub><mi mathvariant="normal">Δ</mi><msub><mi>W</mi><mi>∇</mi></msub><mo>,</mo></mrow><annotation encoding="application/x-tex">
+P = P_0 + W_\Delta \Delta W_\nabla,
+</annotation></semantics></math></p>
+<p>其中
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>W</mi><mi mathvariant="normal">Δ</mi></msub><annotation encoding="application/x-tex">W_\Delta</annotation></semantics></math>
+和
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>W</mi><mi>∇</mi></msub><annotation encoding="application/x-tex">W_\nabla</annotation></semantics></math>
+是不确定性加权函数，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi mathvariant="normal">Δ</mi><annotation encoding="application/x-tex">\Delta</annotation></semantics></math>
+是归一化不确定块。</p>
+<p>进一步可把广义对象写成</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mo stretchy="true" form="prefix">[</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><mi>z</mi></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><mi>y</mi></mtd></mtr></mtable><mo stretchy="true" form="postfix">]</mo></mrow><mo>=</mo><mrow><mo stretchy="true" form="prefix">[</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><msub><mi>P</mi><mn>11</mn></msub></mtd><mtd columnalign="center" style="text-align: center"><msub><mi>P</mi><mn>12</mn></msub></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><msub><mi>P</mi><mn>21</mn></msub></mtd><mtd columnalign="center" style="text-align: center"><msub><mi>P</mi><mn>22</mn></msub></mtd></mtr></mtable><mo stretchy="true" form="postfix">]</mo></mrow><mrow><mo stretchy="true" form="prefix">[</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><mi>w</mi></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><mi>u</mi></mtd></mtr></mtable><mo stretchy="true" form="postfix">]</mo></mrow><mo>,</mo></mrow><annotation encoding="application/x-tex">
+\begin{bmatrix}
+z\\
+y
+\end{bmatrix}
+=
+\begin{bmatrix}
+P_{11} &amp; P_{12}\\
+P_{21} &amp; P_{22}
+\end{bmatrix}
+\begin{bmatrix}
+w\\
+u
+\end{bmatrix},
+</annotation></semantics></math></p>
+<p>其中
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>w</mi><annotation encoding="application/x-tex">w</annotation></semantics></math>
+是外部扰动、参考、噪声或不确定性输入，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>z</mi><annotation encoding="application/x-tex">z</annotation></semantics></math>
+是性能输出，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>y</mi><annotation encoding="application/x-tex">y</annotation></semantics></math>
+是测量输出，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>u</mi><annotation encoding="application/x-tex">u</annotation></semantics></math>
+是控制输入。</p>
+<p>如果控制器记作</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>u</mi><mo>=</mo><mi>K</mi><mo stretchy="false" form="prefix">(</mo><mi>y</mi><mo stretchy="false" form="postfix">)</mo><mo>,</mo></mrow><annotation encoding="application/x-tex">
+u = K(y),
+</annotation></semantics></math></p>
+<p>那么鲁棒分析要回答的是：在
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi mathvariant="normal">Δ</mi><annotation encoding="application/x-tex">\Delta</annotation></semantics></math>
+属于给定集合时，闭环是否稳定，性能输出
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>z</mi><annotation encoding="application/x-tex">z</annotation></semantics></math>
+是否仍然受限。</p>
+<h2 id="鲁棒稳定与鲁棒性能">9.4 鲁棒稳定与鲁棒性能</h2>
+<p>鲁棒稳定和鲁棒性能不是同一件事。</p>
+<p>鲁棒稳定只要求闭环不失稳；鲁棒性能还要求误差、控制能量、输入峰值和约束边界都满足要求。对高超声速控制来说，这两者都重要，但不能混为一谈。</p>
+<p>典型的鲁棒性能判断至少应说明：</p>
+<ol type="1">
+<li>不确定性范围；</li>
+<li>飞行点或飞行包线；</li>
+<li>扰动、噪声和故障场景；</li>
+<li>跟踪指标；</li>
+<li>输入和路径约束指标；</li>
+<li>最坏情况或统计指标。</li>
+</ol>
+<p>比如，一个控制器即便在扰动下保持稳定，如果它迫使舵面长期接近极限，或者让动压、热流和过载裕度明显缩小，也不能直接宣称工程上更鲁棒。</p>
+<h2 id="灵敏度与互补灵敏度">9.5 灵敏度与互补灵敏度</h2>
+<p>在线性反馈框架中，鲁棒控制常用灵敏度函数和互补灵敏度函数刻画性能。</p>
+<p>若开环传递函数为
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>L</mi><mo stretchy="false" form="prefix">(</mo><mi>s</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">L(s)</annotation></semantics></math>，则灵敏度函数和互补灵敏度函数分别为</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>S</mi><mo stretchy="false" form="prefix">(</mo><mi>s</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mfrac><mn>1</mn><mrow><mn>1</mn><mo>+</mo><mi>L</mi><mo stretchy="false" form="prefix">(</mo><mi>s</mi><mo stretchy="false" form="postfix">)</mo></mrow></mfrac><mo>,</mo><mspace width="2.0em"></mspace><mi>T</mi><mo stretchy="false" form="prefix">(</mo><mi>s</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mfrac><mrow><mi>L</mi><mo stretchy="false" form="prefix">(</mo><mi>s</mi><mo stretchy="false" form="postfix">)</mo></mrow><mrow><mn>1</mn><mo>+</mo><mi>L</mi><mo stretchy="false" form="prefix">(</mo><mi>s</mi><mo stretchy="false" form="postfix">)</mo></mrow></mfrac><mi>.</mi></mrow><annotation encoding="application/x-tex">
+S(s)=\frac{1}{1+L(s)}, \qquad T(s)=\frac{L(s)}{1+L(s)}.
+</annotation></semantics></math></p>
+<p>这里
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>s</mi><annotation encoding="application/x-tex">s</annotation></semantics></math>
+是拉普拉斯变量。</p>
+<p><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>S</mi><mo stretchy="false" form="prefix">(</mo><mi>s</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">S(s)</annotation></semantics></math>
+描述扰动和建模误差进入闭环后的抑制能力，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>T</mi><mo stretchy="false" form="prefix">(</mo><mi>s</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">T(s)</annotation></semantics></math>
+描述参考信号和噪声在闭环中的传递情况。高超声速控制中，低频通常希望
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>S</mi><mo stretchy="false" form="prefix">(</mo><mi>s</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">S(s)</annotation></semantics></math>
+小一些，以减小跟踪误差；高频通常希望
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>T</mi><mo stretchy="false" form="prefix">(</mo><mi>s</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">T(s)</annotation></semantics></math>
+小一些，以避免放大噪声和未建模动态。</p>
+<p>这也是权重设计的基本出发点：把你真正关心的频段压下去，而不是单纯追求一个漂亮的带宽数字。</p>
+<h2 id="鲁棒性能整形">9.6 鲁棒性能整形</h2>
+<p>权重设计常写成混合灵敏度问题。若
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>W</mi><mi>S</mi></msub><annotation encoding="application/x-tex">W_S</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>W</mi><mi>T</mi></msub><annotation encoding="application/x-tex">W_T</annotation></semantics></math>
+和
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>W</mi><mi>U</mi></msub><annotation encoding="application/x-tex">W_U</annotation></semantics></math>
+分别是灵敏度、互补灵敏度和控制输入权重，则目标可表为</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mrow><mo stretchy="true" form="prefix">∥</mo><mrow><mo stretchy="true" form="prefix">[</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><msub><mi>W</mi><mi>S</mi></msub><mi>S</mi></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><msub><mi>W</mi><mi>T</mi></msub><mi>T</mi></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><msub><mi>W</mi><mi>U</mi></msub><mi>K</mi><mi>S</mi></mtd></mtr></mtable><mo stretchy="true" form="postfix">]</mo></mrow><mo stretchy="true" form="postfix">∥</mo></mrow><mi>∞</mi></msub><mo>&lt;</mo><mn>1</mn><mi>.</mi></mrow><annotation encoding="application/x-tex">
+\left\|
+\begin{bmatrix}
+W_S S\\
+W_T T\\
+W_U K S
+\end{bmatrix}
+\right\|_\infty &lt; 1.
+</annotation></semantics></math></p>
+<p>其中
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>K</mi><annotation encoding="application/x-tex">K</annotation></semantics></math>
+是控制器，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>K</mi><mi>S</mi></mrow><annotation encoding="application/x-tex">KS</annotation></semantics></math>
+表示控制器输出通道对参考和扰动的放大程度。</p>
+<p>这里三类权重的含义是：</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>权重</th>
+<th>典型含义</th>
+<th>高超声速解释</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>W</mi><mi>S</mi></msub><annotation encoding="application/x-tex">W_S</annotation></semantics></math></td>
+<td>低频跟踪和扰动抑制要求</td>
+<td>速度、高度、姿态或航迹误差应在低频小</td>
+</tr>
+<tr>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>W</mi><mi>T</mi></msub><annotation encoding="application/x-tex">W_T</annotation></semantics></math></td>
+<td>高频噪声和未建模动态抑制</td>
+<td>不激发弹性模态，不放大传感器噪声</td>
+</tr>
+<tr>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>W</mi><mi>U</mi></msub><annotation encoding="application/x-tex">W_U</annotation></semantics></math></td>
+<td>控制输入代价和执行机构限制</td>
+<td>舵偏、推力、力矩命令不能过大</td>
+</tr>
+</tbody>
+</table>
+<p>权重不能只为了让求解器成功而调。若
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>W</mi><mi>T</mi></msub><annotation encoding="application/x-tex">W_T</annotation></semantics></math>
+太弱，控制器可能在高频给出过大增益；若
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>W</mi><mi>U</mi></msub><annotation encoding="application/x-tex">W_U</annotation></semantics></math>
+太弱，控制器可能依赖不可实现的舵面动作；若
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>W</mi><mi>S</mi></msub><annotation encoding="application/x-tex">W_S</annotation></semantics></math>
+太强，低频跟踪要求可能和输入约束冲突。</p>
+<h2 id="小增益鲁棒稳定">9.7 小增益鲁棒稳定</h2>
+<p>若不确定闭环可以写成标称稳定系统
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>M</mi><annotation encoding="application/x-tex">M</annotation></semantics></math>
+与不确定块
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi mathvariant="normal">Δ</mi><annotation encoding="application/x-tex">\Delta</annotation></semantics></math>
+的互联，并且满足</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="postfix">∥</mo><mi>M</mi><msub><mo stretchy="false" form="postfix">∥</mo><mi>∞</mi></msub><mspace width="0.167em"></mspace><mo stretchy="false" form="postfix">∥</mo><mi mathvariant="normal">Δ</mi><msub><mo stretchy="false" form="postfix">∥</mo><mi>∞</mi></msub><mo>&lt;</mo><mn>1</mn><mo>,</mo></mrow><annotation encoding="application/x-tex">
+\|M\|_\infty \,\|\Delta\|_\infty &lt; 1,
+</annotation></semantics></math></p>
+<p>则可用小增益定理给出鲁棒稳定结论。</p>
+<p>这里
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="postfix">∥</mo><mo>⋅</mo><msub><mo stretchy="false" form="postfix">∥</mo><mi>∞</mi></msub></mrow><annotation encoding="application/x-tex">\| \cdot \|_\infty</annotation></semantics></math>
+表示
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>H</mi><mi>∞</mi></msub><annotation encoding="application/x-tex">H_\infty</annotation></semantics></math>
+范数。它衡量的是系统在最坏频率下的增益上界。</p>
+<p>小增益思路在高超声速控制里很有用，因为它能把”扰动通道增益”和”控制器补偿能力”直接比较起来。它的局限也很明显：只要互联结构更复杂、非线性更强或约束更显著，单纯的小增益条件往往就不够用了。</p>
+<h2 id="h_2-与-h_infty">9.8
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>H</mi><mn>2</mn></msub><annotation encoding="application/x-tex">H_2</annotation></semantics></math>
+与
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>H</mi><mi>∞</mi></msub><annotation encoding="application/x-tex">H_\infty</annotation></semantics></math></h2>
+<p>若关心随机噪声下的平均响应，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>H</mi><mn>2</mn></msub><annotation encoding="application/x-tex">H_2</annotation></semantics></math>
+思路有意义；若关心最坏扰动、未建模动态和鲁棒稳定裕度，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>H</mi><mi>∞</mi></msub><annotation encoding="application/x-tex">H_\infty</annotation></semantics></math>
+更直接。</p>
+<p><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>H</mi><mn>2</mn></msub><annotation encoding="application/x-tex">H_2</annotation></semantics></math>
+更像”平均意义下的能量最小化”，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>H</mi><mi>∞</mi></msub><annotation encoding="application/x-tex">H_\infty</annotation></semantics></math>
+更像”最坏情况下的增益上界约束”。实际设计常需要二者折中：既要避免过度放大噪声，也要保证最坏情况下不失稳。</p>
+<p>在高超声速飞行器中，这个折中尤其重要，因为测量噪声、执行机构误差和未建模弹性动态经常同时存在。</p>
+<h2 id="h_infty-控制">9.9
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>H</mi><mi>∞</mi></msub><annotation encoding="application/x-tex">H_\infty</annotation></semantics></math>
+控制</h2>
+<p><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>H</mi><mi>∞</mi></msub><annotation encoding="application/x-tex">H_\infty</annotation></semantics></math>
+控制常把扰动输入
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>w</mi><annotation encoding="application/x-tex">w</annotation></semantics></math>
+到性能输出
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>z</mi><annotation encoding="application/x-tex">z</annotation></semantics></math>
+的传递函数写为</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="postfix">∥</mo><msub><mi>T</mi><mrow><mi>z</mi><mi>w</mi></mrow></msub><mo stretchy="false" form="prefix">(</mo><mi>s</mi><mo stretchy="false" form="postfix">)</mo><msub><mo stretchy="false" form="postfix">∥</mo><mi>∞</mi></msub><mo>&lt;</mo><mi>γ</mi><mo>,</mo></mrow><annotation encoding="application/x-tex">
+\|T_{zw}(s)\|_\infty &lt; \gamma,
+</annotation></semantics></math></p>
+<p>其中
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mrow><mi>z</mi><mi>w</mi></mrow></msub><mo stretchy="false" form="prefix">(</mo><mi>s</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">T_{zw}(s)</annotation></semantics></math>
+是从
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>w</mi><annotation encoding="application/x-tex">w</annotation></semantics></math>
+到
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>z</mi><annotation encoding="application/x-tex">z</annotation></semantics></math>
+的闭环传递函数，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>γ</mi><annotation encoding="application/x-tex">\gamma</annotation></semantics></math>
+是性能上界。</p>
+<p>混合灵敏度设计则常写成</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mrow><mo stretchy="true" form="prefix">∥</mo><mrow><mo stretchy="true" form="prefix">[</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><msub><mi>W</mi><mi>S</mi></msub><mi>S</mi></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><msub><mi>W</mi><mi>T</mi></msub><mi>T</mi></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><msub><mi>W</mi><mi>U</mi></msub><mi>K</mi><mi>S</mi></mtd></mtr></mtable><mo stretchy="true" form="postfix">]</mo></mrow><mo stretchy="true" form="postfix">∥</mo></mrow><mi>∞</mi></msub><mo>&lt;</mo><mn>1</mn><mi>.</mi></mrow><annotation encoding="application/x-tex">
+\left\|
+\begin{bmatrix}
+W_S S\\
+W_T T\\
+W_U K S
+\end{bmatrix}
+\right\|_\infty &lt; 1.
+</annotation></semantics></math></p>
+<p>这里
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>W</mi><mi>S</mi></msub><annotation encoding="application/x-tex">W_S</annotation></semantics></math>
+约束跟踪和扰动抑制，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>W</mi><mi>T</mi></msub><annotation encoding="application/x-tex">W_T</annotation></semantics></math>
+约束高频噪声和未建模动态，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>W</mi><mi>U</mi></msub><annotation encoding="application/x-tex">W_U</annotation></semantics></math>
+约束控制能量。</p>
+<h3 id="权重选择的工程解释">权重选择的工程解释</h3>
+<p>权重函数应有物理含义：</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>权重</th>
+<th>典型含义</th>
+<th>高超声速解释</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>W</mi><mi>S</mi></msub><annotation encoding="application/x-tex">W_S</annotation></semantics></math></td>
+<td>低频跟踪和扰动抑制要求</td>
+<td>速度、高度、姿态或航迹误差应在低频小</td>
+</tr>
+<tr>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>W</mi><mi>T</mi></msub><annotation encoding="application/x-tex">W_T</annotation></semantics></math></td>
+<td>高频噪声和未建模动态抑制</td>
+<td>不激发弹性模态，不放大传感器噪声</td>
+</tr>
+<tr>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>W</mi><mi>U</mi></msub><annotation encoding="application/x-tex">W_U</annotation></semantics></math></td>
+<td>控制输入代价和执行机构限制</td>
+<td>舵偏、推力、力矩命令不能过大</td>
+</tr>
+</tbody>
+</table>
+<h2 id="结构奇异值">9.10 结构奇异值</h2>
+<p>如果不确定性具有结构，例如不同通道的不确定性彼此独立，那么结构奇异值
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>μ</mi><annotation encoding="application/x-tex">\mu</annotation></semantics></math>
+比单纯的
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>H</mi><mi>∞</mi></msub><annotation encoding="application/x-tex">H_\infty</annotation></semantics></math>
+范数更合适。</p>
+<p>设</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Δ</mi><mo>=</mo><mrow><mi mathvariant="normal">d</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">g</mi></mrow><mo stretchy="false" form="prefix">(</mo><msub><mi mathvariant="normal">Δ</mi><mn>1</mn></msub><mo>,</mo><msub><mi mathvariant="normal">Δ</mi><mn>2</mn></msub><mo>,</mo><mi>…</mi><mo>,</mo><msub><mi mathvariant="normal">Δ</mi><mi>m</mi></msub><mo stretchy="false" form="postfix">)</mo><mo>,</mo></mrow><annotation encoding="application/x-tex">
+\Delta = \mathrm{diag}(\Delta_1,\Delta_2,\ldots,\Delta_m),
+</annotation></semantics></math></p>
+<p>其中每个
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi mathvariant="normal">Δ</mi><mi>i</mi></msub><annotation encoding="application/x-tex">\Delta_i</annotation></semantics></math>
+是一个结构化不确定块。对应的鲁棒稳定问题可以写成：寻找最小的
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>μ</mi><annotation encoding="application/x-tex">\mu</annotation></semantics></math>
+上界，使得闭环在给定结构不确定性下保持稳定。</p>
+<p>这类方法适合处理”哪些参数一起变、哪些参数独立变”说得比较清楚的场景。对高超声速飞行器来说，这在多飞行点建模、执行机构效率变化和分通道不确定性分析中很有价值。</p>
+<h2 id="多飞行点与包线鲁棒性">9.11 多飞行点与包线鲁棒性</h2>
+<p>高超声速飞行器的
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>B</mi><annotation encoding="application/x-tex">B</annotation></semantics></math>
+矩阵、执行机构效能和安全裕度会随
+Mach、高度和动压变化，因此”一个配平点上的鲁棒稳定”不能自动外推到全包线。</p>
+<p>更合理的做法是：</p>
+<ol type="1">
+<li>给出一组飞行点；</li>
+<li>在每个飞行点上计算稳定裕度；</li>
+<li>在每个飞行点上计算性能裕度；</li>
+<li>标出最脆弱的区域；</li>
+<li>再说明增益调度、LPV 或安全控制如何覆盖这些区域。</li>
+</ol>
+<p>这样得到的结论才有助于后续章节，而不是只在单个标称点上给出一个看起来很漂亮的结论。</p>
+<h2 id="鲁棒设计到后续章节的整定口径">9.12
+鲁棒设计到后续章节的整定口径</h2>
+<p>鲁棒控制的结果如果要被后续章节使用，至少应交付三类信息：</p>
+<ol type="1">
+<li>标称模型和不确定集合；</li>
+<li>性能输出和约束输出；</li>
+<li>最差样本和失效边界。</li>
+</ol>
+<p>这三类信息决定后面的设计会怎么走。若不确定性主要体现在输入通道，就更适合做输入乘性鲁棒分析或控制分配补偿；若不确定性主要体现在参数项，就更适合做结构化鲁棒或自适应；若约束和不确定性同时很强，就需要把鲁棒控制和安全层、MPC
+或参考治理结合起来。</p>
+<p>对高超声速飞行器来说，鲁棒控制最有价值的地方不是给出一个万能控制器，而是提前告诉你：哪些误差应该靠控制器扛住，哪些误差应该靠参考修正、执行机构余量或故障重构去处理。</p>
+<p>若要把鲁棒控制继续传给后续章节，还应再明确三类接口：</p>
+<ol type="1">
+<li>估计接口：测量噪声、状态重构误差和协方差收缩如何进入鲁棒性能输出；</li>
+<li>安全接口：不确定性如何压缩动压、攻角或舵面裕度；</li>
+<li>调度接口：不确定性随
+Mach、高度或动压变化时，如何与线性化模型和对象语义对接。</li>
+</ol>
+<h2 id="本章小结-8">9.13 本章小结</h2>
+<p>鲁棒控制章节的核心任务，是把不确定性写成可分析、可验证、可交接的对象，而不是停留在”系统有扰动”的口头描述上。</p>
+<p>对高超声速飞行器而言，鲁棒结论必须同时说明模型不确定性、性能输出、安全边界和样本证据。只有这样，鲁棒控制才真正成为控制理论基础卷的一部分，而不是后面某个应用章里的附属修正。</p>
+
+      </article>
+      
+      <nav class="book-bottom-nav" aria-label="章节导航">
+        <a href="./08-optimal-control-theory.html">上一章：第8章 最优控制理论</a>
+        <a href="./index.html">卷首页</a>
+        <a href="./10-adaptive-control-theory.html">下一章：第10章 自适应控制理论</a>
+      </nav>
+    </main>
+  </div>
+</body>
+</html>

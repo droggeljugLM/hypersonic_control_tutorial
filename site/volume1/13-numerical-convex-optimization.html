@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>第13章 数值优化与凸优化基础</title>
+  <style>
+    :root {
+      --paper: #f7f3eb;
+      --ink: #1f2937;
+      --muted: #5b6472;
+      --line: color-mix(in srgb, #e7eef7 68%, #cbd5e1 32%);
+      --accent: #335c81;
+      --accent-soft: #e7eef7;
+      --accent-deep: #1e3d57;
+      color-scheme: light;
+    }
+    html {
+      -webkit-text-size-adjust: 100%;
+      background:
+        radial-gradient(circle at top left, #e7eef7 0, rgba(255,255,255,0) 32%),
+        linear-gradient(180deg, #fbfaf6 0%, var(--paper) 18%, #f7f1e6 100%);
+    }
+    body {
+      margin: 0;
+      font-family: "Source Han Serif SC", "Songti SC", "Noto Serif CJK SC", "Microsoft YaHei", serif;
+      color: var(--ink);
+      line-height: 1.78;
+      letter-spacing: 0;
+    }
+    a { color: var(--accent-deep); }
+    .book-app {
+      display: grid;
+      grid-template-columns: 280px minmax(0, 1fr);
+      min-height: 100vh;
+    }
+    .book-sidebar {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow: auto;
+      padding: 1.2rem 1rem 1.2rem 1.15rem;
+      border-right: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(255,255,255,0.86), rgba(255,255,255,0.72));
+      backdrop-filter: blur(10px);
+    }
+    .sidebar-shell { position: sticky; top: 0; display: flex; flex-direction: column; gap: 1rem; }
+    .sidebar-brand {
+      padding: 0.95rem 0.95rem 1rem;
+      border-radius: 18px;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.95), rgba(255,255,255,0.84)),
+        linear-gradient(135deg, var(--accent-soft), rgba(255,255,255,0));
+      border: 1px solid var(--line);
+      box-shadow: 0 12px 28px rgba(31, 41, 55, 0.06);
+    }
+    .sidebar-brand .kicker { margin: 0; color: var(--accent); font-size: 0.82rem; font-weight: 700; }
+    .sidebar-brand h2 { margin: 0.45rem 0 0.25rem; font-size: 1.08rem; line-height: 1.3; color: var(--ink); }
+    .sidebar-brand p { margin: 0.35rem 0 0; color: var(--muted); font-size: 0.9rem; }
+    .sidebar-links { display: grid; gap: 0.45rem; }
+    .sidebar-link {
+      display: grid;
+      grid-template-columns: 2.2rem minmax(0, 1fr);
+      gap: 0.6rem;
+      align-items: start;
+      padding: 0.7rem 0.75rem;
+      border-radius: 14px;
+      text-decoration: none;
+      background: rgba(255,255,255,0.72);
+      border: 1px solid rgba(31,41,55,0.07);
+      color: var(--ink);
+    }
+    .sidebar-link:hover { background: rgba(255,255,255,0.95); border-color: var(--line); }
+    .sidebar-link.active {
+      background: linear-gradient(135deg, rgba(255,255,255,0.98), rgba(255,255,255,0.9));
+      border-color: var(--accent-soft);
+      box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent-soft) 68%, #ffffff 32%);
+    }
+    .sidebar-index {
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      min-width: 2rem;
+      height: 2rem;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent-deep);
+      font-size: 0.78rem;
+      font-weight: 800;
+    }
+    .sidebar-title { font-size: 0.94rem; line-height: 1.35; }
+    .book-main { min-width: 0; padding: 1.25rem 1.45rem 1.8rem; }
+    .book-page-header {
+      padding: 0.85rem 0 1rem;
+      margin-bottom: 1rem;
+      border-bottom: 1px solid var(--line);
+    }
+    .page-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.28rem 0.72rem;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.82);
+      border: 1px solid var(--line);
+      color: var(--accent-deep);
+      font-size: 0.8rem;
+      font-weight: 700;
+    }
+    .book-page-header h1 {
+      margin: 0.7rem 0 0;
+      font-size: 1.85rem;
+      line-height: 1.22;
+      color: var(--accent-deep);
+      border: 0;
+      padding: 0;
+    }
+    .book-page-header p { margin: 0.45rem 0 0; color: var(--muted); max-width: 62rem; }
+    .book-article { max-width: 900px; margin: 0; padding: 0 0 1.2rem; }
+    .book-article h1, .book-article h2, .book-article h3, .book-article h4, .book-article h5, .book-article h6 {
+      line-height: 1.28;
+      margin-top: 1.45em;
+      margin-bottom: 0.55em;
+      color: var(--accent-deep);
+    }
+    .book-article h1 { font-size: 2rem; border-bottom: 2px solid var(--line); padding-bottom: 0.42rem; }
+    .book-article h1:first-of-type { margin-top: 0; }
+    .book-article h2 { font-size: 1.42rem; }
+    .book-article h3 { font-size: 1.12rem; }
+    .book-article p, .book-article li, .book-article dd, .book-article td, .book-article th { text-align: justify; text-justify: inter-ideograph; }
+    .book-article p { margin: 0.85rem 0; }
+    .book-article code, .book-article pre { font-family: "Cascadia Mono", "Source Code Pro", Consolas, monospace; font-size: 0.94em; }
+    .book-article code {
+      padding: 0.02rem 0.24rem;
+      background: color-mix(in srgb, var(--accent-soft) 34%, #ffffff 66%);
+      border: 0;
+      border-bottom: 1px solid color-mix(in srgb, var(--accent-soft) 74%, #d1d5db 26%);
+      border-radius: 4px;
+      color: #253244;
+      box-decoration-break: clone;
+      -webkit-box-decoration-break: clone;
+    }
+    .book-article pre {
+      padding: 1rem 1.1rem;
+      overflow: auto;
+      background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,253,248,0.98));
+      border: 1px solid color-mix(in srgb, var(--accent-soft) 54%, #d1d5db 46%);
+      border-left: 5px solid var(--accent);
+      border-radius: 14px;
+      box-shadow: 0 8px 22px rgba(31, 41, 55, 0.05);
+    }
+    .book-article pre code { padding: 0; border: 0; background: transparent; color: inherit; }
+    .book-article table {
+      border-collapse: collapse;
+      width: 100%;
+      margin: 1rem 0 1.25rem;
+      background: rgba(255,255,255,0.82);
+      overflow: hidden;
+      border-radius: 12px;
+    }
+    .book-article th, .book-article td { border: 1px solid var(--line); padding: 0.5rem 0.7rem; vertical-align: top; }
+    .book-article th { background: color-mix(in srgb, var(--accent-soft) 42%, #ffffff 58%); }
+    .book-article blockquote {
+      margin: 1rem 0;
+      padding: 0.25rem 0 0.25rem 1rem;
+      border-left: 4px solid var(--accent);
+      color: #374151;
+      background: linear-gradient(90deg, rgba(255,255,255,0.72), rgba(255,255,255,0.48));
+      border-radius: 0 12px 12px 0;
+    }
+    .book-bottom-nav {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-top: 2.2rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--line);
+    }
+    .book-bottom-nav a {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.6rem 0.9rem;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.84);
+      text-decoration: none;
+      font-weight: 700;
+    }
+    .book-bottom-nav span {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.6rem 0.9rem;
+      border-radius: 999px;
+      border: 1px solid rgba(31,41,55,0.08);
+      background: rgba(255,255,255,0.54);
+      color: rgba(31,41,55,0.42);
+      font-weight: 700;
+    }
+    .book-bottom-nav a:hover { background: rgba(255,255,255,0.98); }
+    .book-volume-intro {
+      margin: 0 0 1.25rem;
+      padding: 1.2rem 1.25rem 1.1rem;
+      border-radius: 18px;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.96), rgba(255,255,255,0.78)),
+        linear-gradient(135deg, var(--accent-soft), rgba(255,255,255,0));
+      border: 1px solid var(--line);
+      box-shadow: 0 14px 34px rgba(31, 41, 55, 0.06);
+    }
+    .volume-intro-kicker {
+      margin: 0;
+      color: var(--accent);
+      font-size: 0.84rem;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    .book-volume-intro h2 {
+      margin: 0.55rem 0 0.55rem;
+      font-size: 1.28rem;
+      line-height: 1.35;
+      color: var(--accent-deep);
+    }
+    .volume-intro-summary {
+      margin: 0;
+      color: var(--muted);
+      max-width: 68rem;
+    }
+    .volume-intro-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.8rem;
+      margin-top: 1rem;
+    }
+    .volume-intro-box {
+      padding: 0.85rem 0.9rem;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.72);
+      border: 1px solid rgba(31,41,55,0.08);
+    }
+    .volume-intro-box span {
+      display: block;
+      color: var(--accent);
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+    }
+    .volume-intro-box strong {
+      display: block;
+      margin-top: 0.35rem;
+      color: var(--ink);
+      font-size: 0.95rem;
+      line-height: 1.45;
+    }
+    .volume-intro-note {
+      margin-top: 0.9rem;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+    @media (max-width: 1180px) {
+      .book-app { grid-template-columns: 1fr; }
+      .book-sidebar {
+        position: relative;
+        height: auto;
+        border-right: 0;
+        border-bottom: 1px solid var(--line);
+      }
+      .sidebar-shell { position: static; }
+    }
+    @media (max-width: 900px) {
+      .book-main { padding: 1rem 1rem 1.5rem; }
+      .book-bottom-nav { flex-direction: column; }
+      .volume-intro-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="book-app">
+    <aside class="book-sidebar">
+      <div class="sidebar-shell">
+        <div class="sidebar-brand">
+          <p class="kicker">高超声速飞行器控制教程</p>
+          <h2>第一卷 数学基础与控制理论基础</h2>
+          <p>控制理论地基</p>
+        </div>
+        <nav class="sidebar-links" aria-label="本卷目录">
+          <a class="sidebar-link" href="./index.html"><span class="sidebar-index">0</span><span class="sidebar-title">卷首页</span></a>
+<a class="sidebar-link" href="./01-hypersonic-control-problem-intro.html"><span class="sidebar-index">01</span><span class="sidebar-title">第1章 高超声速飞行器控制问题导论</span></a>
+<a class="sidebar-link" href="./02-dynamical-systems-state-space.html"><span class="sidebar-index">02</span><span class="sidebar-title">第2章 动力系统与状态空间方法</span></a>
+<a class="sidebar-link" href="./03-linear-systems-theory.html"><span class="sidebar-index">03</span><span class="sidebar-title">第3章 线性系统理论</span></a>
+<a class="sidebar-link" href="./04-nonlinear-systems-theory.html"><span class="sidebar-index">04</span><span class="sidebar-title">第4章 非线性系统理论</span></a>
+<a class="sidebar-link" href="./05-lyapunov-stability-theory.html"><span class="sidebar-index">05</span><span class="sidebar-title">第5章 Lyapunov 稳定性理论</span></a>
+<a class="sidebar-link" href="./06-input-output-small-gain.html"><span class="sidebar-index">06</span><span class="sidebar-title">第6章 输入输出稳定性与小增益理论</span></a>
+<a class="sidebar-link" href="./07-singular-perturbation-multitime-scale.html"><span class="sidebar-index">07</span><span class="sidebar-title">第7章 奇异摄动与多时间尺度系统</span></a>
+<a class="sidebar-link" href="./08-optimal-control-theory.html"><span class="sidebar-index">08</span><span class="sidebar-title">第8章 最优控制理论</span></a>
+<a class="sidebar-link" href="./09-robust-control-theory.html"><span class="sidebar-index">09</span><span class="sidebar-title">第9章 鲁棒控制理论</span></a>
+<a class="sidebar-link" href="./10-adaptive-control-theory.html"><span class="sidebar-index">10</span><span class="sidebar-title">第10章 自适应控制理论</span></a>
+<a class="sidebar-link" href="./11-stochastic-filtering-estimation.html"><span class="sidebar-index">11</span><span class="sidebar-title">第11章 随机系统、滤波与状态估计</span></a>
+<a class="sidebar-link" href="./12-constrained-safety-control-foundations.html"><span class="sidebar-index">12</span><span class="sidebar-title">第12章 约束系统与安全控制基础</span></a>
+<a class="sidebar-link active" href="./13-numerical-convex-optimization.html"><span class="sidebar-index">13</span><span class="sidebar-title">第13章 数值优化与凸优化基础</span></a>
+<a class="sidebar-link" href="./13-hybrid-sampled-control.html"><span class="sidebar-index">14</span><span class="sidebar-title">混杂系统与采样控制专题</span></a>
+        </nav>
+      </div>
+    </aside>
+    <main class="book-main">
+      <header class="book-page-header">
+        <div class="page-eyebrow">第1册·章节页13</div>
+        <h1 id="volume1--13-numerical-convex-optimization">第13章 数值优化与凸优化基础</h1>
+        <p>本页是章节正文页。左侧目录用于回到本卷其他章节，底部导航用于前后章跳转。</p>
+      </header>
+      <article class="book-article">
+        <h2 id="问题背景">13.1 问题背景</h2>
+<p>高超声速控制中的很多问题最终会落到优化：</p>
+<ol type="1">
+<li>轨迹优化；</li>
+<li>模型预测控制；</li>
+<li>CLF-CBF-QP；</li>
+<li>控制分配；</li>
+<li>鲁棒控制权重选择；</li>
+<li>参数辨识；</li>
+<li>故障后重构。</li>
+</ol>
+<p>因此，参考书级教程必须讲数值优化和凸优化基础。否则读者看到
+MPC、序列凸优化或安全滤波时，只会把求解器当黑箱。</p>
+<p>一般优化问题可写为</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><munder><mi>min</mi><mo>&#8289;</mo><mi>z</mi></munder><mspace width="0.278em"></mspace><mi>f</mi><mo stretchy="false" form="prefix">(</mo><mi>z</mi><mo stretchy="false" form="postfix">)</mo><mspace width="1.0em"></mspace><mtext mathvariant="normal">s.t.</mtext><mspace width="1.0em"></mspace><msub><mi>g</mi><mi>i</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>z</mi><mo stretchy="false" form="postfix">)</mo><mo>≤</mo><mn>0</mn><mo>,</mo><mspace width="0.222em"></mspace><mi>i</mi><mo>=</mo><mn>1</mn><mo>,</mo><mi>…</mi><mo>,</mo><mi>m</mi><mo>,</mo><mspace width="2.0em"></mspace><msub><mi>h</mi><mi>j</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>z</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mn>0</mn><mo>,</mo><mspace width="0.222em"></mspace><mi>j</mi><mo>=</mo><mn>1</mn><mo>,</mo><mi>…</mi><mo>,</mo><mi>p</mi><mi>.</mi></mrow><annotation encoding="application/x-tex">
+\min_{z}\; f(z)
+\quad\text{s.t.}\quad g_i(z)\le 0,\ i=1,\ldots,m,\qquad h_j(z)=0,\ j=1,\ldots,p.
+</annotation></semantics></math></p>
+<p>其中
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>z</mi><annotation encoding="application/x-tex">z</annotation></semantics></math>
+是决策变量，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mo stretchy="false" form="prefix">(</mo><mi>z</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">f(z)</annotation></semantics></math>
+是目标函数，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>g</mi><mi>i</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>z</mi><mo stretchy="false" form="postfix">)</mo><mo>≤</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">g_i(z)\le 0</annotation></semantics></math>
+是不等式约束，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>h</mi><mi>j</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>z</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">h_j(z)=0</annotation></semantics></math>
+是等式约束。</p>
+<p>在高超声速控制中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>z</mi><annotation encoding="application/x-tex">z</annotation></semantics></math>
+不一定只是飞行器状态，也可能是控制输入序列、轨迹节点、舵面分配量、滤波器参数、鲁棒权重或故障重构变量。因此写优化问题时必须先说明决策变量。</p>
+<h2 id="优化问题的基本组成">13.2 优化问题的基本组成</h2>
+<p>一个可复核的优化问题至少包含：</p>
+<table>
+<thead>
+<tr>
+<th>组成</th>
+<th>需要说明的问题</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>决策变量</td>
+<td>优化器真正选择什么</td>
+</tr>
+<tr>
+<td>目标函数</td>
+<td>最小化跟踪误差、能量、残差、时间还是风险</td>
+</tr>
+<tr>
+<td>等式约束</td>
+<td>动力学、运动学、终端条件、分配等式</td>
+</tr>
+<tr>
+<td>不等式约束</td>
+<td>路径、输入、输入速率、安全裕度</td>
+</tr>
+<tr>
+<td>参数</td>
+<td>状态、参考、气动表、质量、环境</td>
+</tr>
+<tr>
+<td>求解方法</td>
+<td>QP、SOCP、NLP、SCP、枚举或启发式</td>
+</tr>
+<tr>
+<td>失败处理</td>
+<td>不可行、超时、数值病态时如何处理</td>
+</tr>
+</tbody>
+</table>
+<p>若只写“求解一个优化问题”，但不说明这些组成，就无法判断控制器是否可实现，也无法复现实验。</p>
+<h2 id="无约束优化">13.3 无约束优化</h2>
+<p>无约束优化的一阶必要条件为</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>∇</mi><mi>f</mi><mo stretchy="false" form="prefix">(</mo><msup><mi>z</mi><mo>⋆</mo></msup><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mn>0</mn><mo>,</mo></mrow><annotation encoding="application/x-tex">
+\nabla f(z^\star)=0,
+</annotation></semantics></math></p>
+<p>其中
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>z</mi><mo>⋆</mo></msup><annotation encoding="application/x-tex">z^\star</annotation></semantics></math>
+是最优解，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>∇</mi><mi>f</mi><mo stretchy="false" form="prefix">(</mo><msup><mi>z</mi><mo>⋆</mo></msup><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\nabla f(z^\star)</annotation></semantics></math>
+是目标函数的一阶梯度。</p>
+<p>如果还考察二阶条件，则 Hessian 矩阵</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>∇</mi><mn>2</mn></msup><mi>f</mi><mo stretchy="false" form="prefix">(</mo><msup><mi>z</mi><mo>⋆</mo></msup><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
+\nabla^2 f(z^\star)
+</annotation></semantics></math></p>
+<p>其中
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>∇</mi><mn>2</mn></msup><mi>f</mi><mo stretchy="false" form="prefix">(</mo><msup><mi>z</mi><mo>⋆</mo></msup><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\nabla^2 f(z^\star)</annotation></semantics></math>
+是目标函数的 Hessian
+矩阵。它应当在最优点附近满足适当的正定性或半正定性要求。</p>
+<p>在控制中，无约束优化可用于参数拟合、权重整定和最小二乘问题。但真实飞行问题通常有大量约束，因此无约束优化更多是基础工具。</p>
+<h2 id="kkt-条件">13.4 KKT 条件</h2>
+<p>对约束优化问题，引入拉格朗日函数</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ℒ</mi><mo stretchy="false" form="prefix">(</mo><mi>z</mi><mo>,</mo><mi>λ</mi><mo>,</mo><mi>μ</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mi>f</mi><mo stretchy="false" form="prefix">(</mo><mi>z</mi><mo stretchy="false" form="postfix">)</mo><mo>+</mo><msup><mi>λ</mi><mi>⊤</mi></msup><mi>h</mi><mo stretchy="false" form="prefix">(</mo><mi>z</mi><mo stretchy="false" form="postfix">)</mo><mo>+</mo><msup><mi>μ</mi><mi>⊤</mi></msup><mi>g</mi><mo stretchy="false" form="prefix">(</mo><mi>z</mi><mo stretchy="false" form="postfix">)</mo><mo>,</mo></mrow><annotation encoding="application/x-tex">
+\mathcal{L}(z,\lambda,\mu)=f(z)+\lambda^\top h(z)+\mu^\top g(z),
+</annotation></semantics></math></p>
+<p>其中
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ℒ</mi><annotation encoding="application/x-tex">\mathcal{L}</annotation></semantics></math>
+是拉格朗日函数，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>λ</mi><annotation encoding="application/x-tex">\lambda</annotation></semantics></math>
+是等式约束乘子，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>μ</mi><annotation encoding="application/x-tex">\mu</annotation></semantics></math>
+是不等式约束乘子。</p>
+<p>KKT 条件通常包括：</p>
+<ol type="1">
+<li>驻点条件；</li>
+<li>原始可行；</li>
+<li>对偶可行；</li>
+<li>互补松弛。</li>
+</ol>
+<p>这些条件解释了约束何时活跃。比如路径约束活跃时，对应乘子不为零，最优轨迹会沿安全边界附近飞行。</p>
+<p>KKT 条件通常是必要条件。若问题是凸优化，并满足适当约束资格条件，KKT
+条件也可成为全局最优的充分条件。</p>
+<h2 id="凸集和凸函数">13.5 凸集和凸函数</h2>
+<p>集合
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝒞</mi><annotation encoding="application/x-tex">\mathcal{C}</annotation></semantics></math>
+凸，当且仅当对任意
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>x</mi><mo>,</mo><mi>y</mi><mo>∈</mo><mi>𝒞</mi></mrow><annotation encoding="application/x-tex">x,y\in\mathcal{C}</annotation></semantics></math>
+和
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>θ</mi><mo>∈</mo><mo stretchy="false" form="prefix">[</mo><mn>0</mn><mo>,</mo><mn>1</mn><mo stretchy="false" form="postfix">]</mo></mrow><annotation encoding="application/x-tex">\theta\in[0,1]</annotation></semantics></math>，</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>θ</mi><mi>x</mi><mo>+</mo><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>θ</mi><mo stretchy="false" form="postfix">)</mo><mi>y</mi><mo>∈</mo><mi>𝒞</mi><mi>.</mi></mrow><annotation encoding="application/x-tex">
+\theta x+(1-\theta)y\in\mathcal{C}.
+</annotation></semantics></math></p>
+<p>其中
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝒞</mi><annotation encoding="application/x-tex">\mathcal{C}</annotation></semantics></math>
+表示凸集，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>θ</mi><annotation encoding="application/x-tex">\theta</annotation></semantics></math>
+是两点之间的插值权重。</p>
+<p>函数
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>f</mi><annotation encoding="application/x-tex">f</annotation></semantics></math>
+凸，当且仅当</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mo stretchy="false" form="prefix">(</mo><mi>θ</mi><mi>x</mi><mo>+</mo><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>θ</mi><mo stretchy="false" form="postfix">)</mo><mi>y</mi><mo stretchy="false" form="postfix">)</mo><mo>≤</mo><mi>θ</mi><mi>f</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo>+</mo><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>θ</mi><mo stretchy="false" form="postfix">)</mo><mi>f</mi><mo stretchy="false" form="prefix">(</mo><mi>y</mi><mo stretchy="false" form="postfix">)</mo><mi>.</mi></mrow><annotation encoding="application/x-tex">
+f(\theta x+(1-\theta)y)\le \theta f(x)+(1-\theta)f(y).
+</annotation></semantics></math></p>
+<p>其中
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>f</mi><annotation encoding="application/x-tex">f</annotation></semantics></math>
+是凸函数，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>θ</mi><annotation encoding="application/x-tex">\theta</annotation></semantics></math>
+仍然是插值权重。</p>
+<p>凸优化的优势是局部最优即全局最优，数值求解更可靠。高超声速轨迹优化常需要把非凸问题转化或近似为一系列凸问题。</p>
+<p>但“看起来像二次型”不一定就是凸问题。若 Hessian
+不半正定，或约束集合非凸，求解器可能只能得到局部解。</p>
+<h2 id="二次规划">13.6 二次规划</h2>
+<p>QP 形式为</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><munder><mi>min</mi><mo>&#8289;</mo><mi>x</mi></munder><mspace width="0.222em"></mspace><mfrac><mn>1</mn><mn>2</mn></mfrac><msup><mi>x</mi><mi>⊤</mi></msup><mi>H</mi><mi>x</mi><mo>+</mo><msup><mi>q</mi><mi>⊤</mi></msup><mi>x</mi><mspace width="1.0em"></mspace><mtext mathvariant="normal">s.t.</mtext><mspace width="1.0em"></mspace><mi>A</mi><mi>x</mi><mo>≤</mo><mi>b</mi><mo>,</mo><mspace width="1.0em"></mspace><msub><mi>A</mi><mrow><mi mathvariant="normal">e</mi><mi mathvariant="normal">q</mi></mrow></msub><mi>x</mi><mo>=</mo><msub><mi>b</mi><mrow><mi mathvariant="normal">e</mi><mi mathvariant="normal">q</mi></mrow></msub><mi>.</mi></mrow><annotation encoding="application/x-tex">
+\min_{x}\ \frac{1}{2}x^\top Hx+q^\top x
+\quad\text{s.t.}\quad Ax\le b,\quad A_{\mathrm{eq}}x=b_{\mathrm{eq}}.
+</annotation></semantics></math></p>
+<p>其中
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>x</mi><annotation encoding="application/x-tex">x</annotation></semantics></math>
+是决策向量，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>H</mi><annotation encoding="application/x-tex">H</annotation></semantics></math>
+是二次项矩阵，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>q</mi><annotation encoding="application/x-tex">q</annotation></semantics></math>
+是线性项，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>A</mi><annotation encoding="application/x-tex">A</annotation></semantics></math>
+和
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>A</mi><mrow><mi mathvariant="normal">e</mi><mi mathvariant="normal">q</mi></mrow></msub><annotation encoding="application/x-tex">A_{\mathrm{eq}}</annotation></semantics></math>
+是约束矩阵，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>b</mi><annotation encoding="application/x-tex">b</annotation></semantics></math>
+和
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mrow><mi mathvariant="normal">e</mi><mi mathvariant="normal">q</mi></mrow></msub><annotation encoding="application/x-tex">b_{\mathrm{eq}}</annotation></semantics></math>
+是对应右端项。</p>
+<p>如果
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>H</mi><mo>≽</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">H\succeq 0</annotation></semantics></math>，且约束是线性的，则
+QP 是凸优化问题。高超声速控制里，CLF-CBF-QP、控制分配和部分 MPC
+线性化子问题都常写成 QP。</p>
+<h2 id="socp-与锥约束">13.7 SOCP 与锥约束</h2>
+<p>二阶锥规划适合表示范数约束。典型形式为</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><munder><mi>min</mi><mo>&#8289;</mo><mi>x</mi></munder><mspace width="0.222em"></mspace><msup><mi>c</mi><mi>⊤</mi></msup><mi>x</mi><mspace width="1.0em"></mspace><mtext mathvariant="normal">s.t.</mtext><mspace width="1.0em"></mspace><mo stretchy="false" form="postfix">∥</mo><msub><mi>A</mi><mi>i</mi></msub><mi>x</mi><mo>+</mo><msub><mi>b</mi><mi>i</mi></msub><msub><mo stretchy="false" form="postfix">∥</mo><mn>2</mn></msub><mo>≤</mo><msubsup><mi>c</mi><mi>i</mi><mi>⊤</mi></msubsup><mi>x</mi><mo>+</mo><msub><mi>d</mi><mi>i</mi></msub><mi>.</mi></mrow><annotation encoding="application/x-tex">
+\min_x\ c^\top x
+\quad\text{s.t.}\quad \|A_i x+b_i\|_2\le c_i^\top x+d_i.
+</annotation></semantics></math></p>
+<p>其中
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>c</mi><mi>⊤</mi></msup><mi>x</mi></mrow><annotation encoding="application/x-tex">c^\top x</annotation></semantics></math>
+是线性目标，二范数约束可写成二阶锥形式。</p>
+<p>在控制中，SOCP 常用于范数限制、鲁棒优化和某些分配问题。它比一般 NLP
+更稳健，也比简单 QP 更灵活。</p>
+<h2 id="非线性规划">13.8 非线性规划</h2>
+<p>NLP 的一般形式是</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><munder><mi>min</mi><mo>&#8289;</mo><mi>z</mi></munder><mi>f</mi><mo stretchy="false" form="prefix">(</mo><mi>z</mi><mo stretchy="false" form="postfix">)</mo><mspace width="1.0em"></mspace><mtext mathvariant="normal">s.t.</mtext><mspace width="1.0em"></mspace><msub><mi>g</mi><mi>i</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>z</mi><mo stretchy="false" form="postfix">)</mo><mo>≤</mo><mn>0</mn><mo>,</mo><mspace width="0.222em"></mspace><msub><mi>h</mi><mi>j</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>z</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mn>0</mn><mo>,</mo></mrow><annotation encoding="application/x-tex">
+\min_z f(z)
+\quad\text{s.t.}\quad g_i(z)\le 0,\ h_j(z)=0,
+</annotation></semantics></math></p>
+<p>其中
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>f</mi><annotation encoding="application/x-tex">f</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>g</mi><mi>i</mi></msub><annotation encoding="application/x-tex">g_i</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>h</mi><mi>j</mi></msub><annotation encoding="application/x-tex">h_j</annotation></semantics></math>
+可以非线性、非凸。高超声速轨迹优化、气动耦合控制和非线性 MPC 常属于
+NLP。</p>
+<p>NLP 的风险包括：</p>
+<ol type="1">
+<li>局部极小；</li>
+<li>初始猜测敏感；</li>
+<li>约束资格条件失效；</li>
+<li>求解时间不可预测；</li>
+<li>不可行时难以诊断；</li>
+<li>强非线性导致线性化误差大。</li>
+</ol>
+<p>因此，若使用非线性规划或非线性预测控制，应报告初始猜测、迭代次数、收敛容差、求解时间、不可行次数和失效回退逻辑。</p>
+<h2 id="序列凸优化">13.9 序列凸优化</h2>
+<p>高超声速轨迹优化通常非凸。序列凸优化思想是从当前轨迹出发，线性化或凸化非凸项，求解一系列凸子问题。</p>
+<p>典型步骤是：</p>
+<ol type="1">
+<li>选取当前轨迹；</li>
+<li>在局部做线性化或凸化；</li>
+<li>求解凸子问题；</li>
+<li>更新轨迹；</li>
+<li>重复直到收敛。</li>
+</ol>
+<p>典型子问题可以写为</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><munder><mi>min</mi><mo>&#8289;</mo><mrow><mi mathvariant="normal">Δ</mi><mi>z</mi></mrow></munder><mspace width="0.222em"></mspace><mfrac><mn>1</mn><mn>2</mn></mfrac><mi mathvariant="normal">Δ</mi><msup><mi>z</mi><mi>⊤</mi></msup><mi>H</mi><mi mathvariant="normal">Δ</mi><mi>z</mi><mo>+</mo><msup><mi>c</mi><mi>⊤</mi></msup><mi mathvariant="normal">Δ</mi><mi>z</mi><mspace width="1.0em"></mspace><mtext mathvariant="normal">s.t.</mtext><mspace width="1.0em"></mspace><mi>G</mi><mi mathvariant="normal">Δ</mi><mi>z</mi><mo>≤</mo><mi>h</mi><mi>.</mi></mrow><annotation encoding="application/x-tex">
+\min_{\Delta z}\ \frac{1}{2}\Delta z^\top H\Delta z+c^\top \Delta z
+\quad\text{s.t.}\quad G\Delta z\le h.
+</annotation></semantics></math></p>
+<p>其中
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Δ</mi><mi>z</mi></mrow><annotation encoding="application/x-tex">\Delta z</annotation></semantics></math>
+是当前迭代的增量变量，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>H</mi><annotation encoding="application/x-tex">H</annotation></semantics></math>
+是局部二次项矩阵，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>G</mi><mi mathvariant="normal">Δ</mi><mi>z</mi><mo>≤</mo><mi>h</mi></mrow><annotation encoding="application/x-tex">G\Delta z\le h</annotation></semantics></math>
+是线性化后的约束。</p>
+<h2 id="变量尺度化与数值病态">13.10 变量尺度化与数值病态</h2>
+<p>高超声速优化常见问题之一是尺度差异太大。高度、速度、动压、热流、舵偏和终端误差可能量级完全不同。</p>
+<p>若变量尺度不统一，求解器容易病态。一个简单的尺度化写法是</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>z</mi><mo accent="true">̃</mo></mover><mo>=</mo><msup><mi>D</mi><mrow><mi>−</mi><mn>1</mn></mrow></msup><mi>z</mi><mo>,</mo></mrow><annotation encoding="application/x-tex">
+\tilde{z}=D^{-1}z,
+</annotation></semantics></math></p>
+<p>其中
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>z</mi><annotation encoding="application/x-tex">z</annotation></semantics></math>
+是原始变量，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mover><mi>z</mi><mo accent="true">̃</mo></mover><annotation encoding="application/x-tex">\tilde{z}</annotation></semantics></math>
+是尺度化后的变量，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>D</mi><annotation encoding="application/x-tex">D</annotation></semantics></math>
+是对角尺度矩阵。</p>
+<p>尺度化的目标不是让公式更好看，而是让优化问题更容易求、约束更容易比较、日志更容易解释。</p>
+<h2 id="mpc-与实时优化">13.11 MPC 与实时优化</h2>
+<p>MPC 每个采样时刻都解一个有限时域优化问题。若采样时刻为
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>k</mi><annotation encoding="application/x-tex">k</annotation></semantics></math>，预测时域为
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>N</mi><annotation encoding="application/x-tex">N</annotation></semantics></math>，则可写成</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><munder><mi>min</mi><mo>&#8289;</mo><msub><mi>u</mi><mrow><mi>k</mi><mo>:</mo><mi>k</mi><mo>+</mo><mi>N</mi><mo>−</mo><mn>1</mn></mrow></msub></munder><msub><mi>J</mi><mi>N</mi></msub><mspace width="1.0em"></mspace><mtext mathvariant="normal">s.t.</mtext><mspace width="1.0em"></mspace><msub><mi>x</mi><mrow><mi>i</mi><mo>+</mo><mn>1</mn></mrow></msub><mo>=</mo><mi>F</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>x</mi><mi>i</mi></msub><mo>,</mo><msub><mi>u</mi><mi>i</mi></msub><mo stretchy="false" form="postfix">)</mo><mo>,</mo><mspace width="0.222em"></mspace><mi>i</mi><mo>=</mo><mi>k</mi><mo>,</mo><mi>…</mi><mo>,</mo><mi>k</mi><mo>+</mo><mi>N</mi><mo>−</mo><mn>1</mn><mi>.</mi></mrow><annotation encoding="application/x-tex">
+\min_{u_{k:k+N-1}} J_N
+\quad\text{s.t.}\quad x_{i+1}=F(x_i,u_i),\ i=k,\ldots,k+N-1.
+</annotation></semantics></math></p>
+<p>MPC
+的优势是能显式处理约束。它的风险是求解时间、不可行和模型误差。因此，若使用
+MPC 或非线性
+MPC，应报告求解时间、递推可行性、不可行次数和失效回退逻辑。</p>
+<h2 id="控制分配-qp">13.12 控制分配 QP</h2>
+<p>若上层给出虚拟控制
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ν</mi><mi>c</mi></msub><annotation encoding="application/x-tex">\nu_c</annotation></semantics></math>，执行机构偏角为
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>δ</mi><annotation encoding="application/x-tex">\delta</annotation></semantics></math>，分配矩阵为
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>B</mi><mi>a</mi></msub><annotation encoding="application/x-tex">B_a</annotation></semantics></math>，则控制分配可写成</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><munder><mi>min</mi><mo>&#8289;</mo><mi>δ</mi></munder><mspace width="0.222em"></mspace><mfrac><mn>1</mn><mn>2</mn></mfrac><mo stretchy="false" form="postfix">∥</mo><msub><mi>B</mi><mi>a</mi></msub><mi>δ</mi><mo>−</mo><msub><mi>ν</mi><mi>c</mi></msub><msubsup><mo stretchy="false" form="postfix">∥</mo><mi>W</mi><mn>2</mn></msubsup><mspace width="1.0em"></mspace><mtext mathvariant="normal">s.t.</mtext><mspace width="1.0em"></mspace><msub><mi>δ</mi><mi>min</mi><mo>&#8289;</mo></msub><mo>≤</mo><mi>δ</mi><mo>≤</mo><msub><mi>δ</mi><mi>max</mi><mo>&#8289;</mo></msub><mo>,</mo><mspace width="0.222em"></mspace><msub><mover><mi>δ</mi><mo accent="true">̇</mo></mover><mi>min</mi><mo>&#8289;</mo></msub><mo>≤</mo><mover><mi>δ</mi><mo accent="true">̇</mo></mover><mo>≤</mo><msub><mover><mi>δ</mi><mo accent="true">̇</mo></mover><mi>max</mi><mo>&#8289;</mo></msub><mi>.</mi></mrow><annotation encoding="application/x-tex">
+\min_{\delta}\ \frac{1}{2}\|B_a\delta-\nu_c\|_W^2
+\quad\text{s.t.}\quad \delta_{\min}\le \delta\le \delta_{\max},\ \dot{\delta}_{\min}\le \dot{\delta}\le \dot{\delta}_{\max}.
+</annotation></semantics></math></p>
+<p>其中
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>δ</mi><annotation encoding="application/x-tex">\delta</annotation></semantics></math>
+是执行机构偏角，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>B</mi><mi>a</mi></msub><annotation encoding="application/x-tex">B_a</annotation></semantics></math>
+是分配矩阵，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ν</mi><mi>c</mi></msub><annotation encoding="application/x-tex">\nu_c</annotation></semantics></math>
+是虚拟控制，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>W</mi><annotation encoding="application/x-tex">W</annotation></semantics></math>
+是权重矩阵；<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="postfix">∥</mo><mo>⋅</mo><msub><mo stretchy="false" form="postfix">∥</mo><mi>W</mi></msub></mrow><annotation encoding="application/x-tex">\|\cdot\|_W</annotation></semantics></math>
+表示加权范数。</p>
+<p>最容易被混淆的有三件事：</p>
+<ol type="1">
+<li>上层优化变量是虚拟控制，不是实际舵偏；</li>
+<li>下层优化变量是执行机构偏角，它受到位置和速率限制；</li>
+<li>即使上层 QP
+可行，若下层分配残差很大，真实系统仍可能无法执行安全命令。</li>
+</ol>
+<h2 id="轨迹优化与-mpc-交付例题">13.13 轨迹优化与 MPC 交付例题</h2>
+<p>对速度高度跟踪和动压走廊问题，轨迹优化可写成</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><munder><mi>min</mi><mo>&#8289;</mo><mrow><msub><mi>x</mi><mrow><mn>0</mn><mo>:</mo><mi>N</mi></mrow></msub><mo>,</mo><msub><mi>u</mi><mrow><mn>0</mn><mo>:</mo><mi>N</mi><mo>−</mo><mn>1</mn></mrow></msub></mrow></munder><munderover><mo>∑</mo><mrow><mi>k</mi><mo>=</mo><mn>0</mn></mrow><mrow><mi>N</mi><mo>−</mo><mn>1</mn></mrow></munderover><mi>ℓ</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>x</mi><mi>k</mi></msub><mo>,</mo><msub><mi>u</mi><mi>k</mi></msub><mo stretchy="false" form="postfix">)</mo><mo>+</mo><mi>ϕ</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>x</mi><mi>N</mi></msub><mo stretchy="false" form="postfix">)</mo><mspace width="1.0em"></mspace><mtext mathvariant="normal">s.t.</mtext><mspace width="1.0em"></mspace><msub><mi>x</mi><mrow><mi>k</mi><mo>+</mo><mn>1</mn></mrow></msub><mo>=</mo><mi>F</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>x</mi><mi>k</mi></msub><mo>,</mo><msub><mi>u</mi><mi>k</mi></msub><mo stretchy="false" form="postfix">)</mo><mi>.</mi></mrow><annotation encoding="application/x-tex">
+\min_{x_{0:N},u_{0:N-1}}\sum_{k=0}^{N-1}\ell(x_k,u_k)+\phi(x_N)
+\quad\text{s.t.}\quad x_{k+1}=F(x_k,u_k).
+</annotation></semantics></math></p>
+<p>交付时必须说明：</p>
+<ol type="1">
+<li><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>F</mi><annotation encoding="application/x-tex">F</annotation></semantics></math>
+是真实非线性模型、线性化模型、LPV 模型还是学习模型；</li>
+<li>动压约束在预测时域内如何计算；</li>
+<li>若
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>q</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>x</mi><mi>k</mi></msub><mo stretchy="false" form="postfix">)</mo><mo>≤</mo><msub><mi>q</mi><mi>max</mi><mo>&#8289;</mo></msub></mrow><annotation encoding="application/x-tex">q(x_k)\le q_{\max}</annotation></semantics></math>
+不可行，是放松参考、放松终端，还是使用回退；</li>
+<li>是否检查节点之间的动压峰值；</li>
+<li>求解时间是否小于采样周期；</li>
+<li>多初值和扰动下不可行次数是多少。</li>
+</ol>
+<h2 id="优化证据层次及其与后续章节的关系">13.14
+优化证据层次及其与后续章节的关系</h2>
+<p>优化方法的证据强度可以按下表分层。</p>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr>
+<th>等级</th>
+<th>证据</th>
+<th>能说明什么</th>
+<th>不能说明什么</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>O0</td>
+<td>只写出优化公式或调用求解器</td>
+<td>问题有形式化表达</td>
+<td>不能说明可解、可复现或可实时</td>
+</tr>
+<tr>
+<td>O1</td>
+<td>给单场景解、目标值和约束值</td>
+<td>该场景可能求解成功</td>
+<td>不能说明鲁棒性和实时性</td>
+</tr>
+<tr>
+<td>O2</td>
+<td>给求解器日志、不可行次数、求解时间和约束违反</td>
+<td>数值实现可复核</td>
+<td>不能证明所有任务段可靠</td>
+</tr>
+<tr>
+<td>O3</td>
+<td>给多初值、多飞行点、扰动、故障和采样周期扫描</td>
+<td>教学级闭环证据较完整</td>
+<td>不能替代高保真模型和硬实时测试</td>
+</tr>
+<tr>
+<td>O4</td>
+<td>给跨工具复核、失败样本、失效回退效果和论文表格链路</td>
+<td>可支撑论文或工程报告中的优化结论</td>
+<td>仍需限定模型、飞行包线和求解器条件</td>
+</tr>
+</tbody>
+</table>
+<h2 id="优化对象包">13.15 优化对象包</h2>
+<p>一个优化问题能否进入后续章节，不能只看目标函数写得是否漂亮，而要看变量、约束、数值尺度和失败处理是否交代完整。建议把每个优化问题整理成下面的交付包。</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>项目</th>
+<th>必须写清的内容</th>
+<th>控制含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>决策变量</td>
+<td>状态序列、输入序列、舵面量、松弛变量还是参数</td>
+<td>决定优化器真正改变什么</td>
+</tr>
+<tr>
+<td>参数包</td>
+<td>状态、参考、气动表、质量、约束阈值和上一时刻输入</td>
+<td>决定在线问题和离线问题的区别</td>
+</tr>
+<tr>
+<td>目标函数</td>
+<td>跟踪误差、控制能量、终端误差、风险项或参考修改代价</td>
+<td>说明“最优”到底在优化什么</td>
+</tr>
+<tr>
+<td>硬约束</td>
+<td>动力学、输入边界、路径约束、终端约束和安全边界</td>
+<td>决定是否允许违反</td>
+</tr>
+<tr>
+<td>软约束</td>
+<td>可松弛的次要目标、舒适性约束或次要任务指标</td>
+<td>决定哪些部分可以降级</td>
+</tr>
+<tr>
+<td>数值尺度</td>
+<td>状态、输入、约束和权重的尺度化方式</td>
+<td>决定求解器条件数</td>
+</tr>
+<tr>
+<td>求解配置</td>
+<td>求解器、容差、迭代次数、热启动和超时阈值</td>
+<td>决定实时可实现性</td>
+</tr>
+<tr>
+<td>失败处理</td>
+<td>不可行、超时、数值失败时的失效回退</td>
+<td>决定闭环不会因为优化失败而失控</td>
+</tr>
+<tr>
+<td>日志字段</td>
+<td>状态、目标值、约束违反、求解时间、活跃约束和降级标志</td>
+<td>决定结果能否复核</td>
+</tr>
+</tbody>
+</table>
+<h2 id="常见错误">13.16 常见错误</h2>
+<ol type="1">
+<li>写出优化问题，但不说明变量、约束和求解方法。</li>
+<li>把非凸问题当凸问题处理。</li>
+<li>QP 加了安全约束，却没有报告不可行次数。</li>
+<li>MPC 不报告求解时间。</li>
+<li>序列凸优化只给最终轨迹，不报告迭代和约束违反。</li>
+<li>控制分配优化不包含舵偏和舵速限制。</li>
+<li>变量没有尺度化，导致求解器病态。</li>
+<li>只检查离散节点，不检查节点之间路径约束。</li>
+<li>用松弛变量掩盖安全约束失败。</li>
+<li>求解器失败时没有失效回退。</li>
+<li>把局部 NLP 解当作全局最优。</li>
+<li>不记录初始猜测、warm start 和收敛容差。</li>
+<li>只报告平均求解时间，不报告最大值和高分位值。</li>
+<li>控制分配 QP 有数学解，但没有检查舵面动态是否能跟上。</li>
+</ol>
+<h2 id="本章小结">13.17 本章小结</h2>
+<p>数值优化和凸优化是现代高超声速制导与控制的重要工具。本教程要求读者理解优化问题的变量、目标、约束、凸性、KKT
+条件、求解方法和可信性边界。</p>
+<p>后续
+MPC、控制分配、CBF-QP、轨迹优化和再入制导都应建立在本章基础上。一个可用的优化章节还必须交付变量、参数、硬约束、软约束、求解器设置、失败处理和日志字段，使优化方法可以被复现、诊断和验证。</p>
+
+      </article>
+      
+      <nav class="book-bottom-nav" aria-label="章节导航">
+        <a href="./12-constrained-safety-control-foundations.html">上一章：第12章 约束系统与安全控制基础</a>
+        <a href="./index.html">卷首页</a>
+        <a href="./13-hybrid-sampled-control.html">下一章：混杂系统与采样控制专题</a>
+      </nav>
+    </main>
+  </div>
+</body>
+</html>

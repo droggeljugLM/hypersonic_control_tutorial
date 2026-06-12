@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>第24章 执行机构、传感器与计算系统建模</title>
+  <style>
+    :root {
+      --paper: #f7f3eb;
+      --ink: #1f2937;
+      --muted: #5b6472;
+      --line: color-mix(in srgb, #e3f5f2 68%, #cbd5e1 32%);
+      --accent: #18786f;
+      --accent-soft: #e3f5f2;
+      --accent-deep: #0e4b45;
+      color-scheme: light;
+    }
+    html {
+      -webkit-text-size-adjust: 100%;
+      background:
+        radial-gradient(circle at top left, #e3f5f2 0, rgba(255,255,255,0) 32%),
+        linear-gradient(180deg, #fbfaf6 0%, var(--paper) 18%, #f7f1e6 100%);
+    }
+    body {
+      margin: 0;
+      font-family: "Source Han Serif SC", "Songti SC", "Noto Serif CJK SC", "Microsoft YaHei", serif;
+      color: var(--ink);
+      line-height: 1.78;
+      letter-spacing: 0;
+    }
+    a { color: var(--accent-deep); }
+    .book-app {
+      display: grid;
+      grid-template-columns: 280px minmax(0, 1fr);
+      min-height: 100vh;
+    }
+    .book-sidebar {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow: auto;
+      padding: 1.2rem 1rem 1.2rem 1.15rem;
+      border-right: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(255,255,255,0.86), rgba(255,255,255,0.72));
+      backdrop-filter: blur(10px);
+    }
+    .sidebar-shell { position: sticky; top: 0; display: flex; flex-direction: column; gap: 1rem; }
+    .sidebar-brand {
+      padding: 0.95rem 0.95rem 1rem;
+      border-radius: 18px;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.95), rgba(255,255,255,0.84)),
+        linear-gradient(135deg, var(--accent-soft), rgba(255,255,255,0));
+      border: 1px solid var(--line);
+      box-shadow: 0 12px 28px rgba(31, 41, 55, 0.06);
+    }
+    .sidebar-brand .kicker { margin: 0; color: var(--accent); font-size: 0.82rem; font-weight: 700; }
+    .sidebar-brand h2 { margin: 0.45rem 0 0.25rem; font-size: 1.08rem; line-height: 1.3; color: var(--ink); }
+    .sidebar-brand p { margin: 0.35rem 0 0; color: var(--muted); font-size: 0.9rem; }
+    .sidebar-links { display: grid; gap: 0.45rem; }
+    .sidebar-link {
+      display: grid;
+      grid-template-columns: 2.2rem minmax(0, 1fr);
+      gap: 0.6rem;
+      align-items: start;
+      padding: 0.7rem 0.75rem;
+      border-radius: 14px;
+      text-decoration: none;
+      background: rgba(255,255,255,0.72);
+      border: 1px solid rgba(31,41,55,0.07);
+      color: var(--ink);
+    }
+    .sidebar-link:hover { background: rgba(255,255,255,0.95); border-color: var(--line); }
+    .sidebar-link.active {
+      background: linear-gradient(135deg, rgba(255,255,255,0.98), rgba(255,255,255,0.9));
+      border-color: var(--accent-soft);
+      box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent-soft) 68%, #ffffff 32%);
+    }
+    .sidebar-index {
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      min-width: 2rem;
+      height: 2rem;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent-deep);
+      font-size: 0.78rem;
+      font-weight: 800;
+    }
+    .sidebar-title { font-size: 0.94rem; line-height: 1.35; }
+    .book-main { min-width: 0; padding: 1.25rem 1.45rem 1.8rem; }
+    .book-page-header {
+      padding: 0.85rem 0 1rem;
+      margin-bottom: 1rem;
+      border-bottom: 1px solid var(--line);
+    }
+    .page-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.28rem 0.72rem;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.82);
+      border: 1px solid var(--line);
+      color: var(--accent-deep);
+      font-size: 0.8rem;
+      font-weight: 700;
+    }
+    .book-page-header h1 {
+      margin: 0.7rem 0 0;
+      font-size: 1.85rem;
+      line-height: 1.22;
+      color: var(--accent-deep);
+      border: 0;
+      padding: 0;
+    }
+    .book-page-header p { margin: 0.45rem 0 0; color: var(--muted); max-width: 62rem; }
+    .book-article { max-width: 900px; margin: 0; padding: 0 0 1.2rem; }
+    .book-article h1, .book-article h2, .book-article h3, .book-article h4, .book-article h5, .book-article h6 {
+      line-height: 1.28;
+      margin-top: 1.45em;
+      margin-bottom: 0.55em;
+      color: var(--accent-deep);
+    }
+    .book-article h1 { font-size: 2rem; border-bottom: 2px solid var(--line); padding-bottom: 0.42rem; }
+    .book-article h1:first-of-type { margin-top: 0; }
+    .book-article h2 { font-size: 1.42rem; }
+    .book-article h3 { font-size: 1.12rem; }
+    .book-article p, .book-article li, .book-article dd, .book-article td, .book-article th { text-align: justify; text-justify: inter-ideograph; }
+    .book-article p { margin: 0.85rem 0; }
+    .book-article code, .book-article pre { font-family: "Cascadia Mono", "Source Code Pro", Consolas, monospace; font-size: 0.94em; }
+    .book-article code {
+      padding: 0.02rem 0.24rem;
+      background: color-mix(in srgb, var(--accent-soft) 34%, #ffffff 66%);
+      border: 0;
+      border-bottom: 1px solid color-mix(in srgb, var(--accent-soft) 74%, #d1d5db 26%);
+      border-radius: 4px;
+      color: #253244;
+      box-decoration-break: clone;
+      -webkit-box-decoration-break: clone;
+    }
+    .book-article pre {
+      padding: 1rem 1.1rem;
+      overflow: auto;
+      background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,253,248,0.98));
+      border: 1px solid color-mix(in srgb, var(--accent-soft) 54%, #d1d5db 46%);
+      border-left: 5px solid var(--accent);
+      border-radius: 14px;
+      box-shadow: 0 8px 22px rgba(31, 41, 55, 0.05);
+    }
+    .book-article pre code { padding: 0; border: 0; background: transparent; color: inherit; }
+    .book-article table {
+      border-collapse: collapse;
+      width: 100%;
+      margin: 1rem 0 1.25rem;
+      background: rgba(255,255,255,0.82);
+      overflow: hidden;
+      border-radius: 12px;
+    }
+    .book-article th, .book-article td { border: 1px solid var(--line); padding: 0.5rem 0.7rem; vertical-align: top; }
+    .book-article th { background: color-mix(in srgb, var(--accent-soft) 42%, #ffffff 58%); }
+    .book-article blockquote {
+      margin: 1rem 0;
+      padding: 0.25rem 0 0.25rem 1rem;
+      border-left: 4px solid var(--accent);
+      color: #374151;
+      background: linear-gradient(90deg, rgba(255,255,255,0.72), rgba(255,255,255,0.48));
+      border-radius: 0 12px 12px 0;
+    }
+    .book-bottom-nav {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-top: 2.2rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--line);
+    }
+    .book-bottom-nav a {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.6rem 0.9rem;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.84);
+      text-decoration: none;
+      font-weight: 700;
+    }
+    .book-bottom-nav span {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.6rem 0.9rem;
+      border-radius: 999px;
+      border: 1px solid rgba(31,41,55,0.08);
+      background: rgba(255,255,255,0.54);
+      color: rgba(31,41,55,0.42);
+      font-weight: 700;
+    }
+    .book-bottom-nav a:hover { background: rgba(255,255,255,0.98); }
+    .book-volume-intro {
+      margin: 0 0 1.25rem;
+      padding: 1.2rem 1.25rem 1.1rem;
+      border-radius: 18px;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.96), rgba(255,255,255,0.78)),
+        linear-gradient(135deg, var(--accent-soft), rgba(255,255,255,0));
+      border: 1px solid var(--line);
+      box-shadow: 0 14px 34px rgba(31, 41, 55, 0.06);
+    }
+    .volume-intro-kicker {
+      margin: 0;
+      color: var(--accent);
+      font-size: 0.84rem;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    .book-volume-intro h2 {
+      margin: 0.55rem 0 0.55rem;
+      font-size: 1.28rem;
+      line-height: 1.35;
+      color: var(--accent-deep);
+    }
+    .volume-intro-summary {
+      margin: 0;
+      color: var(--muted);
+      max-width: 68rem;
+    }
+    .volume-intro-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.8rem;
+      margin-top: 1rem;
+    }
+    .volume-intro-box {
+      padding: 0.85rem 0.9rem;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.72);
+      border: 1px solid rgba(31,41,55,0.08);
+    }
+    .volume-intro-box span {
+      display: block;
+      color: var(--accent);
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+    }
+    .volume-intro-box strong {
+      display: block;
+      margin-top: 0.35rem;
+      color: var(--ink);
+      font-size: 0.95rem;
+      line-height: 1.45;
+    }
+    .volume-intro-note {
+      margin-top: 0.9rem;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+    @media (max-width: 1180px) {
+      .book-app { grid-template-columns: 1fr; }
+      .book-sidebar {
+        position: relative;
+        height: auto;
+        border-right: 0;
+        border-bottom: 1px solid var(--line);
+      }
+      .sidebar-shell { position: static; }
+    }
+    @media (max-width: 900px) {
+      .book-main { padding: 1rem 1rem 1.5rem; }
+      .book-bottom-nav { flex-direction: column; }
+      .volume-intro-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="book-app">
+    <aside class="book-sidebar">
+      <div class="sidebar-shell">
+        <div class="sidebar-brand">
+          <p class="kicker">高超声速飞行器控制教程</p>
+          <h2>第二卷 高超声速飞行器建模与飞行动力学</h2>
+          <p>对象与模型</p>
+        </div>
+        <nav class="sidebar-links" aria-label="本卷目录">
+          <a class="sidebar-link" href="./index.html"><span class="sidebar-index">0</span><span class="sidebar-title">卷首页</span></a>
+<a class="sidebar-link" href="./14-vehicle-types-mission-profiles.html"><span class="sidebar-index">01</span><span class="sidebar-title">第14章 高超声速飞行器类型与任务剖面</span></a>
+<a class="sidebar-link" href="./15-coordinate-kinematics-attitude.html"><span class="sidebar-index">02</span><span class="sidebar-title">第15章 坐标系、运动学与姿态描述</span></a>
+<a class="sidebar-link" href="./16-atmosphere-flight-conditions.html"><span class="sidebar-index">03</span><span class="sidebar-title">第16章 大气环境与飞行条件</span></a>
+<a class="sidebar-link" href="./17-aerodynamic-force-moment-modeling.html"><span class="sidebar-index">04</span><span class="sidebar-title">第17章 气动力与气动力矩建模</span></a>
+<a class="sidebar-link" href="./18-propulsion-aero-propulsive-coupling.html"><span class="sidebar-index">05</span><span class="sidebar-title">第18章 推进系统与气动推进耦合</span></a>
+<a class="sidebar-link" href="./19-point-mass-dynamics.html"><span class="sidebar-index">06</span><span class="sidebar-title">第19章 质点动力学模型</span></a>
+<a class="sidebar-link" href="./20-longitudinal-rigid-body-dynamics.html"><span class="sidebar-index">07</span><span class="sidebar-title">第20章 纵向刚体动力学模型</span></a>
+<a class="sidebar-link" href="./21-lateral-directional-dynamics.html"><span class="sidebar-index">08</span><span class="sidebar-title">第21章 横侧向动力学模型</span></a>
+<a class="sidebar-link" href="./22-six-dof-rigid-body-model.html"><span class="sidebar-index">09</span><span class="sidebar-title">第22章 六自由度刚体模型</span></a>
+<a class="sidebar-link" href="./23-flexible-aeroelastic-modeling.html"><span class="sidebar-index">10</span><span class="sidebar-title">第23章 刚柔耦合与气动弹性模型</span></a>
+<a class="sidebar-link active" href="./24-actuator-sensor-computation-modeling.html"><span class="sidebar-index">11</span><span class="sidebar-title">第24章 执行机构、传感器与计算系统建模</span></a>
+<a class="sidebar-link" href="./25-trim-linearization-modal-analysis.html"><span class="sidebar-index">12</span><span class="sidebar-title">第25章 配平、线性化与模态分析</span></a>
+        </nav>
+      </div>
+    </aside>
+    <main class="book-main">
+      <header class="book-page-header">
+        <div class="page-eyebrow">第2册·章节页11</div>
+        <h1 id="volume2--24-actuator-sensor-computation-modeling">第24章 执行机构、传感器与计算系统建模</h1>
+        <p>本页是章节正文页。左侧目录用于回到本卷其他章节，底部导航用于前后章跳转。</p>
+      </header>
+      <article class="book-article">
+        <h2 id="问题背景">24.1 问题背景</h2>
+<p>控制律输出的命令不是直接作用在飞行器上的真实输入。真实闭环中，命令必须经过执行机构、传感器、估计器、采样保持、计算延迟、限幅限速和故障逻辑。高超声速飞行器速度高、约束紧、控制余度有限，因此对这些工程环节尤其敏感。</p>
+<p>这一章的任务，是把执行链从“实现细节”提升为“控制对象的一部分”。如果不这样做，很多仿真成功其实只是理想输入成功，而不是闭环成功。</p>
+<h2 id="执行机构模型">24.2 执行机构模型</h2>
+<p>升降舵、副翼、方向舵、体襟翼、推力矢量和 RCS
+都可以抽象为执行机构。一个常见的一阶舵机模型为：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mover><mi>δ</mi><mo accent="true">̇</mo></mover><mi>a</mi></msub><mo>=</mo><mfrac><mrow><msub><mi>δ</mi><mrow><mi>a</mi><mo>,</mo><mi>c</mi></mrow></msub><mo>−</mo><msub><mi>δ</mi><mi>a</mi></msub></mrow><msub><mi>τ</mi><mi>a</mi></msub></mfrac></mrow><annotation encoding="application/x-tex">
+\dot{\delta}_a=\frac{\delta_{a,c}-\delta_a}{\tau_a}
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>δ</mi><mi>a</mi></msub><annotation encoding="application/x-tex">\delta_a</annotation></semantics></math>
+是实际舵面角，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>δ</mi><mrow><mi>a</mi><mo>,</mo><mi>c</mi></mrow></msub><annotation encoding="application/x-tex">\delta_{a,c}</annotation></semantics></math>
+是舵面命令，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>τ</mi><mi>a</mi></msub><annotation encoding="application/x-tex">\tau_a</annotation></semantics></math>
+是时间常数。</p>
+<p>若需要更高保真，也可写为二阶模型：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mover><mi>δ</mi><mo accent="true">̈</mo></mover><mi>a</mi></msub><mo>+</mo><mn>2</mn><msub><mi>ζ</mi><mi>a</mi></msub><msub><mi>ω</mi><mi>a</mi></msub><msub><mover><mi>δ</mi><mo accent="true">̇</mo></mover><mi>a</mi></msub><mo>+</mo><msubsup><mi>ω</mi><mi>a</mi><mn>2</mn></msubsup><msub><mi>δ</mi><mi>a</mi></msub><mo>=</mo><msubsup><mi>ω</mi><mi>a</mi><mn>2</mn></msubsup><msub><mi>δ</mi><mrow><mi>a</mi><mo>,</mo><mi>c</mi></mrow></msub></mrow><annotation encoding="application/x-tex">
+\ddot{\delta}_a+2\zeta_a\omega_a\dot{\delta}_a+\omega_a^2\delta_a=\omega_a^2\delta_{a,c}
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ζ</mi><mi>a</mi></msub><annotation encoding="application/x-tex">\zeta_a</annotation></semantics></math>
+是阻尼比，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ω</mi><mi>a</mi></msub><annotation encoding="application/x-tex">\omega_a</annotation></semantics></math>
+是自然频率。</p>
+<p>执行机构必须同时考虑幅值和速率约束：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>δ</mi><mrow><mi>a</mi><mo>,</mo><mi>min</mi><mo>&#8289;</mo></mrow></msub><mo>≤</mo><msub><mi>δ</mi><mi>a</mi></msub><mo>≤</mo><msub><mi>δ</mi><mrow><mi>a</mi><mo>,</mo><mi>max</mi><mo>&#8289;</mo></mrow></msub><mo>,</mo><mspace width="2.0em"></mspace><mo stretchy="false" form="prefix">|</mo><msub><mover><mi>δ</mi><mo accent="true">̇</mo></mover><mi>a</mi></msub><mo stretchy="false" form="prefix">|</mo><mo>≤</mo><msub><mover><mi>δ</mi><mo accent="true">̇</mo></mover><mrow><mi>a</mi><mo>,</mo><mi>max</mi><mo>&#8289;</mo></mrow></msub></mrow><annotation encoding="application/x-tex">
+\delta_{a,\min}\le \delta_a \le \delta_{a,\max},\qquad |\dot{\delta}_a|\le \dot{\delta}_{a,\max}
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>δ</mi><mrow><mi>a</mi><mo>,</mo><mi>min</mi><mo>&#8289;</mo></mrow></msub><annotation encoding="application/x-tex">\delta_{a,\min}</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>δ</mi><mrow><mi>a</mi><mo>,</mo><mi>max</mi><mo>&#8289;</mo></mrow></msub><annotation encoding="application/x-tex">\delta_{a,\max}</annotation></semantics></math>
+是舵面幅值边界，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mover><mi>δ</mi><mo accent="true">̇</mo></mover><mrow><mi>a</mi><mo>,</mo><mi>max</mi><mo>&#8289;</mo></mrow></msub><annotation encoding="application/x-tex">\dot{\delta}_{a,\max}</annotation></semantics></math>
+是最大舵速。</p>
+<h2 id="推进执行动态">24.3 推进执行动态</h2>
+<p>推进输入也有动态。油门或当量比可写为：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mover><mi>ϕ</mi><mo accent="true">̇</mo></mover><mi>T</mi></msub><mo>=</mo><mfrac><mrow><msub><mi>ϕ</mi><mrow><mi>T</mi><mo>,</mo><mi>c</mi></mrow></msub><mo>−</mo><msub><mi>ϕ</mi><mi>T</mi></msub></mrow><msub><mi>τ</mi><mi>T</mi></msub></mfrac></mrow><annotation encoding="application/x-tex">
+\dot{\phi}_T=\frac{\phi_{T,c}-\phi_T}{\tau_T}
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ϕ</mi><mi>T</mi></msub><annotation encoding="application/x-tex">\phi_T</annotation></semantics></math>
+是实际推进输入，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ϕ</mi><mrow><mi>T</mi><mo>,</mo><mi>c</mi></mrow></msub><annotation encoding="application/x-tex">\phi_{T,c}</annotation></semantics></math>
+是推力命令，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>τ</mi><mi>T</mi></msub><annotation encoding="application/x-tex">\tau_T</annotation></semantics></math>
+是推进响应时间常数。</p>
+<p>如果推进系统带有滞后、迟滞或工作包线限制，就不能把推力当作瞬时输入。对速度控制和能量管理而言，这一点非常重要。</p>
+<h2 id="传感器模型">24.4 传感器模型</h2>
+<p>传感器输出可写为：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>y</mi><mi>m</mi></msub><mo>=</mo><mi>h</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo>+</mo><mi>b</mi><mo>+</mo><mi>n</mi><mo>+</mo><msub><mi>η</mi><mi>d</mi></msub></mrow><annotation encoding="application/x-tex">
+y_m=h(x)+b+n+\eta_d
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>y</mi><mi>m</mi></msub><annotation encoding="application/x-tex">y_m</annotation></semantics></math>
+是测量值，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>h</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">h(x)</annotation></semantics></math>
+是理想测量函数，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>b</mi><annotation encoding="application/x-tex">b</annotation></semantics></math>
+是偏置，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>n</mi><annotation encoding="application/x-tex">n</annotation></semantics></math>
+是噪声，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>η</mi><mi>d</mi></msub><annotation encoding="application/x-tex">\eta_d</annotation></semantics></math>
+是延迟、量化或丢包等异常项。</p>
+<p>常见传感器包括
+IMU、陀螺、GPS/导航系统、高度计和空气数据系统。高超声速控制尤其不能默认攻角、侧滑角和动压都能被直接精确测量。</p>
+<h2 id="状态估计接口">24.5 状态估计接口</h2>
+<p>若状态不可直接测量，需要估计器。可以抽象为：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mover><mi>x</mi><mo accent="true">̂</mo></mover><mo accent="true">̇</mo></mover><mo>=</mo><mi>f</mi><mo stretchy="false" form="prefix">(</mo><mover><mi>x</mi><mo accent="true">̂</mo></mover><mo>,</mo><mi>u</mi><mo>,</mo><msub><mi>y</mi><mi>m</mi></msub><mo stretchy="false" form="postfix">)</mo><mo>+</mo><mi>K</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>y</mi><mi>m</mi></msub><mo>−</mo><mover><mi>y</mi><mo accent="true">̂</mo></mover><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
+\dot{\hat x}=f(\hat x,u,y_m)+K(y_m-\hat y)
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mover><mi>x</mi><mo accent="true">̂</mo></mover><annotation encoding="application/x-tex">\hat x</annotation></semantics></math>
+是状态估计，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mover><mi>y</mi><mo accent="true">̂</mo></mover><annotation encoding="application/x-tex">\hat y</annotation></semantics></math>
+是估计输出，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>K</mi><annotation encoding="application/x-tex">K</annotation></semantics></math>
+是观测器增益。</p>
+<p>对高超声速飞行器来说，估计误差不是次要项。攻角、侧滑角、动压、过载和终端状态的估计偏差，都会直接影响安全判断和控制分配。</p>
+<h2 id="采样和计算延迟">24.6 采样和计算延迟</h2>
+<p>数字控制器每个采样周期只更新一次。可写为：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>u</mi><mo stretchy="false" form="prefix">[</mo><mi>k</mi><mo stretchy="false" form="postfix">]</mo><mo>=</mo><mi>𝒦</mi><mo stretchy="false" form="prefix">(</mo><mover><mi>x</mi><mo accent="true">̂</mo></mover><mo stretchy="false" form="prefix">[</mo><mi>k</mi><mo stretchy="false" form="postfix">]</mo><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
+u[k]=\mathcal K(\hat x[k])
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>u</mi><mo stretchy="false" form="prefix">[</mo><mi>k</mi><mo stretchy="false" form="postfix">]</mo></mrow><annotation encoding="application/x-tex">u[k]</annotation></semantics></math>
+是离散控制输入，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>x</mi><mo accent="true">̂</mo></mover><mo stretchy="false" form="prefix">[</mo><mi>k</mi><mo stretchy="false" form="postfix">]</mo></mrow><annotation encoding="application/x-tex">\hat x[k]</annotation></semantics></math>
+是离散估计状态，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝒦</mi><annotation encoding="application/x-tex">\mathcal K</annotation></semantics></math>
+是控制律。</p>
+<p>如果存在计算延迟
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>d</mi><annotation encoding="application/x-tex">d</annotation></semantics></math>，则真实作用到对象上的命令可能是：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>u</mi><mrow><mi mathvariant="normal">a</mi><mi mathvariant="normal">c</mi><mi mathvariant="normal">t</mi></mrow></msub><mo stretchy="false" form="prefix">[</mo><mi>k</mi><mo stretchy="false" form="postfix">]</mo><mo>=</mo><mi>u</mi><mo stretchy="false" form="prefix">[</mo><mi>k</mi><mo>−</mo><mi>d</mi><mo stretchy="false" form="postfix">]</mo></mrow><annotation encoding="application/x-tex">
+u_{\mathrm{act}}[k]=u[k-d]
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>u</mi><mrow><mi mathvariant="normal">a</mi><mi mathvariant="normal">c</mi><mi mathvariant="normal">t</mi></mrow></msub><mo stretchy="false" form="prefix">[</mo><mi>k</mi><mo stretchy="false" form="postfix">]</mo></mrow><annotation encoding="application/x-tex">u_{\mathrm{act}}[k]</annotation></semantics></math>
+是实际生效命令。</p>
+<p>采样周期和计算延迟都会降低相位裕度。对 MPC 或 QP
+控制而言，它们还会引入求解超时和命令保持问题。</p>
+<h2 id="故障模型">24.7 故障模型</h2>
+<p>执行机构和传感器都可能故障。一个常见的执行机构效率损失模型为：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>u</mi><mrow><mi mathvariant="normal">e</mi><mi mathvariant="normal">f</mi><mi mathvariant="normal">f</mi></mrow></msub><mo>=</mo><mi mathvariant="normal">Λ</mi><msub><mi>u</mi><mi>a</mi></msub></mrow><annotation encoding="application/x-tex">
+u_{\mathrm{eff}}=\Lambda u_a
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi mathvariant="normal">Λ</mi><annotation encoding="application/x-tex">\Lambda</annotation></semantics></math>
+是效率矩阵，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>u</mi><mrow><mi mathvariant="normal">e</mi><mi mathvariant="normal">f</mi><mi mathvariant="normal">f</mi></mrow></msub><annotation encoding="application/x-tex">u_{\mathrm{eff}}</annotation></semantics></math>
+是有效输入，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>u</mi><mi>a</mi></msub><annotation encoding="application/x-tex">u_a</annotation></semantics></math>
+是命令输入。</p>
+<p>若某个通道卡滞或死区明显，还需要在模型中显式加入故障项。高超声速控制不能只在图上画故障，必须让故障进入动力学和指标。</p>
+<h2 id="工程实现验证矩阵">24.8 工程实现验证矩阵</h2>
+<p>执行机构、传感器和计算系统的验证应至少覆盖：</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>场景</th>
+<th>扫描变量</th>
+<th>主要检查</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>舵机带宽扫描</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>τ</mi><mi>a</mi></msub><mo>,</mo><msub><mi>ω</mi><mi>a</mi></msub><mo>,</mo><msub><mi>ζ</mi><mi>a</mi></msub></mrow><annotation encoding="application/x-tex">\tau_a,\omega_a,\zeta_a</annotation></semantics></math></td>
+<td>姿态误差、相位滞后、舵速峰值</td>
+</tr>
+<tr>
+<td>舵偏饱和</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>δ</mi><mi>max</mi><mo>&#8289;</mo></msub><annotation encoding="application/x-tex">\delta_{\max}</annotation></semantics></math></td>
+<td>饱和持续时间、分配残差、跟踪退化</td>
+</tr>
+<tr>
+<td>舵速限制</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mover><mi>δ</mi><mo accent="true">̇</mo></mover><mi>max</mi><mo>&#8289;</mo></msub><annotation encoding="application/x-tex">\dot{\delta}_{\max}</annotation></semantics></math></td>
+<td>命令滞后、内环误差和安全层残差</td>
+</tr>
+<tr>
+<td>传感器偏置</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>b</mi><mi>h</mi></msub><mo>,</mo><msub><mi>b</mi><mi>V</mi></msub><mo>,</mo><msub><mi>b</mi><mi>α</mi></msub></mrow><annotation encoding="application/x-tex">b_h,b_V,b_\alpha</annotation></semantics></math></td>
+<td>估计误差、安全裕度和故障检测</td>
+</tr>
+<tr>
+<td>测量噪声</td>
+<td>噪声强度和频段</td>
+<td>控制抖动、滤波滞后和舵面活动量</td>
+</tr>
+<tr>
+<td>输入延迟</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>d</mi><annotation encoding="application/x-tex">d</annotation></semantics></math>
+或
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>τ</mi><mi>d</mi></msub><annotation encoding="application/x-tex">\tau_d</annotation></semantics></math></td>
+<td>稳定裕度、终端误差和约束违反</td>
+</tr>
+<tr>
+<td>计算超时</td>
+<td>单步计算时间超过采样周期</td>
+<td>回退逻辑、命令保持和安全裕度</td>
+</tr>
+<tr>
+<td>执行机构故障</td>
+<td>效率损失、卡滞、死区</td>
+<td>容错重构、残差、故障后指标</td>
+</tr>
+</tbody>
+</table>
+<p>这些场景不需要一开始就做高保真模型，但每个教学案例都应说明覆盖了哪一项、没有覆盖哪一项。</p>
+<h2 id="为什么必须显式建模执行链">24.9 为什么必须显式建模执行链</h2>
+<p>控制器算出的命令并不等于对象实际看到的输入。执行机构的动态意味着命令不是瞬时实现的；传感器的偏置和噪声意味着安全判断不是直接基于真值做的；采样和延迟意味着离散实现和连续证明之间存在空隙。</p>
+<p>如果只看命令输入，就会高估控制能力；如果只看
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mover><mi>x</mi><mo accent="true">̂</mo></mover><annotation encoding="application/x-tex">\hat x</annotation></semantics></math>，就会高估安全裕度。高超声速飞行器的控制边界，往往恰好就在这两条链的误差交界处。</p>
+<h2 id="本章小结">24.10 本章小结</h2>
+<p>执行机构、传感器与计算系统决定控制律能否从公式进入真实闭环。高超声速控制中，输入饱和、速率限制、传感器误差、估计误差、采样周期和计算延迟都会改变稳定性和安全裕度。本教程必须把这些因素作为模型的一部分，而不是仿真结束后的附加说明。</p>
+<h2 id="练习">24.11 练习</h2>
+<ol type="1">
+<li>写出一阶舵机模型和幅值、速率约束。</li>
+<li>说明油门动态为什么会影响速度控制。</li>
+<li>设计一个传感器测量模型，包含偏置、噪声和延迟。</li>
+<li>给出执行机构效率损失故障模型。</li>
+<li>解释采样周期和计算延迟如何影响 CBF-QP 或 MPC。</li>
+<li>设计一个控制器实时实现日志字段表。</li>
+<li>对单轴俯仰内环，说明舵速限制如何改变真实力矩。</li>
+<li>写出含估计误差裕度的动压安全判断。</li>
+<li>设计一个输入延迟扫描实验，并给出至少 5 个指标。</li>
+</ol>
+
+      </article>
+      
+      <nav class="book-bottom-nav" aria-label="章节导航">
+        <a href="./23-flexible-aeroelastic-modeling.html">上一章：第23章 刚柔耦合与气动弹性模型</a>
+        <a href="./index.html">卷首页</a>
+        <a href="./25-trim-linearization-modal-analysis.html">下一章：第25章 配平、线性化与模态分析</a>
+      </nav>
+    </main>
+  </div>
+</body>
+</html>

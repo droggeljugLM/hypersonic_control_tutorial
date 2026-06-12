@@ -1,0 +1,1656 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>第59章 高超声速控制论文阅读方法</title>
+  <style>
+    :root {
+      --paper: #f7f3eb;
+      --ink: #1f2937;
+      --muted: #5b6472;
+      --line: color-mix(in srgb, #e4e8fb 68%, #cbd5e1 32%);
+      --accent: #4a5fb2;
+      --accent-soft: #e4e8fb;
+      --accent-deep: #2a3568;
+      color-scheme: light;
+    }
+    html {
+      -webkit-text-size-adjust: 100%;
+      background:
+        radial-gradient(circle at top left, #e4e8fb 0, rgba(255,255,255,0) 32%),
+        linear-gradient(180deg, #fbfaf6 0%, var(--paper) 18%, #f7f1e6 100%);
+    }
+    body {
+      margin: 0;
+      font-family: "Source Han Serif SC", "Songti SC", "Noto Serif CJK SC", "Microsoft YaHei", serif;
+      color: var(--ink);
+      line-height: 1.78;
+      letter-spacing: 0;
+    }
+    a { color: var(--accent-deep); }
+    .book-app {
+      display: grid;
+      grid-template-columns: 280px minmax(0, 1fr);
+      min-height: 100vh;
+    }
+    .book-sidebar {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow: auto;
+      padding: 1.2rem 1rem 1.2rem 1.15rem;
+      border-right: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(255,255,255,0.86), rgba(255,255,255,0.72));
+      backdrop-filter: blur(10px);
+    }
+    .sidebar-shell { position: sticky; top: 0; display: flex; flex-direction: column; gap: 1rem; }
+    .sidebar-brand {
+      padding: 0.95rem 0.95rem 1rem;
+      border-radius: 18px;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.95), rgba(255,255,255,0.84)),
+        linear-gradient(135deg, var(--accent-soft), rgba(255,255,255,0));
+      border: 1px solid var(--line);
+      box-shadow: 0 12px 28px rgba(31, 41, 55, 0.06);
+    }
+    .sidebar-brand .kicker { margin: 0; color: var(--accent); font-size: 0.82rem; font-weight: 700; }
+    .sidebar-brand h2 { margin: 0.45rem 0 0.25rem; font-size: 1.08rem; line-height: 1.3; color: var(--ink); }
+    .sidebar-brand p { margin: 0.35rem 0 0; color: var(--muted); font-size: 0.9rem; }
+    .sidebar-links { display: grid; gap: 0.45rem; }
+    .sidebar-link {
+      display: grid;
+      grid-template-columns: 2.2rem minmax(0, 1fr);
+      gap: 0.6rem;
+      align-items: start;
+      padding: 0.7rem 0.75rem;
+      border-radius: 14px;
+      text-decoration: none;
+      background: rgba(255,255,255,0.72);
+      border: 1px solid rgba(31,41,55,0.07);
+      color: var(--ink);
+    }
+    .sidebar-link:hover { background: rgba(255,255,255,0.95); border-color: var(--line); }
+    .sidebar-link.active {
+      background: linear-gradient(135deg, rgba(255,255,255,0.98), rgba(255,255,255,0.9));
+      border-color: var(--accent-soft);
+      box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent-soft) 68%, #ffffff 32%);
+    }
+    .sidebar-index {
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      min-width: 2rem;
+      height: 2rem;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent-deep);
+      font-size: 0.78rem;
+      font-weight: 800;
+    }
+    .sidebar-title { font-size: 0.94rem; line-height: 1.35; }
+    .book-main { min-width: 0; padding: 1.25rem 1.45rem 1.8rem; }
+    .book-page-header {
+      padding: 0.85rem 0 1rem;
+      margin-bottom: 1rem;
+      border-bottom: 1px solid var(--line);
+    }
+    .page-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.28rem 0.72rem;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.82);
+      border: 1px solid var(--line);
+      color: var(--accent-deep);
+      font-size: 0.8rem;
+      font-weight: 700;
+    }
+    .book-page-header h1 {
+      margin: 0.7rem 0 0;
+      font-size: 1.85rem;
+      line-height: 1.22;
+      color: var(--accent-deep);
+      border: 0;
+      padding: 0;
+    }
+    .book-page-header p { margin: 0.45rem 0 0; color: var(--muted); max-width: 62rem; }
+    .book-article { max-width: 900px; margin: 0; padding: 0 0 1.2rem; }
+    .book-article h1, .book-article h2, .book-article h3, .book-article h4, .book-article h5, .book-article h6 {
+      line-height: 1.28;
+      margin-top: 1.45em;
+      margin-bottom: 0.55em;
+      color: var(--accent-deep);
+    }
+    .book-article h1 { font-size: 2rem; border-bottom: 2px solid var(--line); padding-bottom: 0.42rem; }
+    .book-article h1:first-of-type { margin-top: 0; }
+    .book-article h2 { font-size: 1.42rem; }
+    .book-article h3 { font-size: 1.12rem; }
+    .book-article p, .book-article li, .book-article dd, .book-article td, .book-article th { text-align: justify; text-justify: inter-ideograph; }
+    .book-article p { margin: 0.85rem 0; }
+    .book-article code, .book-article pre { font-family: "Cascadia Mono", "Source Code Pro", Consolas, monospace; font-size: 0.94em; }
+    .book-article code {
+      padding: 0.02rem 0.24rem;
+      background: color-mix(in srgb, var(--accent-soft) 34%, #ffffff 66%);
+      border: 0;
+      border-bottom: 1px solid color-mix(in srgb, var(--accent-soft) 74%, #d1d5db 26%);
+      border-radius: 4px;
+      color: #253244;
+      box-decoration-break: clone;
+      -webkit-box-decoration-break: clone;
+    }
+    .book-article pre {
+      padding: 1rem 1.1rem;
+      overflow: auto;
+      background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,253,248,0.98));
+      border: 1px solid color-mix(in srgb, var(--accent-soft) 54%, #d1d5db 46%);
+      border-left: 5px solid var(--accent);
+      border-radius: 14px;
+      box-shadow: 0 8px 22px rgba(31, 41, 55, 0.05);
+    }
+    .book-article pre code { padding: 0; border: 0; background: transparent; color: inherit; }
+    .book-article table {
+      border-collapse: collapse;
+      width: 100%;
+      margin: 1rem 0 1.25rem;
+      background: rgba(255,255,255,0.82);
+      overflow: hidden;
+      border-radius: 12px;
+    }
+    .book-article th, .book-article td { border: 1px solid var(--line); padding: 0.5rem 0.7rem; vertical-align: top; }
+    .book-article th { background: color-mix(in srgb, var(--accent-soft) 42%, #ffffff 58%); }
+    .book-article blockquote {
+      margin: 1rem 0;
+      padding: 0.25rem 0 0.25rem 1rem;
+      border-left: 4px solid var(--accent);
+      color: #374151;
+      background: linear-gradient(90deg, rgba(255,255,255,0.72), rgba(255,255,255,0.48));
+      border-radius: 0 12px 12px 0;
+    }
+    .book-bottom-nav {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-top: 2.2rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--line);
+    }
+    .book-bottom-nav a {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.6rem 0.9rem;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.84);
+      text-decoration: none;
+      font-weight: 700;
+    }
+    .book-bottom-nav span {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.6rem 0.9rem;
+      border-radius: 999px;
+      border: 1px solid rgba(31,41,55,0.08);
+      background: rgba(255,255,255,0.54);
+      color: rgba(31,41,55,0.42);
+      font-weight: 700;
+    }
+    .book-bottom-nav a:hover { background: rgba(255,255,255,0.98); }
+    .book-volume-intro {
+      margin: 0 0 1.25rem;
+      padding: 1.2rem 1.25rem 1.1rem;
+      border-radius: 18px;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.96), rgba(255,255,255,0.78)),
+        linear-gradient(135deg, var(--accent-soft), rgba(255,255,255,0));
+      border: 1px solid var(--line);
+      box-shadow: 0 14px 34px rgba(31, 41, 55, 0.06);
+    }
+    .volume-intro-kicker {
+      margin: 0;
+      color: var(--accent);
+      font-size: 0.84rem;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    .book-volume-intro h2 {
+      margin: 0.55rem 0 0.55rem;
+      font-size: 1.28rem;
+      line-height: 1.35;
+      color: var(--accent-deep);
+    }
+    .volume-intro-summary {
+      margin: 0;
+      color: var(--muted);
+      max-width: 68rem;
+    }
+    .volume-intro-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.8rem;
+      margin-top: 1rem;
+    }
+    .volume-intro-box {
+      padding: 0.85rem 0.9rem;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.72);
+      border: 1px solid rgba(31,41,55,0.08);
+    }
+    .volume-intro-box span {
+      display: block;
+      color: var(--accent);
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+    }
+    .volume-intro-box strong {
+      display: block;
+      margin-top: 0.35rem;
+      color: var(--ink);
+      font-size: 0.95rem;
+      line-height: 1.45;
+    }
+    .volume-intro-note {
+      margin-top: 0.9rem;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+    @media (max-width: 1180px) {
+      .book-app { grid-template-columns: 1fr; }
+      .book-sidebar {
+        position: relative;
+        height: auto;
+        border-right: 0;
+        border-bottom: 1px solid var(--line);
+      }
+      .sidebar-shell { position: static; }
+    }
+    @media (max-width: 900px) {
+      .book-main { padding: 1rem 1rem 1.5rem; }
+      .book-bottom-nav { flex-direction: column; }
+      .volume-intro-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="book-app">
+    <aside class="book-sidebar">
+      <div class="sidebar-shell">
+        <div class="sidebar-brand">
+          <p class="kicker">高超声速飞行器控制教程</p>
+          <h2>第五卷 仿真验证、工程实现与研究训练</h2>
+          <p>验证与训练</p>
+        </div>
+        <nav class="sidebar-links" aria-label="本卷目录">
+          <a class="sidebar-link" href="./index.html"><span class="sidebar-index">0</span><span class="sidebar-title">卷首页</span></a>
+<a class="sidebar-link" href="./52-hypersonic-control-simulation-platform.html"><span class="sidebar-index">01</span><span class="sidebar-title">第52章 高超声速控制仿真平台设计</span></a>
+<a class="sidebar-link" href="./53-numerical-integration-simulation-credibility.html"><span class="sidebar-index">02</span><span class="sidebar-title">第53章 数值积分与仿真可信性</span></a>
+<a class="sidebar-link" href="./54-aerodynamic-data-tables-parameter-management.html"><span class="sidebar-index">03</span><span class="sidebar-title">第54章 气动数据表、插值与参数管理</span></a>
+<a class="sidebar-link" href="./55-controller-discretization-real-time-implementation.html"><span class="sidebar-index">04</span><span class="sidebar-title">第55章 控制器离散化与实时实现</span></a>
+<a class="sidebar-link" href="./56-verification-metrics-system.html"><span class="sidebar-index">05</span><span class="sidebar-title">第56章 验证指标体系</span></a>
+<a class="sidebar-link" href="./57-uncertainty-monte-carlo-verification.html"><span class="sidebar-index">06</span><span class="sidebar-title">第57章 不确定性分析与 Monte Carlo 验证</span></a>
+<a class="sidebar-link" href="./58-typical-case-library.html"><span class="sidebar-index">07</span><span class="sidebar-title">第58章 典型案例库</span></a>
+<a class="sidebar-link active" href="./59-hypersonic-control-paper-reading-method.html"><span class="sidebar-index">08</span><span class="sidebar-title">第59章 高超声速控制论文阅读方法</span></a>
+<a class="sidebar-link" href="./60-frontiers-research-roadmap.html"><span class="sidebar-index">09</span><span class="sidebar-title">第60章 前沿问题与研究路线</span></a>
+<a class="sidebar-link" href="./case-library-code-mapping.html"><span class="sidebar-index">10</span><span class="sidebar-title">第五卷案例映射</span></a>
+        </nav>
+      </div>
+    </aside>
+    <main class="book-main">
+      <header class="book-page-header">
+        <div class="page-eyebrow">第5册·章节页08</div>
+        <h1 id="volume5--59-hypersonic-control-paper-reading-method">第59章 高超声速控制论文阅读方法</h1>
+        <p>本页是章节正文页。左侧目录用于回到本卷其他章节，底部导航用于前后章跳转。</p>
+      </header>
+      <article class="book-article">
+        <h2 id="问题背景">59.1 问题背景</h2>
+<p>高超声速控制论文常常包含复杂模型、长控制律、Lyapunov
+证明和多幅仿真图。初学者容易只看算法名和结果曲线，却忽略模型假设、控制目标、可测状态、约束处理和证据边界。本章给出一套用控制科学与工程标准阅读论文的方法。</p>
+<p>这不是文献摘要摘录法，而是把论文当成一个控制系统证据链来读。论文读法如果只停留在摘要和图注，很容易把结果图当成结论本身。应先识别一篇论文真正解决的控制问题，再从模型、误差系统和控制律判断方法是否成立；随后讨论如何检查稳定性证明有没有关键漏洞、如何判断仿真是否足以支撑结论、如何识别“只换算法名”的弱创新，以及如何从文献中提炼自己的研究问题。这样读，才能把论文里的“结论”与“证据”分开看，也才能把阅读变成选题训练。</p>
+<p>本章不是正式文献综述，也不替代数据库检索。正式写作时仍需核对作者、题名、期刊、年份、卷期、页码和
+DOI。</p>
+<p>论文阅读方法的核心，是先分辨问题、再分辨方法、最后分辨证据。这样读论文，才不会把“算法名”误当成“研究贡献”。</p>
+<p>从书稿结构上看，这一章不是让读者背一套固定模板，而是让读者养成一种稳定的审稿视角：先看对象和假设，再看误差系统和控制律，最后看证明是否完整、仿真是否充分、结论是否越界。只有这个顺序稳定了，阅读才能真正转化为研究能力。</p>
+<h2 id="阅读一篇论文的十步法">59.2 阅读一篇论文的十步法</h2>
+<p>建议按下面顺序阅读：</p>
+<ul>
+<li><strong>对象</strong>：模型；控制目标；假设；误差系统；控制律；稳定性证明；仿真设置；指标和对比；结论边界</li>
+</ul>
+<p>不要从摘要中的“新型”“智能”“鲁棒”“最优”等词直接判断价值。控制论文的价值应落在问题定义、数学保证和验证证据上。</p>
+<h2 id="论文阅读前的对象证据和复现边界检查">59.3
+论文阅读前的对象、证据和复现边界检查</h2>
+<p>第59章最容易写偏的地方，是把论文阅读做成“关键词摘录”或“算法名分类”。本节先把论文研究的对象、命令接口和证据对象分开，再进入控制律和证据审查。</p>
+<p>进入论文结论判断之前，先把这些问题想清楚：</p>
+<table>
+<thead>
+<tr>
+<th>项目</th>
+<th>需要先说明的问题</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>对象类型</td>
+<td>是 AB-HSV、HGV、再入、巡航还是通用纵向模型</td>
+</tr>
+<tr>
+<td>模型层级</td>
+<td>质点、纵向、三维质点、六自由度还是刚柔耦合</td>
+</tr>
+<tr>
+<td>控制接口</td>
+<td>输出的是舵面、推力、攻角、倾侧角还是虚拟控制量</td>
+</tr>
+<tr>
+<td>约束接口</td>
+<td>动压、热流、过载、攻角、舵偏、舵速和终端约束如何进入</td>
+</tr>
+<tr>
+<td>证明对象</td>
+<td>证明的是渐近、UUB、ISS、有限时间还是仅经验通过率</td>
+</tr>
+<tr>
+<td>证据对象</td>
+<td>单场景曲线、Monte Carlo、故障注入、对比表还是高保真闭环</td>
+</tr>
+<tr>
+<td>复现对象</td>
+<td>复现的是模型、基线、指标脚本还是完整控制器</td>
+</tr>
+<tr>
+<td>结论边界</td>
+<td>结论能支持到教学复现、研究原型还是更高层级验证</td>
+</tr>
+</tbody>
+</table>
+<p>因此，更自然的起点，是先问清楚这篇论文到底研究哪一类对象、命令发给谁、结论强度到哪里，再去看控制律。</p>
+<h2 id="识别模型假设">59.4 识别模型假设</h2>
+<p>首先回答：</p>
+<table>
+<thead>
+<tr>
+<th>问题</th>
+<th>检查点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>飞行器类型是什么</td>
+<td>AB-HSV、HGV、再入、巡航还是通用模型</td>
+</tr>
+<tr>
+<td>模型层级是什么</td>
+<td>质点、纵向、横侧向、六自由度、刚柔耦合</td>
+</tr>
+<tr>
+<td>状态有哪些</td>
+<td>是否包含速度、高度、航迹角、攻角、姿态和角速度</td>
+</tr>
+<tr>
+<td>输入有哪些</td>
+<td>舵面、推力、倾侧角、过载命令还是虚拟输入</td>
+</tr>
+<tr>
+<td>气动如何建模</td>
+<td>解析式、气动表、稳定导数、控制导数</td>
+</tr>
+<tr>
+<td>执行机构是否建模</td>
+<td>幅值、速率、延迟和带宽</td>
+</tr>
+<tr>
+<td>传感器是否建模</td>
+<td>噪声、偏置、采样和估计</td>
+</tr>
+</tbody>
+</table>
+<p>若论文使用纵向简化模型，却在结论中声称完整高超声速飞行器控制有效，应谨慎。</p>
+<h2 id="判断控制目标">59.5 判断控制目标</h2>
+<p>控制目标可以是：</p>
+<ul>
+<li>镇定；</li>
+<li>跟踪；</li>
+<li>约束跟踪；</li>
+<li>安全保持；</li>
+<li>终端制导；</li>
+<li>容错控制；</li>
+<li>鲁棒性能；</li>
+<li>最优或近似最优控制。</li>
+</ul>
+<p>阅读时要把目标写成数学形式。例如跟踪目标：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>e</mi><mi>y</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mi>y</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo>−</mo><msub><mi>y</mi><mrow><mi mathvariant="normal">r</mi><mi mathvariant="normal">e</mi><mi mathvariant="normal">f</mi></mrow></msub><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
+e_y(t)=y(t)-y_{\mathrm{ref}}(t)
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>e</mi><mi>y</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">e_y(t)</annotation></semantics></math>
+是输出跟踪误差，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>y</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">y(t)</annotation></semantics></math>
+是实际输出，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>y</mi><mrow><mi mathvariant="normal">r</mi><mi mathvariant="normal">e</mi><mi mathvariant="normal">f</mi></mrow></msub><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">y_{\mathrm{ref}}(t)</annotation></semantics></math>
+是参考输出，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>t</mi><annotation encoding="application/x-tex">t</annotation></semantics></math>
+是时间。</p>
+<p>如果论文研究的是状态跟踪，也可以写成</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>e</mi><mi>x</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mi>x</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo>−</mo><msub><mi>x</mi><mrow><mi mathvariant="normal">r</mi><mi mathvariant="normal">e</mi><mi mathvariant="normal">f</mi></mrow></msub><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
+e_x(t)=x(t)-x_{\mathrm{ref}}(t)
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>e</mi><mi>x</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">e_x(t)</annotation></semantics></math>
+是状态误差，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>x</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">x(t)</annotation></semantics></math>
+是实际状态，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>x</mi><mrow><mi mathvariant="normal">r</mi><mi mathvariant="normal">e</mi><mi mathvariant="normal">f</mi></mrow></msub><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">x_{\mathrm{ref}}(t)</annotation></semantics></math>
+是参考状态。</p>
+<p>如果论文研究的是约束跟踪，还应把约束残差写清楚，例如</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>e</mi><mi>c</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mi>c</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo>,</mo><mi>u</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">)</mo><mo>−</mo><msub><mi>c</mi><mi>max</mi><mo>&#8289;</mo></msub></mrow><annotation encoding="application/x-tex">
+e_c(t)=c(x(t),u(t)) - c_{\max}
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>e</mi><mi>c</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">e_c(t)</annotation></semantics></math>
+是约束残差，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>c</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo>,</mo><mi>u</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">c(x(t),u(t))</annotation></semantics></math>
+是约束函数，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>c</mi><mi>max</mi><mo>&#8289;</mo></msub><annotation encoding="application/x-tex">c_{\max}</annotation></semantics></math>
+是允许上界，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>u</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">u(t)</annotation></semantics></math>
+是控制输入。 这个量越大，表示离约束边界越近，或者已经越界。</p>
+<p>如果论文把控制律拆成前馈、反馈、鲁棒和安全几部分，也可以写成</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>u</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><msub><mi>u</mi><mrow><mi mathvariant="normal">f</mi><mi mathvariant="normal">f</mi></mrow></msub><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo>+</mo><msub><mi>u</mi><mrow><mi mathvariant="normal">f</mi><mi mathvariant="normal">b</mi></mrow></msub><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo>+</mo><msub><mi>u</mi><mi mathvariant="normal">r</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo>+</mo><msub><mi>u</mi><mi mathvariant="normal">s</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
+u(t)=u_{\mathrm{ff}}(t)+u_{\mathrm{fb}}(t)+u_{\mathrm{r}}(t)+u_{\mathrm{s}}(t)
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>u</mi><mrow><mi mathvariant="normal">f</mi><mi mathvariant="normal">f</mi></mrow></msub><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">u_{\mathrm{ff}}(t)</annotation></semantics></math>
+是前馈项，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>u</mi><mrow><mi mathvariant="normal">f</mi><mi mathvariant="normal">b</mi></mrow></msub><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">u_{\mathrm{fb}}(t)</annotation></semantics></math>
+是反馈项，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>u</mi><mi mathvariant="normal">r</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">u_{\mathrm{r}}(t)</annotation></semantics></math>
+是鲁棒项，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>u</mi><mi mathvariant="normal">s</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">u_{\mathrm{s}}(t)</annotation></semantics></math>
+是安全项。</p>
+<p>如果论文还涉及参数估计，则可写成</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>θ</mi><mo accent="true">̃</mo></mover><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mi>θ</mi><mo>−</mo><mover><mi>θ</mi><mo accent="true">̂</mo></mover><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
+\tilde{\theta}(t)=\theta-\hat{\theta}(t)
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>θ</mi><annotation encoding="application/x-tex">\theta</annotation></semantics></math>
+是真实参数，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>θ</mi><mo accent="true">̂</mo></mover><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\hat{\theta}(t)</annotation></semantics></math>
+是参数估计值，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>θ</mi><mo accent="true">̃</mo></mover><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\tilde{\theta}(t)</annotation></semantics></math>
+是估计误差。</p>
+<p>如果论文的结论是终端收敛或终端误差有界，也可以把结论写成</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><munder><mi>lim</mi><mo>&#8289;</mo><mrow><mi>t</mi><mo>→</mo><mi>∞</mi></mrow></munder><msub><mi>e</mi><mi>y</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">
+\lim_{t\to\infty} e_y(t)=0
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>lim</mi><mo>&#8289;</mo><mrow><mi>t</mi><mo>→</mo><mi>∞</mi></mrow></msub><annotation encoding="application/x-tex">\lim_{t\to\infty}</annotation></semantics></math>
+表示时间趋于无穷大时的极限。对这类结论，还要再看论文是否真的证明了收敛，而不是仅仅给出仿真现象。
+也就是说，终端收敛必须和证明步骤一起看，不能只看最后一张曲线。</p>
+<p>分别判断：</p>
+<table>
+<thead>
+<tr>
+<th>部分</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>前馈项</td>
+<td>抵消已知模型或跟踪参考导数</td>
+</tr>
+<tr>
+<td>反馈项</td>
+<td>稳定误差动态</td>
+</tr>
+<tr>
+<td>鲁棒项</td>
+<td>抑制扰动和建模误差</td>
+</tr>
+<tr>
+<td>自适应项</td>
+<td>在线估计未知参数</td>
+</tr>
+<tr>
+<td>安全项</td>
+<td>处理状态或输入约束</td>
+</tr>
+</tbody>
+</table>
+<p>若控制律使用不可测状态、高阶导数或未知参数真值，必须看论文是否提供观测器、滤波器或估计器。</p>
+<h2 id="检查稳定性证明">59.6 检查稳定性证明</h2>
+<p>稳定性证明至少要检查：</p>
+<ol type="1">
+<li>Lyapunov 函数是否正定；</li>
+<li>导数是否计算完整；</li>
+<li>交叉项如何处理；</li>
+<li>未知项如何界定；</li>
+<li>自适应律是否抵消或有界；</li>
+<li>输入饱和是否进入证明；</li>
+<li>结论是渐近、指数、UUB、ISS、有限时间还是正不变；</li>
+<li>初始条件和约束可行性是否说明。</li>
+</ol>
+<p>常见漏洞：</p>
+<ul>
+<li>只写“根据 Lyapunov 理论可知”；</li>
+<li>把有界性写成收敛；</li>
+<li>有边界层却声称误差趋零；</li>
+<li>自适应参数没有投影或鲁棒修正；</li>
+<li>BLF 或 CBF 证明没有说明初值在安全集内；</li>
+<li>QP 或 MPC 没有说明可行性、递归可行性或回退逻辑。</li>
+</ul>
+<h2 id="判断仿真是否充分">59.7 判断仿真是否充分</h2>
+<p>仿真充分性至少包括：</p>
+<table>
+<thead>
+<tr>
+<th>检查</th>
+<th>问题</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>场景</td>
+<td>是否只有单一标称轨迹</td>
+</tr>
+<tr>
+<td>初值</td>
+<td>是否说明初始状态</td>
+</tr>
+<tr>
+<td>参数</td>
+<td>是否给出质量、气动、执行机构和控制器参数</td>
+</tr>
+<tr>
+<td>基线</td>
+<td>是否有合理对比方法</td>
+</tr>
+<tr>
+<td>指标</td>
+<td>是否有 RMS、裕度、违反积分、输入和终端指标</td>
+</tr>
+<tr>
+<td>不确定性</td>
+<td>是否有参数摄动、扰动或 Monte Carlo</td>
+</tr>
+<tr>
+<td>失败样本</td>
+<td>是否报告失败或不通过样本</td>
+</tr>
+<tr>
+<td>数值设置</td>
+<td>是否说明步长、积分器和采样周期</td>
+</tr>
+<tr>
+<td>实时性</td>
+<td>若方法在线优化，是否报告计算时间</td>
+</tr>
+</tbody>
+</table>
+<p>只画状态曲线不等于充分验证。对安全控制，必须报告最小裕度、违反时间或违反积分。</p>
+<h2 id="基线指标与失败样本边界">59.8 基线、指标与失败样本边界</h2>
+<p>判断一篇论文是否“验证充分”，不能只看它仿真做得多不多，还要看基线是否公平、指标是否可核查、失败样本是否被保留。</p>
+<p>至少需要交代：</p>
+<table>
+<thead>
+<tr>
+<th>项目</th>
+<th>检查要点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>基线对象</td>
+<td>是 PID/LQR、已有方法还是作者自定义弱基线</td>
+</tr>
+<tr>
+<td>指标层级</td>
+<td>是否同时给跟踪、安全、输入、终端和计算量指标</td>
+</tr>
+<tr>
+<td>统计口径</td>
+<td>是单场景、成对比较、Monte Carlo 还是故障扫描</td>
+</tr>
+<tr>
+<td>失败记录</td>
+<td>是否报告不通过样本、违反积分和最坏样本</td>
+</tr>
+<tr>
+<td>公平性</td>
+<td>参考轨迹、初值、扰动和阈值是否对各方法一致</td>
+</tr>
+<tr>
+<td>结论用词</td>
+<td>是“在该样本集下改善”，还是越界写成“普遍更优”</td>
+</tr>
+</tbody>
+</table>
+<p>如果论文只保留通过样本，或者让新方法使用额外状态/预知信息，而基线没有同等信息条件，这类结果就不能直接当作方法优越性证据。</p>
+<p>因此，本章最后想留下的不是“怎么写读书笔记”，而是“怎么把论文当作证据链来读”。如果这一点做到了，论文阅读就不仅是理解别人的工作，也是在为自己的选题积累边界意识和比较框架。</p>
+<h2 id="识别换名式创新">59.9 识别换名式创新</h2>
+<p>弱创新常见表现：</p>
+<ul>
+<li>把已有反步、滑模、自适应或神经网络控制重新命名；</li>
+<li>控制律结构没有实质变化，只增加复杂符号；</li>
+<li>没有新约束、新对象、新证明或新验证；</li>
+<li>基线设置明显不公平；</li>
+<li>仿真场景只对新方法有利；</li>
+<li>不报告控制输入和失败样本；</li>
+<li>用“智能”“最优”“鲁棒”作为结论而不是证明对象。</li>
+</ul>
+<p>真实创新通常来自：</p>
+<ul>
+<li>更清楚地处理了某个物理约束；</li>
+<li>放宽了关键假设；</li>
+<li>解决了可实现性问题；</li>
+<li>给出了更强或更准确的稳定性结论；</li>
+<li>建立了更可信的验证协议；</li>
+<li>把制导、控制、分配和安全接口统一起来。</li>
+</ul>
+<h2 id="提炼真实创新点">59.10 提炼真实创新点</h2>
+<p>阅读后可以用四句话概括：</p>
+<ul>
+<li>这篇论文研究的对象是某类对象；</li>
+<li>核心矛盾是某个明确的控制冲突；</li>
+<li>方法真正新增的是一个可核查的处理环节；</li>
+<li>证据支持的结论是一个有边界的结果。</li>
+</ul>
+<p>例如：</p>
+<ul>
+<li>这篇论文研究高超声速纵向跟踪问题。</li>
+<li>核心矛盾是速度高度跟踪与动压约束冲突。</li>
+<li>方法真正新增的是参考治理和安全滤波协同处理不可行参考。</li>
+<li>证据支持的结论是在给定简化模型和样本范围内降低动压违反积分，同时保持部分样本跟踪达标。</li>
+</ul>
+<p>这种概括能防止被算法名带偏。</p>
+<h2 id="文献记录表">59.11 文献记录表</h2>
+<p>建议每篇论文记录：</p>
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>题名和来源</td>
+<td>期刊/会议、年份、DOI</td>
+</tr>
+<tr>
+<td>飞行器类型</td>
+<td>AB-HSV、HGV、再入、巡航等</td>
+</tr>
+<tr>
+<td>模型层级</td>
+<td>质点、纵向、六自由度、刚柔耦合</td>
+</tr>
+<tr>
+<td>状态和输入</td>
+<td>明确变量</td>
+</tr>
+<tr>
+<td>控制目标</td>
+<td>跟踪、安全、制导、容错等</td>
+</tr>
+<tr>
+<td>方法结构</td>
+<td>控制律分解</td>
+</tr>
+<tr>
+<td>假设</td>
+<td>可测性、不确定性界、输入能力</td>
+</tr>
+<tr>
+<td>稳定性结论</td>
+<td>渐近、UUB、ISS、不变性等</td>
+</tr>
+<tr>
+<td>约束</td>
+<td>动压、热流、过载、舵偏、终端</td>
+</tr>
+<tr>
+<td>仿真场景</td>
+<td>初值、参考、扰动、故障</td>
+</tr>
+<tr>
+<td>指标</td>
+<td>跟踪、安全、输入、终端、计算</td>
+</tr>
+<tr>
+<td>证据边界</td>
+<td>结论可支持到什么程度</td>
+</tr>
+</tbody>
+</table>
+<p>这个表可以直接服务文献综述和开题报告。</p>
+<h2 id="从阅读到复现">59.12 从阅读到复现</h2>
+<p>复现一篇论文时，先不要复现高级算法，而应按下面顺序：</p>
+<ul>
+<li><strong>复现模型</strong>：复现基线；复现参考轨迹；复现指标；复现主控制律；加入不确定性和失败样本</li>
+</ul>
+<p>若模型和指标都没有复现，直接复现控制律没有意义。许多论文复现失败不是因为控制律错，而是配平点、单位、气动参数、舵面方向或积分步长不一致。</p>
+<h2 id="与第-565758-章的接口">59.13 与第 56、57、58 章的接口</h2>
+<p>第59章不应孤立地停留在“如何写读书笔记”，而应把指标体系、Monte Carlo
+和案例库材料接成一条论文阅读到论文复现的链。与相关章节的接口可概括为：</p>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>本章先完成的内容</th>
+<th>相关章节继续完成的内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>提取对象、模型、假设、控制目标和结论边界</td>
+<td>第58章继续把这些内容落到案例条目和实验命令</td>
+</tr>
+<tr>
+<td>检查指标口径、基线公平性和失败样本</td>
+<td>第56章继续细化统一指标体系</td>
+</tr>
+<tr>
+<td>判断扰动、故障和统计验证是否充分</td>
+<td>第57章继续细化 Monte Carlo 与不确定性验证</td>
+</tr>
+<tr>
+<td>组织阅读记要和复现说明</td>
+<td><a href="../14_paper_case_dynamic_pressure_fault_safety.md">第14章
+论文案例：动压安全跟踪与故障敏感性证据链</a> 继续给出论文案例写法</td>
+</tr>
+</tbody>
+</table>
+<p>第59章把论文中的控制问题、证据对象和复现实验线索拆成了可继续推进的训练单元。</p>
+<h2 id="阅读报告提纲">59.14 阅读报告提纲</h2>
+<p>阅读报告可采用：</p>
+<ol type="1">
+<li>论文一句话定位；</li>
+<li>模型和状态变量；</li>
+<li>控制目标和约束；</li>
+<li>方法结构图；</li>
+<li>稳定性证明核心；</li>
+<li>仿真场景和指标；</li>
+<li>与基线相比的真实收益；</li>
+<li>主要假设和局限性；</li>
+<li>可复现性评价；</li>
+<li>对自己研究的启发。</li>
+</ol>
+<p>报告长度不重要，关键是每一项可核查。</p>
+<h2 id="论文复现问题的最小构成">59.15 论文复现问题的最小构成</h2>
+<p>如果一篇阅读报告只写“这篇文章用了某种先进算法”，它更像读书笔记，而不是可复核的文献分析。更适合书稿的写法，是把文献定位、模型层级、状态与输入、控制目标、方法结构、证明结论、基线与场景、指标与边界顺着讲清楚，让每一篇论文都落到可复现、可比较、可追问的层面上。</p>
+<table>
+<thead>
+<tr>
+<th>项目</th>
+<th>交代要点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>文献定位</td>
+<td>题名、来源、年份、对象类型和任务段</td>
+</tr>
+<tr>
+<td>模型层级</td>
+<td>质点、纵向、六自由度、是否含执行机构/传感器</td>
+</tr>
+<tr>
+<td>状态与输入</td>
+<td>状态、输入、可测量、估计量和约束变量</td>
+</tr>
+<tr>
+<td>控制目标</td>
+<td>跟踪、安全、终端、容错或最优目标的数学表达</td>
+</tr>
+<tr>
+<td>方法结构</td>
+<td>前馈、反馈、鲁棒、自适应、安全层和观测器的组成</td>
+</tr>
+<tr>
+<td>证明结论</td>
+<td>渐近、UUB、ISS、有限时间、不变性或经验通过率</td>
+</tr>
+<tr>
+<td>基线与场景</td>
+<td>基线方法、初值、扰动、故障、随机样本和时域设置</td>
+</tr>
+<tr>
+<td>指标与边界</td>
+<td>跟踪、安全、输入、终端、计算量指标及结论强度</td>
+</tr>
+</tbody>
+</table>
+<p>若写成抽象阅读对象，至少可整理为：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">(</mo><mi>𝒪</mi><mo>,</mo><mi>ℳ</mi><mo>,</mo><mi>𝒢</mi><mo>,</mo><mi>𝒜</mi><mo>,</mo><mi>𝒞</mi><mo>,</mo><mi>𝒱</mi><mo>,</mo><mi>ℰ</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
+(\mathcal{O},\mathcal{M},\mathcal{G},\mathcal{A},\mathcal{C},\mathcal{V},\mathcal{E})
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝒪</mi><annotation encoding="application/x-tex">\mathcal{O}</annotation></semantics></math>
+表示对象与任务，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ℳ</mi><annotation encoding="application/x-tex">\mathcal{M}</annotation></semantics></math>
+表示模型层级，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝒢</mi><annotation encoding="application/x-tex">\mathcal{G}</annotation></semantics></math>
+表示控制目标，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝒜</mi><annotation encoding="application/x-tex">\mathcal{A}</annotation></semantics></math>
+表示关键假设，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝒞</mi><annotation encoding="application/x-tex">\mathcal{C}</annotation></semantics></math>
+表示控制律结构，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝒱</mi><annotation encoding="application/x-tex">\mathcal{V}</annotation></semantics></math>
+表示验证协议，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ℰ</mi><annotation encoding="application/x-tex">\mathcal{E}</annotation></semantics></math>
+表示证据边界。把这些量整理清楚后，阅读记录才真正可用于复现和研究选题。
+这一步的目的，是把“论文里写了什么”转成“论文到底证明了什么、还没证明什么”。
+也只有这样，读者才能判断一篇论文究竟是证据充分，还是只在结论上写得很满。</p>
+<h2 id="论文阅读证据层级与章节衔接">59.16
+论文阅读证据层级与章节衔接</h2>
+<p>为了避免把“读过一篇论文”误写成“已经掌握并复现”，本章可把阅读证据粗分为五级：</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>等级</th>
+<th>最低证据</th>
+<th>仍缺什么</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0 级</td>
+<td>只完成题名、摘要和对象定位</td>
+<td>没有模型、证明和指标审查</td>
+</tr>
+<tr>
+<td>1 级</td>
+<td>已提取模型、控制目标、假设和控制律结构</td>
+<td>没有稳定性和仿真充分性审查</td>
+</tr>
+<tr>
+<td>2 级</td>
+<td>已审查证明对象、基线公平性和指标边界</td>
+<td>没有复现入口和失败样本分析</td>
+</tr>
+<tr>
+<td>3 级</td>
+<td>已整理复现问题、指标表和场景矩阵</td>
+<td>仍缺实际复现和数据重算</td>
+</tr>
+<tr>
+<td>4 级</td>
+<td>已经完成教学级复现、失败样本记录和保守结论重写</td>
+<td>才接近研究训练级论文证据</td>
+</tr>
+</tbody>
+</table>
+<p>与相关章节的衔接关系可再概括为：</p>
+<table>
+<thead>
+<tr>
+<th>本章完成的内容</th>
+<th>相关章节继续完成的内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>论文对象、假设和结论边界审查</td>
+<td>第58章继续组织案例复现实验</td>
+</tr>
+<tr>
+<td>指标、基线和失败样本审查</td>
+<td>第 56、57 章继续给出统一计算与统计方法</td>
+</tr>
+<tr>
+<td>阅读报告和复现问题卡</td>
+<td>第60章继续把它们上升为研究路线和选题</td>
+</tr>
+</tbody>
+</table>
+<p>第59章把它写成了一个对象、证据、复现和结论都可核查的训练问题。</p>
+<h2 id="本章内容的边界">59.17 本章内容的边界</h2>
+<p>论文阅读训练的前置材料包括：</p>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>素材</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="../appendix_reference_reading.md">附录 C
+参考阅读与文献训练</a></td>
+<td>提供阅读顺序、检索关键词、红旗清单和阅读记录提纲</td>
+</tr>
+<tr>
+<td><a href="../14_paper_case_dynamic_pressure_fault_safety.md">第14章
+论文案例：动压安全跟踪与故障敏感性证据链</a></td>
+<td>提供教学级论文案例和保守写法</td>
+</tr>
+<tr>
+<td><a
+href="58-typical-case-library.html#volume5--58-typical-case-library">第58章
+典型案例库</a></td>
+<td>提供案例条目结构和案例成熟度视角</td>
+</tr>
+<tr>
+<td>案例映射页</td>
+<td>提供 C01 到 C20 的材料位置、证据边界和可展开方向</td>
+</tr>
+</tbody>
+</table>
+<p>本章边界必须写清楚：</p>
+<ul>
+<li>本书呈现论文阅读方法、案例化论文训练和复现路线主线；</li>
+<li>这些素材足以支撑教学级论文阅读与复现训练；</li>
+<li>但它还不是正式参考文献表，也不是经过全面核实的专题文献综述库；</li>
+<li>因此，第59章能支撑“如何保守、系统地阅读和复现控制论文”，不能支撑“某方向最新文献已经完整综述并校核完毕”。</li>
+</ul>
+<h2 id="教学样例一动压安全跟踪论文复现卡">59.18
+教学样例一：动压安全跟踪论文复现卡</h2>
+<p>以 <a href="../14_paper_case_dynamic_pressure_fault_safety.md">第14章
+论文案例：动压安全跟踪与故障敏感性证据链</a>
+中的动压安全跟踪素材为例，论文复现卡首先不是抄结论，而是把问题收缩成一个最小可核查实验。</p>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>项目</th>
+<th>本样例的最小填写方式</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>研究对象</td>
+<td>高超声速纵向速度高度跟踪教学模型</td>
+</tr>
+<tr>
+<td>核心矛盾</td>
+<td>跟踪速度/高度参考时，动压可能越界</td>
+</tr>
+<tr>
+<td>模型层级</td>
+<td>简化纵向模型，含动压计算、升降舵和推力命令</td>
+</tr>
+<tr>
+<td>基线方法</td>
+<td>级联 PID 风格基线控制器</td>
+</tr>
+<tr>
+<td>候选方法</td>
+<td>屏障风格安全层</td>
+</tr>
+<tr>
+<td>主要约束</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>q</mi><mo accent="true">‾</mo></mover><mo stretchy="false" form="prefix">(</mo><mi>h</mi><mo>,</mo><mi>V</mi><mo stretchy="false" form="postfix">)</mo><mo>≤</mo><msub><mover><mi>q</mi><mo accent="true">‾</mo></mover><mi>max</mi><mo>&#8289;</mo></msub></mrow><annotation encoding="application/x-tex">\bar{q}(h,V)\le \bar{q}_{\max}</annotation></semantics></math>，并检查攻角、舵偏和舵速</td>
+</tr>
+<tr>
+<td>主要指标</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>h</mi><mrow><mi mathvariant="normal">r</mi><mi mathvariant="normal">m</mi><mi mathvariant="normal">s</mi></mrow></msub><annotation encoding="application/x-tex">h_{\mathrm{rms}}</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>V</mi><mrow><mi mathvariant="normal">r</mi><mi mathvariant="normal">m</mi><mi mathvariant="normal">s</mi></mrow></msub><annotation encoding="application/x-tex">V_{\mathrm{rms}}</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>q</mi><mi>max</mi><mo>&#8289;</mo></msub><annotation encoding="application/x-tex">q_{\max}</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>I</mi><mi>q</mi></msub><annotation encoding="application/x-tex">I_q</annotation></semantics></math>、通过率</td>
+</tr>
+<tr>
+<td>最小证据</td>
+<td>成对样本表、失败样本记录和保守结论改写</td>
+</tr>
+<tr>
+<td>结论边界</td>
+<td>只支持教学级简化模型下的安全性改善比较</td>
+</tr>
+</tbody>
+</table>
+<p>对这类样例，复现顺序建议写成：</p>
+<ul>
+<li><strong>检查状态和单位</strong>：复现基线控制器；复现屏障层；重算动压指标；比较成对差值；保留失败样本</li>
+</ul>
+<p>对应第14章素材，可直接抽出以下复现实验线索：</p>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>复现对象</th>
+<th>对应素材位置</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>问题定义</td>
+<td><a
+href="../14_paper_case_dynamic_pressure_fault_safety.md">第14章</a> 的
+14.3 节</td>
+</tr>
+<tr>
+<td>控制器结构</td>
+<td><a
+href="../14_paper_case_dynamic_pressure_fault_safety.md">第14章</a> 的
+14.4 节</td>
+</tr>
+<tr>
+<td>运行说明</td>
+<td><a
+href="../14_paper_case_dynamic_pressure_fault_safety.md">第14章</a> 的
+14.5 节</td>
+</tr>
+<tr>
+<td>动压结果</td>
+<td><a
+href="../14_paper_case_dynamic_pressure_fault_safety.md">第14章</a> 的
+14.6 节</td>
+</tr>
+<tr>
+<td>结果写法边界</td>
+<td><a
+href="../14_paper_case_dynamic_pressure_fault_safety.md">第14章</a> 的
+14.9 节</td>
+</tr>
+</tbody>
+</table>
+<p>教学上最值得训练的不是“样本 1 和样本 2
+更好”，而是下面这种复现判断：</p>
+<ul>
+<li>若候选方法降低了动压违反积分，</li>
+<li>但候选跟踪指标没有达标，</li>
+<li>则该样本只能记为“安全代价变化已观察到”，</li>
+<li>不能记为“安全改善且任务保持完成”。</li>
+</ul>
+<p>这一步直接把第56章的指标口径和第57章的样本保留原则接入了论文阅读训练。</p>
+<h2 id="教学样例二故障敏感性扫描论文复现卡">59.19
+教学样例二：故障敏感性扫描论文复现卡</h2>
+<p>第二类样例适合训练“不要把无差异结果硬写成优势结论”。仍以第14章中的故障注入矩阵为例，可整理为下表：</p>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>项目</th>
+<th>本样例的最小填写方式</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>研究对象</td>
+<td>同一纵向教学闭环在故障注入后的指标变化</td>
+</tr>
+<tr>
+<td>故障类型</td>
+<td>无故障、攻角传感器偏置、升降舵效能下降、输入延迟</td>
+</tr>
+<tr>
+<td>对比对象</td>
+<td>基线控制器与守护控制器</td>
+</tr>
+<tr>
+<td>关注问题</td>
+<td>故障后闭环是否还能通过；残差逻辑是否能检测故障</td>
+</tr>
+<tr>
+<td>主要指标</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msubsup><mi>I</mi><mi>q</mi><mrow><mi mathvariant="normal">p</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">s</mi><mi mathvariant="normal">t</mi></mrow></msubsup><annotation encoding="application/x-tex">I_q^{\mathrm{post}}</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msubsup><mi>h</mi><mrow><mi mathvariant="normal">r</mi><mi mathvariant="normal">m</mi><mi mathvariant="normal">s</mi></mrow><mrow><mi mathvariant="normal">p</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">s</mi><mi mathvariant="normal">t</mi></mrow></msubsup><annotation encoding="application/x-tex">h_{\mathrm{rms}}^{\mathrm{post}}</annotation></semantics></math>、检测延迟、通过标记</td>
+</tr>
+<tr>
+<td>关键证据</td>
+<td>故障扫描指标表、成对对比表和故障图表</td>
+</tr>
+<tr>
+<td>正确边界</td>
+<td>支持“检测逻辑的灵敏度观察”，不支持“完整容错控制有效”</td>
+</tr>
+</tbody>
+</table>
+<p>这类复现卡最重要的阅读训练是分清三件事：</p>
+<ol type="1">
+<li>检测到了故障，不等于完成了容错重构；</li>
+<li>两个控制器指标相同，不等于候选方法更优；</li>
+<li>某一类故障未触发残差，不等于系统对该故障鲁棒。</li>
+</ol>
+<p>因此，第14章中的故障扫描结果更适合被改写为：在该短时故障矩阵下，基线控制器与守护控制器均保持通过，残差逻辑能够识别攻角传感器偏置和升降舵效率损失，但对输入延迟故障不敏感。</p>
+<p>相反，“守护控制器在全部故障下表现出更强容错性”这样的写法就越过了证据边界。</p>
+<p>如果读者在阅读论文时能主动做这种改写，说明他已经开始从“接受作者叙述”转向“按证据对象审查结论”。</p>
+<h2 id="从案例证据到论文结论的保守改写示例">59.20
+从案例证据到论文结论的保守改写示例</h2>
+<p>很多初学者真正难的不是看懂方程，而是不知道怎样把结果写得既有信息量又不越界。可用下表训练：</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>证据情形</th>
+<th>不宜直接写</th>
+<th>更稳妥的改写</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>候选方法在部分样本下安全指标改善</td>
+<td>方法显著优于基线</td>
+<td>在该样本集下，候选方法在部分样本中降低了安全违反指标</td>
+</tr>
+<tr>
+<td>候选方法存在未通过样本</td>
+<td>方法实现全局安全跟踪</td>
+<td>现有证据表明候选方法仍存在未通过样本，不能支持全局表述</td>
+</tr>
+<tr>
+<td>故障被检测但未重构控制律</td>
+<td>容错控制有效</td>
+<td>现有证据支持故障敏感性与检测逻辑评估，不支持主动容错结论</td>
+</tr>
+<tr>
+<td>只有简化纵向模型</td>
+<td>适用于完整飞行器</td>
+<td>结论目前限于简化纵向教学模型</td>
+</tr>
+<tr>
+<td>只有小样本 Monte Carlo</td>
+<td>具有统计显著性优势</td>
+<td>现有结果体现出样本内趋势，仍需更大样本统计验证</td>
+</tr>
+</tbody>
+</table>
+<p>可把这种改写训练概括成一个三问检查：</p>
+<ol type="1">
+<li>这个结论对应的是哪一个指标对象？</li>
+<li>这个指标对象的样本范围有多大？</li>
+<li>这个结论有没有越过模型和实验边界？</li>
+</ol>
+<p>只要三问里有一问答不清，就不要急着写“优于”“有效”“鲁棒”“安全保证”。</p>
+<h2 id="从阅读记录到复现任务包的最小清单">59.21
+从阅读记录到复现任务包的最小清单</h2>
+<p>为了让第59章真正服务第58章案例库和第60章研究路线，阅读完成后最好再落成一个最小复现任务包：</p>
+<table>
+<thead>
+<tr>
+<th>交付项</th>
+<th>最低内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>问题卡</td>
+<td>对象、模型层级、控制目标、约束和结论边界</td>
+</tr>
+<tr>
+<td>命令卡</td>
+<td>运行命令、输入文件、输出文件和随机种子</td>
+</tr>
+<tr>
+<td>指标卡</td>
+<td>跟踪、安全、输入、终端和检测指标公式</td>
+</tr>
+<tr>
+<td>失败卡</td>
+<td>失败样本编号、失败原因和不能得出的结论</td>
+</tr>
+<tr>
+<td>改写卡</td>
+<td>把原始强结论改写为与现有证据一致的保守表述</td>
+</tr>
+</tbody>
+</table>
+<p>在本教程中，这个任务包已有现成素材来源：</p>
+<table>
+<thead>
+<tr>
+<th>任务包条目</th>
+<th>对应素材位置</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>问题卡</td>
+<td>第14章 14.3 节，及本章 59.14、59.19</td>
+</tr>
+<tr>
+<td>命令卡</td>
+<td>第14章 14.5 节</td>
+</tr>
+<tr>
+<td>指标卡</td>
+<td>第14章 14.3、14.6、14.7 节和第56章</td>
+</tr>
+<tr>
+<td>失败卡</td>
+<td>第14章 14.6、14.7、14.10 节和第57章</td>
+</tr>
+<tr>
+<td>改写卡</td>
+<td>第14章 14.9 节和本章 59.19</td>
+</tr>
+</tbody>
+</table>
+<p>这样一来，第59章就不只是“论文阅读建议”，而是可以把阅读结果直接交给案例复现、指标重算和后续研究选题。</p>
+<h2 id="教学样例三再入热流与走廊论文复现卡">59.22
+教学样例三：再入热流与走廊论文复现卡</h2>
+<p>如果把论文阅读范围扩大到再入对象，第一个要改掉的习惯就是：不要只盯着终端落点或单一热流曲线。基于第49章和案例
+C14，较稳妥的复现卡可整理为：</p>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>项目</th>
+<th>本样例的最小填写方式</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>研究对象</td>
+<td>再入阶段的低阶质点热流与走廊控制教学模型</td>
+</tr>
+<tr>
+<td>核心矛盾</td>
+<td>终端进入要求与热流、动压、过载、走廊约束之间的冲突</td>
+</tr>
+<tr>
+<td>模型层级</td>
+<td>低阶质点或三维质点，不默认等于六自由度再入闭环</td>
+</tr>
+<tr>
+<td>基线方法</td>
+<td>名义再入剖面或无保护的下滑/航迹角命令方案</td>
+</tr>
+<tr>
+<td>候选方法</td>
+<td>热流守护、走廊保护或参考可行化机制</td>
+</tr>
+<tr>
+<td>主要约束</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>Q</mi><mo accent="true">̇</mo></mover><mo>≤</mo><msub><mover><mi>Q</mi><mo accent="true">̇</mo></mover><mi>max</mi><mo>&#8289;</mo></msub></mrow><annotation encoding="application/x-tex">\dot{Q}\le\dot{Q}_{\max}</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>Q</mi><mo stretchy="false" form="prefix">(</mo><mi>T</mi><mo stretchy="false" form="postfix">)</mo><mo>≤</mo><msub><mi>Q</mi><mi>max</mi><mo>&#8289;</mo></msub></mrow><annotation encoding="application/x-tex">Q(T)\le Q_{\max}</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>q</mi><mo accent="true">‾</mo></mover><mo>≤</mo><msub><mover><mi>q</mi><mo accent="true">‾</mo></mover><mi>max</mi><mo>&#8289;</mo></msub></mrow><annotation encoding="application/x-tex">\bar{q}\le \bar{q}_{\max}</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>n</mi><mo>≤</mo><msub><mi>n</mi><mi>max</mi><mo>&#8289;</mo></msub></mrow><annotation encoding="application/x-tex">n\le n_{\max}</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>m</mi><mrow><mi mathvariant="normal">c</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">r</mi><mi mathvariant="normal">r</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">d</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">r</mi></mrow></msub><mo>≥</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">m_{\mathrm{corridor}}\ge 0</annotation></semantics></math></td>
+</tr>
+<tr>
+<td>主要指标</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mover><mi>Q</mi><mo accent="true">̇</mo></mover><mi>max</mi><mo>&#8289;</mo></msub><annotation encoding="application/x-tex">\dot{Q}_{\max}</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>Q</mi><mo stretchy="false" form="prefix">(</mo><mi>T</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">Q(T)</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>q</mi><mi>max</mi><mo>&#8289;</mo></msub><annotation encoding="application/x-tex">q_{\max}</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>n</mi><mi>max</mi><mo>&#8289;</mo></msub><annotation encoding="application/x-tex">n_{\max}</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>m</mi><mrow><mi mathvariant="normal">c</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">r</mi><mi mathvariant="normal">r</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">d</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">r</mi><mo mathvariant="normal">,</mo><mi mathvariant="normal">m</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">n</mi></mrow></msub><annotation encoding="application/x-tex">m_{\mathrm{corridor,min}}</annotation></semantics></math>、终端误差</td>
+</tr>
+<tr>
+<td>关键证据</td>
+<td>再入热流指标表、守护轨迹记录以及第49章指标口径</td>
+</tr>
+<tr>
+<td>结论边界</td>
+<td>只支持低阶再入对象下的热流/走廊教学级比较，不支持高保真再入控制完成</td>
+</tr>
+</tbody>
+</table>
+<p>这类论文最容易出现的结论越界，是把“热流峰值下降”直接写成“再入安全性提高”。更稳妥的复现判断应写成：</p>
+<ul>
+<li>若候选方法降低了瞬时热流峰值，</li>
+<li>但累计热载荷、动压峰值、过载或走廊最小裕度恶化，</li>
+<li>则只能说明局部热流风险变化，</li>
+<li>不能写成“再入约束综合改善”。</li>
+</ul>
+<p>这张卡帮助读者把第49章中的多约束口径带回论文阅读，而不是被单个漂亮曲线带着走。</p>
+<h2 id="教学样例四滑翔能量管理论文复现卡">59.23
+教学样例四：滑翔能量管理论文复现卡</h2>
+<p>对滑翔对象，最典型的阅读误判是把“终端更接近目标”误当成“能量管理更优”。基于第50章和案例
+C15，可整理下面这张复现卡：</p>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>项目</th>
+<th>本样例的最小填写方式</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>研究对象</td>
+<td>高超声速滑翔阶段的能量管理与走廊保持教学模型</td>
+</tr>
+<tr>
+<td>核心矛盾</td>
+<td>横向机动、终端要求和有限能量预算之间的冲突</td>
+</tr>
+<tr>
+<td>模型层级</td>
+<td>低阶质点或三维质点滑翔模型</td>
+</tr>
+<tr>
+<td>基线方法</td>
+<td>名义能量剖面跟踪、固定攻角/倾侧角策略或无参考治理方案</td>
+</tr>
+<tr>
+<td>候选方法</td>
+<td>能量走廊保护、终端可达性修正或横向机动约束协同策略</td>
+</tr>
+<tr>
+<td>主要约束</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>E</mi><mi>min</mi><mo>&#8289;</mo></msub><mo stretchy="false" form="prefix">(</mo><mi>s</mi><mo stretchy="false" form="postfix">)</mo><mo>≤</mo><msub><mi>E</mi><mi>h</mi></msub><mo>≤</mo><msub><mi>E</mi><mi>max</mi><mo>&#8289;</mo></msub><mo stretchy="false" form="prefix">(</mo><mi>s</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">E_{\min}(s)\le E_h\le E_{\max}(s)</annotation></semantics></math>、动压、热流、过载、倾侧角与攻角限制</td>
+</tr>
+<tr>
+<td>主要指标</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>m</mi><mrow><mi mathvariant="normal">e</mi><mi mathvariant="normal">n</mi><mi mathvariant="normal">e</mi><mi mathvariant="normal">r</mi><mi mathvariant="normal">g</mi><mi mathvariant="normal">y</mi><mo mathvariant="normal">,</mo><mi mathvariant="normal">c</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">r</mi><mi mathvariant="normal">r</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">d</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">r</mi><mo mathvariant="normal">,</mo><mi mathvariant="normal">m</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">n</mi></mrow></msub><annotation encoding="application/x-tex">m_{\mathrm{energy,corridor,min}}</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>e</mi><mrow><mi>E</mi><mo>,</mo><mi>T</mi></mrow></msub><annotation encoding="application/x-tex">e_{E,T}</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>e</mi><mrow><mi mathvariant="normal">c</mi><mi mathvariant="normal">r</mi></mrow></msub><annotation encoding="application/x-tex">e_{\mathrm{cr}}</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>q</mi><mi>max</mi><mo>&#8289;</mo></msub><annotation encoding="application/x-tex">q_{\max}</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mover><mi>Q</mi><mo accent="true">̇</mo></mover><mi>max</mi><mo>&#8289;</mo></msub><annotation encoding="application/x-tex">\dot{Q}_{\max}</annotation></semantics></math>、输入峰值</td>
+</tr>
+<tr>
+<td>关键证据</td>
+<td>滑翔能量指标表、守护轨迹记录以及第50章指标口径</td>
+</tr>
+<tr>
+<td>结论边界</td>
+<td>只支持低阶滑翔能量管理教学证据，不支持三维大范围高保真滑翔结论</td>
+</tr>
+</tbody>
+</table>
+<p>对这类论文，比较稳妥的复现判断是：</p>
+<ul>
+<li>若候选方法降低了终端误差，</li>
+<li>但能量走廊最小裕度显著下降，</li>
+<li>或者通过过大倾侧角和能量消耗实现终端逼近，</li>
+<li>则不能直接写成“滑翔任务性能全面改善”。</li>
+</ul>
+<p>也就是说，滑翔论文阅读不能只问“终端准不准”，还必须问“为了这个终端精度，付出了多少能量代价和横向代价”。</p>
+<h2 id="教学样例五制导控制一体化论文复现卡">59.24
+教学样例五：制导控制一体化论文复现卡</h2>
+<p>对 IGC
+论文，最常见的问题不是算法看不懂，而是对象和接口混在一起。基于第48章以及案例
+C16、C17、C20，可整理下面这张复现卡：</p>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>项目</th>
+<th>本样例的最小填写方式</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>研究对象</td>
+<td>三维制导、姿态执行与控制分配耦合下的高超声速 IGC 教学链</td>
+</tr>
+<tr>
+<td>核心矛盾</td>
+<td>原始制导命令、可执行参考、姿态带宽和分配残差之间的接口失配</td>
+</tr>
+<tr>
+<td>模型层级</td>
+<td>三维质点、教学耦合骨架或六自由度传播骨架，不默认等于高保真闭环</td>
+</tr>
+<tr>
+<td>基线方法</td>
+<td>制导层到姿态层再到分配层的分层方案</td>
+</tr>
+<tr>
+<td>候选方法</td>
+<td>把
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>e</mi><mrow><mi>g</mi><mi>r</mi></mrow></msub><annotation encoding="application/x-tex">e_{gr}</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>r</mi><mi>a</mi></msub><annotation encoding="application/x-tex">r_a</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>d</mi><mi>a</mi></msub><annotation encoding="application/x-tex">d_a</annotation></semantics></math>
+或约束激活写入同一闭环的 IGC 方案</td>
+</tr>
+<tr>
+<td>主要约束</td>
+<td>终端误差、姿态/角速度限制、分配余量、动压/热流/输入约束</td>
+</tr>
+<tr>
+<td>主要指标</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>e</mi><mi>T</mi></msub><annotation encoding="application/x-tex">e_{T}</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>e</mi><mrow><mi>g</mi><mi>r</mi></mrow></msub><annotation encoding="application/x-tex">e_{gr}</annotation></semantics></math>
+峰值、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>r</mi><mi>a</mi></msub><annotation encoding="application/x-tex">r_a</annotation></semantics></math>
+峰值、姿态误差、饱和比例、接口失败记录</td>
+</tr>
+<tr>
+<td>关键证据</td>
+<td>三维制导轨迹记录、姿态接口记录、耦合骨架记录和 IGC 汇总表</td>
+</tr>
+<tr>
+<td>结论边界</td>
+<td>只支持教学级接口链与耦合骨架审查，不支持高保真六自由度 IGC
+已经建立的结论</td>
+</tr>
+</tbody>
+</table>
+<p>对 IGC 论文，更稳妥的复现判断应写成：</p>
+<ul>
+<li>若候选方法降低了终端误差，</li>
+<li>但长期依赖参考收缩、分配残差仍然很大，</li>
+<li>或者平动轨迹并未被真实姿态/气动力闭环反作用更新，</li>
+<li>则只能写成“接口层耦合改善”或“教学级 IGC 骨架验证”，</li>
+<li>不能写成“完整三维 IGC 闭环优于分层设计”。</li>
+</ul>
+<p>这类复现卡的关键训练价值，在于逼着读者去追问：</p>
+<ol type="1">
+<li>原始制导命令
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>r</mi><mi>g</mi></msub><annotation encoding="application/x-tex">r_g</annotation></semantics></math>
+是否被改写成了可执行参考
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>r</mi><mi>f</mi></msub><annotation encoding="application/x-tex">r_f</annotation></semantics></math>；</li>
+<li>分配残差
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>r</mi><mi>a</mi></msub><annotation encoding="application/x-tex">r_a</annotation></semantics></math>
+和可分配性余量
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>d</mi><mi>a</mi></msub><annotation encoding="application/x-tex">d_a</annotation></semantics></math>
+是否真正进入了分析或指标；</li>
+<li>所谓 IGC 是否真的把平动、姿态、分配和约束放进了同一个闭环。</li>
+</ol>
+<p>如果读者手里同时有终端制导、IGC
+和六自由度传播三类论文，更稳妥的复现顺序是：</p>
+<ol type="1">
+<li>先用 C16
+对纯制导或终端制导论文做对象匹配，先看脱靶量、路径和终端约束指标是否自洽；</li>
+<li>再用 C17 对 IGC 论文审查命令接口，重点查
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>r</mi><mi>g</mi></msub><mi>/</mi><msub><mi>r</mi><mi>f</mi></msub></mrow><annotation encoding="application/x-tex">r_g/r_f</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>e</mi><mrow><mi>g</mi><mi>r</mi></mrow></msub><annotation encoding="application/x-tex">e_{gr}</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>r</mi><mi>a</mi></msub><mi>/</mi><msub><mi>d</mi><mi>a</mi></msub></mrow><annotation encoding="application/x-tex">r_a/d_a</annotation></semantics></math>
+和接口失败记录是否真正进入证据；</li>
+<li>最后再用 C20
+对六自由度或高保真论文检查气动表来源、坐标约定、执行机构/估计器接口和闭环层级。</li>
+</ol>
+<p>如果一篇论文直接声称高保真
+IGC，但前两层证据都缺失，就应把它判成“结论走在证据前面”，而不是把它当成更强的复现对象。</p>
+<h2 id="教学样例六吸气式巡航推进耦合论文复现卡">59.25
+教学样例六：吸气式巡航推进耦合论文复现卡</h2>
+<p>对吸气式巡航论文，最常见的阅读误判是把“速度高度跟踪”直接当成“吸气式推进闭环控制”已经成立。基于第51章以及案例
+C04、C12，更稳妥的复现卡可整理为：</p>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>项目</th>
+<th>本样例的最小填写方式</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>研究对象</td>
+<td>吸气式高超声速巡航阶段的速度高度与推进耦合控制教学对象</td>
+</tr>
+<tr>
+<td>核心矛盾</td>
+<td>速度/高度保持要求与进气道裕度、油门动态、攻角约束和热/动压约束之间的冲突</td>
+</tr>
+<tr>
+<td>模型层级</td>
+<td>低阶纵向巡航模型或扩展推进状态教学模型，不默认等于完整吸气式闭环</td>
+</tr>
+<tr>
+<td>基线方法</td>
+<td>速度环调油门、高度环调攻角或航迹角的分层巡航控制</td>
+</tr>
+<tr>
+<td>候选方法</td>
+<td>把进气道裕度、油门限速、抗积分饱和、参考可行化或安全层写入闭环的巡航方案</td>
+</tr>
+<tr>
+<td>主要约束</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>m</mi><mrow><mi mathvariant="normal">i</mi><mi mathvariant="normal">n</mi><mi mathvariant="normal">l</mi><mi mathvariant="normal">e</mi><mi mathvariant="normal">t</mi></mrow></msub><mo>≥</mo><msub><mi>m</mi><mi>min</mi><mo>&#8289;</mo></msub></mrow><annotation encoding="application/x-tex">m_{\mathrm{inlet}}\ge m_{\min}</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ϕ</mi><mrow><mi>T</mi><mo>,</mo><mi>min</mi><mo>&#8289;</mo></mrow></msub><mo>≤</mo><msub><mi>ϕ</mi><mi>T</mi></msub><mo>≤</mo><msub><mi>ϕ</mi><mrow><mi>T</mi><mo>,</mo><mi>max</mi><mo>&#8289;</mo></mrow></msub></mrow><annotation encoding="application/x-tex">\phi_{T,\min}\le \phi_T\le \phi_{T,\max}</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">|</mo><msub><mover><mi>ϕ</mi><mo accent="true">̇</mo></mover><mi>T</mi></msub><mo stretchy="false" form="prefix">|</mo><mo>≤</mo><msub><mover><mi>ϕ</mi><mo accent="true">̇</mo></mover><mrow><mi>T</mi><mo>,</mo><mi>max</mi><mo>&#8289;</mo></mrow></msub></mrow><annotation encoding="application/x-tex">|\dot{\phi}_T|\le \dot{\phi}_{T,\max}</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>α</mi><mo>≤</mo><msub><mi>α</mi><mi>max</mi><mo>&#8289;</mo></msub></mrow><annotation encoding="application/x-tex">\alpha\le \alpha_{\max}</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>q</mi><mo accent="true">‾</mo></mover><mo>≤</mo><msub><mover><mi>q</mi><mo accent="true">‾</mo></mover><mi>max</mi><mo>&#8289;</mo></msub></mrow><annotation encoding="application/x-tex">\bar{q}\le \bar{q}_{\max}</annotation></semantics></math></td>
+</tr>
+<tr>
+<td>主要指标</td>
+<td>高度 RMS、速度
+RMS、最小进气道裕度、进气道裕度激活时间、油门峰值、油门速率峰值、最大攻角、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>q</mi><mi>max</mi><mo>&#8289;</mo></msub><annotation encoding="application/x-tex">q_{\max}</annotation></semantics></math></td>
+</tr>
+<tr>
+<td>关键证据</td>
+<td>第51章巡航约束口径、C04 纵向巡航结果、C12
+饱和与抗积分饱和结果，以及案例库中对推进状态待补强环节的说明</td>
+</tr>
+<tr>
+<td>结论边界</td>
+<td>只支持吸气式巡航推进耦合的教学级阅读与复现训练，不支持完整吸气式闭环已验证的结论</td>
+</tr>
+</tbody>
+</table>
+<p>对这类论文，更稳妥的复现判断应写成：</p>
+<ul>
+<li>若候选方法改善了速度或高度跟踪，</li>
+<li>但推进状态仍被简化为静态理想推力，</li>
+<li>或者进气道裕度、油门限速和攻角保护没有同时进入指标，</li>
+<li>则不能直接写成“吸气式巡航控制性能更优”。</li>
+</ul>
+<p>这张卡最重要的训练价值，是逼着读者去追问：</p>
+<ol type="1">
+<li>推进状态是静态油门，还是已经包含进气道裕度和油门动态；</li>
+<li>速度、高度、攻角和油门命令之间的保护顺序是否写清；</li>
+<li>巡航论文的“任务完成”是否同时检查了推进和安全约束，而不是只看
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>h</mi><mrow><mi mathvariant="normal">r</mi><mi mathvariant="normal">m</mi><mi mathvariant="normal">s</mi></mrow></msub><annotation encoding="application/x-tex">h_{\mathrm{rms}}</annotation></semantics></math>
+与
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>V</mi><mrow><mi mathvariant="normal">r</mi><mi mathvariant="normal">m</mi><mi mathvariant="normal">s</mi></mrow></msub><annotation encoding="application/x-tex">V_{\mathrm{rms}}</annotation></semantics></math>。</li>
+</ol>
+<h2 id="教学样例七鲁棒姿态与柔性耦合论文复现卡">59.26
+教学样例七：鲁棒姿态与柔性耦合论文复现卡</h2>
+<p>对鲁棒姿态或柔性耦合论文，最常见的阅读误判是把“单轴低阶柔性样例通过”直接写成“气动弹性鲁棒飞控已经成立”。基于第
+23、31 章以及案例 C03，可整理下面这张复现卡：</p>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>项目</th>
+<th>本样例的最小填写方式</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>研究对象</td>
+<td>含低阶柔性模态或结构不确定性的高超声速姿态控制教学对象</td>
+</tr>
+<tr>
+<td>核心矛盾</td>
+<td>姿态跟踪要求与柔性模态激励、传感污染、带宽限制和控制能量之间的冲突</td>
+</tr>
+<tr>
+<td>模型层级</td>
+<td>单轴或低阶姿态-柔性耦合模型，不默认等于完整多轴气动弹性闭环</td>
+</tr>
+<tr>
+<td>基线方法</td>
+<td>刚体标称姿态控制器或未显式考虑柔性的基线鲁棒控制器</td>
+</tr>
+<tr>
+<td>候选方法</td>
+<td>把柔性模态、频域权重、结构不确定性或最坏样本验证写入设计的鲁棒姿态方案</td>
+</tr>
+<tr>
+<td>主要约束</td>
+<td>姿态误差、角速度、执行机构幅值/速率、柔性模态峰值和高频放大边界</td>
+</tr>
+<tr>
+<td>主要指标</td>
+<td>姿态 RMS、角速度
+RMS、控制峰值、柔性模态峰值、最坏样本超调、通过率</td>
+</tr>
+<tr>
+<td>关键证据</td>
+<td>鲁棒姿态指标表、柔性俯仰指标表、柔性扫描结果以及第 23、31
+章对象边界说明</td>
+</tr>
+<tr>
+<td>结论边界</td>
+<td>只支持低阶柔性耦合下的鲁棒姿态教学级证据，不支持完整气动弹性飞控已验证的结论</td>
+</tr>
+</tbody>
+</table>
+<p>对这类论文，更稳妥的复现判断应写成：若候选方法在名义样本下姿态指标更好，但最坏柔性样本中的模态峰值、执行机构负担或高频放大没有同时报告，则不能直接写成“鲁棒姿态控制对柔性耦合有效”。</p>
+<p>这张卡训练读者学会把下面三件事分开：</p>
+<ol type="1">
+<li>刚体姿态性能改善，不等于柔性模态风险被控制；</li>
+<li>单轴低阶样例通过，不等于多轴多飞行点鲁棒性成立；</li>
+<li><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>H</mi><mi>∞</mi></msub><annotation encoding="application/x-tex">H_\infty</annotation></semantics></math>
+或加权设计成功，不等于结构不确定性边界已经被完整刻画。</li>
+</ol>
+<h2 id="跨对象论文复现的最小阅读路径">59.27
+跨对象论文复现的最小阅读路径</h2>
+<p>把样例扩到巡航推进耦合、鲁棒姿态/柔性耦合、再入、滑翔和 IGC
+后，论文阅读训练就不应再局限于单一纵向案例。比较稳妥的最小路由如下：</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>论文对象</th>
+<th>建议先回看的教程位置</th>
+<th>阅读时最先审查的对象</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>纵向约束跟踪</td>
+<td>第14章、第 56、57 章、本章 59.17 到 59.20</td>
+<td>动压指标、失败样本和保守结论</td>
+</tr>
+<tr>
+<td>吸气式巡航推进耦合</td>
+<td>第51章、C04、C12、本章 59.24</td>
+<td>进气道裕度、油门动态、攻角-推进耦合和保护逻辑是否同时给出</td>
+</tr>
+<tr>
+<td>鲁棒姿态与柔性耦合</td>
+<td>第 23、31 章、C03、本章 59.25</td>
+<td>柔性模态、权重选择、最坏样本和单轴/多轴边界是否写清</td>
+</tr>
+<tr>
+<td>再入控制</td>
+<td>第49章、C14、本章 59.21</td>
+<td>热流、累计热载荷、走廊和终端约束是否同时检查</td>
+</tr>
+<tr>
+<td>滑翔能量管理</td>
+<td>第50章、C15、本章 59.22</td>
+<td>能量走廊、横向代价和终端可达性是否同时给出</td>
+</tr>
+<tr>
+<td>三维制导与 IGC</td>
+<td>第48章、C16、C17、C20、本章 59.23 到 59.26</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>r</mi><mi>g</mi></msub><mi>/</mi><msub><mi>r</mi><mi>f</mi></msub></mrow><annotation encoding="application/x-tex">r_g/r_f</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>r</mi><mi>a</mi></msub><mi>/</mi><msub><mi>d</mi><mi>a</mi></msub></mrow><annotation encoding="application/x-tex">r_a/d_a</annotation></semantics></math>、姿态执行和分配残差是否进入证据</td>
+</tr>
+</tbody>
+</table>
+<p>这样处理后，第59章的样例不再只是“一个教学案例如何写成论文”，而是开始覆盖不同高超声速对象的论文阅读方式。</p>
+<h2 id="常见错误">59.28 常见错误</h2>
+<ol type="1">
+<li>只读摘要和结论，不看模型假设。</li>
+<li>只看控制律，不看误差系统。</li>
+<li>把 UUB 结论写成渐近收敛。</li>
+<li>忽略输入饱和和采样延迟。</li>
+<li>只摘录优点，不记录失败模式。</li>
+<li>文献综述按作者堆叠，不按问题组织。</li>
+<li>没有核对文献元数据就写入参考文献表。</li>
+<li>把理想静态推力纵向模型结果直接写成吸气式巡航闭环结论。</li>
+<li>把单轴低阶柔性样例直接写成完整气动弹性鲁棒飞控验证。</li>
+</ol>
+<h2 id="练习">59.29 练习</h2>
+<ol type="1">
+<li>选一篇高超声速控制论文，填写文献记录表。</li>
+<li>判断论文的稳定性结论是渐近、UUB、ISS 还是经验通过率。</li>
+<li>从论文中提取仿真指标，并说明缺失哪些指标。</li>
+<li>写一段按问题组织的文献综述，而不是按作者顺序罗列。</li>
+<li>找出一篇论文中可能存在的“结论超过证据”的表述，并改写为保守表述。</li>
+</ol>
+
+      </article>
+      
+      <nav class="book-bottom-nav" aria-label="章节导航">
+        <a href="./58-typical-case-library.html">上一章：第58章 典型案例库</a>
+        <a href="./index.html">卷首页</a>
+        <a href="./60-frontiers-research-roadmap.html">下一章：第60章 前沿问题与研究路线</a>
+      </nav>
+    </main>
+  </div>
+</body>
+</html>

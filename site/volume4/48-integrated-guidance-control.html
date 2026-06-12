@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>第48章 制导控制一体化</title>
+  <style>
+    :root {
+      --paper: #f7f3eb;
+      --ink: #1f2937;
+      --muted: #5b6472;
+      --line: color-mix(in srgb, #f5dfe9 68%, #cbd5e1 32%);
+      --accent: #8b3f67;
+      --accent-soft: #f5dfe9;
+      --accent-deep: #522640;
+      color-scheme: light;
+    }
+    html {
+      -webkit-text-size-adjust: 100%;
+      background:
+        radial-gradient(circle at top left, #f5dfe9 0, rgba(255,255,255,0) 32%),
+        linear-gradient(180deg, #fbfaf6 0%, var(--paper) 18%, #f7f1e6 100%);
+    }
+    body {
+      margin: 0;
+      font-family: "Source Han Serif SC", "Songti SC", "Noto Serif CJK SC", "Microsoft YaHei", serif;
+      color: var(--ink);
+      line-height: 1.78;
+      letter-spacing: 0;
+    }
+    a { color: var(--accent-deep); }
+    .book-app {
+      display: grid;
+      grid-template-columns: 280px minmax(0, 1fr);
+      min-height: 100vh;
+    }
+    .book-sidebar {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow: auto;
+      padding: 1.2rem 1rem 1.2rem 1.15rem;
+      border-right: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(255,255,255,0.86), rgba(255,255,255,0.72));
+      backdrop-filter: blur(10px);
+    }
+    .sidebar-shell { position: sticky; top: 0; display: flex; flex-direction: column; gap: 1rem; }
+    .sidebar-brand {
+      padding: 0.95rem 0.95rem 1rem;
+      border-radius: 18px;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.95), rgba(255,255,255,0.84)),
+        linear-gradient(135deg, var(--accent-soft), rgba(255,255,255,0));
+      border: 1px solid var(--line);
+      box-shadow: 0 12px 28px rgba(31, 41, 55, 0.06);
+    }
+    .sidebar-brand .kicker { margin: 0; color: var(--accent); font-size: 0.82rem; font-weight: 700; }
+    .sidebar-brand h2 { margin: 0.45rem 0 0.25rem; font-size: 1.08rem; line-height: 1.3; color: var(--ink); }
+    .sidebar-brand p { margin: 0.35rem 0 0; color: var(--muted); font-size: 0.9rem; }
+    .sidebar-links { display: grid; gap: 0.45rem; }
+    .sidebar-link {
+      display: grid;
+      grid-template-columns: 2.2rem minmax(0, 1fr);
+      gap: 0.6rem;
+      align-items: start;
+      padding: 0.7rem 0.75rem;
+      border-radius: 14px;
+      text-decoration: none;
+      background: rgba(255,255,255,0.72);
+      border: 1px solid rgba(31,41,55,0.07);
+      color: var(--ink);
+    }
+    .sidebar-link:hover { background: rgba(255,255,255,0.95); border-color: var(--line); }
+    .sidebar-link.active {
+      background: linear-gradient(135deg, rgba(255,255,255,0.98), rgba(255,255,255,0.9));
+      border-color: var(--accent-soft);
+      box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent-soft) 68%, #ffffff 32%);
+    }
+    .sidebar-index {
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      min-width: 2rem;
+      height: 2rem;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent-deep);
+      font-size: 0.78rem;
+      font-weight: 800;
+    }
+    .sidebar-title { font-size: 0.94rem; line-height: 1.35; }
+    .book-main { min-width: 0; padding: 1.25rem 1.45rem 1.8rem; }
+    .book-page-header {
+      padding: 0.85rem 0 1rem;
+      margin-bottom: 1rem;
+      border-bottom: 1px solid var(--line);
+    }
+    .page-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.28rem 0.72rem;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.82);
+      border: 1px solid var(--line);
+      color: var(--accent-deep);
+      font-size: 0.8rem;
+      font-weight: 700;
+    }
+    .book-page-header h1 {
+      margin: 0.7rem 0 0;
+      font-size: 1.85rem;
+      line-height: 1.22;
+      color: var(--accent-deep);
+      border: 0;
+      padding: 0;
+    }
+    .book-page-header p { margin: 0.45rem 0 0; color: var(--muted); max-width: 62rem; }
+    .book-article { max-width: 900px; margin: 0; padding: 0 0 1.2rem; }
+    .book-article h1, .book-article h2, .book-article h3, .book-article h4, .book-article h5, .book-article h6 {
+      line-height: 1.28;
+      margin-top: 1.45em;
+      margin-bottom: 0.55em;
+      color: var(--accent-deep);
+    }
+    .book-article h1 { font-size: 2rem; border-bottom: 2px solid var(--line); padding-bottom: 0.42rem; }
+    .book-article h1:first-of-type { margin-top: 0; }
+    .book-article h2 { font-size: 1.42rem; }
+    .book-article h3 { font-size: 1.12rem; }
+    .book-article p, .book-article li, .book-article dd, .book-article td, .book-article th { text-align: justify; text-justify: inter-ideograph; }
+    .book-article p { margin: 0.85rem 0; }
+    .book-article code, .book-article pre { font-family: "Cascadia Mono", "Source Code Pro", Consolas, monospace; font-size: 0.94em; }
+    .book-article code {
+      padding: 0.02rem 0.24rem;
+      background: color-mix(in srgb, var(--accent-soft) 34%, #ffffff 66%);
+      border: 0;
+      border-bottom: 1px solid color-mix(in srgb, var(--accent-soft) 74%, #d1d5db 26%);
+      border-radius: 4px;
+      color: #253244;
+      box-decoration-break: clone;
+      -webkit-box-decoration-break: clone;
+    }
+    .book-article pre {
+      padding: 1rem 1.1rem;
+      overflow: auto;
+      background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,253,248,0.98));
+      border: 1px solid color-mix(in srgb, var(--accent-soft) 54%, #d1d5db 46%);
+      border-left: 5px solid var(--accent);
+      border-radius: 14px;
+      box-shadow: 0 8px 22px rgba(31, 41, 55, 0.05);
+    }
+    .book-article pre code { padding: 0; border: 0; background: transparent; color: inherit; }
+    .book-article table {
+      border-collapse: collapse;
+      width: 100%;
+      margin: 1rem 0 1.25rem;
+      background: rgba(255,255,255,0.82);
+      overflow: hidden;
+      border-radius: 12px;
+    }
+    .book-article th, .book-article td { border: 1px solid var(--line); padding: 0.5rem 0.7rem; vertical-align: top; }
+    .book-article th { background: color-mix(in srgb, var(--accent-soft) 42%, #ffffff 58%); }
+    .book-article blockquote {
+      margin: 1rem 0;
+      padding: 0.25rem 0 0.25rem 1rem;
+      border-left: 4px solid var(--accent);
+      color: #374151;
+      background: linear-gradient(90deg, rgba(255,255,255,0.72), rgba(255,255,255,0.48));
+      border-radius: 0 12px 12px 0;
+    }
+    .book-bottom-nav {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-top: 2.2rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--line);
+    }
+    .book-bottom-nav a {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.6rem 0.9rem;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.84);
+      text-decoration: none;
+      font-weight: 700;
+    }
+    .book-bottom-nav span {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.6rem 0.9rem;
+      border-radius: 999px;
+      border: 1px solid rgba(31,41,55,0.08);
+      background: rgba(255,255,255,0.54);
+      color: rgba(31,41,55,0.42);
+      font-weight: 700;
+    }
+    .book-bottom-nav a:hover { background: rgba(255,255,255,0.98); }
+    .book-volume-intro {
+      margin: 0 0 1.25rem;
+      padding: 1.2rem 1.25rem 1.1rem;
+      border-radius: 18px;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.96), rgba(255,255,255,0.78)),
+        linear-gradient(135deg, var(--accent-soft), rgba(255,255,255,0));
+      border: 1px solid var(--line);
+      box-shadow: 0 14px 34px rgba(31, 41, 55, 0.06);
+    }
+    .volume-intro-kicker {
+      margin: 0;
+      color: var(--accent);
+      font-size: 0.84rem;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    .book-volume-intro h2 {
+      margin: 0.55rem 0 0.55rem;
+      font-size: 1.28rem;
+      line-height: 1.35;
+      color: var(--accent-deep);
+    }
+    .volume-intro-summary {
+      margin: 0;
+      color: var(--muted);
+      max-width: 68rem;
+    }
+    .volume-intro-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.8rem;
+      margin-top: 1rem;
+    }
+    .volume-intro-box {
+      padding: 0.85rem 0.9rem;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.72);
+      border: 1px solid rgba(31,41,55,0.08);
+    }
+    .volume-intro-box span {
+      display: block;
+      color: var(--accent);
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+    }
+    .volume-intro-box strong {
+      display: block;
+      margin-top: 0.35rem;
+      color: var(--ink);
+      font-size: 0.95rem;
+      line-height: 1.45;
+    }
+    .volume-intro-note {
+      margin-top: 0.9rem;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+    @media (max-width: 1180px) {
+      .book-app { grid-template-columns: 1fr; }
+      .book-sidebar {
+        position: relative;
+        height: auto;
+        border-right: 0;
+        border-bottom: 1px solid var(--line);
+      }
+      .sidebar-shell { position: static; }
+    }
+    @media (max-width: 900px) {
+      .book-main { padding: 1rem 1rem 1.5rem; }
+      .book-bottom-nav { flex-direction: column; }
+      .volume-intro-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="book-app">
+    <aside class="book-sidebar">
+      <div class="sidebar-shell">
+        <div class="sidebar-brand">
+          <p class="kicker">高超声速飞行器控制教程</p>
+          <h2>第四卷 约束、安全、容错与制导控制一体化</h2>
+          <p>约束与安全</p>
+        </div>
+        <nav class="sidebar-links" aria-label="本卷目录">
+          <a class="sidebar-link" href="./index.html"><span class="sidebar-index">0</span><span class="sidebar-title">卷首页</span></a>
+<a class="sidebar-link" href="./40-hypersonic-flight-constraints.html"><span class="sidebar-index">01</span><span class="sidebar-title">第40章 高超声速飞行约束体系</span></a>
+<a class="sidebar-link" href="./41-input-saturation-anti-windup.html"><span class="sidebar-index">02</span><span class="sidebar-title">第41章 输入饱和与抗积分饱和控制</span></a>
+<a class="sidebar-link" href="./42-barrier-lyapunov-constrained-tracking.html"><span class="sidebar-index">03</span><span class="sidebar-title">第42章 障碍 Lyapunov 函数与约束跟踪控制</span></a>
+<a class="sidebar-link" href="./43-control-barrier-function-safety-filter.html"><span class="sidebar-index">04</span><span class="sidebar-title">第43章 控制障碍函数与安全滤波</span></a>
+<a class="sidebar-link" href="./44-model-predictive-control.html"><span class="sidebar-index">05</span><span class="sidebar-title">第44章 模型预测控制</span></a>
+<a class="sidebar-link" href="./45-control-allocation-theory.html"><span class="sidebar-index">06</span><span class="sidebar-title">第45章 控制分配理论</span></a>
+<a class="sidebar-link" href="./46-fault-diagnosis-fault-tolerant-control.html"><span class="sidebar-index">07</span><span class="sidebar-title">第46章 故障诊断与容错控制</span></a>
+<a class="sidebar-link" href="./47-guidance-theory-foundations.html"><span class="sidebar-index">08</span><span class="sidebar-title">第47章 制导理论基础</span></a>
+<a class="sidebar-link active" href="./48-integrated-guidance-control.html"><span class="sidebar-index">09</span><span class="sidebar-title">第48章 制导控制一体化</span></a>
+<a class="sidebar-link" href="./49-reentry-flight-control.html"><span class="sidebar-index">10</span><span class="sidebar-title">第49章 再入飞行控制</span></a>
+<a class="sidebar-link" href="./50-glide-energy-management-control.html"><span class="sidebar-index">11</span><span class="sidebar-title">第50章 滑翔飞行与能量管理控制</span></a>
+<a class="sidebar-link" href="./51-airbreathing-hypersonic-cruise-control.html"><span class="sidebar-index">12</span><span class="sidebar-title">第51章 吸气式高超声速巡航控制</span></a>
+        </nav>
+      </div>
+    </aside>
+    <main class="book-main">
+      <header class="book-page-header">
+        <div class="page-eyebrow">第4册·章节页09</div>
+        <h1 id="volume4--48-integrated-guidance-control">第48章 制导控制一体化</h1>
+        <p>本页是章节正文页。左侧目录用于回到本卷其他章节，底部导航用于前后章跳转。</p>
+      </header>
+      <article class="book-article">
+        <h2 id="问题背景">48.1 问题背景</h2>
+<p>制导控制一体化，Integrated Guidance and
+Control，IGC，不是把制导模块和控制模块简单并排放在一起，而是要把制导误差、姿态/速度控制动态、执行机构能力和路径约束放进同一套闭环分析里。</p>
+<p>高超声速系统里，制导环和控制环的边界并不总是清楚。若只做分层设计，制导命令可能在控制层不可实现；若只做控制设计，又可能看不见任务级误差和路径约束。因此，本章要说明分层设计和一体化设计的差别，解释
+IGC
+中应如何定义状态、误差、参考和约束，并给出与控制分配、故障和实时实现的接口。</p>
+<h2 id="分层设计">48.2 分层设计</h2>
+<p>分层制导控制通常写成</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>r</mi><mi>g</mi></msub><mo>→</mo><msub><mi>r</mi><mi>f</mi></msub><mo>→</mo><msub><mi>ν</mi><mi>c</mi></msub><mo>→</mo><msub><mi>u</mi><mi>a</mi></msub></mrow><annotation encoding="application/x-tex">
+r_g \rightarrow r_f \rightarrow \nu_c \rightarrow u_a
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>r</mi><mi>g</mi></msub><annotation encoding="application/x-tex">r_g</annotation></semantics></math>
+是原始制导命令，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>r</mi><mi>f</mi></msub><annotation encoding="application/x-tex">r_f</annotation></semantics></math>
+是可行参考，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ν</mi><mi>c</mi></msub><annotation encoding="application/x-tex">\nu_c</annotation></semantics></math>
+是期望广义控制量，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>u</mi><mi>a</mi></msub><annotation encoding="application/x-tex">u_a</annotation></semantics></math>
+是执行机构命令。</p>
+<p>若内环带宽足够、约束裕度充足且制导命令平滑，分层设计往往可靠。但在高超声速终端机动、再入走廊、动压和热流限制、故障或执行机构退化下，制导命令会变得不可实现。</p>
+<h2 id="一体化设计的定义">48.3 一体化设计的定义</h2>
+<p>IGC 试图直接把制导误差和控制状态纳入同一控制输入设计。可写为</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>u</mi><mo>=</mo><mi>κ</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>x</mi><mi>g</mi></msub><mo>,</mo><msub><mi>x</mi><mi>c</mi></msub><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
+u = \kappa(x_g,x_c)
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>x</mi><mi>g</mi></msub><annotation encoding="application/x-tex">x_g</annotation></semantics></math>
+是制导相关状态，如相对位置、速度、视线角和能量；<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>x</mi><mi>c</mi></msub><annotation encoding="application/x-tex">x_c</annotation></semantics></math>
+是控制相关状态，如姿态、角速度、攻角和执行机构状态；<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>u</mi><annotation encoding="application/x-tex">u</annotation></semantics></math>
+是控制输入，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>κ</mi><mo stretchy="false" form="prefix">(</mo><mi>⋅</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\kappa(\cdot)</annotation></semantics></math>
+是一体化控制律。</p>
+<p>一体化设计的关键不是“把更多变量写进公式”，而是让不可实现性、约束和任务误差在闭环里可见。</p>
+<h2 id="igc-的对象与接口">48.4 IGC 的对象与接口</h2>
+<p>第48章最容易犯的错误，是先选一种方法，再回头拼对象和接口。更稳妥的顺序是先把
+IGC 到底在管什么写清楚。</p>
+<p>本节至少要明确以下接口：</p>
+<ul>
+<li>任务对象是终端拦截、再入走廊、滑翔能量管理还是巡航机动；</li>
+<li>模型层级是纵向、三维质点、六自由度刚体，还是还包含控制分配和执行机构；</li>
+<li>制导接口输出的是加速度、航迹角、倾侧角还是攻角参考；</li>
+<li>控制接口输出的是
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>u</mi><annotation encoding="application/x-tex">u</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ν</mi><mi>c</mi></msub><annotation encoding="application/x-tex">\nu_c</annotation></semantics></math>，还是给内环的参考；</li>
+<li>分配接口是否显式建模
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ν</mi><mrow><mi mathvariant="normal">a</mi><mi mathvariant="normal">c</mi><mi mathvariant="normal">t</mi></mrow></msub><annotation encoding="application/x-tex">\nu_{\mathrm{act}}</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>r</mi><mi>a</mi></msub><annotation encoding="application/x-tex">r_a</annotation></semantics></math>
+和
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>d</mi><mi>a</mi></msub><annotation encoding="application/x-tex">d_a</annotation></semantics></math>；</li>
+<li>约束接口在哪一层进入动压、热流、过载、攻角、舵偏和舵速；</li>
+<li>故障与降级是否考虑健康矩阵变化、参考收缩和任务模式切换。</li>
+</ul>
+<p>如果这些接口不分开写，所谓 IGC
+往往只是“把几个模块连起来”，而不是把闭环对象真正写清楚。</p>
+<h2 id="igc-状态和误差">48.5 IGC 状态和误差</h2>
+<p>一种组合误差可写为</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>e</mi><mo>=</mo><msup><mrow><mo stretchy="true" form="prefix">[</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><msub><mi>e</mi><mi>R</mi></msub></mtd><mtd columnalign="center" style="text-align: center"><msub><mi>e</mi><mi>V</mi></msub></mtd><mtd columnalign="center" style="text-align: center"><msub><mi>e</mi><mrow><mi mathvariant="normal">L</mi><mi mathvariant="normal">O</mi><mi mathvariant="normal">S</mi></mrow></msub></mtd><mtd columnalign="center" style="text-align: center"><msub><mi>e</mi><mi>η</mi></msub></mtd><mtd columnalign="center" style="text-align: center"><msub><mi>e</mi><mi>ω</mi></msub></mtd><mtd columnalign="center" style="text-align: center"><msub><mi>e</mi><mrow><mi>g</mi><mi>r</mi></mrow></msub></mtd><mtd columnalign="center" style="text-align: center"><msub><mi>r</mi><mi>a</mi></msub></mtd></mtr></mtable><mo stretchy="true" form="postfix">]</mo></mrow><mi>⊤</mi></msup></mrow><annotation encoding="application/x-tex">
+e=\begin{bmatrix}e_R &amp; e_V &amp; e_{\mathrm{LOS}} &amp; e_\eta &amp; e_\omega &amp; e_{gr} &amp; r_a\end{bmatrix}^\top
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>e</mi><mi>R</mi></msub><annotation encoding="application/x-tex">e_R</annotation></semantics></math>
+是相对位置或距离误差，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>e</mi><mi>V</mi></msub><annotation encoding="application/x-tex">e_V</annotation></semantics></math>
+是相对速度或能量误差，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>e</mi><mrow><mi mathvariant="normal">L</mi><mi mathvariant="normal">O</mi><mi mathvariant="normal">S</mi></mrow></msub><annotation encoding="application/x-tex">e_{\mathrm{LOS}}</annotation></semantics></math>
+是视线角或视线角速率误差，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>e</mi><mi>η</mi></msub><annotation encoding="application/x-tex">e_\eta</annotation></semantics></math>
+是姿态误差，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>e</mi><mi>ω</mi></msub><annotation encoding="application/x-tex">e_\omega</annotation></semantics></math>
+是角速度误差，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>e</mi><mrow><mi>g</mi><mi>r</mi></mrow></msub><annotation encoding="application/x-tex">e_{gr}</annotation></semantics></math>
+是制导原始命令与可执行参考之间的命令实现误差，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>r</mi><mi>a</mi></msub><annotation encoding="application/x-tex">r_a</annotation></semantics></math>
+是分配残差。</p>
+<p>高超声速 IGC
+还应加入约束裕度，例如动压裕度、热流裕度、过载裕度和姿态带宽裕度。这样，IGC
+的分析对象就不再是“理想参考能否收敛”，而是“在参考可行化与分配余度同时存在时，组合误差能否保持有界并满足任务约束”。</p>
+<h2 id="参考可行化与-igc-的区别">48.6 参考可行化与 IGC 的区别</h2>
+<p>有时工程上会先做参考可行化：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>r</mi><mi>f</mi></msub><mo>=</mo><mi mathvariant="normal">Π</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>r</mi><mi>g</mi></msub><mo>,</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
+r_f=\Pi(r_g,x)
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi mathvariant="normal">Π</mi><annotation encoding="application/x-tex">\Pi</annotation></semantics></math>
+可表示投影、参考治理器、带约束滤波器或小规模在线优化，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>x</mi><annotation encoding="application/x-tex">x</annotation></semantics></math>
+是当前状态。</p>
+<p>参考可行化关心的是“原始制导命令如何变成可执行命令”；IGC
+关心的是“可执行命令如何与控制状态、执行机构和路径约束共同闭环”。如果仿真中姿态和舵面没有反过来影响平动轨迹，只能称为接口检查或教学耦合骨架，不能声称完整三维
+IGC 已验证。</p>
+<h2 id="原始制导命令可执行参考分配残差与可分配性余量">48.7
+原始制导命令、可执行参考、分配残差与可分配性余量</h2>
+<p>第48章不能把
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>r</mi><mi>g</mi></msub><annotation encoding="application/x-tex">r_g</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>r</mi><mi>f</mi></msub><annotation encoding="application/x-tex">r_f</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>r</mi><mi>a</mi></msub><annotation encoding="application/x-tex">r_a</annotation></semantics></math>
+和
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>d</mi><mi>a</mi></msub><annotation encoding="application/x-tex">d_a</annotation></semantics></math>
+当成可有可无的记号。它们分别代表原始制导命令、可执行参考、分配残差和可分配性余量。</p>
+<p>应至少说明：</p>
+<ul>
+<li><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>r</mi><mi>g</mi></msub><annotation encoding="application/x-tex">r_g</annotation></semantics></math>
+的物理含义、单位、生成频率和上层任务来源；</li>
+<li><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>r</mi><mi>f</mi></msub><annotation encoding="application/x-tex">r_f</annotation></semantics></math>
+的生成方式，是投影、参考治理、限速滤波还是在线优化；</li>
+<li><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>e</mi><mrow><mi>g</mi><mi>r</mi></mrow></msub><annotation encoding="application/x-tex">e_{gr}</annotation></semantics></math>
+的峰值、持续时间和触发次数；</li>
+<li><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>r</mi><mi>a</mi></msub><annotation encoding="application/x-tex">r_a</annotation></semantics></math>
+来自控制分配、执行机构速率限制还是故障后效能下降；</li>
+<li><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>d</mi><mi>a</mi></msub><annotation encoding="application/x-tex">d_a</annotation></semantics></math>
+的阈值和触发参考收缩或任务降级的条件。</li>
+</ul>
+<p>若这些量不进入分析、优化或指标表，那么“制导控制一体化”通常只是接口图更复杂，而不是闭环对象更完整。</p>
+<h2 id="时间尺度耦合">48.8 时间尺度耦合</h2>
+<p>分层设计依赖时间尺度分离：制导外环应慢于姿态或角速度内环，控制分配和执行机构动态又应以其自身带宽为约束。可写成</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mi>g</mi></msub><mo>≫</mo><msub><mi>T</mi><mi>c</mi></msub><mo>≫</mo><msub><mi>T</mi><mi>a</mi></msub></mrow><annotation encoding="application/x-tex">
+T_g \gg T_c \gg T_a
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>T</mi><mi>g</mi></msub><annotation encoding="application/x-tex">T_g</annotation></semantics></math>
+是制导时间尺度，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>T</mi><mi>c</mi></msub><annotation encoding="application/x-tex">T_c</annotation></semantics></math>
+是控制时间尺度，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>T</mi><mi>a</mi></msub><annotation encoding="application/x-tex">T_a</annotation></semantics></math>
+是执行机构时间尺度。</p>
+<p>若这一条件不成立，制导命令会在控制层“来不及跟”，最终体现为
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>e</mi><mrow><mi>g</mi><mi>r</mi></mrow></msub><annotation encoding="application/x-tex">e_{gr}</annotation></semantics></math>
+增大、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>r</mi><mi>a</mi></msub><annotation encoding="application/x-tex">r_a</annotation></semantics></math>
+增大或
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>d</mi><mi>a</mi></msub><annotation encoding="application/x-tex">d_a</annotation></semantics></math>
+下降。</p>
+<h2 id="组合-lyapunov-与安全约束">48.9 组合 Lyapunov 与安全约束</h2>
+<p>一体化设计常会使用组合 Lyapunov 函数</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>V</mi><mo>=</mo><msup><mi>e</mi><mi>⊤</mi></msup><mi>P</mi><mi>e</mi></mrow><annotation encoding="application/x-tex">
+V=e^\top P e
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>P</mi><annotation encoding="application/x-tex">P</annotation></semantics></math>
+是正定矩阵。若再叠加约束，可以使用 BLF 或 CBF 形式。设安全函数为
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>h</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">h(x)</annotation></semantics></math>，则安全集可写成</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>𝒮</mi><mo>=</mo><mo stretchy="false" form="prefix">{</mo><mi>x</mi><mo>∣</mo><mi>h</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo>≥</mo><mn>0</mn><mo stretchy="false" form="postfix">}</mo></mrow><annotation encoding="application/x-tex">
+\mathcal{S}=\{x\mid h(x)\ge 0\}
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝒮</mi><annotation encoding="application/x-tex">\mathcal{S}</annotation></semantics></math>
+是安全集。</p>
+<p>在 IGC
+中，关键不是让误差单独收敛，而是让误差收敛、约束保持和控制可实现性同时成立。若高增益项持续把
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>r</mi><mi>g</mi></msub><annotation encoding="application/x-tex">r_g</annotation></semantics></math>
+推到安全集外，得到的只是更大的接口误差，而不是更好的 IGC。</p>
+<h2 id="预测控制型-igc">48.10 预测控制型 IGC</h2>
+<p>预测控制型 IGC 把制导和控制放入同一预测优化问题，可写为</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>min</mi><mo>&#8289;</mo><mspace width="0.278em"></mspace><mi>J</mi><mspace width="1.0em"></mspace><mtext mathvariant="normal">s.t.</mtext><mspace width="1.0em"></mspace><msub><mi>x</mi><mrow><mi>k</mi><mo>+</mo><mn>1</mn></mrow></msub><mo>=</mo><mi>f</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>x</mi><mi>k</mi></msub><mo>,</mo><msub><mi>u</mi><mi>k</mi></msub><mo stretchy="false" form="postfix">)</mo><mo>,</mo><mspace width="0.278em"></mspace><msub><mi>x</mi><mi>k</mi></msub><mo>∈</mo><mi>𝒮</mi><mo>,</mo><mspace width="0.278em"></mspace><msub><mi>u</mi><mi>k</mi></msub><mo>∈</mo><mi>𝒰</mi></mrow><annotation encoding="application/x-tex">
+\min \; J \quad \text{s.t.}\quad x_{k+1}=f(x_k,u_k),\; x_k\in\mathcal{S},\; u_k\in\mathcal{U}
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>J</mi><annotation encoding="application/x-tex">J</annotation></semantics></math>
+是代价函数，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝒮</mi><annotation encoding="application/x-tex">\mathcal{S}</annotation></semantics></math>
+是安全集，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝒰</mi><annotation encoding="application/x-tex">\mathcal{U}</annotation></semantics></math>
+是输入可行集。</p>
+<p>若控制器直接输出执行命令，也可以把
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ν</mi><mi>c</mi></msub><annotation encoding="application/x-tex">\nu_c</annotation></semantics></math>
+改写为
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>u</mi><annotation encoding="application/x-tex">u</annotation></semantics></math>。预测控制型
+IGC
+的优势是约束表达直接、接口统一；代价是求解负担更重，对实时性和模型准确性要求更高。</p>
+<h2 id="参考收缩与任务降级">48.11 参考收缩与任务降级</h2>
+<p>一体化设计并不意味着“任何参考都必须硬追”。当可分配性余量不足或安全约束冲突时，应该先做参考收缩，再考虑任务降级。</p>
+<p>可用可行集合表示为</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ℛ</mi><mrow><mi mathvariant="normal">s</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">f</mi><mi mathvariant="normal">e</mi></mrow></msub><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
+\mathcal{R}_{\mathrm{safe}}(x)
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ℛ</mi><mrow><mi mathvariant="normal">s</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">f</mi><mi mathvariant="normal">e</mi></mrow></msub><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\mathcal{R}_{\mathrm{safe}}(x)</annotation></semantics></math>
+是状态
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>x</mi><annotation encoding="application/x-tex">x</annotation></semantics></math>
+下的安全参考集合。若
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ℛ</mi><mrow><mi mathvariant="normal">s</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">f</mi><mi mathvariant="normal">e</mi></mrow></msub><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mi>⌀</mi></mrow><annotation encoding="application/x-tex">\mathcal{R}_{\mathrm{safe}}(x)=\varnothing</annotation></semantics></math>，问题就不再是“控制器够不够强”，而是当前任务、路径和剩余能力已经互相冲突。</p>
+<h2 id="与控制分配故障和实时实现的接口">48.12
+与控制分配、故障和实时实现的接口</h2>
+<p>IGC
+的闭环里，控制分配残差和可分配性余量不能藏起来，故障后的健康矩阵变化和参考收缩也不能省略。更具体地说：</p>
+<ul>
+<li>第45章继续处理控制分配与可达控制能力；</li>
+<li>第46章继续处理故障诊断、健康矩阵和任务降级；</li>
+<li>第55章继续处理采样、求解和实时边界。</li>
+</ul>
+<p>如果这些接口没有接好，IGC
+只能说明模块拼接得更密，不代表闭环能力真的更完整。</p>
+<h2 id="igc-证据层次">48.13 IGC 证据层次</h2>
+<p>为了避免把“接口串起来能跑”误写成完整 IGC
+方案，本章可把证据粗分为五级。</p>
+<ul>
+<li><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>I</mi><mn>0</mn></mrow><annotation encoding="application/x-tex">I0</annotation></semantics></math>：只有
+IGC 的概念和信号链，没有闭环仿真。</li>
+<li><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>I</mi><mn>1</mn></mrow><annotation encoding="application/x-tex">I1</annotation></semantics></math>：有单场景耦合仿真，能记录
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>e</mi><mrow><mi>g</mi><mi>r</mi></mrow></msub><annotation encoding="application/x-tex">e_{gr}</annotation></semantics></math>
+或
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>r</mi><mi>a</mi></msub><annotation encoding="application/x-tex">r_a</annotation></semantics></math>，但缺失败样本。</li>
+<li><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>I</mi><mn>2</mn></mrow><annotation encoding="application/x-tex">I2</annotation></semantics></math>：补上参考可行化、分配残差和可分配性余量，但仍缺真实六自由度闭环。</li>
+<li><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>I</mi><mn>3</mn></mrow><annotation encoding="application/x-tex">I3</annotation></semantics></math>：有约束、故障、控制分配和实时实现共同验证，但还缺高保真气动数据库。</li>
+<li><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>I</mi><mn>4</mn></mrow><annotation encoding="application/x-tex">I4</annotation></semantics></math>：高保真六自由度、真实执行机构链和不确定性统计支撑下的工程级证据。</li>
+</ul>
+<h2 id="本章适用范围">48.14 本章适用范围</h2>
+<p>本章主要适合支撑 IGC
+的对象定义、接口定义、误差定义和证据边界定义。它能说明制导误差、控制误差和分配残差为什么要放在一个闭环里，也能说明为什么“命令能下发”不等于“任务真的可行”。</p>
+<p>但本章还不能直接支撑高保真六自由度工程级验证，后者需要后续任务专题继续补齐。</p>
+<h2 id="常见错误">48.15 常见错误</h2>
+<ol type="1">
+<li>把制导和控制简单并排放在一起，就声称完成 IGC。</li>
+<li>不区分
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>r</mi><mi>g</mi></msub><annotation encoding="application/x-tex">r_g</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>r</mi><mi>f</mi></msub><annotation encoding="application/x-tex">r_f</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ν</mi><mi>c</mi></msub><annotation encoding="application/x-tex">\nu_c</annotation></semantics></math>
+和
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>u</mi><mi>a</mi></msub><annotation encoding="application/x-tex">u_a</annotation></semantics></math>。</li>
+<li>只看终端误差，不看分配残差和可分配性余量。</li>
+<li>只做参考可行化，不做闭环耦合验证。</li>
+<li>忽略故障和实时实现对 IGC 的影响。</li>
+<li>把高增益当成更好的 IGC，而不看约束和可实现性。</li>
+</ol>
+<h2 id="练习">48.16 练习</h2>
+<ol type="1">
+<li>写出一个包含
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>r</mi><mi>g</mi></msub><annotation encoding="application/x-tex">r_g</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>r</mi><mi>f</mi></msub><annotation encoding="application/x-tex">r_f</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ν</mi><mi>c</mi></msub><annotation encoding="application/x-tex">\nu_c</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>u</mi><mi>a</mi></msub><annotation encoding="application/x-tex">u_a</annotation></semantics></math>
+的 IGC 信号链。</li>
+<li>解释为什么
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>e</mi><mrow><mi>g</mi><mi>r</mi></mrow></msub><annotation encoding="application/x-tex">e_{gr}</annotation></semantics></math>
+和
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>r</mi><mi>a</mi></msub><annotation encoding="application/x-tex">r_a</annotation></semantics></math>
+是 IGC 的关键接口量。</li>
+<li>写出一个包含安全集
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝒮</mi><annotation encoding="application/x-tex">\mathcal{S}</annotation></semantics></math>
+的 IGC 约束问题。</li>
+<li>比较参考可行化和 IGC 的区别。</li>
+<li>说明为什么时间尺度分离对 IGC 很重要。</li>
+<li>给出一个必须触发任务降级的 IGC 场景。</li>
+</ol>
+
+      </article>
+      
+      <nav class="book-bottom-nav" aria-label="章节导航">
+        <a href="./47-guidance-theory-foundations.html">上一章：第47章 制导理论基础</a>
+        <a href="./index.html">卷首页</a>
+        <a href="./49-reentry-flight-control.html">下一章：第49章 再入飞行控制</a>
+      </nav>
+    </main>
+  </div>
+</body>
+</html>

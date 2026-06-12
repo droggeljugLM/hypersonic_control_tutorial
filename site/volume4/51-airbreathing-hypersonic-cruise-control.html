@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>第51章 吸气式高超声速巡航控制</title>
+  <style>
+    :root {
+      --paper: #f7f3eb;
+      --ink: #1f2937;
+      --muted: #5b6472;
+      --line: color-mix(in srgb, #f5dfe9 68%, #cbd5e1 32%);
+      --accent: #8b3f67;
+      --accent-soft: #f5dfe9;
+      --accent-deep: #522640;
+      color-scheme: light;
+    }
+    html {
+      -webkit-text-size-adjust: 100%;
+      background:
+        radial-gradient(circle at top left, #f5dfe9 0, rgba(255,255,255,0) 32%),
+        linear-gradient(180deg, #fbfaf6 0%, var(--paper) 18%, #f7f1e6 100%);
+    }
+    body {
+      margin: 0;
+      font-family: "Source Han Serif SC", "Songti SC", "Noto Serif CJK SC", "Microsoft YaHei", serif;
+      color: var(--ink);
+      line-height: 1.78;
+      letter-spacing: 0;
+    }
+    a { color: var(--accent-deep); }
+    .book-app {
+      display: grid;
+      grid-template-columns: 280px minmax(0, 1fr);
+      min-height: 100vh;
+    }
+    .book-sidebar {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow: auto;
+      padding: 1.2rem 1rem 1.2rem 1.15rem;
+      border-right: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(255,255,255,0.86), rgba(255,255,255,0.72));
+      backdrop-filter: blur(10px);
+    }
+    .sidebar-shell { position: sticky; top: 0; display: flex; flex-direction: column; gap: 1rem; }
+    .sidebar-brand {
+      padding: 0.95rem 0.95rem 1rem;
+      border-radius: 18px;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.95), rgba(255,255,255,0.84)),
+        linear-gradient(135deg, var(--accent-soft), rgba(255,255,255,0));
+      border: 1px solid var(--line);
+      box-shadow: 0 12px 28px rgba(31, 41, 55, 0.06);
+    }
+    .sidebar-brand .kicker { margin: 0; color: var(--accent); font-size: 0.82rem; font-weight: 700; }
+    .sidebar-brand h2 { margin: 0.45rem 0 0.25rem; font-size: 1.08rem; line-height: 1.3; color: var(--ink); }
+    .sidebar-brand p { margin: 0.35rem 0 0; color: var(--muted); font-size: 0.9rem; }
+    .sidebar-links { display: grid; gap: 0.45rem; }
+    .sidebar-link {
+      display: grid;
+      grid-template-columns: 2.2rem minmax(0, 1fr);
+      gap: 0.6rem;
+      align-items: start;
+      padding: 0.7rem 0.75rem;
+      border-radius: 14px;
+      text-decoration: none;
+      background: rgba(255,255,255,0.72);
+      border: 1px solid rgba(31,41,55,0.07);
+      color: var(--ink);
+    }
+    .sidebar-link:hover { background: rgba(255,255,255,0.95); border-color: var(--line); }
+    .sidebar-link.active {
+      background: linear-gradient(135deg, rgba(255,255,255,0.98), rgba(255,255,255,0.9));
+      border-color: var(--accent-soft);
+      box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent-soft) 68%, #ffffff 32%);
+    }
+    .sidebar-index {
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      min-width: 2rem;
+      height: 2rem;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent-deep);
+      font-size: 0.78rem;
+      font-weight: 800;
+    }
+    .sidebar-title { font-size: 0.94rem; line-height: 1.35; }
+    .book-main { min-width: 0; padding: 1.25rem 1.45rem 1.8rem; }
+    .book-page-header {
+      padding: 0.85rem 0 1rem;
+      margin-bottom: 1rem;
+      border-bottom: 1px solid var(--line);
+    }
+    .page-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.28rem 0.72rem;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.82);
+      border: 1px solid var(--line);
+      color: var(--accent-deep);
+      font-size: 0.8rem;
+      font-weight: 700;
+    }
+    .book-page-header h1 {
+      margin: 0.7rem 0 0;
+      font-size: 1.85rem;
+      line-height: 1.22;
+      color: var(--accent-deep);
+      border: 0;
+      padding: 0;
+    }
+    .book-page-header p { margin: 0.45rem 0 0; color: var(--muted); max-width: 62rem; }
+    .book-article { max-width: 900px; margin: 0; padding: 0 0 1.2rem; }
+    .book-article h1, .book-article h2, .book-article h3, .book-article h4, .book-article h5, .book-article h6 {
+      line-height: 1.28;
+      margin-top: 1.45em;
+      margin-bottom: 0.55em;
+      color: var(--accent-deep);
+    }
+    .book-article h1 { font-size: 2rem; border-bottom: 2px solid var(--line); padding-bottom: 0.42rem; }
+    .book-article h1:first-of-type { margin-top: 0; }
+    .book-article h2 { font-size: 1.42rem; }
+    .book-article h3 { font-size: 1.12rem; }
+    .book-article p, .book-article li, .book-article dd, .book-article td, .book-article th { text-align: justify; text-justify: inter-ideograph; }
+    .book-article p { margin: 0.85rem 0; }
+    .book-article code, .book-article pre { font-family: "Cascadia Mono", "Source Code Pro", Consolas, monospace; font-size: 0.94em; }
+    .book-article code {
+      padding: 0.02rem 0.24rem;
+      background: color-mix(in srgb, var(--accent-soft) 34%, #ffffff 66%);
+      border: 0;
+      border-bottom: 1px solid color-mix(in srgb, var(--accent-soft) 74%, #d1d5db 26%);
+      border-radius: 4px;
+      color: #253244;
+      box-decoration-break: clone;
+      -webkit-box-decoration-break: clone;
+    }
+    .book-article pre {
+      padding: 1rem 1.1rem;
+      overflow: auto;
+      background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,253,248,0.98));
+      border: 1px solid color-mix(in srgb, var(--accent-soft) 54%, #d1d5db 46%);
+      border-left: 5px solid var(--accent);
+      border-radius: 14px;
+      box-shadow: 0 8px 22px rgba(31, 41, 55, 0.05);
+    }
+    .book-article pre code { padding: 0; border: 0; background: transparent; color: inherit; }
+    .book-article table {
+      border-collapse: collapse;
+      width: 100%;
+      margin: 1rem 0 1.25rem;
+      background: rgba(255,255,255,0.82);
+      overflow: hidden;
+      border-radius: 12px;
+    }
+    .book-article th, .book-article td { border: 1px solid var(--line); padding: 0.5rem 0.7rem; vertical-align: top; }
+    .book-article th { background: color-mix(in srgb, var(--accent-soft) 42%, #ffffff 58%); }
+    .book-article blockquote {
+      margin: 1rem 0;
+      padding: 0.25rem 0 0.25rem 1rem;
+      border-left: 4px solid var(--accent);
+      color: #374151;
+      background: linear-gradient(90deg, rgba(255,255,255,0.72), rgba(255,255,255,0.48));
+      border-radius: 0 12px 12px 0;
+    }
+    .book-bottom-nav {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-top: 2.2rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--line);
+    }
+    .book-bottom-nav a {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.6rem 0.9rem;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.84);
+      text-decoration: none;
+      font-weight: 700;
+    }
+    .book-bottom-nav span {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.6rem 0.9rem;
+      border-radius: 999px;
+      border: 1px solid rgba(31,41,55,0.08);
+      background: rgba(255,255,255,0.54);
+      color: rgba(31,41,55,0.42);
+      font-weight: 700;
+    }
+    .book-bottom-nav a:hover { background: rgba(255,255,255,0.98); }
+    .book-volume-intro {
+      margin: 0 0 1.25rem;
+      padding: 1.2rem 1.25rem 1.1rem;
+      border-radius: 18px;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.96), rgba(255,255,255,0.78)),
+        linear-gradient(135deg, var(--accent-soft), rgba(255,255,255,0));
+      border: 1px solid var(--line);
+      box-shadow: 0 14px 34px rgba(31, 41, 55, 0.06);
+    }
+    .volume-intro-kicker {
+      margin: 0;
+      color: var(--accent);
+      font-size: 0.84rem;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    .book-volume-intro h2 {
+      margin: 0.55rem 0 0.55rem;
+      font-size: 1.28rem;
+      line-height: 1.35;
+      color: var(--accent-deep);
+    }
+    .volume-intro-summary {
+      margin: 0;
+      color: var(--muted);
+      max-width: 68rem;
+    }
+    .volume-intro-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.8rem;
+      margin-top: 1rem;
+    }
+    .volume-intro-box {
+      padding: 0.85rem 0.9rem;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.72);
+      border: 1px solid rgba(31,41,55,0.08);
+    }
+    .volume-intro-box span {
+      display: block;
+      color: var(--accent);
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+    }
+    .volume-intro-box strong {
+      display: block;
+      margin-top: 0.35rem;
+      color: var(--ink);
+      font-size: 0.95rem;
+      line-height: 1.45;
+    }
+    .volume-intro-note {
+      margin-top: 0.9rem;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+    @media (max-width: 1180px) {
+      .book-app { grid-template-columns: 1fr; }
+      .book-sidebar {
+        position: relative;
+        height: auto;
+        border-right: 0;
+        border-bottom: 1px solid var(--line);
+      }
+      .sidebar-shell { position: static; }
+    }
+    @media (max-width: 900px) {
+      .book-main { padding: 1rem 1rem 1.5rem; }
+      .book-bottom-nav { flex-direction: column; }
+      .volume-intro-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="book-app">
+    <aside class="book-sidebar">
+      <div class="sidebar-shell">
+        <div class="sidebar-brand">
+          <p class="kicker">高超声速飞行器控制教程</p>
+          <h2>第四卷 约束、安全、容错与制导控制一体化</h2>
+          <p>约束与安全</p>
+        </div>
+        <nav class="sidebar-links" aria-label="本卷目录">
+          <a class="sidebar-link" href="./index.html"><span class="sidebar-index">0</span><span class="sidebar-title">卷首页</span></a>
+<a class="sidebar-link" href="./40-hypersonic-flight-constraints.html"><span class="sidebar-index">01</span><span class="sidebar-title">第40章 高超声速飞行约束体系</span></a>
+<a class="sidebar-link" href="./41-input-saturation-anti-windup.html"><span class="sidebar-index">02</span><span class="sidebar-title">第41章 输入饱和与抗积分饱和控制</span></a>
+<a class="sidebar-link" href="./42-barrier-lyapunov-constrained-tracking.html"><span class="sidebar-index">03</span><span class="sidebar-title">第42章 障碍 Lyapunov 函数与约束跟踪控制</span></a>
+<a class="sidebar-link" href="./43-control-barrier-function-safety-filter.html"><span class="sidebar-index">04</span><span class="sidebar-title">第43章 控制障碍函数与安全滤波</span></a>
+<a class="sidebar-link" href="./44-model-predictive-control.html"><span class="sidebar-index">05</span><span class="sidebar-title">第44章 模型预测控制</span></a>
+<a class="sidebar-link" href="./45-control-allocation-theory.html"><span class="sidebar-index">06</span><span class="sidebar-title">第45章 控制分配理论</span></a>
+<a class="sidebar-link" href="./46-fault-diagnosis-fault-tolerant-control.html"><span class="sidebar-index">07</span><span class="sidebar-title">第46章 故障诊断与容错控制</span></a>
+<a class="sidebar-link" href="./47-guidance-theory-foundations.html"><span class="sidebar-index">08</span><span class="sidebar-title">第47章 制导理论基础</span></a>
+<a class="sidebar-link" href="./48-integrated-guidance-control.html"><span class="sidebar-index">09</span><span class="sidebar-title">第48章 制导控制一体化</span></a>
+<a class="sidebar-link" href="./49-reentry-flight-control.html"><span class="sidebar-index">10</span><span class="sidebar-title">第49章 再入飞行控制</span></a>
+<a class="sidebar-link" href="./50-glide-energy-management-control.html"><span class="sidebar-index">11</span><span class="sidebar-title">第50章 滑翔飞行与能量管理控制</span></a>
+<a class="sidebar-link active" href="./51-airbreathing-hypersonic-cruise-control.html"><span class="sidebar-index">12</span><span class="sidebar-title">第51章 吸气式高超声速巡航控制</span></a>
+        </nav>
+      </div>
+    </aside>
+    <main class="book-main">
+      <header class="book-page-header">
+        <div class="page-eyebrow">第4册·章节页12</div>
+        <h1 id="volume4--51-airbreathing-hypersonic-cruise-control">第51章 吸气式高超声速巡航控制</h1>
+        <p>本页是章节正文页。左侧目录用于回到本卷其他章节，底部导航用于前后章跳转。</p>
+      </header>
+      <article class="book-article">
+        <h2 id="问题背景">51.1 问题背景</h2>
+<p>吸气式高超声速巡航飞行器的难点在于气动、推进和结构高度耦合。发动机进气道、燃烧室和喷管不是简单推力源；攻角、马赫数、高度、燃料流量和机体姿态都会影响推进系统稳定性和可用推力。</p>
+<p>吸气式高超声速巡航的关键，不是“能不能维持巡航”，而是“如何在推进约束下维持可控巡航”。这意味着气动、推进和机体姿态必须作为一个耦合对象来讨论，而不能各讲各的。</p>
+<h2 id="巡航状态和输入">51.2 巡航状态和输入</h2>
+<p>吸气式巡航纵向状态可选</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>x</mi><mo>=</mo><msup><mrow><mo stretchy="true" form="prefix">[</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><mi>V</mi></mtd><mtd columnalign="center" style="text-align: center"><mi>h</mi></mtd><mtd columnalign="center" style="text-align: center"><mi>γ</mi></mtd><mtd columnalign="center" style="text-align: center"><msub><mi>η</mi><mi>T</mi></msub></mtd></mtr></mtable><mo stretchy="true" form="postfix">]</mo></mrow><mi>⊤</mi></msup></mrow><annotation encoding="application/x-tex">
+x=\begin{bmatrix}V &amp; h &amp; \gamma &amp; \eta_T\end{bmatrix}^\top
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>V</mi><annotation encoding="application/x-tex">V</annotation></semantics></math>
+是速度，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>h</mi><annotation encoding="application/x-tex">h</annotation></semantics></math>
+是高度，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>γ</mi><annotation encoding="application/x-tex">\gamma</annotation></semantics></math>
+是航迹角，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>η</mi><mi>T</mi></msub><annotation encoding="application/x-tex">\eta_T</annotation></semantics></math>
+表示推进状态变量，例如燃料流量、当量比、油门位置或等效推力状态。</p>
+<p>控制输入可包括</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>u</mi><mo>=</mo><msup><mrow><mo stretchy="true" form="prefix">[</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><mi>α</mi></mtd><mtd columnalign="center" style="text-align: center"><msub><mi>ϕ</mi><mi>T</mi></msub></mtd></mtr></mtable><mo stretchy="true" form="postfix">]</mo></mrow><mi>⊤</mi></msup></mrow><annotation encoding="application/x-tex">
+u=\begin{bmatrix}\alpha &amp; \phi_T\end{bmatrix}^\top
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>α</mi><annotation encoding="application/x-tex">\alpha</annotation></semantics></math>
+是攻角，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ϕ</mi><mi>T</mi></msub><annotation encoding="application/x-tex">\phi_T</annotation></semantics></math>
+是推进通道输入。若进一步考虑姿态，则
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>α</mi><annotation encoding="application/x-tex">\alpha</annotation></semantics></math>
+和
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ϕ</mi><mi>T</mi></msub><annotation encoding="application/x-tex">\phi_T</annotation></semantics></math>
+只是中间命令，必须经由姿态控制和执行机构实现。</p>
+<h2 id="巡航设计前的对象与接口检查">51.3 巡航设计前的对象与接口检查</h2>
+<p>第51章容易写偏的地方，是把吸气式巡航简化成“速度环管油门、高度环管攻角”。更稳妥的起点是先把对象、命令、约束和证据写清楚。</p>
+<p>至少要明确以下接口：任务对象是定速定高巡航、包线保持、机动巡航还是带约束的参考跟踪；模型层级是低阶纵向、扩展推进状态、三维质点、六自由度，还是还包含姿态和执行机构；推进模型要交代
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ϕ</mi><mi>T</mi></msub><annotation encoding="application/x-tex">\phi_T</annotation></semantics></math>
+的定义、推力函数、推力矩、进气道裕度和油门动态；命令接口要说明
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ϕ</mi><mrow><mi>T</mi><mo>,</mo><mi>c</mi></mrow></msub><annotation encoding="application/x-tex">\phi_{T,c}</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>α</mi><mi>c</mi></msub><annotation encoding="application/x-tex">\alpha_c</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>γ</mi><mi>c</mi></msub><annotation encoding="application/x-tex">\gamma_c</annotation></semantics></math>
+和舵面命令之间的接口链；约束集合要覆盖动压、热流、攻角、过载、油门、油门速率、进气道裕度和输入约束；参考治理要说明
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>V</mi><mi>c</mi></msub><mo>,</mo><msub><mi>h</mi><mi>c</mi></msub></mrow><annotation encoding="application/x-tex">V_c,h_c</annotation></semantics></math>
+是否先做可行化，其中
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>V</mi><mi>c</mi></msub><annotation encoding="application/x-tex">V_c</annotation></semantics></math>
+是速度参考，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>h</mi><mi>c</mi></msub><annotation encoding="application/x-tex">h_c</annotation></semantics></math>
+是高度参考，以及保护层怎样修改或拒绝命令。</p>
+<h2 id="进气道约束">51.4 进气道约束</h2>
+<p>吸气式推进系统需要稳定进气。可抽象定义进气道裕度</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>m</mi><mrow><mi mathvariant="normal">i</mi><mi mathvariant="normal">n</mi><mi mathvariant="normal">l</mi><mi mathvariant="normal">e</mi><mi mathvariant="normal">t</mi></mrow></msub><mo>=</mo><mi>f</mi><mo stretchy="false" form="prefix">(</mo><mi>M</mi><mi>a</mi><mo>,</mo><mi>α</mi><mo>,</mo><msub><mi>ϕ</mi><mi>T</mi></msub><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
+m_{\mathrm{inlet}}=f(Ma,\alpha,\phi_T)
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>M</mi><mi>a</mi></mrow><annotation encoding="application/x-tex">Ma</annotation></semantics></math>
+是马赫数，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>α</mi><annotation encoding="application/x-tex">\alpha</annotation></semantics></math>
+是攻角，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ϕ</mi><mi>T</mi></msub><annotation encoding="application/x-tex">\phi_T</annotation></semantics></math>
+是推进输入。</p>
+<p>若书稿里只写“进气道受约束”，却没有说明谁来修正
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>α</mi><mi>c</mi></msub><annotation encoding="application/x-tex">\alpha_c</annotation></semantics></math>
+和
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ϕ</mi><mrow><mi>T</mi><mo>,</mo><mi>c</mi></mrow></msub><annotation encoding="application/x-tex">\phi_{T,c}</annotation></semantics></math>，那就还不是控制系统意义上的进气道约束建模。</p>
+<p>至少要同步记录：最小进气道裕度、进气道保护的激活持续时间、油门峰值、油门速率峰值、最大攻角和推进约束触发持续时间。</p>
+<h2 id="速度保持控制">51.5 速度保持控制</h2>
+<p>速度动力学可写为</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>V</mi><mo accent="true">̇</mo></mover><mo>=</mo><mfrac><mrow><mi>T</mi><mo>−</mo><mi>D</mi></mrow><mi>m</mi></mfrac><mo>−</mo><mi>g</mi><mi>sin</mi><mo>&#8289;</mo><mi>γ</mi></mrow><annotation encoding="application/x-tex">
+\dot V=\frac{T-D}{m}-g\sin\gamma
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>T</mi><annotation encoding="application/x-tex">T</annotation></semantics></math>
+是推力，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>D</mi><annotation encoding="application/x-tex">D</annotation></semantics></math>
+是阻力，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>m</mi><annotation encoding="application/x-tex">m</annotation></semantics></math>
+是质量，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>g</mi><annotation encoding="application/x-tex">g</annotation></semantics></math>
+是重力加速度。</p>
+<p>高度外环通常生成航迹角命令，航迹角命令再转为攻角或姿态命令。对巡航任务，过激高度修正会改变攻角和升阻比，进而影响推力需求和进气道裕度。因此高度保持不应只看
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>h</mi><mrow><mi mathvariant="normal">r</mi><mi mathvariant="normal">m</mi><mi mathvariant="normal">s</mi></mrow></msub><annotation encoding="application/x-tex">h_{\mathrm{rms}}</annotation></semantics></math>，还应看攻角、推力、动压和进气道裕度。</p>
+<h2 id="攻角控制">51.6 攻角控制</h2>
+<p>攻角既是升力效率变量，也是推进和安全变量。约束可写为</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>α</mi><mi>min</mi><mo>&#8289;</mo></msub><mo>≤</mo><mi>α</mi><mo>≤</mo><msub><mi>α</mi><mi>max</mi><mo>&#8289;</mo></msub></mrow><annotation encoding="application/x-tex">
+\alpha_{\min}\le \alpha \le \alpha_{\max}
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>α</mi><mi>min</mi><mo>&#8289;</mo></msub><annotation encoding="application/x-tex">\alpha_{\min}</annotation></semantics></math>
+和
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>α</mi><mi>max</mi><mo>&#8289;</mo></msub><annotation encoding="application/x-tex">\alpha_{\max}</annotation></semantics></math>
+是攻角允许范围。</p>
+<p>当油门变化时，俯仰力矩也会变化。姿态控制器若把它当作扰动，可用
+DOB、ESO
+或鲁棒项补偿；更好的做法是在模型中显式包含推进力矩，并在控制器设计和线性化中体现。</p>
+<h2 id="速度高度攻角与油门多回路接口边界">51.7
+速度、高度、攻角与油门多回路接口边界</h2>
+<p>吸气式巡航控制不是“速度环管油门、高度环管攻角”这么简单，因为
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>α</mi><annotation encoding="application/x-tex">\alpha</annotation></semantics></math>
+会反过来影响阻力、推力和进气道，而
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ϕ</mi><mi>T</mi></msub><annotation encoding="application/x-tex">\phi_T</annotation></semantics></math>
+又会影响速度、热流和俯仰力矩。</p>
+<p>一个更接近工程实现的最小命令链是</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>V</mi><mi>c</mi></msub><mo>,</mo><msub><mi>h</mi><mi>c</mi></msub><mo>→</mo><msub><mi>𝒢</mi><mrow><mi mathvariant="normal">s</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">f</mi><mi mathvariant="normal">e</mi></mrow></msub><mo>→</mo><msub><mi>α</mi><mi>c</mi></msub><mo>,</mo><msub><mi>ϕ</mi><mrow><mi>T</mi><mo>,</mo><mi>c</mi></mrow></msub><mo>→</mo><mi>u</mi></mrow><annotation encoding="application/x-tex">
+V_c,h_c \rightarrow \mathcal{G}_{\mathrm{safe}} \rightarrow \alpha_c,\phi_{T,c} \rightarrow u
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>𝒢</mi><mrow><mi mathvariant="normal">s</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">f</mi><mi mathvariant="normal">e</mi></mrow></msub><annotation encoding="application/x-tex">\mathcal{G}_{\mathrm{safe}}</annotation></semantics></math>
+表示参考可行化与安全层，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>u</mi><annotation encoding="application/x-tex">u</annotation></semantics></math>
+是实际执行命令，通常是姿态舵面和推进通道的综合下发量。</p>
+<p>进入吸气式巡航控制设计之前，先把速度环到油门、高度环到攻角、攻角环到姿态、油门到姿态、参考层到安全层的隐藏耦合想清楚。</p>
+<h2 id="时间尺度与调度">51.8 时间尺度与调度</h2>
+<p>时间尺度上，至少应满足“姿态内环快于外环、油门通道不被当作快通道”的基本认识。可写成定性关系</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mi>α</mi></msub><mo>≪</mo><msub><mi>T</mi><mi>V</mi></msub><mo>,</mo><mspace width="2.0em"></mspace><msub><mi>T</mi><msub><mi>ϕ</mi><mi>T</mi></msub></msub><mo>≪̸</mo><msub><mi>T</mi><mi>V</mi></msub></mrow><annotation encoding="application/x-tex">
+T_\alpha \ll T_V,\qquad T_{\phi_T}\not\ll T_V
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>T</mi><mi>α</mi></msub><annotation encoding="application/x-tex">T_\alpha</annotation></semantics></math>
+是攻角或姿态通道时间尺度，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>T</mi><mi>V</mi></msub><annotation encoding="application/x-tex">T_V</annotation></semantics></math>
+是速度外环时间尺度，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>T</mi><msub><mi>ϕ</mi><mi>T</mi></msub></msub><annotation encoding="application/x-tex">T_{\phi_T}</annotation></semantics></math>
+是油门通道时间尺度。</p>
+<p>对于工作点变化很大的巡航对象，还应采用增益调度或参数相关控制。若
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>K</mi><annotation encoding="application/x-tex">K</annotation></semantics></math>
+是随调度变量变化的反馈增益，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ρ</mi><mi>s</mi></msub><annotation encoding="application/x-tex">\rho_s</annotation></semantics></math>
+是调度变量，则可写为</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>K</mi><mo>=</mo><mi>K</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>ρ</mi><mi>s</mi></msub><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
+K=K(\rho_s)
+</annotation></semantics></math></p>
+<h2 id="安全滤波与参考治理">51.9 安全滤波与参考治理</h2>
+<p>CBF
+或安全滤波器可在突发扰动下修正控制输入，但如果输入修正频繁发生，说明参考层没有充分考虑推进和气动约束。安全层不是替代制导或参考规划的万能补丁。</p>
+<p>巡航段的参考治理应能识别原始速度高度参考是否可行，并在必要时进行收缩或拒绝。若原始参考不可行，就应先调整任务优先级，再进入控制层实现。</p>
+<h2 id="故障和容错巡航">51.10 故障和容错巡航</h2>
+<p>巡航段可能出现推力损失、燃料流量执行故障、进气道裕度传感异常、攻角测量偏置、舵面效率下降和气动参数突变。</p>
+<p>容错巡航控制应允许：检测故障、更新推力或效能模型、降低速度或高度参考、重构姿态控制和控制分配，并保持进气道和热/动压安全。</p>
+<p>若推力不足，硬追原速度参考会导致姿态和攻角通道过度补偿，最终可能同时损失速度和安全裕度。</p>
+<h2 id="与相关章节的接口">51.11 与相关章节的接口</h2>
+<p>第51章不应孤立地讨论“巡航段控制器”，而应把推进建模、饱和补偿、分配、容错和实时实现串成一条链。与相关章节的接口可概括为：</p>
+<ul>
+<li>吸气式巡航对象、推进状态和进气道裕度进入控制问题后，要交给第18章继续细化推进系统与气动推进耦合建模；</li>
+<li>油门限幅、限速、积分累积和推进残差接口则交给第41章继续细化抗积分饱和与输入饱和补偿；</li>
+<li>攻角和姿态命令落到多舵面或推力矢量时的实现需求交给第45章继续细化控制分配与可分配性余量；</li>
+<li>推力损失、传感偏置、进气道风险升高后的降级逻辑交给第46章继续细化故障诊断与容错控制链路；</li>
+<li>采样、时延、执行机构和实时调度约束则交给第55章继续细化工程实现与离散部署边界。</li>
+</ul>
+<h2 id="验证指标">51.12 验证指标</h2>
+<p>吸气式巡航控制至少应报告：</p>
+<table>
+<thead>
+<tr>
+<th>指标</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>velocity_rms</td>
+<td>速度跟踪均方根误差</td>
+</tr>
+<tr>
+<td>altitude_rms</td>
+<td>高度跟踪均方根误差</td>
+</tr>
+<tr>
+<td>alpha_max</td>
+<td>最大攻角</td>
+</tr>
+<tr>
+<td>inlet_margin_min</td>
+<td>最小进气道裕度</td>
+</tr>
+<tr>
+<td>q_margin_min</td>
+<td>最小动压裕度</td>
+</tr>
+<tr>
+<td>heat_margin_min</td>
+<td>最小热流裕度</td>
+</tr>
+<tr>
+<td>throttle_peak</td>
+<td>油门峰值</td>
+</tr>
+<tr>
+<td>throttle_rate_peak</td>
+<td>油门速率峰值</td>
+</tr>
+<tr>
+<td>propulsion_moment_error</td>
+<td>推进力矩耦合误差</td>
+</tr>
+<tr>
+<td>fault_pass_rate</td>
+<td>故障后通过率</td>
+</tr>
+</tbody>
+</table>
+<h2 id="本章适用范围">51.13 本章适用范围</h2>
+<p>吸气式巡航控制相关基础已齐备。第18章提供推进与气动推进耦合的建模边界，第41章提供油门饱和与抗积分饱和接口，案例映射页说明了巡航案例的成熟度和扩展方向。</p>
+<p>边界必须写清楚：本章已铺开吸气式巡航对象、推进耦合、输入约束和低阶教学案例主线；因此本章能够支撑“吸气式巡航控制问题定义和低阶受限协同证据已建立”，不能支撑高保真进气道动态、燃烧室/喷管状态和完整吸气式闭环已经完成验证。</p>
+<h2 id="常见错误">51.14 常见错误</h2>
+<ol type="1">
+<li>把推力当成理想瞬时输入。</li>
+<li>只做速度高度跟踪，不检查进气道裕度。</li>
+<li>忽略推力变化带来的俯仰力矩。</li>
+<li>攻角约束只按气动安全解释，不考虑推进系统。</li>
+<li>用单一飞行点控制器声称全巡航包线有效。</li>
+<li>只报告标称结果，不做气动和推进不确定性验证。</li>
+</ol>
+<h2 id="练习">51.15 练习</h2>
+<ol type="1">
+<li>写出包含速度、高度、攻角和油门状态的吸气式巡航纵向模型。</li>
+<li>构造一个进气道裕度函数
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>m</mi><mrow><mi mathvariant="normal">i</mi><mi mathvariant="normal">n</mi><mi mathvariant="normal">l</mi><mi mathvariant="normal">e</mi><mi mathvariant="normal">t</mi></mrow></msub><mo stretchy="false" form="prefix">(</mo><mi>M</mi><mi>a</mi><mo>,</mo><mi>α</mi><mo>,</mo><msub><mi>ϕ</mi><mi>T</mi></msub><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">m_{\mathrm{inlet}}(Ma,\alpha,\phi_T)</annotation></semantics></math>，并说明其控制意义。</li>
+<li>说明推力变化为什么可能影响俯仰姿态稳定。</li>
+<li>设计一个巡航段参考治理器，使速度高度参考满足动压和进气道约束。</li>
+</ol>
+
+      </article>
+      
+      <nav class="book-bottom-nav" aria-label="章节导航">
+        <a href="./50-glide-energy-management-control.html">上一章：第50章 滑翔飞行与能量管理控制</a>
+        <a href="./index.html">卷首页</a>
+        <span aria-disabled="true">下一章：无</span>
+      </nav>
+    </main>
+  </div>
+</body>
+</html>

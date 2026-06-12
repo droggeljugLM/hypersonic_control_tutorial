@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="860" height="500" viewBox="0 0 860 500">
+<rect width="100%" height="100%" fill="white"/>
+<text x="430" y="28" text-anchor="middle" font-family="Arial" font-size="20">Fault Detection Delay: guarded</text>
+<rect x="82" y="54" width="690" height="360" fill="#fafafa" stroke="#222"/>
+<line x1="82" y1="394.71" x2="772" y2="394.71" stroke="#333"/>
+<text transform="translate(24,234) rotate(-90)" text-anchor="middle" font-family="Arial" font-size="14">delay (s)</text>
+<rect x="125.70" y="73.29" width="142.60" height="321.43" fill="#8a4fbf"/>
+<text x="197.00" y="438" text-anchor="middle" font-family="Arial" font-size="11">alpha sensor bias</text>
+<text x="197.00" y="67.29" text-anchor="middle" font-family="Arial" font-size="11">0.2</text>
+<rect x="355.70" y="73.29" width="142.60" height="321.43" fill="#8a4fbf"/>
+<text x="427.00" y="438" text-anchor="middle" font-family="Arial" font-size="11">elevator loss</text>
+<text x="427.00" y="67.29" text-anchor="middle" font-family="Arial" font-size="11">0.2</text>
+<rect x="585.70" y="394.71" width="142.60" height="0.00" fill="#8a4fbf"/>
+<text x="657.00" y="438" text-anchor="middle" font-family="Arial" font-size="11">input delay</text>
+<text x="657.00" y="388.71" text-anchor="middle" font-family="Arial" font-size="11">0.0</text>
+</svg>

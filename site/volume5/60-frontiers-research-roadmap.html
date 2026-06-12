@@ -1,0 +1,1225 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>第60章 前沿问题与研究路线</title>
+  <style>
+    :root {
+      --paper: #f7f3eb;
+      --ink: #1f2937;
+      --muted: #5b6472;
+      --line: color-mix(in srgb, #e4e8fb 68%, #cbd5e1 32%);
+      --accent: #4a5fb2;
+      --accent-soft: #e4e8fb;
+      --accent-deep: #2a3568;
+      color-scheme: light;
+    }
+    html {
+      -webkit-text-size-adjust: 100%;
+      background:
+        radial-gradient(circle at top left, #e4e8fb 0, rgba(255,255,255,0) 32%),
+        linear-gradient(180deg, #fbfaf6 0%, var(--paper) 18%, #f7f1e6 100%);
+    }
+    body {
+      margin: 0;
+      font-family: "Source Han Serif SC", "Songti SC", "Noto Serif CJK SC", "Microsoft YaHei", serif;
+      color: var(--ink);
+      line-height: 1.78;
+      letter-spacing: 0;
+    }
+    a { color: var(--accent-deep); }
+    .book-app {
+      display: grid;
+      grid-template-columns: 280px minmax(0, 1fr);
+      min-height: 100vh;
+    }
+    .book-sidebar {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow: auto;
+      padding: 1.2rem 1rem 1.2rem 1.15rem;
+      border-right: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(255,255,255,0.86), rgba(255,255,255,0.72));
+      backdrop-filter: blur(10px);
+    }
+    .sidebar-shell { position: sticky; top: 0; display: flex; flex-direction: column; gap: 1rem; }
+    .sidebar-brand {
+      padding: 0.95rem 0.95rem 1rem;
+      border-radius: 18px;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.95), rgba(255,255,255,0.84)),
+        linear-gradient(135deg, var(--accent-soft), rgba(255,255,255,0));
+      border: 1px solid var(--line);
+      box-shadow: 0 12px 28px rgba(31, 41, 55, 0.06);
+    }
+    .sidebar-brand .kicker { margin: 0; color: var(--accent); font-size: 0.82rem; font-weight: 700; }
+    .sidebar-brand h2 { margin: 0.45rem 0 0.25rem; font-size: 1.08rem; line-height: 1.3; color: var(--ink); }
+    .sidebar-brand p { margin: 0.35rem 0 0; color: var(--muted); font-size: 0.9rem; }
+    .sidebar-links { display: grid; gap: 0.45rem; }
+    .sidebar-link {
+      display: grid;
+      grid-template-columns: 2.2rem minmax(0, 1fr);
+      gap: 0.6rem;
+      align-items: start;
+      padding: 0.7rem 0.75rem;
+      border-radius: 14px;
+      text-decoration: none;
+      background: rgba(255,255,255,0.72);
+      border: 1px solid rgba(31,41,55,0.07);
+      color: var(--ink);
+    }
+    .sidebar-link:hover { background: rgba(255,255,255,0.95); border-color: var(--line); }
+    .sidebar-link.active {
+      background: linear-gradient(135deg, rgba(255,255,255,0.98), rgba(255,255,255,0.9));
+      border-color: var(--accent-soft);
+      box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent-soft) 68%, #ffffff 32%);
+    }
+    .sidebar-index {
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      min-width: 2rem;
+      height: 2rem;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent-deep);
+      font-size: 0.78rem;
+      font-weight: 800;
+    }
+    .sidebar-title { font-size: 0.94rem; line-height: 1.35; }
+    .book-main { min-width: 0; padding: 1.25rem 1.45rem 1.8rem; }
+    .book-page-header {
+      padding: 0.85rem 0 1rem;
+      margin-bottom: 1rem;
+      border-bottom: 1px solid var(--line);
+    }
+    .page-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.28rem 0.72rem;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.82);
+      border: 1px solid var(--line);
+      color: var(--accent-deep);
+      font-size: 0.8rem;
+      font-weight: 700;
+    }
+    .book-page-header h1 {
+      margin: 0.7rem 0 0;
+      font-size: 1.85rem;
+      line-height: 1.22;
+      color: var(--accent-deep);
+      border: 0;
+      padding: 0;
+    }
+    .book-page-header p { margin: 0.45rem 0 0; color: var(--muted); max-width: 62rem; }
+    .book-article { max-width: 900px; margin: 0; padding: 0 0 1.2rem; }
+    .book-article h1, .book-article h2, .book-article h3, .book-article h4, .book-article h5, .book-article h6 {
+      line-height: 1.28;
+      margin-top: 1.45em;
+      margin-bottom: 0.55em;
+      color: var(--accent-deep);
+    }
+    .book-article h1 { font-size: 2rem; border-bottom: 2px solid var(--line); padding-bottom: 0.42rem; }
+    .book-article h1:first-of-type { margin-top: 0; }
+    .book-article h2 { font-size: 1.42rem; }
+    .book-article h3 { font-size: 1.12rem; }
+    .book-article p, .book-article li, .book-article dd, .book-article td, .book-article th { text-align: justify; text-justify: inter-ideograph; }
+    .book-article p { margin: 0.85rem 0; }
+    .book-article code, .book-article pre { font-family: "Cascadia Mono", "Source Code Pro", Consolas, monospace; font-size: 0.94em; }
+    .book-article code {
+      padding: 0.02rem 0.24rem;
+      background: color-mix(in srgb, var(--accent-soft) 34%, #ffffff 66%);
+      border: 0;
+      border-bottom: 1px solid color-mix(in srgb, var(--accent-soft) 74%, #d1d5db 26%);
+      border-radius: 4px;
+      color: #253244;
+      box-decoration-break: clone;
+      -webkit-box-decoration-break: clone;
+    }
+    .book-article pre {
+      padding: 1rem 1.1rem;
+      overflow: auto;
+      background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,253,248,0.98));
+      border: 1px solid color-mix(in srgb, var(--accent-soft) 54%, #d1d5db 46%);
+      border-left: 5px solid var(--accent);
+      border-radius: 14px;
+      box-shadow: 0 8px 22px rgba(31, 41, 55, 0.05);
+    }
+    .book-article pre code { padding: 0; border: 0; background: transparent; color: inherit; }
+    .book-article table {
+      border-collapse: collapse;
+      width: 100%;
+      margin: 1rem 0 1.25rem;
+      background: rgba(255,255,255,0.82);
+      overflow: hidden;
+      border-radius: 12px;
+    }
+    .book-article th, .book-article td { border: 1px solid var(--line); padding: 0.5rem 0.7rem; vertical-align: top; }
+    .book-article th { background: color-mix(in srgb, var(--accent-soft) 42%, #ffffff 58%); }
+    .book-article blockquote {
+      margin: 1rem 0;
+      padding: 0.25rem 0 0.25rem 1rem;
+      border-left: 4px solid var(--accent);
+      color: #374151;
+      background: linear-gradient(90deg, rgba(255,255,255,0.72), rgba(255,255,255,0.48));
+      border-radius: 0 12px 12px 0;
+    }
+    .book-bottom-nav {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-top: 2.2rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--line);
+    }
+    .book-bottom-nav a {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.6rem 0.9rem;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.84);
+      text-decoration: none;
+      font-weight: 700;
+    }
+    .book-bottom-nav span {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.6rem 0.9rem;
+      border-radius: 999px;
+      border: 1px solid rgba(31,41,55,0.08);
+      background: rgba(255,255,255,0.54);
+      color: rgba(31,41,55,0.42);
+      font-weight: 700;
+    }
+    .book-bottom-nav a:hover { background: rgba(255,255,255,0.98); }
+    .book-volume-intro {
+      margin: 0 0 1.25rem;
+      padding: 1.2rem 1.25rem 1.1rem;
+      border-radius: 18px;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.96), rgba(255,255,255,0.78)),
+        linear-gradient(135deg, var(--accent-soft), rgba(255,255,255,0));
+      border: 1px solid var(--line);
+      box-shadow: 0 14px 34px rgba(31, 41, 55, 0.06);
+    }
+    .volume-intro-kicker {
+      margin: 0;
+      color: var(--accent);
+      font-size: 0.84rem;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    .book-volume-intro h2 {
+      margin: 0.55rem 0 0.55rem;
+      font-size: 1.28rem;
+      line-height: 1.35;
+      color: var(--accent-deep);
+    }
+    .volume-intro-summary {
+      margin: 0;
+      color: var(--muted);
+      max-width: 68rem;
+    }
+    .volume-intro-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.8rem;
+      margin-top: 1rem;
+    }
+    .volume-intro-box {
+      padding: 0.85rem 0.9rem;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.72);
+      border: 1px solid rgba(31,41,55,0.08);
+    }
+    .volume-intro-box span {
+      display: block;
+      color: var(--accent);
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+    }
+    .volume-intro-box strong {
+      display: block;
+      margin-top: 0.35rem;
+      color: var(--ink);
+      font-size: 0.95rem;
+      line-height: 1.45;
+    }
+    .volume-intro-note {
+      margin-top: 0.9rem;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+    @media (max-width: 1180px) {
+      .book-app { grid-template-columns: 1fr; }
+      .book-sidebar {
+        position: relative;
+        height: auto;
+        border-right: 0;
+        border-bottom: 1px solid var(--line);
+      }
+      .sidebar-shell { position: static; }
+    }
+    @media (max-width: 900px) {
+      .book-main { padding: 1rem 1rem 1.5rem; }
+      .book-bottom-nav { flex-direction: column; }
+      .volume-intro-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="book-app">
+    <aside class="book-sidebar">
+      <div class="sidebar-shell">
+        <div class="sidebar-brand">
+          <p class="kicker">高超声速飞行器控制教程</p>
+          <h2>第五卷 仿真验证、工程实现与研究训练</h2>
+          <p>验证与训练</p>
+        </div>
+        <nav class="sidebar-links" aria-label="本卷目录">
+          <a class="sidebar-link" href="./index.html"><span class="sidebar-index">0</span><span class="sidebar-title">卷首页</span></a>
+<a class="sidebar-link" href="./52-hypersonic-control-simulation-platform.html"><span class="sidebar-index">01</span><span class="sidebar-title">第52章 高超声速控制仿真平台设计</span></a>
+<a class="sidebar-link" href="./53-numerical-integration-simulation-credibility.html"><span class="sidebar-index">02</span><span class="sidebar-title">第53章 数值积分与仿真可信性</span></a>
+<a class="sidebar-link" href="./54-aerodynamic-data-tables-parameter-management.html"><span class="sidebar-index">03</span><span class="sidebar-title">第54章 气动数据表、插值与参数管理</span></a>
+<a class="sidebar-link" href="./55-controller-discretization-real-time-implementation.html"><span class="sidebar-index">04</span><span class="sidebar-title">第55章 控制器离散化与实时实现</span></a>
+<a class="sidebar-link" href="./56-verification-metrics-system.html"><span class="sidebar-index">05</span><span class="sidebar-title">第56章 验证指标体系</span></a>
+<a class="sidebar-link" href="./57-uncertainty-monte-carlo-verification.html"><span class="sidebar-index">06</span><span class="sidebar-title">第57章 不确定性分析与 Monte Carlo 验证</span></a>
+<a class="sidebar-link" href="./58-typical-case-library.html"><span class="sidebar-index">07</span><span class="sidebar-title">第58章 典型案例库</span></a>
+<a class="sidebar-link" href="./59-hypersonic-control-paper-reading-method.html"><span class="sidebar-index">08</span><span class="sidebar-title">第59章 高超声速控制论文阅读方法</span></a>
+<a class="sidebar-link active" href="./60-frontiers-research-roadmap.html"><span class="sidebar-index">09</span><span class="sidebar-title">第60章 前沿问题与研究路线</span></a>
+<a class="sidebar-link" href="./case-library-code-mapping.html"><span class="sidebar-index">10</span><span class="sidebar-title">第五卷案例映射</span></a>
+        </nav>
+      </div>
+    </aside>
+    <main class="book-main">
+      <header class="book-page-header">
+        <div class="page-eyebrow">第5册·章节页09</div>
+        <h1 id="volume5--60-frontiers-research-roadmap">第60章 前沿问题与研究路线</h1>
+        <p>本页是章节正文页。左侧目录用于回到本卷其他章节，底部导航用于前后章跳转。</p>
+      </header>
+      <article class="book-article">
+        <h2 id="问题背景">60.1 问题背景</h2>
+<p>高超声速飞行器控制的前沿问题很多，但前沿不是堆叠流行词。真正有价值的研究路线应从控制对象、约束矛盾、理论缺口、工程限制和验证能力出发。本章给出全书的收尾：如何从已学内容走向研究问题。</p>
+<p>这一章先把对象、矛盾、方法承载体和证据预算写清楚，再讨论前沿方向、研究拆解和路线判断。前沿不是堆叠流行词，而是要回到控制对象、约束矛盾、理论缺口、工程限制和验证能力这些实质问题上。</p>
+<p>本章不声称列尽全部前沿，也不提供未经核实的最新文献清单。它提供的是研究路线组织方法，以及从已有案例走向博士论文级研究的组织方式。</p>
+<p>从整本书的收尾角度看，这一章的任务不是制造“方向很多”的感觉，而是把已有理论、对象、方法、指标和案例重新组织成可推进的研究路线。真正好的路线，不在于名字够新，而在于对象够清楚、矛盾够明确、证据够分层。</p>
+<h2 id="前沿问题总表">60.2 前沿问题总表</h2>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>方向</th>
+<th>核心问题</th>
+<th>主要风险</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>智能控制</td>
+<td>用神经网络、模糊系统或学习模型补偿未知动态</td>
+<td>稳定性、泛化和安全性不足</td>
+</tr>
+<tr>
+<td>安全强化学习</td>
+<td>在约束内学习策略或参考生成</td>
+<td>安全探索和仿真到现实迁移</td>
+</tr>
+<tr>
+<td>学习增强控制</td>
+<td>用数据改进模型、增益或扰动估计</td>
+<td>学习误差进入闭环</td>
+</tr>
+<tr>
+<td>可验证神经控制</td>
+<td>对神经控制器给出形式化或 Lyapunov 保证</td>
+<td>维度高、验证保守</td>
+</tr>
+<tr>
+<td>数字孪生</td>
+<td>在线同步模型和真实系统状态</td>
+<td>模型校正误差和实时性</td>
+</tr>
+<tr>
+<td>在线气动辨识</td>
+<td>飞行中更新气动参数或效能模型</td>
+<td>可辨识性和参数漂移</td>
+</tr>
+<tr>
+<td>多飞行器协同</td>
+<td>多个平台协同制导和控制</td>
+<td>通信延迟、分布式约束</td>
+</tr>
+<tr>
+<td>攻防对抗</td>
+<td>机动目标、拦截、规避和对抗策略</td>
+<td>博弈复杂度和可信验证</td>
+</tr>
+<tr>
+<td>任务自主规划</td>
+<td>在线任务重规划和约束路径生成</td>
+<td>安全可行性和计算负载</td>
+</tr>
+<tr>
+<td>控制系统可信评估</td>
+<td>用标准化证据判断控制器可信度</td>
+<td>指标体系、数据和高保真模型</td>
+</tr>
+</tbody>
+</table>
+<p>每个方向都应回到一个基本问题：状态是什么，输入是什么，约束是什么，结论如何验证。</p>
+<h2 id="前沿选题设计前的对象矛盾与证据检查">60.3
+前沿选题设计前的对象、矛盾与证据检查</h2>
+<p>第60章容易写偏的地方，是把研究路线设计成“热点词拼接”。本章先把对象、矛盾、方法承载体和证据预算写清楚，再谈路线推进。</p>
+<p>进入研究路线设计之前，先把一些问题想清楚：</p>
+<table>
+<thead>
+<tr>
+<th>项目</th>
+<th>需要先说明的问题</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>对象类型</td>
+<td>是 AB-HSV、HGV、再入、巡航、终端制导还是多飞行器协同</td>
+</tr>
+<tr>
+<td>任务阶段</td>
+<td>是姿态内环、纵向巡航、再入、滑翔、终端还是任务规划层</td>
+</tr>
+<tr>
+<td>模型层级</td>
+<td>质点、纵向、三维质点、六自由度还是刚柔耦合</td>
+</tr>
+<tr>
+<td>核心矛盾</td>
+<td>是约束冲突、不确定性、耦合、实时性还是可验证性不足</td>
+</tr>
+<tr>
+<td>方法位置</td>
+<td>学习模块、鲁棒项、安全层、分配器还是规划器进入哪一层</td>
+</tr>
+<tr>
+<td>证明对象</td>
+<td>想证明稳定性、安全性、可行性还是只给经验证据</td>
+</tr>
+<tr>
+<td>证据预算</td>
+<td>是否有基线、指标、Monte Carlo、失败样本和高保真承载体</td>
+</tr>
+<tr>
+<td>降级策略</td>
+<td>若方法超出证据能力，是否能退回教学级或研究原型表述</td>
+</tr>
+</tbody>
+</table>
+<p>因此，更自然的起点，是先问清楚一个选题到底作用在哪个对象、解决什么矛盾、靠什么证据成立，再写“某某前沿方向很重要”。</p>
+<h2 id="智能控制">60.4 智能控制</h2>
+<p>智能控制可用于：</p>
+<ul>
+<li>逼近未知气动项；</li>
+<li>估计扰动；</li>
+<li>调节控制增益；</li>
+<li>生成参考轨迹；</li>
+<li>辅助故障诊断；</li>
+<li>识别飞行包线变化。</li>
+</ul>
+<p>但神经网络或模糊系统不能替代控制律本身的稳定性分析。较稳妥结构是：</p>
+<ul>
+<li>名义模型控制器
+<ul>
+<li><ul>
+<li>学习补偿项</li>
+</ul></li>
+<li><ul>
+<li>鲁棒项</li>
+</ul></li>
+<li><ul>
+<li>安全滤波器</li>
+</ul></li>
+</ul></li>
+</ul>
+<p>最低检查包括：</p>
+<ul>
+<li>网络输入是否可测；</li>
+<li>输出是否有物理限幅；</li>
+<li>逼近误差是否进入证明；</li>
+<li>未覆盖飞行包线如何降级；</li>
+<li>是否和非智能鲁棒补偿比较；</li>
+<li>是否报告异常样本。</li>
+</ul>
+<h2 id="安全强化学习">60.5 安全强化学习</h2>
+<p>强化学习适合处理复杂任务规划和策略搜索，但直接让策略输出舵面命令风险极高。更可控的路线是：</p>
+<ul>
+<li><strong>强化学习生成参考或策略参数</strong>：参考治理器检查可行性；CBF
+与模型预测控制安全层过滤；传统飞控内环执行</li>
+</ul>
+<p>安全强化学习论文必须回答：</p>
+<ul>
+<li>训练环境是否覆盖目标飞行包线；</li>
+<li>探索时如何避免违反硬约束；</li>
+<li>策略在未见场景下如何验证；</li>
+<li>安全层介入频率是多少；</li>
+<li>策略失效时是否有回退机制；</li>
+<li>是否只在仿真中有效。</li>
+</ul>
+<p>若没有形式化安全保证，应称为“学习辅助控制”或“仿真策略研究”，不要声称飞行安全已证明。</p>
+<h2 id="学习增强控制">60.6 学习增强控制</h2>
+<p>学习增强控制不同于完全学习控制。它把学习模块放在可解释控制框架中：</p>
+<ul>
+<li><strong>物理模型</strong>：数据校正；鲁棒/自适应控制；安全验证</li>
+</ul>
+<p>典型题目包括：</p>
+<ul>
+<li>用在线数据修正气动系数；</li>
+<li>用学习模型估计控制效能退化；</li>
+<li>用数据驱动扰动模型增强 DOB/ESO；</li>
+<li>用学习残差改善模型预测控制的预测模型；</li>
+<li>用飞行包线分类器选择增益调度区间。</li>
+</ul>
+<p>关键边界是：学习误差必须有界或可监控。若学习模块输出异常，控制器应降级到保守模式。</p>
+<h2 id="可验证神经控制">60.7 可验证神经控制</h2>
+<p>可验证神经控制试图回答同样一个核心问题：带神经网络的闭环是否满足稳定性或安全性条件？</p>
+<p>可能路线：</p>
+<ul>
+<li>Lyapunov 神经网络；</li>
+<li>神经 CBF；</li>
+<li>区间传播和可达集；</li>
+<li>混合整数验证；</li>
+<li>采样加形式化边界；</li>
+<li>神经网络输出限幅和单调性约束。</li>
+</ul>
+<p>难点在于高维状态、非线性气动、输入饱和和飞行包线变化。研究时应先从低维纵向或姿态模型开始，再扩展到六自由度。</p>
+<h2 id="数字孪生和在线模型校正">60.8 数字孪生和在线模型校正</h2>
+<p>数字孪生在控制中的含义不是做一个漂亮仿真模型，而是在线维护一个可用于预测、诊断和决策的模型：</p>
+<ul>
+<li><strong>传感数据</strong>：状态和参数估计；模型校正；预测和健康评估；控制或任务重规划</li>
+</ul>
+<p>高超声速场景中的问题包括：</p>
+<ul>
+<li>气动热和结构变化；</li>
+<li>推进系统状态变化；</li>
+<li>舵面效能下降；</li>
+<li>传感器可信度变化；</li>
+<li>高速任务中可用数据窗口短。</li>
+</ul>
+<p>数字孪生用于控制时，必须说明校正误差、更新频率、实时计算负载和闭环稳定性影响。</p>
+<h2 id="在线气动辨识">60.9 在线气动辨识</h2>
+<p>在线气动辨识可写为：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mover><mi>θ</mi><mo accent="true">̂</mo></mover><mo accent="true">̇</mo></mover><mo>=</mo><mi mathvariant="normal">Γ</mi><mi>ϕ</mi><mo stretchy="false" form="prefix">(</mo><mi>ξ</mi><mo stretchy="false" form="postfix">)</mo><mspace width="0.167em"></mspace><msub><mi>e</mi><mi>θ</mi></msub></mrow><annotation encoding="application/x-tex">
+\dot{\hat{\theta}}=\Gamma \phi(\xi)\,e_\theta
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mover><mi>θ</mi><mo accent="true">̂</mo></mover><annotation encoding="application/x-tex">\hat{\theta}</annotation></semantics></math>
+是参数估计值，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi mathvariant="normal">Γ</mi><annotation encoding="application/x-tex">\Gamma</annotation></semantics></math>
+是正定自适应增益矩阵，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ϕ</mi><mo stretchy="false" form="prefix">(</mo><mi>ξ</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\phi(\xi)</annotation></semantics></math>
+是回归向量，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ξ</mi><annotation encoding="application/x-tex">\xi</annotation></semantics></math>
+是由 Mach
+数、攻角、侧滑角等组成的调度变量，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>e</mi><mi>θ</mi></msub><annotation encoding="application/x-tex">e_\theta</annotation></semantics></math>
+是参数相关误差。</p>
+<p>辨识目标是更新</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>q</mi><mo accent="true">̂</mo></mover><mo stretchy="false" form="prefix">(</mo><mi>ξ</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mi>ϕ</mi><mo stretchy="false" form="prefix">(</mo><mi>ξ</mi><msup><mo stretchy="false" form="postfix">)</mo><mi>⊤</mi></msup><mover><mi>θ</mi><mo accent="true">̂</mo></mover></mrow><annotation encoding="application/x-tex">
+\hat{q}(\xi)=\phi(\xi)^\top \hat{\theta}
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>q</mi><mo accent="true">̂</mo></mover><mo stretchy="false" form="prefix">(</mo><mi>ξ</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\hat{q}(\xi)</annotation></semantics></math>
+是被辨识的气动量估计值，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ϕ</mi><mo stretchy="false" form="prefix">(</mo><mi>ξ</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\phi(\xi)</annotation></semantics></math>
+是特征向量，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mover><mi>θ</mi><mo accent="true">̂</mo></mover><annotation encoding="application/x-tex">\hat{\theta}</annotation></semantics></math>
+是待估参数向量。若论文还给出真实对象模型，则应同时说明</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>q</mi><mo stretchy="false" form="prefix">(</mo><mi>ξ</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mi>ϕ</mi><mo stretchy="false" form="prefix">(</mo><mi>ξ</mi><msup><mo stretchy="false" form="postfix">)</mo><mi>⊤</mi></msup><mi>θ</mi><mo>+</mo><mi>δ</mi><mo stretchy="false" form="prefix">(</mo><mi>ξ</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
+q(\xi)=\phi(\xi)^\top \theta+\delta(\xi)
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>q</mi><mo stretchy="false" form="prefix">(</mo><mi>ξ</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">q(\xi)</annotation></semantics></math>
+是真实气动量，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>θ</mi><annotation encoding="application/x-tex">\theta</annotation></semantics></math>
+是真实参数向量，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>δ</mi><mo stretchy="false" form="prefix">(</mo><mi>ξ</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\delta(\xi)</annotation></semantics></math>
+是建模残差。 残差项
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>δ</mi><mo stretchy="false" form="prefix">(</mo><mi>ξ</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\delta(\xi)</annotation></semantics></math>
+代表模型无法完全解释的部分，通常需要和鲁棒项或安全边界一起处理。</p>
+<p>下面把研究路线中最常用的抽象对象写清楚：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">(</mo><mi>𝒪</mi><mo>,</mo><mi>𝒳</mi><mo>,</mo><mi>𝒰</mi><mo>,</mo><mi>𝒦</mi><mo>,</mo><mi>𝒯</mi><mo>,</mo><mi>𝒱</mi><mo>,</mo><mi>ℬ</mi><mo>,</mo><mi>ℒ</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
+(\mathcal{O},\mathcal{X},\mathcal{U},\mathcal{K},\mathcal{T},\mathcal{V},\mathcal{B},\mathcal{L})
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝒪</mi><annotation encoding="application/x-tex">\mathcal{O}</annotation></semantics></math>
+表示对象与任务，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝒳</mi><annotation encoding="application/x-tex">\mathcal{X}</annotation></semantics></math>
+表示状态接口，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝒰</mi><annotation encoding="application/x-tex">\mathcal{U}</annotation></semantics></math>
+表示输入接口，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝒦</mi><annotation encoding="application/x-tex">\mathcal{K}</annotation></semantics></math>
+表示核心矛盾，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝒯</mi><annotation encoding="application/x-tex">\mathcal{T}</annotation></semantics></math>
+表示理论目标，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝒱</mi><annotation encoding="application/x-tex">\mathcal{V}</annotation></semantics></math>
+表示验证协议，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ℬ</mi><annotation encoding="application/x-tex">\mathcal{B}</annotation></semantics></math>
+表示结论边界，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ℒ</mi><annotation encoding="application/x-tex">\mathcal{L}</annotation></semantics></math>
+表示分阶段里程碑。这样交付出来的选题，才方便进入开题、复现和案例扩展。
+这个对象串联的是研究路线的最小骨架，不是完整论文目录。
+也就是说，它是把研究想法压缩成可执行项目包，而不是把论文目录提前写出来。</p>
+<h2 id="研究成熟度检查">60.10 研究成熟度检查</h2>
+<p>一个前沿选题进入正式研究前，应检查：</p>
+<table>
+<thead>
+<tr>
+<th>检查项</th>
+<th>问题</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>对象明确</td>
+<td>是哪类高超声速飞行器和哪段任务</td>
+</tr>
+<tr>
+<td>模型明确</td>
+<td>状态、输入、输出和参数是什么</td>
+</tr>
+<tr>
+<td>难点明确</td>
+<td>约束、不确定性、耦合还是实时性</td>
+</tr>
+<tr>
+<td>方法明确</td>
+<td>控制律或算法如何进入闭环</td>
+</tr>
+<tr>
+<td>保证明确</td>
+<td>稳定性、安全性或可行性结论是什么</td>
+</tr>
+<tr>
+<td>证据明确</td>
+<td>指标、基线、样本和失败分析是什么</td>
+</tr>
+<tr>
+<td>边界明确</td>
+<td>哪些结论不能声称</td>
+</tr>
+</tbody>
+</table>
+<p>若其中三项以上答不清，应先回到前面章节补模型、指标或基线。</p>
+<h2 id="研究路线证据层级与章节衔接">60.11
+研究路线证据层级与章节衔接</h2>
+<p>为了避免把“有一个方向想法”误写成“已经形成成熟研究路线”，本章可把研究证据粗分为五级：</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>等级</th>
+<th>最低证据</th>
+<th>仍缺什么</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0 级</td>
+<td>只有方向名和问题动机</td>
+<td>没有对象、模型和矛盾定义</td>
+</tr>
+<tr>
+<td>1 级</td>
+<td>已明确对象、任务段、核心矛盾和基线</td>
+<td>没有理论目标和验证协议</td>
+</tr>
+<tr>
+<td>2 级</td>
+<td>已给出控制接口、指标表、样本矩阵和里程碑</td>
+<td>没有教学级复现或案例承载体</td>
+</tr>
+<tr>
+<td>3 级</td>
+<td>已有教学级案例、失败样本和保守结论边界</td>
+<td>仍缺多场景统计和更高保真扩展</td>
+</tr>
+<tr>
+<td>4 级</td>
+<td>已形成理论、案例、统计和高保真扩展闭环</td>
+<td>才接近博士论文级研究路线</td>
+</tr>
+</tbody>
+</table>
+<p>与相关章节的衔接关系可再概括为：</p>
+<table>
+<thead>
+<tr>
+<th>本章完成的内容</th>
+<th>相关章节继续完成的内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>前沿方向分解为对象、矛盾和里程碑</td>
+<td>第58章继续把路线拆成案例库条目</td>
+</tr>
+<tr>
+<td>论文与路线之间的边界管理</td>
+<td>第59章继续审查文献证据和复现可行性</td>
+</tr>
+<tr>
+<td>路线中的指标和统计设计</td>
+<td>第 56、57 章继续细化验证协议</td>
+</tr>
+</tbody>
+</table>
+<p>第60章把研究路线写成了一个对象、理论、验证和边界都可核查的工程化计划。</p>
+<h2 id="教学样例一从-c13-到容错协同研究路线卡">60.12 教学样例一：从 C13
+到容错协同研究路线卡</h2>
+<p>如果读者完成第58章案例库中的
+C13，下一步往往会想把“故障注入实验”推进成“容错控制研究”。更稳妥的推进路径不是先铺开一个“大而全”的容错框架，而是先把研究问题压缩成下面一张路线卡：</p>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>项目</th>
+<th>较稳妥的写法</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>对象</td>
+<td>高超声速纵向教学闭环中的传感器/执行机构故障</td>
+</tr>
+<tr>
+<td>配套算例</td>
+<td>故障注入算例、故障扫描算例、故障图表和成对差值表</td>
+</tr>
+<tr>
+<td>证据层级</td>
+<td>已有故障敏感性、检测延迟和通过标记，可视为 3 级前的教学算例</td>
+</tr>
+<tr>
+<td>核心矛盾</td>
+<td>故障检测逻辑已经出现，但检测、分配重构和任务降级还没有闭环打通</td>
+</tr>
+<tr>
+<td>基线问题</td>
+<td>目前只能回答“哪类故障会暴露”，不能回答“故障后如何稳定完成任务”</td>
+</tr>
+<tr>
+<td>候选路线</td>
+<td>残差设计到故障隔离，再到健康效能矩阵、控制分配重构和任务降级</td>
+</tr>
+<tr>
+<td>最低理论目标</td>
+<td>检测延迟有界、重构后剩余输入可分配、降级模式下关键约束仍可监控</td>
+</tr>
+<tr>
+<td>最低验证协议</td>
+<td>故障类型矩阵、幅值扫描、故障发生时刻扫描、失败样本和最坏样本归因</td>
+</tr>
+<tr>
+<td>结论边界</td>
+<td>在重构链未闭合前，只能写故障敏感性与检测逻辑研究，不能写完整主动容错</td>
+</tr>
+</tbody>
+</table>
+<p>一张路线卡可以再拆成四个连续里程碑：</p>
+<ol type="1">
+<li><strong>里程碑
+1，残差与门限</strong>：先把残差设计、门限设定和初始检测逻辑写清楚。</li>
+<li><strong>里程碑
+2，故障隔离与健康矩阵</strong>：再把故障类型、健康状态和隔离条件整理成统一接口。</li>
+<li><strong>里程碑
+3，分配重构与任务降级</strong>：随后把控制分配重构、余度分配和任务降级接成闭环。</li>
+<li><strong>里程碑
+4，多故障与更高保真对象验证</strong>：最后再把多故障、更多飞行点和更高保真对象接入验证。</li>
+</ol>
+<p>其中最容易被忽视的是里程碑
+3。很多论文把“检测到了故障”直接写成“容错控制有效”，但对控制科学与工程来说，真正关键的是故障后命令还能否通过健康执行器落实，以及是否需要自动降低任务要求。</p>
+<p>因此，一条路线最适合把研究问题写成：在执行器效能下降和传感器偏置存在时，如何在保持关键约束可监控的前提下，完成故障检测、控制重构和任务降级的协同设计？</p>
+<h2 id="教学样例二从-c16c17-与-c20-到高保真-igc-路线卡">60.13
+教学样例二：从 C16、C17 与 C20 到高保真 IGC 路线卡</h2>
+<p>第48章和案例库中的 C16、C17、C20
+给了一个很有价值的起点：已有终端任务、制导接口、姿态/分配耦合骨架和六自由度传播的教学算例，但它们还没有形成真正高保真的闭环
+IGC。研究路线卡可整理为：</p>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>项目</th>
+<th>较稳妥的写法</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>对象</td>
+<td>三维高超声速飞行器终端或中段任务中的制导控制一体化问题</td>
+</tr>
+<tr>
+<td>配套算例</td>
+<td>三维制导算例、姿态接口算例、耦合骨架算例、六自由度刚体传播算例和 IGC
+汇总表</td>
+</tr>
+<tr>
+<td>证据层级</td>
+<td>已有接口链、耦合骨架和指标汇总，可视为 2 级到 3 级之间</td>
+</tr>
+<tr>
+<td>核心矛盾</td>
+<td>终端任务定义、制导命令、姿态带宽、控制分配余度和六自由度动力学尚未在同一闭环内统一验证</td>
+</tr>
+<tr>
+<td>仍需展开的环节</td>
+<td>气动表可信度、执行机构动态、终端角约束、目标机动、分配残差闭环和多场景失败样本</td>
+</tr>
+<tr>
+<td>候选路线</td>
+<td>C16 终端任务算例到 C17 接口链，再到 C20
+六自由度传播，随后推进到高保真闭环和多场景统计</td>
+</tr>
+<tr>
+<td>最低理论目标</td>
+<td>命令可执行性、时间尺度协调、约束激活时的接口一致性</td>
+</tr>
+<tr>
+<td>最低验证协议</td>
+<td>终端误差、姿态误差、分配残差、约束违反积分、最坏场景和接口失败记录</td>
+</tr>
+<tr>
+<td>结论边界</td>
+<td>在验证气动数据库和完整闭环前，只能写教学级 IGC
+接口研究，不能写高保真闭环完成</td>
+</tr>
+</tbody>
+</table>
+<p>一条路线更适合按“接口先于算法”的思路推进：</p>
+<ol type="1">
+<li>先用 C16 固定终端任务、终端角约束和评价指标；</li>
+<li>再用 C17 把制导命令、可执行参考和分配接口的数据链写死；</li>
+<li>然后用 C20 检查刚体传播、坐标约定、气动/惯量数据和姿态健康；</li>
+<li>最后才讨论 NDI、模型预测控制、CBF
+或学习模块该放在哪一层，并进入更高保真扩展。</li>
+</ol>
+<p>这样做的好处是，读者不会把 IGC
+误解成“把制导律和控制律写在一页纸上”。真正的难点往往是：当约束激活、姿态带宽不足或分配余量变小的时候，原始制导命令如何被保守改写成可执行命令。</p>
+<h2 id="教学样例三从-c18-与-c19-到受限优化研究路线卡">60.14
+教学样例三：从 C18 与 C19 到受限优化研究路线卡</h2>
+<p>第44章、案例 C18 和 C19
+形成了另一个很自然的研究抓手：模型预测控制和安全滤波已有教学级实现，但离研究级问题还差“可行性、实时性和回退链”的闭合。路线卡可写成：</p>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>项目</th>
+<th>较稳妥的写法</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>对象</td>
+<td>受动压、热流、输入饱和等约束的高超声速跟踪或任务控制</td>
+</tr>
+<tr>
+<td>配套算例</td>
+<td>模型预测控制轨迹跟踪算例、屏障安全修正算例和安全滤波配套材料</td>
+</tr>
+<tr>
+<td>证据层级</td>
+<td>已有教学级对比、成对差值和小样本统计，可视为 3 级前的算例承载体</td>
+</tr>
+<tr>
+<td>核心矛盾</td>
+<td>约束可行性、求解时间和安全回退尚未统一写入同一验证协议</td>
+</tr>
+<tr>
+<td>基线问题</td>
+<td>目前可以比较“安全指标是否下降”，但还不能充分回答“不可行时怎么办”</td>
+</tr>
+<tr>
+<td>候选路线</td>
+<td>参考可行化到模型预测控制或 QP
+安全层，再到回退逻辑、求解时间统计和多场景约束统计</td>
+</tr>
+<tr>
+<td>最低理论目标</td>
+<td>递推可行性、松弛变量解释、安全回退触发条件或经验可行性边界</td>
+</tr>
+<tr>
+<td>最低验证协议</td>
+<td>违反积分、松弛量、求解时间、超时样本、回退次数和失败样本类型</td>
+</tr>
+<tr>
+<td>结论边界</td>
+<td>在不可行样本和实时统计不充分前，只能写受限优化教学研究，不能写实时工程控制结论</td>
+</tr>
+</tbody>
+</table>
+<p>一条路线有一个很重要的教学价值：它逼着读者把“优化求解成功”与“闭环任务成功”分开。对高超声速控制来说，求解器每步都返回结果并不等于任务可执行，因为安全层可能频繁修改参考，或者回退机制已经长期接管系统。</p>
+<p>因此，比较稳妥的题目往往不是“一种高超声速最优安全控制方法”，而是“受限高超声速跟踪中可行性管理、回退逻辑与安全指标统一验证研究”。</p>
+<h2 id="研究成熟度评分表与止损线">60.15 研究成熟度评分表与止损线</h2>
+<p>前面的 0 级到 4
+级更像证据分级。真正做开题时，读者还需要一个更细的打分表，判断自己的设想是不是还停留在方向感，还是已经接近可执行路线。</p>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr>
+<th>维度</th>
+<th>0 分</th>
+<th>1 分</th>
+<th>2 分</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>对象</td>
+<td>只知道方向名</td>
+<td>已明确对象类型</td>
+<td>已明确对象、任务段和模型层级</td>
+</tr>
+<tr>
+<td>基线</td>
+<td>没有基线</td>
+<td>只有口头基线</td>
+<td>已有可运行或可复现基线</td>
+</tr>
+<tr>
+<td>矛盾</td>
+<td>只有模糊动机</td>
+<td>已知道主要难点</td>
+<td>已能写成明确约束/不确定性冲突</td>
+</tr>
+<tr>
+<td>理论</td>
+<td>没有理论目标</td>
+<td>只有稳定或安全口号</td>
+<td>已明确 UUB、ISS、可行性或统计目标</td>
+</tr>
+<tr>
+<td>验证</td>
+<td>只想画曲线</td>
+<td>已有指标列表</td>
+<td>已有样本矩阵、失败样本和统计口径</td>
+</tr>
+<tr>
+<td>边界</td>
+<td>没写不能声称什么</td>
+<td>知道有边界</td>
+<td>已能保守改写结论并给出降级表述</td>
+</tr>
+</tbody>
+</table>
+<p>总分可粗略解释为：</p>
+<table>
+<thead>
+<tr>
+<th>总分</th>
+<th>更合理的动作</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0 到 4</td>
+<td>先补对象、基线和指标，不要急着写题目</td>
+</tr>
+<tr>
+<td>5 到 8</td>
+<td>可形成课程项目或教学级研究训练</td>
+</tr>
+<tr>
+<td>9 到 10</td>
+<td>可进入研究原型和小范围复现实验</td>
+</tr>
+<tr>
+<td>11 到 12</td>
+<td>才适合组织为更正式的开题路线</td>
+</tr>
+</tbody>
+</table>
+<p>如果“基线”“验证”“边界”三项里有两项仍是 0
+分，就应立即止损，先回到第56到第59章补基础训练，而不是继续堆前沿词。</p>
+<h2 id="从案例库到开题报告的最小任务包">60.16
+从案例库到开题报告的最小任务包</h2>
+<p>为了让第60章真正落地，研究路线最后最好整理成一个最小任务包。它和第59章的复现任务包不同，重点不是重算已有结果，而是把一个方向变成可执行的研究计划。</p>
+<table>
+<thead>
+<tr>
+<th>交付项</th>
+<th>最低内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>题目卡</td>
+<td>对象、任务段、核心矛盾和保守题目表述</td>
+</tr>
+<tr>
+<td>基线卡</td>
+<td>基线控制器、基线指标和基线失败模式</td>
+</tr>
+<tr>
+<td>方法卡</td>
+<td>候选方法放在哪一层，和安全层/观测器/分配器如何接口</td>
+</tr>
+<tr>
+<td>定理卡</td>
+<td>想证明什么，不证明什么</td>
+</tr>
+<tr>
+<td>实验卡</td>
+<td>指标、样本矩阵、故障矩阵、最坏样本和回退逻辑</td>
+</tr>
+<tr>
+<td>风险卡</td>
+<td>目前最薄弱的三项证据，以及若失败时如何降级表述</td>
+</tr>
+</tbody>
+</table>
+<p>一个任务包已有明确素材来源：</p>
+<table>
+<thead>
+<tr>
+<th>任务包条目</th>
+<th>素材位置</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>题目卡</td>
+<td>本章 60.12、60.16、60.17、60.18、60.19</td>
+</tr>
+<tr>
+<td>基线卡</td>
+<td>案例库和第58章典型案例库</td>
+</tr>
+<tr>
+<td>方法卡</td>
+<td>第30到第51章相关控制章节</td>
+</tr>
+<tr>
+<td>定理卡</td>
+<td>第 5、6、11、12 章和第59章阅读边界训练</td>
+</tr>
+<tr>
+<td>实验卡</td>
+<td>第52到第57章，以及第59章复现任务包</td>
+</tr>
+<tr>
+<td>风险卡</td>
+<td>本章 60.18 和第59章保守改写示例</td>
+</tr>
+</tbody>
+</table>
+<p>如此整理后，第60章就不只是“前沿方向讨论”，而是能把教程、案例、论文阅读和研究计划真正接起来的收尾章节。</p>
+<h2 id="教学样例四从-c04-与-c12-到吸气式巡航受限协同路线卡">60.17
+教学样例四：从 C04 与 C12 到吸气式巡航受限协同路线卡</h2>
+<p>第51章以及案例 C04、C12
+给了一个很典型的研究起点：我们能做低阶巡航速度高度教学实验，也能观察饱和与抗积分饱和的影响，但还没有把推进状态、进气道裕度和多回路保护真正闭成一条吸气式巡航研究路线。更稳妥的路线卡可写成：</p>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>项目</th>
+<th>较稳妥的写法</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>对象</td>
+<td>吸气式高超声速巡航阶段的速度高度与推进耦合控制</td>
+</tr>
+<tr>
+<td>配套算例</td>
+<td>纵向巡航教学算例、输入饱和与抗积分饱和算例，以及第51章巡航接口与约束口径</td>
+</tr>
+<tr>
+<td>证据层级</td>
+<td>已有低阶速度高度与饱和证据，可视为 2 级前后的教学算例</td>
+</tr>
+<tr>
+<td>核心矛盾</td>
+<td>速度/高度保持、攻角调节、油门动态、进气道裕度和安全约束还没有被统一写入同一闭环</td>
+</tr>
+<tr>
+<td>仍需展开的环节</td>
+<td>缺推进状态扩展、进气道裕度数据字段、多飞行点调度和任务降级逻辑</td>
+</tr>
+<tr>
+<td>候选路线</td>
+<td>扩展推进状态到油门限速与抗积分饱和，再到进气道保护层、参考收缩与降级，以及多飞行点验证</td>
+</tr>
+<tr>
+<td>最低理论目标</td>
+<td>油门动态有界、推进-姿态多时间尺度协调、进气道裕度触发逻辑可解释</td>
+</tr>
+<tr>
+<td>最低验证协议</td>
+<td>多飞行点速度和高度误差、最小进气道裕度、油门峰值与速率、攻角峰值、保护触发次数和失败样本归因</td>
+</tr>
+<tr>
+<td>结论边界</td>
+<td>在推进状态和进气道裕度尚未进入闭环前，只能写受限巡航教学研究，不能写吸气式巡航闭环已验证</td>
+</tr>
+</tbody>
+</table>
+<p>一条路线最重要的训练价值，是逼着读者不要把“速度高度能跟踪”误当成“吸气式巡航问题已经解决”。真正需要推进的是：当速度指令、攻角指令和油门命令互相冲突时，谁来让位、如何保护、何时降级。</p>
+<h2 id="教学样例五从-c03-与柔性样例到鲁棒姿态路线卡">60.18
+教学样例五：从 C03 与柔性样例到鲁棒姿态路线卡</h2>
+<p>第23章、第31章以及案例 C03 给了另一个很好的研究抓手：我们有单轴
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>H</mi><mi>∞</mi></msub><annotation encoding="application/x-tex">H_\infty</annotation></semantics></math>
+风格鲁棒姿态和低阶柔性样例，但距离“面向柔性耦合的鲁棒姿态控制路线”还差接口、边界和多场景证据的闭合。更稳妥的路线卡可写成：</p>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>项目</th>
+<th>较稳妥的写法</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>对象</td>
+<td>含低阶柔性模态和结构不确定性的高超声速姿态内环控制</td>
+</tr>
+<tr>
+<td>配套算例</td>
+<td>鲁棒姿态算例、柔性俯仰教学算例、参数扫描结果以及第 23、31
+章对象边界说明</td>
+</tr>
+<tr>
+<td>证据层级</td>
+<td>已有单轴名义样本、柔性扫描和结果表，可视为 2 级到 3 级之间</td>
+</tr>
+<tr>
+<td>核心矛盾</td>
+<td>刚体鲁棒设计与柔性模态、最坏样本和多飞行点鲁棒边界还没有统一写成同一条路线</td>
+</tr>
+<tr>
+<td>仍需展开的环节</td>
+<td>缺多轴对象、结构化不确定性描述、传感污染接口和更明确的带宽止损线</td>
+</tr>
+<tr>
+<td>候选路线</td>
+<td>刚体标称对象到柔性模态接入，再到鲁棒权重与带宽约束、最坏样本与多飞行点验证，最后进入多轴扩展</td>
+</tr>
+<tr>
+<td>最低理论目标</td>
+<td>柔性模态不被闭环激励到不可接受水平、鲁棒稳定边界可解释、带宽与执行机构约束协调</td>
+</tr>
+<tr>
+<td>最低验证协议</td>
+<td>姿态 RMS、角速度
+RMS、柔性模态峰值、控制峰值、最坏样本、失败样本和多飞行点通过率</td>
+</tr>
+<tr>
+<td>结论边界</td>
+<td>在多轴柔性耦合和更高保真对象未接入前，只能写鲁棒姿态与柔性耦合教学路线，不能写完整气动弹性飞控验证</td>
+</tr>
+</tbody>
+</table>
+<p>一条路线的关键不是把控制器名称换得更复杂，而是把“柔性模态会不会被姿态带宽激活”一件事写成可证明、可量化、可止损的问题。</p>
+<h2 id="常见错误">60.19 常见错误</h2>
+<ol type="1">
+<li>把前沿词当作研究贡献。</li>
+<li>让神经网络直接输出舵面命令，却没有安全层。</li>
+<li>强化学习只在单一仿真环境训练，却声称泛化。</li>
+<li>数字孪生只做模型展示，不进入控制闭环。</li>
+<li>在线辨识没有物理边界和稳定性分析。</li>
+<li>多飞行器协同忽略单机飞行约束。</li>
+<li>可信评估只给通过率，不分析失败样本。</li>
+<li>把理想推力纵向外环直接写成吸气式巡航前沿控制路线。</li>
+<li>把单轴低阶柔性鲁棒样例直接写成完整气动弹性控制研究。</li>
+</ol>
+<h2 id="本书收尾建议">60.20 本书收尾建议</h2>
+<p>读完本教程后，建议读者按下面顺序形成自己的研究训练包：</p>
+<ol type="1">
+<li>选择一个飞行阶段和模型层级；</li>
+<li>建立经典基线；</li>
+<li>定义一个真实控制矛盾；</li>
+<li>选择一种控制方法；</li>
+<li>写出误差系统和证明路线；</li>
+<li>建立指标表和仿真配置；</li>
+<li>做成对比较和 Monte Carlo；</li>
+<li>记录失败样本；</li>
+<li>写清证据边界；</li>
+<li>再考虑前沿扩展。</li>
+</ol>
+<p>一个顺序比直接追逐最新算法更稳，也更符合控制科学与工程的研究逻辑。</p>
+<h2 id="本章内容的边界">60.21 本章内容的边界</h2>
+<p>前沿研究路线的前置材料包括：</p>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>素材</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a
+href="58-typical-case-library.html#volume5--58-typical-case-library">第58章典型案例库</a></td>
+<td>提供案例维度、成熟度和案例验收视角</td>
+</tr>
+<tr>
+<td>案例库</td>
+<td>提供 C01 到 C20 的配套算例、证据边界和可展开方向</td>
+</tr>
+<tr>
+<td><a
+href="59-hypersonic-control-paper-reading-method.html#volume5--59-hypersonic-control-paper-reading-method">第59章高超声速控制论文阅读方法</a></td>
+<td>提供文献阅读、证据边界和复现问题整理方法</td>
+</tr>
+<tr>
+<td>附录 C 参考阅读与文献训练</td>
+<td>提供检索关键词、红旗清单和阅读路线</td>
+</tr>
+</tbody>
+</table>
+<p>边界必须写清楚：</p>
+<ul>
+<li>本章呈现前沿方向总表、三条研究主路线、成熟度检查和收尾训练主线；</li>
+<li>一些素材可支撑从教程案例走向研究问题的教学复现与研究原型级规划；</li>
+<li>但它还不是经过系统核验的年度前沿综述，也不是正式开题文献库；</li>
+<li>因此，第60章能支撑如何设计保守、可落地的研究路线，不能支撑某方向最新研究格局已经完整盘点并验证完毕。</li>
+</ul>
+<h2 id="练习">60.22 练习</h2>
+<ol type="1">
+<li>从本章前沿表中选择一个方向，写成对象、矛盾、方法、证据四段式题目。</li>
+<li>为安全强化学习高超声速参考生成设计一套安全层和验证指标。</li>
+<li>说明数字孪生进入闭环控制时必须报告哪些误差和实时指标。</li>
+<li>为在线气动辨识设计投影边界和故障降级策略。</li>
+<li>把自己的研究设想按研究成熟度检查表打分，并指出最薄弱的三项。</li>
+</ol>
+
+      </article>
+      
+      <nav class="book-bottom-nav" aria-label="章节导航">
+        <a href="./59-hypersonic-control-paper-reading-method.html">上一章：第59章 高超声速控制论文阅读方法</a>
+        <a href="./index.html">卷首页</a>
+        <a href="./case-library-code-mapping.html">下一章：第五卷案例映射</a>
+      </nav>
+    </main>
+  </div>
+</body>
+</html>

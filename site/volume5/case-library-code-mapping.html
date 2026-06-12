@@ -1,0 +1,1207 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>第五卷案例映射</title>
+  <style>
+    :root {
+      --paper: #f7f3eb;
+      --ink: #1f2937;
+      --muted: #5b6472;
+      --line: color-mix(in srgb, #e4e8fb 68%, #cbd5e1 32%);
+      --accent: #4a5fb2;
+      --accent-soft: #e4e8fb;
+      --accent-deep: #2a3568;
+      color-scheme: light;
+    }
+    html {
+      -webkit-text-size-adjust: 100%;
+      background:
+        radial-gradient(circle at top left, #e4e8fb 0, rgba(255,255,255,0) 32%),
+        linear-gradient(180deg, #fbfaf6 0%, var(--paper) 18%, #f7f1e6 100%);
+    }
+    body {
+      margin: 0;
+      font-family: "Source Han Serif SC", "Songti SC", "Noto Serif CJK SC", "Microsoft YaHei", serif;
+      color: var(--ink);
+      line-height: 1.78;
+      letter-spacing: 0;
+    }
+    a { color: var(--accent-deep); }
+    .book-app {
+      display: grid;
+      grid-template-columns: 280px minmax(0, 1fr);
+      min-height: 100vh;
+    }
+    .book-sidebar {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow: auto;
+      padding: 1.2rem 1rem 1.2rem 1.15rem;
+      border-right: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(255,255,255,0.86), rgba(255,255,255,0.72));
+      backdrop-filter: blur(10px);
+    }
+    .sidebar-shell { position: sticky; top: 0; display: flex; flex-direction: column; gap: 1rem; }
+    .sidebar-brand {
+      padding: 0.95rem 0.95rem 1rem;
+      border-radius: 18px;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.95), rgba(255,255,255,0.84)),
+        linear-gradient(135deg, var(--accent-soft), rgba(255,255,255,0));
+      border: 1px solid var(--line);
+      box-shadow: 0 12px 28px rgba(31, 41, 55, 0.06);
+    }
+    .sidebar-brand .kicker { margin: 0; color: var(--accent); font-size: 0.82rem; font-weight: 700; }
+    .sidebar-brand h2 { margin: 0.45rem 0 0.25rem; font-size: 1.08rem; line-height: 1.3; color: var(--ink); }
+    .sidebar-brand p { margin: 0.35rem 0 0; color: var(--muted); font-size: 0.9rem; }
+    .sidebar-links { display: grid; gap: 0.45rem; }
+    .sidebar-link {
+      display: grid;
+      grid-template-columns: 2.2rem minmax(0, 1fr);
+      gap: 0.6rem;
+      align-items: start;
+      padding: 0.7rem 0.75rem;
+      border-radius: 14px;
+      text-decoration: none;
+      background: rgba(255,255,255,0.72);
+      border: 1px solid rgba(31,41,55,0.07);
+      color: var(--ink);
+    }
+    .sidebar-link:hover { background: rgba(255,255,255,0.95); border-color: var(--line); }
+    .sidebar-link.active {
+      background: linear-gradient(135deg, rgba(255,255,255,0.98), rgba(255,255,255,0.9));
+      border-color: var(--accent-soft);
+      box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent-soft) 68%, #ffffff 32%);
+    }
+    .sidebar-index {
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      min-width: 2rem;
+      height: 2rem;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent-deep);
+      font-size: 0.78rem;
+      font-weight: 800;
+    }
+    .sidebar-title { font-size: 0.94rem; line-height: 1.35; }
+    .book-main { min-width: 0; padding: 1.25rem 1.45rem 1.8rem; }
+    .book-page-header {
+      padding: 0.85rem 0 1rem;
+      margin-bottom: 1rem;
+      border-bottom: 1px solid var(--line);
+    }
+    .page-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.28rem 0.72rem;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.82);
+      border: 1px solid var(--line);
+      color: var(--accent-deep);
+      font-size: 0.8rem;
+      font-weight: 700;
+    }
+    .book-page-header h1 {
+      margin: 0.7rem 0 0;
+      font-size: 1.85rem;
+      line-height: 1.22;
+      color: var(--accent-deep);
+      border: 0;
+      padding: 0;
+    }
+    .book-page-header p { margin: 0.45rem 0 0; color: var(--muted); max-width: 62rem; }
+    .book-article { max-width: 900px; margin: 0; padding: 0 0 1.2rem; }
+    .book-article h1, .book-article h2, .book-article h3, .book-article h4, .book-article h5, .book-article h6 {
+      line-height: 1.28;
+      margin-top: 1.45em;
+      margin-bottom: 0.55em;
+      color: var(--accent-deep);
+    }
+    .book-article h1 { font-size: 2rem; border-bottom: 2px solid var(--line); padding-bottom: 0.42rem; }
+    .book-article h1:first-of-type { margin-top: 0; }
+    .book-article h2 { font-size: 1.42rem; }
+    .book-article h3 { font-size: 1.12rem; }
+    .book-article p, .book-article li, .book-article dd, .book-article td, .book-article th { text-align: justify; text-justify: inter-ideograph; }
+    .book-article p { margin: 0.85rem 0; }
+    .book-article code, .book-article pre { font-family: "Cascadia Mono", "Source Code Pro", Consolas, monospace; font-size: 0.94em; }
+    .book-article code {
+      padding: 0.02rem 0.24rem;
+      background: color-mix(in srgb, var(--accent-soft) 34%, #ffffff 66%);
+      border: 0;
+      border-bottom: 1px solid color-mix(in srgb, var(--accent-soft) 74%, #d1d5db 26%);
+      border-radius: 4px;
+      color: #253244;
+      box-decoration-break: clone;
+      -webkit-box-decoration-break: clone;
+    }
+    .book-article pre {
+      padding: 1rem 1.1rem;
+      overflow: auto;
+      background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,253,248,0.98));
+      border: 1px solid color-mix(in srgb, var(--accent-soft) 54%, #d1d5db 46%);
+      border-left: 5px solid var(--accent);
+      border-radius: 14px;
+      box-shadow: 0 8px 22px rgba(31, 41, 55, 0.05);
+    }
+    .book-article pre code { padding: 0; border: 0; background: transparent; color: inherit; }
+    .book-article table {
+      border-collapse: collapse;
+      width: 100%;
+      margin: 1rem 0 1.25rem;
+      background: rgba(255,255,255,0.82);
+      overflow: hidden;
+      border-radius: 12px;
+    }
+    .book-article th, .book-article td { border: 1px solid var(--line); padding: 0.5rem 0.7rem; vertical-align: top; }
+    .book-article th { background: color-mix(in srgb, var(--accent-soft) 42%, #ffffff 58%); }
+    .book-article blockquote {
+      margin: 1rem 0;
+      padding: 0.25rem 0 0.25rem 1rem;
+      border-left: 4px solid var(--accent);
+      color: #374151;
+      background: linear-gradient(90deg, rgba(255,255,255,0.72), rgba(255,255,255,0.48));
+      border-radius: 0 12px 12px 0;
+    }
+    .book-bottom-nav {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-top: 2.2rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--line);
+    }
+    .book-bottom-nav a {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.6rem 0.9rem;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.84);
+      text-decoration: none;
+      font-weight: 700;
+    }
+    .book-bottom-nav span {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.6rem 0.9rem;
+      border-radius: 999px;
+      border: 1px solid rgba(31,41,55,0.08);
+      background: rgba(255,255,255,0.54);
+      color: rgba(31,41,55,0.42);
+      font-weight: 700;
+    }
+    .book-bottom-nav a:hover { background: rgba(255,255,255,0.98); }
+    .book-volume-intro {
+      margin: 0 0 1.25rem;
+      padding: 1.2rem 1.25rem 1.1rem;
+      border-radius: 18px;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.96), rgba(255,255,255,0.78)),
+        linear-gradient(135deg, var(--accent-soft), rgba(255,255,255,0));
+      border: 1px solid var(--line);
+      box-shadow: 0 14px 34px rgba(31, 41, 55, 0.06);
+    }
+    .volume-intro-kicker {
+      margin: 0;
+      color: var(--accent);
+      font-size: 0.84rem;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    .book-volume-intro h2 {
+      margin: 0.55rem 0 0.55rem;
+      font-size: 1.28rem;
+      line-height: 1.35;
+      color: var(--accent-deep);
+    }
+    .volume-intro-summary {
+      margin: 0;
+      color: var(--muted);
+      max-width: 68rem;
+    }
+    .volume-intro-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.8rem;
+      margin-top: 1rem;
+    }
+    .volume-intro-box {
+      padding: 0.85rem 0.9rem;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.72);
+      border: 1px solid rgba(31,41,55,0.08);
+    }
+    .volume-intro-box span {
+      display: block;
+      color: var(--accent);
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+    }
+    .volume-intro-box strong {
+      display: block;
+      margin-top: 0.35rem;
+      color: var(--ink);
+      font-size: 0.95rem;
+      line-height: 1.45;
+    }
+    .volume-intro-note {
+      margin-top: 0.9rem;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+    @media (max-width: 1180px) {
+      .book-app { grid-template-columns: 1fr; }
+      .book-sidebar {
+        position: relative;
+        height: auto;
+        border-right: 0;
+        border-bottom: 1px solid var(--line);
+      }
+      .sidebar-shell { position: static; }
+    }
+    @media (max-width: 900px) {
+      .book-main { padding: 1rem 1rem 1.5rem; }
+      .book-bottom-nav { flex-direction: column; }
+      .volume-intro-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="book-app">
+    <aside class="book-sidebar">
+      <div class="sidebar-shell">
+        <div class="sidebar-brand">
+          <p class="kicker">高超声速飞行器控制教程</p>
+          <h2>第五卷 仿真验证、工程实现与研究训练</h2>
+          <p>验证与训练</p>
+        </div>
+        <nav class="sidebar-links" aria-label="本卷目录">
+          <a class="sidebar-link" href="./index.html"><span class="sidebar-index">0</span><span class="sidebar-title">卷首页</span></a>
+<a class="sidebar-link" href="./52-hypersonic-control-simulation-platform.html"><span class="sidebar-index">01</span><span class="sidebar-title">第52章 高超声速控制仿真平台设计</span></a>
+<a class="sidebar-link" href="./53-numerical-integration-simulation-credibility.html"><span class="sidebar-index">02</span><span class="sidebar-title">第53章 数值积分与仿真可信性</span></a>
+<a class="sidebar-link" href="./54-aerodynamic-data-tables-parameter-management.html"><span class="sidebar-index">03</span><span class="sidebar-title">第54章 气动数据表、插值与参数管理</span></a>
+<a class="sidebar-link" href="./55-controller-discretization-real-time-implementation.html"><span class="sidebar-index">04</span><span class="sidebar-title">第55章 控制器离散化与实时实现</span></a>
+<a class="sidebar-link" href="./56-verification-metrics-system.html"><span class="sidebar-index">05</span><span class="sidebar-title">第56章 验证指标体系</span></a>
+<a class="sidebar-link" href="./57-uncertainty-monte-carlo-verification.html"><span class="sidebar-index">06</span><span class="sidebar-title">第57章 不确定性分析与 Monte Carlo 验证</span></a>
+<a class="sidebar-link" href="./58-typical-case-library.html"><span class="sidebar-index">07</span><span class="sidebar-title">第58章 典型案例库</span></a>
+<a class="sidebar-link" href="./59-hypersonic-control-paper-reading-method.html"><span class="sidebar-index">08</span><span class="sidebar-title">第59章 高超声速控制论文阅读方法</span></a>
+<a class="sidebar-link" href="./60-frontiers-research-roadmap.html"><span class="sidebar-index">09</span><span class="sidebar-title">第60章 前沿问题与研究路线</span></a>
+<a class="sidebar-link active" href="./case-library-code-mapping.html"><span class="sidebar-index">10</span><span class="sidebar-title">第五卷案例映射</span></a>
+        </nav>
+      </div>
+    </aside>
+    <main class="book-main">
+      <header class="book-page-header">
+        <div class="page-eyebrow">第5册·章节页10</div>
+        <h1 id="volume5--case-library-code-mapping">第五卷案例映射</h1>
+        <p>本页是章节正文页。左侧目录用于回到本卷其他章节，底部导航用于前后章跳转。</p>
+      </header>
+      <article class="book-article">
+        <p>本文件承接第58章 <a
+href="58-typical-case-library.html#volume5--58-typical-case-library">典型案例库</a>。它的作用，是说明
+C01 到 C20
+这些案例分别能依托哪些教学素材、积累到什么证据层级，以及哪些地方还需要继续完善，而不是把仓库内容再盘点一遍。</p>
+<p>本文件不宣称二十个案例都已经完成。它要回答四件事：</p>
+<ul>
+<li>现在可以从哪些配套算例出发；</li>
+<li>现阶段积累了哪些可核查证据；</li>
+<li>这些证据能支持到什么结论强度；</li>
+<li>下一步最值得补的方向是什么。</li>
+</ul>
+<h2 id="证据分级">证据分级</h2>
+<table>
+<thead>
+<tr>
+<th>层级</th>
+<th>含义</th>
+<th>可接受表述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mn>0</mn></mrow><annotation encoding="application/x-tex">R0</annotation></semantics></math></td>
+<td>只有章节设计或纸面结构</td>
+<td>已有案例定义，尚无配套算例</td>
+</tr>
+<tr>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mn>1</mn></mrow><annotation encoding="application/x-tex">R1</annotation></semantics></math></td>
+<td>有单场景教学算例或最小核查链</td>
+<td>可做教学演示</td>
+</tr>
+<tr>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mn>2</mn></mrow><annotation encoding="application/x-tex">R2</annotation></semantics></math></td>
+<td>有结果表、图表或指标汇总</td>
+<td>可做可复现实验训练</td>
+</tr>
+<tr>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mn>3</mn></mrow><annotation encoding="application/x-tex">R3</annotation></semantics></math></td>
+<td>有成对比较、Monte Carlo 或故障扫描</td>
+<td>可做教学级统计证据链</td>
+</tr>
+<tr>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mn>4</mn></mrow><annotation encoding="application/x-tex">R4</annotation></semantics></math></td>
+<td>有多模型、多飞行点或研究级验证</td>
+<td>可支撑研究级原型</td>
+</tr>
+<tr>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mn>5</mn></mrow><annotation encoding="application/x-tex">R5</annotation></semantics></math></td>
+<td>有验证气动数据库和高保真闭环证据</td>
+<td>可进一步讨论更高层级验证</td>
+</tr>
+</tbody>
+</table>
+<p>本书大多数可运行案例处于
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mn>1</mn></mrow><annotation encoding="application/x-tex">R1</annotation></semantics></math>
+到
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mn>3</mn></mrow><annotation encoding="application/x-tex">R3</annotation></semantics></math>。没有案例应被表述为
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mn>5</mn></mrow><annotation encoding="application/x-tex">R5</annotation></semantics></math>。</p>
+<h2 id="c01-到-c20-总览">C01 到 C20 总览</h2>
+<table style="width:100%;">
+<colgroup>
+<col style="width: 16%" />
+<col style="width: 16%" />
+<col style="width: 16%" />
+<col style="width: 16%" />
+<col style="width: 16%" />
+<col style="width: 16%" />
+</colgroup>
+<thead>
+<tr>
+<th>编号</th>
+<th>案例</th>
+<th>已依托素材</th>
+<th>证据摘要</th>
+<th>层级</th>
+<th>下一步重点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>C01</td>
+<td>纵向小扰动 PID 控制</td>
+<td>纵向基线对比算例、MATLAB 对照算例和 Simulink 最小安全修正闭环</td>
+<td>基线轨迹、MATLAB 对照轨迹和最小核查链</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mn>2</mn></mrow><annotation encoding="application/x-tex">R2</annotation></semantics></math></td>
+<td>配平线化小扰动模型和更多飞行点</td>
+</tr>
+<tr>
+<td>C02</td>
+<td>姿态 LQR 控制</td>
+<td>LQR 教学算例和配套核查链</td>
+<td>LQR 轨迹记录和小样本成对比较</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mn>2</mn></mrow><annotation encoding="application/x-tex">R2</annotation></semantics></math></td>
+<td>独立三轴姿态 LQR 案例和权重设计说明</td>
+</tr>
+<tr>
+<td>C03</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>H</mi><mi>∞</mi></msub><annotation encoding="application/x-tex">H_\infty</annotation></semantics></math>
+鲁棒姿态控制</td>
+<td>鲁棒姿态算例和柔性俯仰教学样例</td>
+<td>鲁棒姿态指标表、柔性俯仰指标表、参数扫描结果和最小核查链</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mn>2</mn></mrow><annotation encoding="application/x-tex">R2</annotation></semantics></math></td>
+<td>完整
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>H</mi><mi>∞</mi></msub><annotation encoding="application/x-tex">H_\infty</annotation></semantics></math>
+综合、多轴姿态对象、结构不确定频域证明和多飞行点验证</td>
+</tr>
+<tr>
+<td>C04</td>
+<td>高超声速巡航速度高度控制</td>
+<td>吸气式巡航受限协同算例和纵向控制器族</td>
+<td>巡航指标表、守护轨迹记录、最小核查链以及多控制器教学轨迹</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mn>2</mn></mrow><annotation encoding="application/x-tex">R2</annotation></semantics></math></td>
+<td>高保真进气道、燃烧室、喷管状态，三维耦合，多飞行点与推进不确定性统计</td>
+</tr>
+<tr>
+<td>C05</td>
+<td>NDI 姿态控制</td>
+<td>NDI 教学算例</td>
+<td>NDI 轨迹记录和配套核查链</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mn>2</mn></mrow><annotation encoding="application/x-tex">R2</annotation></semantics></math></td>
+<td>姿态 NDI 与六自由度力矩通道</td>
+</tr>
+<tr>
+<td>C06</td>
+<td>INDI 姿态控制</td>
+<td>INDI 姿态教学算例</td>
+<td>INDI 指标表和最小核查链</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mn>2</mn></mrow><annotation encoding="application/x-tex">R2</annotation></semantics></math></td>
+<td>三轴
+INDI、执行机构实际舵面反馈、控制分配闭环和噪声、延迟参数扫描</td>
+</tr>
+<tr>
+<td>C07</td>
+<td>反步纵向控制</td>
+<td>反步教学算例</td>
+<td>反步轨迹记录和配套核查链</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mn>2</mn></mrow><annotation encoding="application/x-tex">R2</annotation></semantics></math></td>
+<td>命令滤波、饱和补偿和完整证明映射</td>
+</tr>
+<tr>
+<td>C08</td>
+<td>滑模攻角控制</td>
+<td>滑模教学算例</td>
+<td>滑模轨迹记录和配套核查链</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mn>2</mn></mrow><annotation encoding="application/x-tex">R2</annotation></semantics></math></td>
+<td>高阶、终端滑模、舵速代价和抖振统计</td>
+</tr>
+<tr>
+<td>C09</td>
+<td>自适应气动不确定补偿</td>
+<td>暂无</td>
+<td>第37章理论章节</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mn>0</mn></mrow><annotation encoding="application/x-tex">R0</annotation></semantics></math></td>
+<td>参数投影、噪声下自适应、估计量指标</td>
+</tr>
+<tr>
+<td>C10</td>
+<td>神经网络逼近不确定性</td>
+<td>暂无</td>
+<td>第38章和第60章边界说明</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mn>0</mn></mrow><annotation encoding="application/x-tex">R0</annotation></semantics></math></td>
+<td>逼近对象、训练数据、安全降级</td>
+</tr>
+<tr>
+<td>C11</td>
+<td>DOB 增强控制</td>
+<td>暂无</td>
+<td>第39章理论章节</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mn>0</mn></mrow><annotation encoding="application/x-tex">R0</annotation></semantics></math></td>
+<td>扰动观测器、带宽/噪声扫描</td>
+</tr>
+<tr>
+<td>C12</td>
+<td>输入饱和控制</td>
+<td>输入饱和与抗积分饱和算例，以及纵向、姿态内环和控制分配算例中的限幅记录</td>
+<td>无抗积分饱和与有抗积分饱和的对照轨迹和最小核查链</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mn>2</mn></mrow><annotation encoding="application/x-tex">R2</annotation></semantics></math></td>
+<td>更完整的舵面抗积分饱和、多轴饱和补偿和参数扫描</td>
+</tr>
+<tr>
+<td>C13</td>
+<td>舵面故障容错控制</td>
+<td>故障注入算例和故障扫描算例</td>
+<td>故障扫描指标表和故障图表</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mn>3</mn></mrow><annotation encoding="application/x-tex">R3</annotation></semantics></math></td>
+<td>正式 FDI、FTC、控制分配重构和任务降级</td>
+</tr>
+<tr>
+<td>C14</td>
+<td>再入热流约束控制</td>
+<td>再入热流约束算例</td>
+<td>再入热流指标表、守护轨迹记录和最小核查链</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mn>2</mn></mrow><annotation encoding="application/x-tex">R2</annotation></semantics></math></td>
+<td>倾侧角、攻角控制，三维横程，热防高保真模型和扰动验证</td>
+</tr>
+<tr>
+<td>C15</td>
+<td>滑翔飞行能量管理</td>
+<td>滑翔能量管理算例</td>
+<td>滑翔能量指标表、守护轨迹记录和最小核查链</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mn>2</mn></mrow><annotation encoding="application/x-tex">R2</annotation></semantics></math></td>
+<td>三维大范围机动、倾侧翻转、轨迹优化和不确定性验证</td>
+</tr>
+<tr>
+<td>C16</td>
+<td>高超声速终端制导</td>
+<td>三维质点制导算例</td>
+<td>三维制导轨迹记录和配套图表</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mn>2</mn></mrow><annotation encoding="application/x-tex">R2</annotation></semantics></math></td>
+<td>终端角约束、目标机动和三维姿态接口</td>
+</tr>
+<tr>
+<td>C17</td>
+<td>制导控制一体化</td>
+<td>姿态接口算例、耦合骨架算例和 IGC 汇总表</td>
+<td>姿态接口轨迹、耦合骨架轨迹和 IGC 汇总表</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mn>2</mn></mrow><annotation encoding="application/x-tex">R2</annotation></semantics></math></td>
+<td>真正六自由度闭环、验证气动表和分配闭环</td>
+</tr>
+<tr>
+<td>C18</td>
+<td>MPC 轨迹跟踪</td>
+<td>MPC 轨迹跟踪算例</td>
+<td>MPC 指标表和最小核查链</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mn>2</mn></mrow><annotation encoding="application/x-tex">R2</annotation></semantics></math></td>
+<td>QP、非线性 MPC、终端集合、递归可行性和多场景验证</td>
+</tr>
+<tr>
+<td>C19</td>
+<td>CBF 安全滤波</td>
+<td>屏障安全修正算例和安全滤波配套材料</td>
+<td>屏障安全修正轨迹记录和小样本成对比较</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mn>3</mn></mrow><annotation encoding="application/x-tex">R3</annotation></semantics></math></td>
+<td>正式 CLF-CBF-QP、高相对阶 CBF 和可行性分析</td>
+</tr>
+<tr>
+<td>C20</td>
+<td>六自由度闭环仿真</td>
+<td>六自由度刚体传播算例和耦合骨架算例</td>
+<td>刚体传播轨迹、耦合骨架轨迹和 IGC 可展开问题说明</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mn>2</mn></mrow><annotation encoding="application/x-tex">R2</annotation></semantics></math></td>
+<td>高保真六自由度闭环 IGC 和真实气动数据库</td>
+</tr>
+</tbody>
+</table>
+<h2
+id="案例与第52到第57章训练链的对应">案例与第52到第57章训练链的对应</h2>
+<p>第58章不是从第52到第57章之后“另起一章”，而是把平台、数值、数据、实现、指标和
+Monte Carlo
+这些能力真正落到具体案例上。正文先给每个案例标清它最依赖哪一段训练链。</p>
+<table style="width:100%;">
+<colgroup>
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+</colgroup>
+<thead>
+<tr>
+<th>案例簇</th>
+<th>第52章平台重点</th>
+<th>第53章数值重点</th>
+<th>第54章数据重点</th>
+<th>第55章实现重点</th>
+<th>第56章指标重点</th>
+<th>第57章统计重点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>C01、C02</td>
+<td>纵向基线闭环主循环、配平点配置和基线记录量</td>
+<td>线化对象步长一致性、控制周期对齐</td>
+<td>配平点、线化模型和参考量追溯</td>
+<td>PID、LQR 离散实现和积分、状态更新顺序</td>
+<td>跟踪误差、输入峰值和局部通过判据</td>
+<td>成对比较和小样本基线波动</td>
+</tr>
+<tr>
+<td>C03</td>
+<td>单轴姿态与柔性扩展平台接口</td>
+<td>频域/时域指标对步长和滤波敏感性</td>
+<td>结构不确定样例、柔性参数表和名义/摄动对象区分</td>
+<td>频域加权实现、滤波和执行器滞后</td>
+<td>灵敏度峰值、饱和比例、姿态 RMS</td>
+<td>不确定样本扫描和最坏样本归因</td>
+</tr>
+<tr>
+<td>C04</td>
+<td>巡航速度、高度、油门闭环和推力接口</td>
+<td>长时巡航仿真的步长与事件一致性</td>
+<td>推进、气动耦合参数和进气道裕度数据</td>
+<td>油门动态、速率限制、参考收缩和多回路节拍</td>
+<td>速度高度误差、油门峰值与速率、进气道与热、动压裕度</td>
+<td>多飞行点和推进扰动统计可继续拓展</td>
+</tr>
+<tr>
+<td>C05、C06、C07、C08</td>
+<td>非线性姿态/纵向控制平台与执行器接口</td>
+<td>解耦矩阵奇异、滤波滞后、边界层与舵速敏感性</td>
+<td>名义对象和控制效能数据边界</td>
+<td>NDI/INDI/反步/滑模的离散更新、延迟和限幅</td>
+<td>跟踪、控制能量、饱和比例、抖振或增量命令指标</td>
+<td>成对比较、噪声/延迟扫描和失败样本分析</td>
+</tr>
+<tr>
+<td>C09、C10、C11</td>
+<td>目前尚无正式可运行平台承载体</td>
+<td>目前尚无系统数值检查协议</td>
+<td>目前尚无不确定对象或训练数据承载体</td>
+<td>目前尚无自适应、智能或 DOB 的离散实现链</td>
+<td>目前尚无统一验收指标落地</td>
+<td>参数扫描、失败样本和统计协议仍待补齐</td>
+</tr>
+<tr>
+<td>C12</td>
+<td>受限输入平台、实际执行量与未限幅命令并行记录</td>
+<td>饱和释放瞬态的步长与事件捕捉</td>
+<td>执行器限制和效能参数管理</td>
+<td>抗积分饱和、速率限制和分配前后命令记录</td>
+<td>饱和时间、积分峰值、释放后超调</td>
+<td>参数扫描、多轴饱和和故障联合统计仍待补齐</td>
+</tr>
+<tr>
+<td>C13</td>
+<td>故障注入、残差、重构接口和任务降级占位</td>
+<td>故障注入时刻、事件定位和异常终止记录</td>
+<td>故障后健康矩阵或效能变化数据</td>
+<td>检测、隔离、重构和回退节拍</td>
+<td>检测延迟、故障后通过率和剩余裕度</td>
+<td>故障扫描、成对比较和失败模式聚类</td>
+</tr>
+<tr>
+<td>C14、C15</td>
+<td>任务级质点平台、走廊/能量/热流记录字段</td>
+<td>约束边界与终端事件的积分和定位</td>
+<td>大气、热流、升阻和任务参数表</td>
+<td>任务层命令更新、保护逻辑和限幅</td>
+<td>热流、走廊、能量、终端和输入组合判据</td>
+<td>扰动、初值、走廊和大气不确定性统计</td>
+</tr>
+<tr>
+<td>C16、C17</td>
+<td>三维制导、姿态、分配、耦合骨架平台</td>
+<td>制导步长、姿态更新和耦合事件一致性</td>
+<td>气动表来源、几何参数和分配效能</td>
+<td>多速率接口、姿态命令落实和分配残差记录</td>
+<td>终端误差、姿态/输入指标和接口误差</td>
+<td>三维场景、目标变化和接口失败样本仍待补齐</td>
+</tr>
+<tr>
+<td>C18、C19</td>
+<td>受限优化、安全滤波闭环和回退接口</td>
+<td>求解器超时、不可行事件和约束越界定位</td>
+<td>预测模型参数、约束数据和安全集来源</td>
+<td>求解周期、回退逻辑、热启动和延迟</td>
+<td>求解时间、违反积分、松弛量和组合通过判据</td>
+<td>成对样本、不可行样本库和实时性统计</td>
+</tr>
+<tr>
+<td>C20</td>
+<td>六自由度传播、气动表、分配和任务接口骨架</td>
+<td>姿态传播健康、坐标变换和步长敏感性</td>
+<td>气动表、惯量、参考量和坐标约定</td>
+<td>多模块节拍、执行器与分配闭环记录</td>
+<td>姿态健康、路径、终端和残差指标</td>
+<td>多场景、多模型和高保真闭环统计仍待补齐</td>
+</tr>
+</tbody>
+</table>
+<p>因此，这份映射里的案例不仅是“控制方法示例”，也是第52到第57章验证训练链在不同对象上的落点。</p>
+<h2 id="案例最少应具备的证据">案例最少应具备的证据</h2>
+<p>案例真正纳入第58章，而不只是停留在“有一段代码”或“有一张图”时，正文里更合适的做法，是先把证据链补完整，再谈是否收录。</p>
+<table>
+<thead>
+<tr>
+<th>项目</th>
+<th>最低应具备的内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>案例承载体</td>
+<td>可运行方式、配置量、对象层级和随机种子策略</td>
+</tr>
+<tr>
+<td>数值设置</td>
+<td>积分器、步长、控制周期、事件处理和异常终止记录</td>
+</tr>
+<tr>
+<td>数据来源</td>
+<td>气动表、参数文件、执行机构参数和参考轨迹来源</td>
+</tr>
+<tr>
+<td>实现记录</td>
+<td>命令量、实际执行量、限幅、延迟、回退和故障记录量</td>
+</tr>
+<tr>
+<td>指标计算</td>
+<td>跟踪、安全、输入、终端和计算量指标的独立计算</td>
+</tr>
+<tr>
+<td>统计形态</td>
+<td>单场景、成对比较、Monte Carlo 或故障扫描</td>
+</tr>
+<tr>
+<td>失败样本</td>
+<td>最坏样本、异常终止、不可行样本或故障后失效记录</td>
+</tr>
+<tr>
+<td>边界说明</td>
+<td>教学演示、研究原型或更高层级结论边界</td>
+</tr>
+</tbody>
+</table>
+<p>这个清单的目的，是把第52到第57章已经建立的要求落实到每个案例，而不是让案例库退化成方法清单。</p>
+<h2 id="案例对应的先读章节">案例对应的先读章节</h2>
+<p>如果读者已经选定一个案例，但不知道该先回看第五卷哪一章，较稳妥的先读顺序如下：</p>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>案例簇</th>
+<th>建议先回看的章节</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>C01、C02</td>
+<td>第 52、55、56 章</td>
+</tr>
+<tr>
+<td>C03、C05、C06、C07、C08</td>
+<td>第 53、55、56、57 章</td>
+</tr>
+<tr>
+<td>C04、C12</td>
+<td>第 54、55、56、57 章</td>
+</tr>
+<tr>
+<td>C13</td>
+<td>第 52、55、57、58、59 章</td>
+</tr>
+<tr>
+<td>C14、C15</td>
+<td>第 52、53、54、56、57 章</td>
+</tr>
+<tr>
+<td>C16、C17、C20</td>
+<td>第 52、53、54、55、56 章</td>
+</tr>
+<tr>
+<td>C18、C19</td>
+<td>第 55、56、57、59、60 章</td>
+</tr>
+<tr>
+<td>C09、C10、C11</td>
+<td>先回看第 37、38、39 章，再接第55到第57章设计最小验证协议</td>
+</tr>
+</tbody>
+</table>
+<h2 id="案例如何服务第59章论文阅读">案例如何服务第59章论文阅读</h2>
+<p>第58章把案例组织成条目后，第59章并不是重新从零开始读论文，而是直接围绕这些案例条目去审查论文对象、基线和证据边界。较稳妥的分组如下：</p>
+<table>
+<colgroup>
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+</colgroup>
+<thead>
+<tr>
+<th>案例簇</th>
+<th>适合阅读的论文类型</th>
+<th>适合的阅读层级</th>
+<th>可先对照的阅读样例</th>
+<th>读论文时最应先查的内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>C01、C02</td>
+<td>经典飞控、LQR、LQG 和线性姿态控制</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mi>d</mi><mn>1</mn></mrow><annotation encoding="application/x-tex">Rd1</annotation></semantics></math>
+到
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mi>d</mi><mn>2</mn></mrow><annotation encoding="application/x-tex">Rd2</annotation></semantics></math></td>
+<td>可先借用第59章动压安全样例中的最小问题卡结构</td>
+<td>配平点、线化范围、权重尺度化和输入代价</td>
+</tr>
+<tr>
+<td>C03</td>
+<td>鲁棒姿态与柔性耦合控制</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mi>d</mi><mn>2</mn></mrow><annotation encoding="application/x-tex">Rd2</annotation></semantics></math>
+到
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mi>d</mi><mn>3</mn></mrow><annotation encoding="application/x-tex">Rd3</annotation></semantics></math></td>
+<td>第59章中的鲁棒姿态与柔性样例，可再接第60章对应路线卡</td>
+<td>柔性模态、权重选择、最坏样本和单轴、多轴边界</td>
+</tr>
+<tr>
+<td>C06、C08</td>
+<td>NDI、INDI、滑模与非线性姿态控制</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mi>d</mi><mn>2</mn></mrow><annotation encoding="application/x-tex">Rd2</annotation></semantics></math>
+到
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mi>d</mi><mn>3</mn></mrow><annotation encoding="application/x-tex">Rd3</annotation></semantics></math></td>
+<td>可先借用第59章的最小问题卡和保守改写样例</td>
+<td>相对阶、噪声、延迟、抖振和饱和</td>
+</tr>
+<tr>
+<td>C04</td>
+<td>巡航速度高度与推进耦合控制</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mi>d</mi><mn>2</mn></mrow><annotation encoding="application/x-tex">Rd2</annotation></semantics></math></td>
+<td>第59章中的吸气式巡航样例，可再接第60章相关路线卡</td>
+<td>推进状态、油门动态、进气道裕度和热、动压约束</td>
+</tr>
+<tr>
+<td>C12、C19</td>
+<td>抗积分饱和、CBF、安全滤波与受限控制</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mi>d</mi><mn>2</mn></mrow><annotation encoding="application/x-tex">Rd2</annotation></semantics></math>
+到
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mi>d</mi><mn>3</mn></mrow><annotation encoding="application/x-tex">Rd3</annotation></semantics></math></td>
+<td>第59章中的动压安全与保守改写样例</td>
+<td>安全集定义、QP 可行性、饱和逻辑和安全修正代价</td>
+</tr>
+<tr>
+<td>C13</td>
+<td>故障诊断与容错控制</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mi>d</mi><mn>3</mn></mrow><annotation encoding="application/x-tex">Rd3</annotation></semantics></math></td>
+<td>第59章中的故障敏感性样例</td>
+<td>残差、检测延迟、隔离条件、重构时序和降级逻辑</td>
+</tr>
+<tr>
+<td>C14</td>
+<td>再入任务控制</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mi>d</mi><mn>2</mn></mrow><annotation encoding="application/x-tex">Rd2</annotation></semantics></math>
+到
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mi>d</mi><mn>3</mn></mrow><annotation encoding="application/x-tex">Rd3</annotation></semantics></math></td>
+<td>第59章中的再入热流与走廊样例</td>
+<td>模型层级、热流、累计热载荷、走廊和终端约束是否同时检查</td>
+</tr>
+<tr>
+<td>C15</td>
+<td>滑翔能量管理控制</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mi>d</mi><mn>2</mn></mrow><annotation encoding="application/x-tex">Rd2</annotation></semantics></math>
+到
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mi>d</mi><mn>3</mn></mrow><annotation encoding="application/x-tex">Rd3</annotation></semantics></math></td>
+<td>第59章中的滑翔能量管理样例</td>
+<td>能量走廊、横向代价、终端可达性和输入峰值是否同时给出</td>
+</tr>
+<tr>
+<td>C16</td>
+<td>三维终端制导</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mi>d</mi><mn>2</mn></mrow><annotation encoding="application/x-tex">Rd2</annotation></semantics></math></td>
+<td>第59章中的制导与 IGC 样例</td>
+<td>终端误差、路径安全、终端角约束口径和任务对象边界</td>
+</tr>
+<tr>
+<td>C17</td>
+<td>IGC 接口链与耦合骨架</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mi>d</mi><mn>2</mn></mrow><annotation encoding="application/x-tex">Rd2</annotation></semantics></math>
+到
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mi>d</mi><mn>3</mn></mrow><annotation encoding="application/x-tex">Rd3</annotation></semantics></math></td>
+<td>第59章中的制导与 IGC 样例</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>r</mi><mi>g</mi></msub><mi>/</mi><msub><mi>r</mi><mi>f</mi></msub></mrow><annotation encoding="application/x-tex">r_g/r_f</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>e</mi><mrow><mi>g</mi><mi>r</mi></mrow></msub><annotation encoding="application/x-tex">e_{gr}</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>r</mi><mi>a</mi></msub><mi>/</mi><msub><mi>d</mi><mi>a</mi></msub></mrow><annotation encoding="application/x-tex">r_a/d_a</annotation></semantics></math>、姿态执行和接口失败记录</td>
+</tr>
+<tr>
+<td>C18</td>
+<td>MPC 与实时优化控制</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mi>d</mi><mn>2</mn></mrow><annotation encoding="application/x-tex">Rd2</annotation></semantics></math>
+到
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mi>d</mi><mn>3</mn></mrow><annotation encoding="application/x-tex">Rd3</annotation></semantics></math></td>
+<td>第59章中的保守改写样例，可再接第60章受限优化路线卡</td>
+<td>预测模型、求解器、可行性、回退逻辑和计算时间</td>
+</tr>
+<tr>
+<td>C20</td>
+<td>六自由度传播与高保真接口</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mi>d</mi><mn>2</mn></mrow><annotation encoding="application/x-tex">Rd2</annotation></semantics></math></td>
+<td>第59章中的制导与 IGC 样例</td>
+<td>气动表来源、坐标约定、执行机构、估计器接口和闭环层级</td>
+</tr>
+</tbody>
+</table>
+<p>这里的含义不是“这些案例已经等于论文复现”，而是：它们已经给第59章提供了对象、基线、指标和失败样本的检查抓手。</p>
+<h2 id="案例如何长成第60章研究路线">案例如何长成第60章研究路线</h2>
+<p>第60章需要的不是泛泛的热点词，而是由现有案例中还需要继续展开的环节直接推出来的研究问题。更适合做研究路线训练的关系如下：</p>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr>
+<th>案例或案例簇</th>
+<th>仍需展开的环节</th>
+<th>更自然的研究路线</th>
+<th>可支撑的起步层级</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>C03 + 刚柔耦合俯仰样例</td>
+<td>仍是单轴和低阶结构不确定样例</td>
+<td>多轴鲁棒姿态、结构不确定性和多飞行点鲁棒设计，可配合 60.21 使用</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>F</mi><mi>r</mi><mn>2</mn></mrow><annotation encoding="application/x-tex">Fr2</annotation></semantics></math></td>
+</tr>
+<tr>
+<td>C04 + C12</td>
+<td>巡航对象已有低阶受限协同算例，但仍缺高保真推进状态、多输入受限补偿和三维耦合</td>
+<td>吸气式巡航多回路耦合控制与抗积分饱和一体化，可配合 60.20 使用</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>F</mi><mi>r</mi><mn>2</mn></mrow><annotation encoding="application/x-tex">Fr2</annotation></semantics></math></td>
+</tr>
+<tr>
+<td>C06 + C17</td>
+<td>INDI 仍未进入三轴姿态和分配闭环</td>
+<td>三轴 INDI、分配约束和 IGC 接口统一</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>F</mi><mi>r</mi><mn>2</mn></mrow><annotation encoding="application/x-tex">Fr2</annotation></semantics></math></td>
+</tr>
+<tr>
+<td>C13</td>
+<td>已有故障敏感性，但无正式主动重构闭环</td>
+<td>FDI、分配重构、任务降级和容错协同</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>F</mi><mi>r</mi><mn>3</mn></mrow><annotation encoding="application/x-tex">Fr3</annotation></semantics></math></td>
+</tr>
+<tr>
+<td>C14 + C15</td>
+<td>任务级案例仍停留在低阶质点层</td>
+<td>再入/滑翔任务中的三维约束、安全与轨迹优化统一</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>F</mi><mi>r</mi><mn>2</mn></mrow><annotation encoding="application/x-tex">Fr2</annotation></semantics></math></td>
+</tr>
+<tr>
+<td>C16</td>
+<td>已有三维质点终端任务算例，但仍缺终端角约束、目标机动和姿态接口</td>
+<td>先把终端任务、路径约束和终端证据固定下来</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>F</mi><mi>r</mi><mn>2</mn></mrow><annotation encoding="application/x-tex">Fr2</annotation></semantics></math></td>
+</tr>
+<tr>
+<td>C17</td>
+<td>已有教学级接口链和耦合骨架，但制导、姿态、分配和约束激活尚未同闭环验证</td>
+<td>制导、姿态、分配和接口一致性的一体化研究</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>F</mi><mi>r</mi><mn>2</mn></mrow><annotation encoding="application/x-tex">Fr2</annotation></semantics></math></td>
+</tr>
+<tr>
+<td>C20</td>
+<td>已有六自由度传播骨架，但缺真实气动数据库、执行机构动态和完整闭环</td>
+<td>高保真六自由度闭环 IGC 验证链</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>F</mi><mi>r</mi><mn>2</mn></mrow><annotation encoding="application/x-tex">Fr2</annotation></semantics></math></td>
+</tr>
+<tr>
+<td>C18 + C19</td>
+<td>仍是教学级 MPC 与安全滤波算例</td>
+<td>受限优化控制与安全滤波的可行性和实时性研究</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>F</mi><mi>r</mi><mn>3</mn></mrow><annotation encoding="application/x-tex">Fr3</annotation></semantics></math></td>
+</tr>
+<tr>
+<td>C09、C10、C11</td>
+<td>仍缺正式配套算例</td>
+<td>自适应、智能逼近、DOB/ESO 的最小可运行研究原型</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>F</mi><mi>r</mi><mn>1</mn></mrow><annotation encoding="application/x-tex">Fr1</annotation></semantics></math></td>
+</tr>
+</tbody>
+</table>
+<p>因此，这份映射不仅是实现索引，也是一张“哪些研究问题已经有抓手、哪些还没有”的研究脉络图。</p>
+<h2 id="案例用于复现与选题的建议顺序">案例用于复现与选题的建议顺序</h2>
+<p>如果希望把案例库真正用于论文阅读和研究训练，比较稳妥的顺序是：</p>
+<ol type="1">
+<li>先从 C01 到 C20 中选择一个对象明确、基线明确的案例。</li>
+<li>再确认现有配套算例、结果指标、失败样本和证据边界是否齐全。</li>
+<li>按第59章的方法，把该案例对应的论文整理成对象、模型、基线、指标和结论边界审查表。</li>
+<li>按第60章的方法，把该案例还需展开的环节写成研究矛盾、验证协议和里程碑。</li>
+<li>最后再决定是继续补教学级复现，还是进入研究原型扩展。</li>
+</ol>
+<h2 id="从-c16-到-c20-的递进使用顺序">从 C16 到 C20 的递进使用顺序</h2>
+<p>如果读者的目标是把终端制导、IGC
+和六自由度链条真正接起来，比较稳妥的顺序不是直接从 C20 开始，而是按 C16
+到 C17 再到 C20 逐步升级：</p>
+<ol type="1">
+<li>先做
+C16：从三维质点制导算例出发，读取终端轨迹记录和配套图，先把终端误差、路径安全和任务对象边界说清。</li>
+<li>再做 C17：进入姿态接口、耦合骨架和 IGC 汇总表，把
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>r</mi><mi>g</mi></msub><annotation encoding="application/x-tex">r_g</annotation></semantics></math>
+到
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>r</mi><mi>f</mi></msub><annotation encoding="application/x-tex">r_f</annotation></semantics></math>
+的接口链、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>e</mi><mrow><mi>g</mi><mi>r</mi></mrow></msub><annotation encoding="application/x-tex">e_{gr}</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>r</mi><mi>a</mi></msub><annotation encoding="application/x-tex">r_a</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>d</mi><mi>a</mi></msub><annotation encoding="application/x-tex">d_a</annotation></semantics></math>
+和接口失败记录补齐。</li>
+<li>最后做 C20：回到六自由度刚体传播算例，并结合 IGC
+可展开问题说明，确认刚体传播、坐标变换、姿态健康和数据来源方面还需进一步完善的环节。</li>
+</ol>
+<table>
+<colgroup>
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+</colgroup>
+<thead>
+<tr>
+<th>步骤</th>
+<th>新增证据</th>
+<th>第59章最适合追问的问题</th>
+<th>第60章最自然的升级方向</th>
+<th>仍不能声称的内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>C16</td>
+<td>三维终端任务、路径和动压层面的教学证据</td>
+<td>论文是否真的回答同一终端任务，是否同时给出脱靶量、路径和约束指标</td>
+<td>把终端角约束、目标机动和三维姿态接口引入任务定义</td>
+<td>不应直接写成 IGC 或六自由度闭环已经建立</td>
+</tr>
+<tr>
+<td>C17</td>
+<td>原始制导命令到可执行参考的接口链、分配残差和耦合骨架指标</td>
+<td>论文是否真正报告
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>r</mi><mi>g</mi></msub><mi>/</mi><msub><mi>r</mi><mi>f</mi></msub></mrow><annotation encoding="application/x-tex">r_g/r_f</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>e</mi><mrow><mi>g</mi><mi>r</mi></mrow></msub><annotation encoding="application/x-tex">e_{gr}</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>r</mi><mi>a</mi></msub><mi>/</mi><msub><mi>d</mi><mi>a</mi></msub></mrow><annotation encoding="application/x-tex">r_a/d_a</annotation></semantics></math>
+和接口失败样本</td>
+<td>把姿态执行、分配约束和约束激活写进同一闭环</td>
+<td>不应直接写成真实气动力反作用下的完整 IGC</td>
+</tr>
+<tr>
+<td>C20</td>
+<td>六自由度刚体传播、姿态运动学健康、坐标约定和数据来源说明</td>
+<td>论文是否说清气动表来源、惯量/坐标约定、执行机构和估计器接口</td>
+<td>把验证气动数据库、执行机构动态和完整平动-姿态闭环统一起来</td>
+<td>仍应回到教学级传播与接口检查</td>
+</tr>
+</tbody>
+</table>
+<p>这个顺序的作用，不是把 C20
+降成“最后才看”的次要案例，而是避免读者在没有任务对象和接口证据时，直接把传播层证据误写成
+IGC 结论。</p>
+<h2 id="这份映射文件的作用">这份映射文件的作用</h2>
+<p>这份映射的作用已经不只是命令索引，而是：</p>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>能力</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>C01 到 C20 配套算例、证据和后续展开方向表</td>
+<td>说明能跑什么、哪些部分还需继续拓展</td>
+</tr>
+<tr>
+<td>第52到第57章训练链标签</td>
+<td>说明案例该接回哪一段平台/实现/验证训练</td>
+</tr>
+<tr>
+<td>第59章阅读标签</td>
+<td>说明案例适合支撑哪类论文阅读任务</td>
+</tr>
+<tr>
+<td>第60章路线标签</td>
+<td>说明案例最自然能长成什么研究问题</td>
+</tr>
+</tbody>
+</table>
+<p>边界也必须写清楚：</p>
+<ul>
+<li>它能够支持从可运行案例到验证训练、论文复现和研究路线的连续组织；</li>
+<li>对 C16、C17、C20
+而言，它给出了从终端任务、接口链到六自由度传播的最小训练顺序；</li>
+<li>但它还不是正式实验数据库，也不是高保真案例全集；</li>
+<li>因此，这个文件能支撑案例训练链路由和后续补强规划，不能支撑案例体系已经完备。</li>
+</ul>
+<h2 id="最值得使用的案例组">最值得使用的案例组</h2>
+<h3 id="吸气式巡航受限协同">吸气式巡航受限协同</h3>
+<p>这一组最直接支撑
+C04。它的核心不是某个命令本身，而是把吸气式巡航中的速度、高度、推进边界和动压安全放进同一证据链。现有结果表同时记录了进气道裕度最小值、保护激活时间、推进限制激活时间、油门峰值、油门速率峰值、动压违反积分，以及任务层速度和高度
+RMS 误差，并配有组合通过判据。</p>
+<p>因此，这个案例足以说明吸气式巡航中的受限协同控制：不仅要看速度和高度，还要看油门动态、推进边界和动压安全是否同时满足。它仍然只是低阶纵向教学对象，不代表高保真进气道、燃烧室、喷管和三维耦合巡航闭环已经完成。</p>
+<h3 id="纵向控制器族">纵向控制器族</h3>
+<p>这一组主要支撑 C01、C05、C07、C08 和 C19，也可以作为 C04
+的简化纵向基线。它的价值在于，同一个对象、同一套指标、同一套图表口径下，可以直接比较基线控制、LQR、NDI、反步、滑模和屏障安全层修正这些方法的差异。统一绘图过程再把这些轨迹整理成高度跟踪、速度跟踪和动压演化等图表。</p>
+<p>因此，这一组案例最适合承担“纵向控制器族的统一教学基线”这一角色，而不是各自孤立地只画一条漂亮曲线。</p>
+<h3 id="成对比较与-monte-carlo">成对比较与 Monte Carlo</h3>
+<p>这一组对应 C01、C05、C07、C08、C19 的
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mn>3</mn></mrow><annotation encoding="application/x-tex">R3</annotation></semantics></math>
+级教学统计证据。它把候选控制器与基线控制器放在同一批随机样本上成对比较，核心输出包括高度
+RMS 误差变化、速度 RMS
+误差变化、动压峰值变化、动压违反积分变化，以及基线和候选控制器各自是否通过组合判据。</p>
+<p>这种组织方式比单独看两张曲线更有说服力，因为它回答的是“在同一组样本上，候选方法相对基线是否更好”，而不是“某一条轨迹看起来是否更顺”。但样本数很小，因此这些结果只能支持教学级比较，不能支持强统计结论。</p>
+<h3 id="姿态分配制导和-igc-骨架">姿态、分配、制导和 IGC 骨架</h3>
+<p>这一组对应 C12、C16、C17、C20
+的教学级扩展，涵盖姿态内环、控制分配、三维制导、接口转换、教学级耦合骨架、六自由度刚体传播和
+IGC
+步骤汇总。它最重要的意义，是把原本容易分散在不同章节里的内容串成一条连续训练链：先有三维任务，再有姿态实现，再有控制分配，再有气动耦合和传播层检查，最后再回到
+IGC 的可展开问题整理。</p>
+<p>因此，这一组已经能够说明“从制导任务到传播骨架”的教学闭环；但它仍然不是高保真
+IGC，更不能替代真实气动数据库支撑下的完整六自由度闭环。</p>
+<h3
+id="h_infty-风格鲁棒姿态训练"><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>H</mi><mi>∞</mi></msub><annotation encoding="application/x-tex">H_\infty</annotation></semantics></math>
+风格鲁棒姿态训练</h3>
+<p>这一组对应
+C03。场景使用单轴俯仰线性对象，扫描惯量、阻尼和执行机构时间常数不确定样本，并把现有姿态
+PD 与
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>H</mi><mi>∞</mi></msub><annotation encoding="application/x-tex">H_\infty</annotation></semantics></math>
+风格加权 PD
+放在同一框架内比较。教学结果显示，加权设计在若干关键指标上更稳健：混合灵敏度峰值更低，鲁棒稳定性相关峰值更低，力矩饱和比例更低，姿态
+RMS 误差也有所下降。</p>
+<p>这个案例提醒读者，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>H</mi><mi>∞</mi></msub><annotation encoding="application/x-tex">H_\infty</annotation></semantics></math>
+报告不能只写“鲁棒性更好”，而要明确权重如何选取、不确定样本如何构造、最坏频率峰值如何解释，以及时域里付出了哪些执行机构代价。它不是完整
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>H</mi><mi>∞</mi></msub><annotation encoding="application/x-tex">H_\infty</annotation></semantics></math>
+综合或
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>μ</mi><annotation encoding="application/x-tex">\mu</annotation></semantics></math>
+综合，也没有覆盖多轴耦合和多飞行点。</p>
+<h3 id="刚柔耦合俯仰教学训练">刚柔耦合俯仰教学训练</h3>
+<p>这一组既支撑第二卷第23章，也为 C03
+的结构不确定性边界提供低阶样例。场景使用单轴俯仰刚体叠加一个柔性模态，对比真实刚体角速度反馈、受柔性污染的测量反馈和降带宽反馈，并扫描柔性频率、阻尼与测量污染参数。结果把传感器污染量级、模态能量峰值、力矩变化率、有效性下界、带宽比和组合通过判据统一记录在柔性俯仰指标表、柔性扫描结果和配套轨迹记录中，并由最小测试给出基本核查。</p>
+<p>它能够说明低阶柔性模态如何进入闭环验证指标，但不能替代有限元模态、气动弹性导数、热结构耦合或颤振边界验证。</p>
+<h3 id="indi-姿态控制训练">INDI 姿态控制训练</h3>
+<p>这一组对应
+C06。场景使用单轴俯仰姿态对象，并显式加入角速度测量噪声、角加速度差分、低通滤波、执行机构命令延迟和实际力矩反馈，用于比较模型
+PD 与 INDI 两类实现。教学结果显示，INDI 在姿态 RMS
+误差、扰动后恢复误差和命令饱和比例上都更占优势。</p>
+<p>这个案例说明 INDI
+的工程含义不在“公式更新颖”，而在于它必须把角加速度估计、实际执行机构反馈、命令延迟、增量命令和输入饱和这些因素一起纳入记录。它聚焦单轴俯仰力矩通道；三轴
+INDI、控制分配约束、舵面实际位置反馈和更系统的噪声、延迟扫描后续宜继续完善。</p>
+<h3 id="故障注入和容错训练">故障注入和容错训练</h3>
+<p>这一组对应
+C13。它把基线控制器与带守护层控制器放在多类故障场景下比较，并把结果整理成故障指标表、成对差值表和图表。证据的重点，是故障敏感性和残差检测，而不是完整
+FTC。也就是说，它能够说明“故障发生后哪些指标先恶化、哪些残差先响应”，但若要升级到研究级案例，还需要增加故障隔离、控制分配重构和任务降级逻辑。</p>
+<h3 id="输入饱和和抗积分饱和训练">输入饱和和抗积分饱和训练</h3>
+<p>这一组对应
+C12。场景先给出不可持续的高速度参考，使油门长时间饱和；随后再让参考速度回落，从而暴露积分累积对恢复过程的影响。结果显示，抗积分饱和方案能够减小积分状态峰值、释放后的速度
+RMS 误差、释放后的超调、油门多余积分和总饱和时间。</p>
+<p>这个案例说明抗积分饱和的工程含义是：控制器不能只输出被限幅后的命令，还要记录未限幅命令、饱和持续时间和积分状态。它聚焦油门饱和；舵面多轴抗积分饱和和控制分配饱和补偿仍可继续展开。</p>
+<h3 id="再入热流约束训练">再入热流约束训练</h3>
+<p>这一组对应
+C14。场景使用低阶再入质点模型，以航程、高度、速度和航迹角为主要状态，以航迹角速率命令作为直接操纵量，同时记录热流、累计热载荷、动压、过载和走廊裕度。相对基线下滑命令，热流守护命令能够减小热流违反积分、热流峰值、动压峰值和走廊违反积分。</p>
+<p>这个案例说明，再入控制不能只看终端误差，还必须同时记录热流、累计热载荷、动压、过载、走廊裕度和输入命令。它是低阶质点和航迹角速率命令教学模型，不包含倾侧角翻转、三维横程、真实热防模型或高保真气动热。</p>
+<h3 id="滑翔能量管理训练">滑翔能量管理训练</h3>
+<p>这一组对应
+C15。场景使用低阶滑翔质点模型，以航程、横程、高度、速度、航迹角、航向角和倾侧角为主要状态，以攻角命令和倾侧角命令为控制量，并围绕能量-高度走廊、终端能量、横程和路径约束构造能量感知的控制策略。相对基线横程修正方案，能量守护策略能够减小横程误差、终端能量误差和倾侧角峰值。</p>
+<p>这个案例说明，滑翔控制不能只写高度跟踪或横程修正。默认场景中基线航程接近目标，但横程和终端能量不达标；能量守护命令通过的是终端、能量、路径和输入的组合判据。它是低阶质点和简化倾侧、攻角命令，不包含三维大范围机动规划、倾侧翻转、正式轨迹优化或气动不确定性扫描。</p>
+<h3 id="mpc-轨迹跟踪训练">MPC 轨迹跟踪训练</h3>
+<p>这一组对应
+C18。场景使用低维纵向预测模型，以速度、高度和航迹角为状态，以航迹角命令和油门命令为控制量，并显式施加动压约束，用有限控制集的滚动搜索来近似
+MPC。教学结果显示，有限集合 MPC 能够减小速度 RMS 误差、高度 RMS
+误差、动压违反积分和动压峰值。</p>
+<p>这个案例说明，MPC
+写作时必须报告预测时域、约束、求解时间、不可行样本和回退次数。它是枚举有限控制集的教学级滚动优化，不是
+QP/NMPC 求解器，也没有终端集合或严格递归可行性证明。</p>
+<h2 id="优先补强顺序">优先补强顺序</h2>
+<p>案例库下一步不应平均用力。建议按下面顺序补齐：</p>
+<ol type="1">
+<li>C18 MPC 轨迹跟踪扩展：在低维有限集合算例基础上，补
+QP/NMPC、终端集合、不可行样本库和多场景实时性扫描。</li>
+<li>C14
+再入热流约束扩展：在低阶质点算例基础上，补倾侧角控制、三维横程、热防模型和扰动验证。</li>
+<li>C15
+滑翔飞行能量管理扩展：在低阶质点算例基础上，补三维大范围机动、倾侧翻转、轨迹优化和大气/气动不确定性验证。</li>
+<li>C06 INDI 姿态控制扩展：把单轴 INDI
+扩展到三轴姿态、实际舵面反馈、控制分配和噪声/延迟参数扫描。</li>
+<li>C03
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>H</mi><mi>∞</mi></msub><annotation encoding="application/x-tex">H_\infty</annotation></semantics></math>
+鲁棒姿态控制扩展：把单轴加权 PD 和低阶柔性俯仰样例扩展为多轴对象、正式
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>H</mi><mi>∞</mi></msub><annotation encoding="application/x-tex">H_\infty</annotation></semantics></math>
+综合或结构不确定性分析。</li>
+<li>C12
+输入饱和控制扩展：把油门抗积分饱和扩展到舵面、多轴控制分配和参数扫描。</li>
+<li>C20
+六自由度闭环仿真：把验证气动表、制导、分配和刚体传播真正闭合，再谈 IGC
+结论。</li>
+</ol>
+<h2 id="写作边界">写作边界</h2>
+<p>后续在教程、论文或报告中引用案例库时，可以采用更稳妥的表述：</p>
+<p>现有案例库已经提供若干教学级可运行算例，覆盖纵向控制器族、屏障安全层、三维质点制导、姿态内环、控制分配、故障注入、教学级耦合骨架和独立六自由度刚体传播。这些算例足以支撑控制科学训练和证据链模板，但尚不能替代验证气动数据库、多飞行点高保真闭环和工程级实时验证。</p>
+<p>不应写成“案例库已经足以直接支撑高保真六自由度工程闭环结论”。这样的表述超出了证据边界，不应出现在教程、论文或报告中。</p>
+
+      </article>
+      
+      <nav class="book-bottom-nav" aria-label="章节导航">
+        <a href="./60-frontiers-research-roadmap.html">上一章：第60章 前沿问题与研究路线</a>
+        <a href="./index.html">卷首页</a>
+        <span aria-disabled="true">下一章：无</span>
+      </nav>
+    </main>
+  </div>
+</body>
+</html>

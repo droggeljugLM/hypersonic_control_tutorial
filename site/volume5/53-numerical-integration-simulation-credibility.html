@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>第53章 数值积分与仿真可信性</title>
+  <style>
+    :root {
+      --paper: #f7f3eb;
+      --ink: #1f2937;
+      --muted: #5b6472;
+      --line: color-mix(in srgb, #e4e8fb 68%, #cbd5e1 32%);
+      --accent: #4a5fb2;
+      --accent-soft: #e4e8fb;
+      --accent-deep: #2a3568;
+      color-scheme: light;
+    }
+    html {
+      -webkit-text-size-adjust: 100%;
+      background:
+        radial-gradient(circle at top left, #e4e8fb 0, rgba(255,255,255,0) 32%),
+        linear-gradient(180deg, #fbfaf6 0%, var(--paper) 18%, #f7f1e6 100%);
+    }
+    body {
+      margin: 0;
+      font-family: "Source Han Serif SC", "Songti SC", "Noto Serif CJK SC", "Microsoft YaHei", serif;
+      color: var(--ink);
+      line-height: 1.78;
+      letter-spacing: 0;
+    }
+    a { color: var(--accent-deep); }
+    .book-app {
+      display: grid;
+      grid-template-columns: 280px minmax(0, 1fr);
+      min-height: 100vh;
+    }
+    .book-sidebar {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow: auto;
+      padding: 1.2rem 1rem 1.2rem 1.15rem;
+      border-right: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(255,255,255,0.86), rgba(255,255,255,0.72));
+      backdrop-filter: blur(10px);
+    }
+    .sidebar-shell { position: sticky; top: 0; display: flex; flex-direction: column; gap: 1rem; }
+    .sidebar-brand {
+      padding: 0.95rem 0.95rem 1rem;
+      border-radius: 18px;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.95), rgba(255,255,255,0.84)),
+        linear-gradient(135deg, var(--accent-soft), rgba(255,255,255,0));
+      border: 1px solid var(--line);
+      box-shadow: 0 12px 28px rgba(31, 41, 55, 0.06);
+    }
+    .sidebar-brand .kicker { margin: 0; color: var(--accent); font-size: 0.82rem; font-weight: 700; }
+    .sidebar-brand h2 { margin: 0.45rem 0 0.25rem; font-size: 1.08rem; line-height: 1.3; color: var(--ink); }
+    .sidebar-brand p { margin: 0.35rem 0 0; color: var(--muted); font-size: 0.9rem; }
+    .sidebar-links { display: grid; gap: 0.45rem; }
+    .sidebar-link {
+      display: grid;
+      grid-template-columns: 2.2rem minmax(0, 1fr);
+      gap: 0.6rem;
+      align-items: start;
+      padding: 0.7rem 0.75rem;
+      border-radius: 14px;
+      text-decoration: none;
+      background: rgba(255,255,255,0.72);
+      border: 1px solid rgba(31,41,55,0.07);
+      color: var(--ink);
+    }
+    .sidebar-link:hover { background: rgba(255,255,255,0.95); border-color: var(--line); }
+    .sidebar-link.active {
+      background: linear-gradient(135deg, rgba(255,255,255,0.98), rgba(255,255,255,0.9));
+      border-color: var(--accent-soft);
+      box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent-soft) 68%, #ffffff 32%);
+    }
+    .sidebar-index {
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      min-width: 2rem;
+      height: 2rem;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent-deep);
+      font-size: 0.78rem;
+      font-weight: 800;
+    }
+    .sidebar-title { font-size: 0.94rem; line-height: 1.35; }
+    .book-main { min-width: 0; padding: 1.25rem 1.45rem 1.8rem; }
+    .book-page-header {
+      padding: 0.85rem 0 1rem;
+      margin-bottom: 1rem;
+      border-bottom: 1px solid var(--line);
+    }
+    .page-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.28rem 0.72rem;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.82);
+      border: 1px solid var(--line);
+      color: var(--accent-deep);
+      font-size: 0.8rem;
+      font-weight: 700;
+    }
+    .book-page-header h1 {
+      margin: 0.7rem 0 0;
+      font-size: 1.85rem;
+      line-height: 1.22;
+      color: var(--accent-deep);
+      border: 0;
+      padding: 0;
+    }
+    .book-page-header p { margin: 0.45rem 0 0; color: var(--muted); max-width: 62rem; }
+    .book-article { max-width: 900px; margin: 0; padding: 0 0 1.2rem; }
+    .book-article h1, .book-article h2, .book-article h3, .book-article h4, .book-article h5, .book-article h6 {
+      line-height: 1.28;
+      margin-top: 1.45em;
+      margin-bottom: 0.55em;
+      color: var(--accent-deep);
+    }
+    .book-article h1 { font-size: 2rem; border-bottom: 2px solid var(--line); padding-bottom: 0.42rem; }
+    .book-article h1:first-of-type { margin-top: 0; }
+    .book-article h2 { font-size: 1.42rem; }
+    .book-article h3 { font-size: 1.12rem; }
+    .book-article p, .book-article li, .book-article dd, .book-article td, .book-article th { text-align: justify; text-justify: inter-ideograph; }
+    .book-article p { margin: 0.85rem 0; }
+    .book-article code, .book-article pre { font-family: "Cascadia Mono", "Source Code Pro", Consolas, monospace; font-size: 0.94em; }
+    .book-article code {
+      padding: 0.02rem 0.24rem;
+      background: color-mix(in srgb, var(--accent-soft) 34%, #ffffff 66%);
+      border: 0;
+      border-bottom: 1px solid color-mix(in srgb, var(--accent-soft) 74%, #d1d5db 26%);
+      border-radius: 4px;
+      color: #253244;
+      box-decoration-break: clone;
+      -webkit-box-decoration-break: clone;
+    }
+    .book-article pre {
+      padding: 1rem 1.1rem;
+      overflow: auto;
+      background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,253,248,0.98));
+      border: 1px solid color-mix(in srgb, var(--accent-soft) 54%, #d1d5db 46%);
+      border-left: 5px solid var(--accent);
+      border-radius: 14px;
+      box-shadow: 0 8px 22px rgba(31, 41, 55, 0.05);
+    }
+    .book-article pre code { padding: 0; border: 0; background: transparent; color: inherit; }
+    .book-article table {
+      border-collapse: collapse;
+      width: 100%;
+      margin: 1rem 0 1.25rem;
+      background: rgba(255,255,255,0.82);
+      overflow: hidden;
+      border-radius: 12px;
+    }
+    .book-article th, .book-article td { border: 1px solid var(--line); padding: 0.5rem 0.7rem; vertical-align: top; }
+    .book-article th { background: color-mix(in srgb, var(--accent-soft) 42%, #ffffff 58%); }
+    .book-article blockquote {
+      margin: 1rem 0;
+      padding: 0.25rem 0 0.25rem 1rem;
+      border-left: 4px solid var(--accent);
+      color: #374151;
+      background: linear-gradient(90deg, rgba(255,255,255,0.72), rgba(255,255,255,0.48));
+      border-radius: 0 12px 12px 0;
+    }
+    .book-bottom-nav {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-top: 2.2rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--line);
+    }
+    .book-bottom-nav a {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.6rem 0.9rem;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.84);
+      text-decoration: none;
+      font-weight: 700;
+    }
+    .book-bottom-nav span {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.6rem 0.9rem;
+      border-radius: 999px;
+      border: 1px solid rgba(31,41,55,0.08);
+      background: rgba(255,255,255,0.54);
+      color: rgba(31,41,55,0.42);
+      font-weight: 700;
+    }
+    .book-bottom-nav a:hover { background: rgba(255,255,255,0.98); }
+    .book-volume-intro {
+      margin: 0 0 1.25rem;
+      padding: 1.2rem 1.25rem 1.1rem;
+      border-radius: 18px;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.96), rgba(255,255,255,0.78)),
+        linear-gradient(135deg, var(--accent-soft), rgba(255,255,255,0));
+      border: 1px solid var(--line);
+      box-shadow: 0 14px 34px rgba(31, 41, 55, 0.06);
+    }
+    .volume-intro-kicker {
+      margin: 0;
+      color: var(--accent);
+      font-size: 0.84rem;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    .book-volume-intro h2 {
+      margin: 0.55rem 0 0.55rem;
+      font-size: 1.28rem;
+      line-height: 1.35;
+      color: var(--accent-deep);
+    }
+    .volume-intro-summary {
+      margin: 0;
+      color: var(--muted);
+      max-width: 68rem;
+    }
+    .volume-intro-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.8rem;
+      margin-top: 1rem;
+    }
+    .volume-intro-box {
+      padding: 0.85rem 0.9rem;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.72);
+      border: 1px solid rgba(31,41,55,0.08);
+    }
+    .volume-intro-box span {
+      display: block;
+      color: var(--accent);
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+    }
+    .volume-intro-box strong {
+      display: block;
+      margin-top: 0.35rem;
+      color: var(--ink);
+      font-size: 0.95rem;
+      line-height: 1.45;
+    }
+    .volume-intro-note {
+      margin-top: 0.9rem;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+    @media (max-width: 1180px) {
+      .book-app { grid-template-columns: 1fr; }
+      .book-sidebar {
+        position: relative;
+        height: auto;
+        border-right: 0;
+        border-bottom: 1px solid var(--line);
+      }
+      .sidebar-shell { position: static; }
+    }
+    @media (max-width: 900px) {
+      .book-main { padding: 1rem 1rem 1.5rem; }
+      .book-bottom-nav { flex-direction: column; }
+      .volume-intro-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="book-app">
+    <aside class="book-sidebar">
+      <div class="sidebar-shell">
+        <div class="sidebar-brand">
+          <p class="kicker">高超声速飞行器控制教程</p>
+          <h2>第五卷 仿真验证、工程实现与研究训练</h2>
+          <p>验证与训练</p>
+        </div>
+        <nav class="sidebar-links" aria-label="本卷目录">
+          <a class="sidebar-link" href="./index.html"><span class="sidebar-index">0</span><span class="sidebar-title">卷首页</span></a>
+<a class="sidebar-link" href="./52-hypersonic-control-simulation-platform.html"><span class="sidebar-index">01</span><span class="sidebar-title">第52章 高超声速控制仿真平台设计</span></a>
+<a class="sidebar-link active" href="./53-numerical-integration-simulation-credibility.html"><span class="sidebar-index">02</span><span class="sidebar-title">第53章 数值积分与仿真可信性</span></a>
+<a class="sidebar-link" href="./54-aerodynamic-data-tables-parameter-management.html"><span class="sidebar-index">03</span><span class="sidebar-title">第54章 气动数据表、插值与参数管理</span></a>
+<a class="sidebar-link" href="./55-controller-discretization-real-time-implementation.html"><span class="sidebar-index">04</span><span class="sidebar-title">第55章 控制器离散化与实时实现</span></a>
+<a class="sidebar-link" href="./56-verification-metrics-system.html"><span class="sidebar-index">05</span><span class="sidebar-title">第56章 验证指标体系</span></a>
+<a class="sidebar-link" href="./57-uncertainty-monte-carlo-verification.html"><span class="sidebar-index">06</span><span class="sidebar-title">第57章 不确定性分析与 Monte Carlo 验证</span></a>
+<a class="sidebar-link" href="./58-typical-case-library.html"><span class="sidebar-index">07</span><span class="sidebar-title">第58章 典型案例库</span></a>
+<a class="sidebar-link" href="./59-hypersonic-control-paper-reading-method.html"><span class="sidebar-index">08</span><span class="sidebar-title">第59章 高超声速控制论文阅读方法</span></a>
+<a class="sidebar-link" href="./60-frontiers-research-roadmap.html"><span class="sidebar-index">09</span><span class="sidebar-title">第60章 前沿问题与研究路线</span></a>
+<a class="sidebar-link" href="./case-library-code-mapping.html"><span class="sidebar-index">10</span><span class="sidebar-title">第五卷案例映射</span></a>
+        </nav>
+      </div>
+    </aside>
+    <main class="book-main">
+      <header class="book-page-header">
+        <div class="page-eyebrow">第5册·章节页02</div>
+        <h1 id="volume5--53-numerical-integration-simulation-credibility">第53章 数值积分与仿真可信性</h1>
+        <p>本页是章节正文页。左侧目录用于回到本卷其他章节，底部导航用于前后章跳转。</p>
+      </header>
+      <article class="book-article">
+        <h2 id="问题背景">53.1 问题背景</h2>
+<p>控制器在仿真中表现良好，并不自动说明控制器真实有效。仿真结果同时受模型、控制律、参数、积分器、步长、事件处理、插值、采样周期和随机扰动影响。数值积分错误可能把一个不稳定闭环看起来稳定，也可能把一个本来安全的控制器算成约束违规。</p>
+<p>本章处理的是“数值方法如何影响控制结论”的问题，而不是单纯介绍求解器。高超声速控制仿真中的一个步长、一个事件定位、一次插值方式变化，都可能把结论带偏。因此，本章说明常见数值误差来自哪里，再说明
+Euler、Runge-Kutta、自适应积分和刚性系统求解器各适合什么场景；随后讨论控制器采样、执行机构限幅和事件触发如何影响积分可信性，如何做步长收敛检查和指标收敛检查，以及为什么“曲线平滑”不等于“仿真可信”。</p>
+<h2 id="连续动力学的积分问题">53.2 连续动力学的积分问题</h2>
+<p>闭环飞行动力学可写为：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>x</mi><mo accent="true">̇</mo></mover><mo>=</mo><mi>f</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo>,</mo><msub><mi>u</mi><mi>a</mi></msub><mo>,</mo><mi>p</mi><mo>,</mo><mi>d</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
+\dot{x}=f(x,u_a,p,d)
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>x</mi><annotation encoding="application/x-tex">x</annotation></semantics></math>
+是飞行器状态，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>u</mi><mi>a</mi></msub><annotation encoding="application/x-tex">u_a</annotation></semantics></math>
+是执行机构实际输出，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>p</mi><annotation encoding="application/x-tex">p</annotation></semantics></math>
+是模型参数，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>d</mi><annotation encoding="application/x-tex">d</annotation></semantics></math>
+是外部扰动或模型误差，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mo stretchy="false" form="prefix">(</mo><mi>⋅</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">f(\cdot)</annotation></semantics></math>
+是连续时间动力学函数。</p>
+<p>数值仿真用离散序列近似连续轨迹：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>x</mi><mrow><mi>k</mi><mo>+</mo><mn>1</mn></mrow></msub><mo>=</mo><msub><mi>x</mi><mi>k</mi></msub><mo>+</mo><mi mathvariant="normal">Δ</mi><mi>t</mi><mspace width="0.167em"></mspace><mi>f</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>x</mi><mi>k</mi></msub><mo>,</mo><msub><mi>u</mi><mrow><mi>a</mi><mo>,</mo><mi>k</mi></mrow></msub><mo>,</mo><mi>p</mi><mo>,</mo><msub><mi>d</mi><mi>k</mi></msub><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
+x_{k+1}=x_k+\Delta t\,f(x_k,u_{a,k},p,d_k)
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>x</mi><mi>k</mi></msub><annotation encoding="application/x-tex">x_k</annotation></semantics></math>
+是第
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>k</mi><annotation encoding="application/x-tex">k</annotation></semantics></math>
+个离散状态，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Δ</mi><mi>t</mi></mrow><annotation encoding="application/x-tex">\Delta t</annotation></semantics></math>
+是积分步长，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>u</mi><mrow><mi>a</mi><mo>,</mo><mi>k</mi></mrow></msub><annotation encoding="application/x-tex">u_{a,k}</annotation></semantics></math>
+是第
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>k</mi><annotation encoding="application/x-tex">k</annotation></semantics></math>
+个采样时刻的执行机构输入，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>d</mi><mi>k</mi></msub><annotation encoding="application/x-tex">d_k</annotation></semantics></math>
+是离散扰动近似。</p>
+<p>Euler 法实现简单，适合解释概念，但精度和稳定性较弱。若步长较大，Euler
+可能引入明显数值阻尼或数值发散。</p>
+<h3 id="四阶-runge-kutta">四阶 Runge-Kutta</h3>
+<p>固定步长 RK4 在教学仿真中常用：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>k</mi><mn>1</mn></msub><mo>=</mo><mi>f</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>x</mi><mi>k</mi></msub><mo>,</mo><msub><mi>u</mi><mrow><mi>a</mi><mo>,</mo><mi>k</mi></mrow></msub><mo>,</mo><mi>p</mi><mo>,</mo><msub><mi>d</mi><mi>k</mi></msub><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
+k_1=f(x_k,u_{a,k},p,d_k)
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>k</mi><mn>1</mn></msub><annotation encoding="application/x-tex">k_1</annotation></semantics></math>
+是起点斜率估计。</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>k</mi><mn>2</mn></msub><mo>=</mo><mi>f</mi><mspace width="-0.167em"></mspace><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>x</mi><mi>k</mi></msub><mo>+</mo><mfrac><mrow><mi mathvariant="normal">Δ</mi><mi>t</mi></mrow><mn>2</mn></mfrac><msub><mi>k</mi><mn>1</mn></msub><mo>,</mo><msub><mi>u</mi><mrow><mi>a</mi><mo>,</mo><mi>k</mi></mrow></msub><mo>,</mo><mi>p</mi><mo>,</mo><msub><mi>d</mi><mi>k</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">
+k_2=f\!\left(x_k+\frac{\Delta t}{2}k_1,u_{a,k},p,d_k\right)
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>k</mi><mn>2</mn></msub><annotation encoding="application/x-tex">k_2</annotation></semantics></math>
+是半步斜率估计。</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>k</mi><mn>3</mn></msub><mo>=</mo><mi>f</mi><mspace width="-0.167em"></mspace><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>x</mi><mi>k</mi></msub><mo>+</mo><mfrac><mrow><mi mathvariant="normal">Δ</mi><mi>t</mi></mrow><mn>2</mn></mfrac><msub><mi>k</mi><mn>2</mn></msub><mo>,</mo><msub><mi>u</mi><mrow><mi>a</mi><mo>,</mo><mi>k</mi></mrow></msub><mo>,</mo><mi>p</mi><mo>,</mo><msub><mi>d</mi><mi>k</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">
+k_3=f\!\left(x_k+\frac{\Delta t}{2}k_2,u_{a,k},p,d_k\right)
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>k</mi><mn>3</mn></msub><annotation encoding="application/x-tex">k_3</annotation></semantics></math>
+是第二个半步斜率估计。</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>k</mi><mn>4</mn></msub><mo>=</mo><mi>f</mi><mspace width="-0.167em"></mspace><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>x</mi><mi>k</mi></msub><mo>+</mo><mi mathvariant="normal">Δ</mi><mi>t</mi><mspace width="0.167em"></mspace><msub><mi>k</mi><mn>3</mn></msub><mo>,</mo><msub><mi>u</mi><mrow><mi>a</mi><mo>,</mo><mi>k</mi></mrow></msub><mo>,</mo><mi>p</mi><mo>,</mo><msub><mi>d</mi><mi>k</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">
+k_4=f\!\left(x_k+\Delta t\,k_3,u_{a,k},p,d_k\right)
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>k</mi><mn>4</mn></msub><annotation encoding="application/x-tex">k_4</annotation></semantics></math>
+是终点斜率估计。</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>x</mi><mrow><mi>k</mi><mo>+</mo><mn>1</mn></mrow></msub><mo>=</mo><msub><mi>x</mi><mi>k</mi></msub><mo>+</mo><mfrac><mrow><mi mathvariant="normal">Δ</mi><mi>t</mi></mrow><mn>6</mn></mfrac><mo stretchy="false" form="prefix">(</mo><msub><mi>k</mi><mn>1</mn></msub><mo>+</mo><mn>2</mn><msub><mi>k</mi><mn>2</mn></msub><mo>+</mo><mn>2</mn><msub><mi>k</mi><mn>3</mn></msub><mo>+</mo><msub><mi>k</mi><mn>4</mn></msub><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
+x_{k+1}=x_k+\frac{\Delta t}{6}(k_1+2k_2+2k_3+k_4)
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>x</mi><mrow><mi>k</mi><mo>+</mo><mn>1</mn></mrow></msub><annotation encoding="application/x-tex">x_{k+1}</annotation></semantics></math>
+是下一步状态。RK4 通常比 Euler
+更稳妥，但仍需要检查步长敏感性和事件处理。</p>
+<p>若积分步长为
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Δ</mi><mi>t</mi></mrow><annotation encoding="application/x-tex">\Delta t</annotation></semantics></math>，常见设置是：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>t</mi><mi>k</mi></msub><mo>=</mo><msub><mi>t</mi><mn>0</mn></msub><mo>+</mo><mi>k</mi><mi mathvariant="normal">Δ</mi><mi>t</mi></mrow><annotation encoding="application/x-tex">
+t_k=t_0+k\Delta t
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>t</mi><mi>k</mi></msub><annotation encoding="application/x-tex">t_k</annotation></semantics></math>
+是第
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>k</mi><annotation encoding="application/x-tex">k</annotation></semantics></math>
+个采样时刻，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>t</mi><mn>0</mn></msub><annotation encoding="application/x-tex">t_0</annotation></semantics></math>
+是初始时刻，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>k</mi><annotation encoding="application/x-tex">k</annotation></semantics></math>
+是正整数。这样控制更新点和积分网格一致。若二者不对齐，需要插值或事件调度，平台必须明确实现方式。</p>
+<p>多速率控制中，外环制导、姿态内环、执行机构和传感器可能有不同采样率。仿真平台应记录每个模块的更新时间，而不是把所有信号默认同步。</p>
+<h2 id="步长敏感性">53.3 步长敏感性</h2>
+<p>数值可信性最基本的检查，是比较不同步长下关键指标是否收敛。若步长减半后指标变化很大，说明当前步长可能不足以支撑结论。</p>
+<p>可以比较：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Δ</mi><msub><mi>J</mi><mi>h</mi></msub><mo>=</mo><msub><mi>J</mi><mi>h</mi></msub><mo stretchy="false" form="prefix">(</mo><mi mathvariant="normal">Δ</mi><mi>t</mi><mi>/</mi><mn>2</mn><mo stretchy="false" form="postfix">)</mo><mo>−</mo><msub><mi>J</mi><mi>h</mi></msub><mo stretchy="false" form="prefix">(</mo><mi mathvariant="normal">Δ</mi><mi>t</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
+\Delta J_h=J_h(\Delta t/2)-J_h(\Delta t)
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>J</mi><mi>h</mi></msub><mo stretchy="false" form="prefix">(</mo><mi mathvariant="normal">Δ</mi><mi>t</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">J_h(\Delta t)</annotation></semantics></math>
+表示在步长
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Δ</mi><mi>t</mi></mrow><annotation encoding="application/x-tex">\Delta t</annotation></semantics></math>
+下得到的某个高度相关指标，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Δ</mi><msub><mi>J</mi><mi>h</mi></msub></mrow><annotation encoding="application/x-tex">\Delta J_h</annotation></semantics></math>
+是步长变化引起的差值。</p>
+<p>同理可比较动压裕度、终端误差和控制能量。若某个指标对步长极其敏感，应优先检查该指标对应的事件、插值和限幅实现。</p>
+<h2 id="事件处理">53.4 事件处理</h2>
+<p>高超声速控制仿真中常见事件包括：</p>
+<ul>
+<li>动压、热流、过载或攻角达到边界；</li>
+<li>舵面幅值或速率饱和；</li>
+<li>故障注入时刻；</li>
+<li>安全滤波器启用；</li>
+<li>终端条件满足；</li>
+<li>仿真失败或状态越界终止。</li>
+</ul>
+<p>若事件只在离散采样点检查，可能漏掉采样点之间的短时越界。对安全控制案例，应尽量记录约束函数的最小裕度：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>h</mi><mi>min</mi><mo>&#8289;</mo></msub><mo>=</mo><munder><mi>min</mi><mo>&#8289;</mo><mrow><mi>t</mi><mo>∈</mo><mo stretchy="false" form="prefix">[</mo><mn>0</mn><mo>,</mo><mi>T</mi><mo stretchy="false" form="postfix">]</mo></mrow></munder><mi>h</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
+h_{\min}=\min_{t\in[0,T]}h(x(t))
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>h</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">h(x)</annotation></semantics></math>
+是约束函数，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>h</mi><mi>min</mi><mo>&#8289;</mo></msub><annotation encoding="application/x-tex">h_{\min}</annotation></semantics></math>
+是约束函数在整个仿真区间内的最小值。
+这个最小值用于判断约束是否在采样点之间被短时穿越，因此它比单点检查更严格。</p>
+<p>如果只记录采样点上的
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>h</mi><mi>min</mi><mo>&#8289;</mo></msub><annotation encoding="application/x-tex">h_{\min}</annotation></semantics></math>，应在报告中说明采样周期和事件捕捉误差。</p>
+<h2 id="插值误差">53.5 插值误差</h2>
+<p>气动表、参考轨迹和风场常通过插值获得。插值误差会进入动力学：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>g</mi><mo accent="true">̃</mo></mover><mo stretchy="false" form="prefix">(</mo><mi>ξ</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mi>ℐ</mi><mi>g</mi></mrow><annotation encoding="application/x-tex">
+\tilde{g}(\xi)=\mathcal{I}g
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>g</mi><mo accent="true">̃</mo></mover><mo stretchy="false" form="prefix">(</mo><mi>ξ</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\tilde{g}(\xi)</annotation></semantics></math>
+是插值后的函数值，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ℐ</mi><mo stretchy="false" form="prefix">[</mo><mi>⋅</mi><mo stretchy="false" form="postfix">]</mo></mrow><annotation encoding="application/x-tex">\mathcal{I}[\cdot]</annotation></semantics></math>
+是插值算子，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ξ</mi><annotation encoding="application/x-tex">\xi</annotation></semantics></math>
+是插值自变量。</p>
+<p>插值误差可写为：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Δ</mi><mi>g</mi><mo stretchy="false" form="prefix">(</mo><mi>ξ</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mover><mi>g</mi><mo accent="true">̃</mo></mover><mo stretchy="false" form="prefix">(</mo><mi>ξ</mi><mo stretchy="false" form="postfix">)</mo><mo>−</mo><mi>g</mi><mo stretchy="false" form="prefix">(</mo><mi>ξ</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
+\Delta g(\xi)=\tilde{g}(\xi)-g(\xi)
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Δ</mi><mi>g</mi><mo stretchy="false" form="prefix">(</mo><mi>ξ</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\Delta g(\xi)</annotation></semantics></math>
+是插值误差，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>g</mi><mo stretchy="false" form="prefix">(</mo><mi>ξ</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">g(\xi)</annotation></semantics></math>
+是原始函数值。</p>
+<p>插值方法、外推边界和单位一致性都会影响闭环结果。气动表、风场、控制参考和任务轨迹都应记录插值方式。</p>
+<h2 id="控制更新与积分网格对齐">53.6 控制更新与积分网格对齐</h2>
+<p>离散控制器通常要求在固定采样点更新。若控制器更新与积分网格不对齐，需要说明状态是先更新控制、后积分对象，还是先积分对象、后更新控制。</p>
+<p>一个常见的对齐表达是：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>t</mi><mi>k</mi></msub><mo>=</mo><msub><mi>t</mi><mn>0</mn></msub><mo>+</mo><mi>k</mi><mi mathvariant="normal">Δ</mi><mi>t</mi><mo>,</mo><mspace width="2.0em"></mspace><mi>k</mi><mo>=</mo><mn>0</mn><mo>,</mo><mn>1</mn><mo>,</mo><mi>…</mi><mo>,</mo><mi>N</mi></mrow><annotation encoding="application/x-tex">
+t_k=t_0+k\Delta t,\qquad k=0,1,\ldots,N
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>t</mi><mn>0</mn></msub><annotation encoding="application/x-tex">t_0</annotation></semantics></math>
+是初始时刻，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Δ</mi><mi>t</mi></mrow><annotation encoding="application/x-tex">\Delta t</annotation></semantics></math>
+是步长，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>N</mi><annotation encoding="application/x-tex">N</annotation></semantics></math>
+是总步数。</p>
+<p>平台应明确记录：</p>
+<ul>
+<li>控制更新周期；</li>
+<li>积分步长；</li>
+<li>插值方式；</li>
+<li>事件检测方式；</li>
+<li>执行机构保持方式。</li>
+</ul>
+<h2 id="数值可信性与证据边界">53.7 数值可信性与证据边界</h2>
+<p>数值设置并不是实现细节，而是结论边界的一部分。一个控制器若只在特定步长、特定插值和特定事件设置下有效，就不能把该结果外推成更强的结论。</p>
+<p>可以把数值可信对象写成：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>𝒩</mi><mo>=</mo><mo stretchy="false" form="prefix">(</mo><mi>ℐ</mi><mo>,</mo><mi>𝒯</mi><mo>,</mo><mi>𝒢</mi><mo>,</mo><mi>ℛ</mi><mo>,</mo><mi>ℳ</mi><mo>,</mo><mi>ℰ</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
+\mathcal{N}=(\mathcal{I},\mathcal{T},\mathcal{G},\mathcal{R},\mathcal{M},\mathcal{E})
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ℐ</mi><annotation encoding="application/x-tex">\mathcal{I}</annotation></semantics></math>
+表示积分设置，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝒯</mi><annotation encoding="application/x-tex">\mathcal{T}</annotation></semantics></math>
+表示事件与时间调度，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝒢</mi><annotation encoding="application/x-tex">\mathcal{G}</annotation></semantics></math>
+表示插值与数据调用，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ℛ</mi><annotation encoding="application/x-tex">\mathcal{R}</annotation></semantics></math>
+表示可重复性记录，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ℳ</mi><annotation encoding="application/x-tex">\mathcal{M}</annotation></semantics></math>
+表示敏感指标，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ℰ</mi><annotation encoding="application/x-tex">\mathcal{E}</annotation></semantics></math>
+表示证据边界。
+这组对象的作用，是把“数值设置会影响结论”的事实直接写进仿真报告的证据结构里。</p>
+<h2 id="数值证据层次及其与后续章节的关系">53.8
+数值证据层次及其与后续章节的关系</h2>
+<p>为了避免把“仿真曲线看起来平滑”误写成“数值可信”，本章可把数值证据粗分为五级：</p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>N</mi><mi>q</mi></mrow><annotation encoding="application/x-tex">Nq</annotation></semantics></math>
+表示数值可信证据等级，数字 0 到 4 表示证据成熟度从低到高。</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>等级</th>
+<th>最低证据</th>
+<th>仍缺什么</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>N</mi><mi>q</mi><mn>0</mn></mrow><annotation encoding="application/x-tex">Nq0</annotation></semantics></math></td>
+<td>只有积分器名称和默认步长</td>
+<td>没有步长敏感性、事件处理和可重复性记录</td>
+</tr>
+<tr>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>N</mi><mi>q</mi><mn>1</mn></mrow><annotation encoding="application/x-tex">Nq1</annotation></semantics></math></td>
+<td>已有单场景积分设置和基本步长说明</td>
+<td>没有指标收敛、异常终止和事件定位检查</td>
+</tr>
+<tr>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>N</mi><mi>q</mi><mn>2</mn></mrow><annotation encoding="application/x-tex">Nq2</annotation></semantics></math></td>
+<td>已有步长减半比较、敏感指标和异常终止记录</td>
+<td>没有跨场景或随机样本下的数值一致性检查</td>
+</tr>
+<tr>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>N</mi><mi>q</mi><mn>3</mn></mrow><annotation encoding="application/x-tex">Nq3</annotation></semantics></math></td>
+<td>已有系统可信性检查表、失败样本和数值风险归因</td>
+<td>仍缺更高保真模型或跨工具链一致性验证</td>
+</tr>
+<tr>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>N</mi><mi>q</mi><mn>4</mn></mrow><annotation encoding="application/x-tex">Nq4</annotation></semantics></math></td>
+<td>已形成跨模型、跨案例和跨工具链的数值可信协议</td>
+<td>才接近研究级可信性证据</td>
+</tr>
+</tbody>
+</table>
+<p>与相关章节的衔接关系可再概括为：</p>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>本章完成的内容</th>
+<th>相关章节继续完成的内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>数值设置、事件处理和步长敏感性</td>
+<td>第 54、55 章继续细化数据表和离散实现细节</td>
+</tr>
+<tr>
+<td>指标收敛与异常终止记录</td>
+<td>第 56、57 章继续把它们纳入验收和统计</td>
+</tr>
+<tr>
+<td>失败样本和风险归因</td>
+<td>第 58、59、60 章继续上升为案例、复现和研究路线问题</td>
+</tr>
+</tbody>
+</table>
+<p>因此，第53章建立一个步长、事件、可重复性和证据边界都可交接的数值可信框架。</p>
+<h2 id="本章内容的边界">53.9 本章内容的边界</h2>
+<p>与第53章相衔接的材料主要包括：</p>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>素材</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>第52章仿真平台</td>
+<td>提供平台主循环、配置管理和记录字段</td>
+</tr>
+<tr>
+<td>第54章气动数据表与参数管理</td>
+<td>提供插值对象、元数据和外推边界</td>
+</tr>
+<tr>
+<td>第56章验证指标体系</td>
+<td>提供步长敏感指标、异常终止和组合通过判据</td>
+</tr>
+<tr>
+<td>现有配套结果资料与失败样本记录</td>
+<td>提供教学级指标追溯和失败样本核查材料</td>
+</tr>
+</tbody>
+</table>
+<p>本章边界必须写清楚：</p>
+<ul>
+<li>本书呈现积分器、步长、事件处理和可重复性的主线；</li>
+<li>这些素材能支撑从教学复现到研究原型级的数值可信性检查和结果追溯；</li>
+<li>但它还不是正式数值分析报告，也不是覆盖全部高保真模型的严密求解器认证流程；</li>
+<li>因此，第53章能支撑“如何保守、系统地检查仿真可信性”，不能支撑“所有数值误差都已被完整排除”。</li>
+</ul>
+<h2 id="常见错误">53.10 常见错误</h2>
+<ol type="1">
+<li>用过大步长得到漂亮曲线，却没有做步长减半检查。</li>
+<li>控制器采样周期和积分步长不对齐，但没有说明插值方式。</li>
+<li>只在采样点检查安全约束，漏掉采样点之间的越界。</li>
+<li>把数值发散误判为控制器失效。</li>
+<li>把数值阻尼造成的收敛误判为闭环稳定。</li>
+<li>不记录随机种子，导致 Monte Carlo 结果无法复现。</li>
+<li>在切换、饱和和故障注入场景中使用与光滑系统相同的可信性标准。</li>
+</ol>
+<h2 id="练习">53.11 练习</h2>
+<ol type="1">
+<li>对同一纵向闭环模型，分别用 Euler 和 RK4 仿真，比较
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>h</mi><mrow><mi mathvariant="normal">r</mi><mi mathvariant="normal">m</mi><mi mathvariant="normal">s</mi></mrow></msub><annotation encoding="application/x-tex">h_{\mathrm{rms}}</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>q</mi><mrow><mi mathvariant="normal">m</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">r</mi><mi mathvariant="normal">g</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">n</mi><mo mathvariant="normal">,</mo><mi mathvariant="normal">m</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">n</mi></mrow></msub><annotation encoding="application/x-tex">q_{\mathrm{margin,min}}</annotation></semantics></math>
+和控制能量，其中
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>q</mi><mrow><mi mathvariant="normal">m</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">r</mi><mi mathvariant="normal">g</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">n</mi><mo mathvariant="normal">,</mo><mi mathvariant="normal">m</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">n</mi></mrow></msub><annotation encoding="application/x-tex">q_{\mathrm{margin,min}}</annotation></semantics></math>
+是最小动压裕度。</li>
+<li>对某个动压约束案例做
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Δ</mi><mi>t</mi></mrow><annotation encoding="application/x-tex">\Delta t</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Δ</mi><mi>t</mi><mi>/</mi><mn>2</mn></mrow><annotation encoding="application/x-tex">\Delta t/2</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Δ</mi><mi>t</mi><mi>/</mi><mn>4</mn></mrow><annotation encoding="application/x-tex">\Delta t/4</annotation></semantics></math>
+指标收敛检查。</li>
+<li>设计一个事件记录表，用于保存舵偏饱和、动压接近边界和故障注入事件。</li>
+<li>说明为什么自适应积分器在离散控制器闭环中必须和控制更新时刻对齐。</li>
+<li>对六自由度姿态传播设计四元数范数和 DCM 正交性健康指标。</li>
+</ol>
+
+      </article>
+      
+      <nav class="book-bottom-nav" aria-label="章节导航">
+        <a href="./52-hypersonic-control-simulation-platform.html">上一章：第52章 高超声速控制仿真平台设计</a>
+        <a href="./index.html">卷首页</a>
+        <a href="./54-aerodynamic-data-tables-parameter-management.html">下一章：第54章 气动数据表、插值与参数管理</a>
+      </nav>
+    </main>
+  </div>
+</body>
+</html>

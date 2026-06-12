@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>第12章 约束系统与安全控制基础</title>
+  <style>
+    :root {
+      --paper: #f7f3eb;
+      --ink: #1f2937;
+      --muted: #5b6472;
+      --line: color-mix(in srgb, #e7eef7 68%, #cbd5e1 32%);
+      --accent: #335c81;
+      --accent-soft: #e7eef7;
+      --accent-deep: #1e3d57;
+      color-scheme: light;
+    }
+    html {
+      -webkit-text-size-adjust: 100%;
+      background:
+        radial-gradient(circle at top left, #e7eef7 0, rgba(255,255,255,0) 32%),
+        linear-gradient(180deg, #fbfaf6 0%, var(--paper) 18%, #f7f1e6 100%);
+    }
+    body {
+      margin: 0;
+      font-family: "Source Han Serif SC", "Songti SC", "Noto Serif CJK SC", "Microsoft YaHei", serif;
+      color: var(--ink);
+      line-height: 1.78;
+      letter-spacing: 0;
+    }
+    a { color: var(--accent-deep); }
+    .book-app {
+      display: grid;
+      grid-template-columns: 280px minmax(0, 1fr);
+      min-height: 100vh;
+    }
+    .book-sidebar {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow: auto;
+      padding: 1.2rem 1rem 1.2rem 1.15rem;
+      border-right: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(255,255,255,0.86), rgba(255,255,255,0.72));
+      backdrop-filter: blur(10px);
+    }
+    .sidebar-shell { position: sticky; top: 0; display: flex; flex-direction: column; gap: 1rem; }
+    .sidebar-brand {
+      padding: 0.95rem 0.95rem 1rem;
+      border-radius: 18px;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.95), rgba(255,255,255,0.84)),
+        linear-gradient(135deg, var(--accent-soft), rgba(255,255,255,0));
+      border: 1px solid var(--line);
+      box-shadow: 0 12px 28px rgba(31, 41, 55, 0.06);
+    }
+    .sidebar-brand .kicker { margin: 0; color: var(--accent); font-size: 0.82rem; font-weight: 700; }
+    .sidebar-brand h2 { margin: 0.45rem 0 0.25rem; font-size: 1.08rem; line-height: 1.3; color: var(--ink); }
+    .sidebar-brand p { margin: 0.35rem 0 0; color: var(--muted); font-size: 0.9rem; }
+    .sidebar-links { display: grid; gap: 0.45rem; }
+    .sidebar-link {
+      display: grid;
+      grid-template-columns: 2.2rem minmax(0, 1fr);
+      gap: 0.6rem;
+      align-items: start;
+      padding: 0.7rem 0.75rem;
+      border-radius: 14px;
+      text-decoration: none;
+      background: rgba(255,255,255,0.72);
+      border: 1px solid rgba(31,41,55,0.07);
+      color: var(--ink);
+    }
+    .sidebar-link:hover { background: rgba(255,255,255,0.95); border-color: var(--line); }
+    .sidebar-link.active {
+      background: linear-gradient(135deg, rgba(255,255,255,0.98), rgba(255,255,255,0.9));
+      border-color: var(--accent-soft);
+      box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent-soft) 68%, #ffffff 32%);
+    }
+    .sidebar-index {
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      min-width: 2rem;
+      height: 2rem;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent-deep);
+      font-size: 0.78rem;
+      font-weight: 800;
+    }
+    .sidebar-title { font-size: 0.94rem; line-height: 1.35; }
+    .book-main { min-width: 0; padding: 1.25rem 1.45rem 1.8rem; }
+    .book-page-header {
+      padding: 0.85rem 0 1rem;
+      margin-bottom: 1rem;
+      border-bottom: 1px solid var(--line);
+    }
+    .page-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.28rem 0.72rem;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.82);
+      border: 1px solid var(--line);
+      color: var(--accent-deep);
+      font-size: 0.8rem;
+      font-weight: 700;
+    }
+    .book-page-header h1 {
+      margin: 0.7rem 0 0;
+      font-size: 1.85rem;
+      line-height: 1.22;
+      color: var(--accent-deep);
+      border: 0;
+      padding: 0;
+    }
+    .book-page-header p { margin: 0.45rem 0 0; color: var(--muted); max-width: 62rem; }
+    .book-article { max-width: 900px; margin: 0; padding: 0 0 1.2rem; }
+    .book-article h1, .book-article h2, .book-article h3, .book-article h4, .book-article h5, .book-article h6 {
+      line-height: 1.28;
+      margin-top: 1.45em;
+      margin-bottom: 0.55em;
+      color: var(--accent-deep);
+    }
+    .book-article h1 { font-size: 2rem; border-bottom: 2px solid var(--line); padding-bottom: 0.42rem; }
+    .book-article h1:first-of-type { margin-top: 0; }
+    .book-article h2 { font-size: 1.42rem; }
+    .book-article h3 { font-size: 1.12rem; }
+    .book-article p, .book-article li, .book-article dd, .book-article td, .book-article th { text-align: justify; text-justify: inter-ideograph; }
+    .book-article p { margin: 0.85rem 0; }
+    .book-article code, .book-article pre { font-family: "Cascadia Mono", "Source Code Pro", Consolas, monospace; font-size: 0.94em; }
+    .book-article code {
+      padding: 0.02rem 0.24rem;
+      background: color-mix(in srgb, var(--accent-soft) 34%, #ffffff 66%);
+      border: 0;
+      border-bottom: 1px solid color-mix(in srgb, var(--accent-soft) 74%, #d1d5db 26%);
+      border-radius: 4px;
+      color: #253244;
+      box-decoration-break: clone;
+      -webkit-box-decoration-break: clone;
+    }
+    .book-article pre {
+      padding: 1rem 1.1rem;
+      overflow: auto;
+      background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,253,248,0.98));
+      border: 1px solid color-mix(in srgb, var(--accent-soft) 54%, #d1d5db 46%);
+      border-left: 5px solid var(--accent);
+      border-radius: 14px;
+      box-shadow: 0 8px 22px rgba(31, 41, 55, 0.05);
+    }
+    .book-article pre code { padding: 0; border: 0; background: transparent; color: inherit; }
+    .book-article table {
+      border-collapse: collapse;
+      width: 100%;
+      margin: 1rem 0 1.25rem;
+      background: rgba(255,255,255,0.82);
+      overflow: hidden;
+      border-radius: 12px;
+    }
+    .book-article th, .book-article td { border: 1px solid var(--line); padding: 0.5rem 0.7rem; vertical-align: top; }
+    .book-article th { background: color-mix(in srgb, var(--accent-soft) 42%, #ffffff 58%); }
+    .book-article blockquote {
+      margin: 1rem 0;
+      padding: 0.25rem 0 0.25rem 1rem;
+      border-left: 4px solid var(--accent);
+      color: #374151;
+      background: linear-gradient(90deg, rgba(255,255,255,0.72), rgba(255,255,255,0.48));
+      border-radius: 0 12px 12px 0;
+    }
+    .book-bottom-nav {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-top: 2.2rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--line);
+    }
+    .book-bottom-nav a {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.6rem 0.9rem;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.84);
+      text-decoration: none;
+      font-weight: 700;
+    }
+    .book-bottom-nav span {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.6rem 0.9rem;
+      border-radius: 999px;
+      border: 1px solid rgba(31,41,55,0.08);
+      background: rgba(255,255,255,0.54);
+      color: rgba(31,41,55,0.42);
+      font-weight: 700;
+    }
+    .book-bottom-nav a:hover { background: rgba(255,255,255,0.98); }
+    .book-volume-intro {
+      margin: 0 0 1.25rem;
+      padding: 1.2rem 1.25rem 1.1rem;
+      border-radius: 18px;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.96), rgba(255,255,255,0.78)),
+        linear-gradient(135deg, var(--accent-soft), rgba(255,255,255,0));
+      border: 1px solid var(--line);
+      box-shadow: 0 14px 34px rgba(31, 41, 55, 0.06);
+    }
+    .volume-intro-kicker {
+      margin: 0;
+      color: var(--accent);
+      font-size: 0.84rem;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    .book-volume-intro h2 {
+      margin: 0.55rem 0 0.55rem;
+      font-size: 1.28rem;
+      line-height: 1.35;
+      color: var(--accent-deep);
+    }
+    .volume-intro-summary {
+      margin: 0;
+      color: var(--muted);
+      max-width: 68rem;
+    }
+    .volume-intro-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.8rem;
+      margin-top: 1rem;
+    }
+    .volume-intro-box {
+      padding: 0.85rem 0.9rem;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.72);
+      border: 1px solid rgba(31,41,55,0.08);
+    }
+    .volume-intro-box span {
+      display: block;
+      color: var(--accent);
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+    }
+    .volume-intro-box strong {
+      display: block;
+      margin-top: 0.35rem;
+      color: var(--ink);
+      font-size: 0.95rem;
+      line-height: 1.45;
+    }
+    .volume-intro-note {
+      margin-top: 0.9rem;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+    @media (max-width: 1180px) {
+      .book-app { grid-template-columns: 1fr; }
+      .book-sidebar {
+        position: relative;
+        height: auto;
+        border-right: 0;
+        border-bottom: 1px solid var(--line);
+      }
+      .sidebar-shell { position: static; }
+    }
+    @media (max-width: 900px) {
+      .book-main { padding: 1rem 1rem 1.5rem; }
+      .book-bottom-nav { flex-direction: column; }
+      .volume-intro-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="book-app">
+    <aside class="book-sidebar">
+      <div class="sidebar-shell">
+        <div class="sidebar-brand">
+          <p class="kicker">高超声速飞行器控制教程</p>
+          <h2>第一卷 数学基础与控制理论基础</h2>
+          <p>控制理论地基</p>
+        </div>
+        <nav class="sidebar-links" aria-label="本卷目录">
+          <a class="sidebar-link" href="./index.html"><span class="sidebar-index">0</span><span class="sidebar-title">卷首页</span></a>
+<a class="sidebar-link" href="./01-hypersonic-control-problem-intro.html"><span class="sidebar-index">01</span><span class="sidebar-title">第1章 高超声速飞行器控制问题导论</span></a>
+<a class="sidebar-link" href="./02-dynamical-systems-state-space.html"><span class="sidebar-index">02</span><span class="sidebar-title">第2章 动力系统与状态空间方法</span></a>
+<a class="sidebar-link" href="./03-linear-systems-theory.html"><span class="sidebar-index">03</span><span class="sidebar-title">第3章 线性系统理论</span></a>
+<a class="sidebar-link" href="./04-nonlinear-systems-theory.html"><span class="sidebar-index">04</span><span class="sidebar-title">第4章 非线性系统理论</span></a>
+<a class="sidebar-link" href="./05-lyapunov-stability-theory.html"><span class="sidebar-index">05</span><span class="sidebar-title">第5章 Lyapunov 稳定性理论</span></a>
+<a class="sidebar-link" href="./06-input-output-small-gain.html"><span class="sidebar-index">06</span><span class="sidebar-title">第6章 输入输出稳定性与小增益理论</span></a>
+<a class="sidebar-link" href="./07-singular-perturbation-multitime-scale.html"><span class="sidebar-index">07</span><span class="sidebar-title">第7章 奇异摄动与多时间尺度系统</span></a>
+<a class="sidebar-link" href="./08-optimal-control-theory.html"><span class="sidebar-index">08</span><span class="sidebar-title">第8章 最优控制理论</span></a>
+<a class="sidebar-link" href="./09-robust-control-theory.html"><span class="sidebar-index">09</span><span class="sidebar-title">第9章 鲁棒控制理论</span></a>
+<a class="sidebar-link" href="./10-adaptive-control-theory.html"><span class="sidebar-index">10</span><span class="sidebar-title">第10章 自适应控制理论</span></a>
+<a class="sidebar-link" href="./11-stochastic-filtering-estimation.html"><span class="sidebar-index">11</span><span class="sidebar-title">第11章 随机系统、滤波与状态估计</span></a>
+<a class="sidebar-link active" href="./12-constrained-safety-control-foundations.html"><span class="sidebar-index">12</span><span class="sidebar-title">第12章 约束系统与安全控制基础</span></a>
+<a class="sidebar-link" href="./13-numerical-convex-optimization.html"><span class="sidebar-index">13</span><span class="sidebar-title">第13章 数值优化与凸优化基础</span></a>
+<a class="sidebar-link" href="./13-hybrid-sampled-control.html"><span class="sidebar-index">14</span><span class="sidebar-title">混杂系统与采样控制专题</span></a>
+        </nav>
+      </div>
+    </aside>
+    <main class="book-main">
+      <header class="book-page-header">
+        <div class="page-eyebrow">第1册·章节页12</div>
+        <h1 id="volume1--12-constrained-safety-control-foundations">第12章 约束系统与安全控制基础</h1>
+        <p>本页是章节正文页。左侧目录用于回到本卷其他章节，底部导航用于前后章跳转。</p>
+      </header>
+      <article class="book-article">
+        <h2 id="问题背景">12.1 问题背景</h2>
+<p>高超声速控制不能只追求误差收敛。飞行器必须在约束内飞行。</p>
+<p>典型约束可写成</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>h</mi><mi>i</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo>≥</mo><mn>0</mn><mo>,</mo><mspace width="2.0em"></mspace><mi>i</mi><mo>=</mo><mn>1</mn><mo>,</mo><mi>…</mi><mo>,</mo><mi>m</mi><mo>,</mo></mrow><annotation encoding="application/x-tex">
+h_i(x)\ge 0,\qquad i=1,\ldots,m,
+</annotation></semantics></math>
+这一式给出了安全约束的统一写法，所有安全变量都必须保持非负。</p>
+<p>其中
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>x</mi><annotation encoding="application/x-tex">x</annotation></semantics></math>
+是状态，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>h</mi><mi>i</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">h_i(x)</annotation></semantics></math>
+是第
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>i</mi><annotation encoding="application/x-tex">i</annotation></semantics></math>
+个安全函数，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>𝒮</mi><mo>=</mo><mo stretchy="false" form="prefix">{</mo><mi>x</mi><mo>:</mo><msub><mi>h</mi><mi>i</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo>≥</mo><mn>0</mn><mo stretchy="false" form="postfix">}</mo></mrow><annotation encoding="application/x-tex">\mathcal{S}=\{x:h_i(x)\ge 0\}</annotation></semantics></math>
+是安全集合。这里的
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>h</mi><mi>i</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">h_i(x)</annotation></semantics></math>
+直接定义了“安全”和“不安全”的分界，而
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝒮</mi><annotation encoding="application/x-tex">\mathcal{S}</annotation></semantics></math>
+则是所有同时满足约束的状态集合。</p>
+<p>常见约束包括动压、热流、过载、攻角、侧滑角、舵偏、舵速、推力和终端几何约束。高超声速控制里，约束往往比误差指标更重要，因为越界常常是不可逆的。</p>
+<h2 id="约束系统的基本类型">12.2 约束系统的基本类型</h2>
+<p>约束可以分成几类：</p>
+<table>
+<thead>
+<tr>
+<th>类型</th>
+<th>例子</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>状态约束</td>
+<td>动压、热流、过载、攻角</td>
+<td>状态本身必须保持在边界内</td>
+</tr>
+<tr>
+<td>输入约束</td>
+<td>舵偏、舵速、推力、倾侧角</td>
+<td>控制命令必须可执行</td>
+</tr>
+<tr>
+<td>终端约束</td>
+<td>命中位置、落角、到达时间</td>
+<td>任务完成条件</td>
+</tr>
+<tr>
+<td>组合约束</td>
+<td>状态和输入同时受限</td>
+<td>约束交集必须非空</td>
+</tr>
+</tbody>
+</table>
+<p>高超声速约束常受输入限制影响。即使数学上存在保持动压安全的输入，如果舵偏、推力或过载约束不允许该输入，安全控制也不可行。因此，安全不是只看状态边界，还要看控制权限。</p>
+<h2 id="可达集和安全可行域">12.3 可达集和安全可行域</h2>
+<p>可达集描述从某个初始状态出发，在允许输入下系统能到达哪些状态。安全可行域可以理解为：从这些状态出发，存在控制策略使系统在未来保持安全。</p>
+<p>对高超声速飞行器，安全可行域可能因为以下因素缩小：</p>
+<ol type="1">
+<li>速度太高，热流或动压已经接近边界；</li>
+<li>高度太低，机动空间不足；</li>
+<li>舵面饱和，姿态调整能力不足；</li>
+<li>推力不足，速度或能量管理受限；</li>
+<li>执行机构效率下降，控制权限变小；</li>
+<li>估计误差太大，安全裕度需要保守收缩。</li>
+</ol>
+<p>这说明安全控制不只是边界处修正命令，还包括提前避免进入不可恢复区域。</p>
+<h2 id="barriers-与不变集">12.4 Barriers 与不变集</h2>
+<p>安全集合如果要长期保持，通常要满足前向不变性：只要系统初始在集合内，闭环轨迹就不离开集合。</p>
+<p>一种常见构造是 Barrier Lyapunov Function。若误差
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>e</mi><annotation encoding="application/x-tex">e</annotation></semantics></math>
+受到边界
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>k</mi><mi>b</mi></msub><annotation encoding="application/x-tex">k_b</annotation></semantics></math>
+约束，可定义</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>V</mi><mi>b</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>e</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mfrac><mn>1</mn><mn>2</mn></mfrac><mi>ln</mi><mo>&#8289;</mo><mspace width="-0.167em"></mspace><mrow><mo stretchy="true" form="prefix">(</mo><mfrac><msubsup><mi>k</mi><mi>b</mi><mn>2</mn></msubsup><mrow><msubsup><mi>k</mi><mi>b</mi><mn>2</mn></msubsup><mo>−</mo><msup><mi>e</mi><mn>2</mn></msup></mrow></mfrac><mo stretchy="true" form="postfix">)</mo></mrow><mo>,</mo></mrow><annotation encoding="application/x-tex">
+V_b(e)=\frac{1}{2}\ln\!\left(\frac{k_b^2}{k_b^2-e^2}\right),
+</annotation></semantics></math>
+这里说明，这一式把误差边界写进了函数本身，边界越近，代价越大。</p>
+<p>其中
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>k</mi><mi>b</mi></msub><annotation encoding="application/x-tex">k_b</annotation></semantics></math>
+是误差上界，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>e</mi><annotation encoding="application/x-tex">e</annotation></semantics></math>
+是约束误差。这里
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>k</mi><mi>b</mi></msub><annotation encoding="application/x-tex">k_b</annotation></semantics></math>
+决定允许误差带的宽度，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>e</mi><annotation encoding="application/x-tex">e</annotation></semantics></math>
+是当前误差变量，因此
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>V</mi><mi>b</mi></msub><annotation encoding="application/x-tex">V_b</annotation></semantics></math>
+在边界附近发散，正是为了阻止误差继续逼近边界。</p>
+<p>当
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">|</mo><mi>e</mi><mo stretchy="false" form="prefix">|</mo></mrow><annotation encoding="application/x-tex">|e|</annotation></semantics></math>
+接近
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>k</mi><mi>b</mi></msub><annotation encoding="application/x-tex">k_b</annotation></semantics></math>
+时，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>V</mi><mi>b</mi></msub><annotation encoding="application/x-tex">V_b</annotation></semantics></math>
+增大，从而在 Lyapunov
+设计中阻止误差越界。对非对称约束，也可以用不同上下界构造类似函数。这里的关键是：边界附近的函数值应快速增大，让控制律自动避开边界。</p>
+<h2 id="控制屏障函数">12.5 控制屏障函数</h2>
+<p>控制屏障函数 CBF 直接把安全约束写成控制输入可执行的条件。若安全函数为
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>h</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">h(x)</annotation></semantics></math>，系统为</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>x</mi><mo accent="true">̇</mo></mover><mo>=</mo><mi>f</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo>+</mo><mi>g</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mi>u</mi><mo>,</mo></mrow><annotation encoding="application/x-tex">
+\dot{x}=f(x)+g(x)u,
+</annotation></semantics></math>
+这里说明，这一式是控制仿射系统的标准形式，安全函数导数最终要通过它写成输入条件。</p>
+<p>其中
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">f(x)</annotation></semantics></math>
+是漂移项，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>g</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">g(x)</annotation></semantics></math>
+是输入通道矩阵，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>u</mi><annotation encoding="application/x-tex">u</annotation></semantics></math>
+是控制输入，则一阶 CBF 条件常写成</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>L</mi><mi>f</mi></msub><mi>h</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo>+</mo><msub><mi>L</mi><mi>g</mi></msub><mi>h</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mi>u</mi><mo>≥</mo><mi>−</mi><mi>α</mi><mo stretchy="false" form="prefix">(</mo><mi>h</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">)</mo><mo>,</mo></mrow><annotation encoding="application/x-tex">
+L_f h(x)+L_g h(x)u\ge -\alpha(h(x)),
+</annotation></semantics></math> 这里说明，这一式给出了一阶 CBF
+条件，用来判断当前输入能否把系统留在安全集合内。</p>
+<p>其中
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>L</mi><mi>f</mi></msub><mi>h</mi></mrow><annotation encoding="application/x-tex">L_f h</annotation></semantics></math>
+和
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>L</mi><mi>g</mi></msub><mi>h</mi></mrow><annotation encoding="application/x-tex">L_g h</annotation></semantics></math>
+分别是
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>h</mi><annotation encoding="application/x-tex">h</annotation></semantics></math>
+沿
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>f</mi><annotation encoding="application/x-tex">f</annotation></semantics></math>
+和
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>g</mi><annotation encoding="application/x-tex">g</annotation></semantics></math>
+的 Lie
+导数，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>α</mi><mo stretchy="false" form="prefix">(</mo><mi>⋅</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\alpha(\cdot)</annotation></semantics></math>
+是扩展类
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝒦</mi><annotation encoding="application/x-tex">\mathcal{K}</annotation></semantics></math>
+函数。这里的
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>L</mi><mi>f</mi></msub><mi>h</mi></mrow><annotation encoding="application/x-tex">L_f h</annotation></semantics></math>
+描述系统自然演化对安全函数的影响，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>L</mi><mi>g</mi></msub><mi>h</mi></mrow><annotation encoding="application/x-tex">L_g h</annotation></semantics></math>
+描述控制输入对安全函数的影响，因此这条不等式本质上是在检查“当前输入是否足以把系统留在安全集合内”。</p>
+<p>这类条件的意义是：只要控制输入满足不等式，安全集合就可以保持前向不变。但这要求
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>u</mi><annotation encoding="application/x-tex">u</annotation></semantics></math>
+必须真的出现在
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>h</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">h(x)</annotation></semantics></math>
+的一阶导数中；如果没有，就要用高阶 CBF。</p>
+<h2 id="高阶-cbf-与相对阶">12.6 高阶 CBF 与相对阶</h2>
+<p>对动压、热流和某些几何约束，控制输入往往不会直接出现在
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>h</mi><mo accent="true">̇</mo></mover><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\dot{h}(x)</annotation></semantics></math>
+中。这时要先求更高阶导数，直到输入进入约束表达式。</p>
+<p>若某个安全函数
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>h</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">h(x)</annotation></semantics></math>
+需要求
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>r</mi><annotation encoding="application/x-tex">r</annotation></semantics></math>
+次导数才能显式出现输入，那么它的相对阶就是
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>r</mi><annotation encoding="application/x-tex">r</annotation></semantics></math>。此时应构造高阶
+CBF，而不能直接套一阶 CBF。</p>
+<p>在高超声速飞行器中，动压、热流、过载和终端几何约束都可能出现相对阶问题。所以，安全控制设计不能只写一个公式就结束，必须说明控制输入是通过哪条动力学通道影响安全变量的。</p>
+<h2 id="参考治理与安全滤波">12.7 参考治理与安全滤波</h2>
+<p>安全控制不一定总是直接改输入。很多时候更稳妥的做法是先改参考，再让控制器跟踪更可行的目标。</p>
+<p>参考治理器修改参考命令</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>r</mi><mo>↦</mo><msub><mi>r</mi><mrow><mi mathvariant="normal">s</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">f</mi><mi mathvariant="normal">e</mi></mrow></msub><mo>,</mo></mrow><annotation encoding="application/x-tex">
+r \mapsto r_{\mathrm{safe}},
+</annotation></semantics></math>
+这里说明，这一式表示参考治理器把原始任务参考改写成可执行的安全参考。</p>
+<p>其中
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>r</mi><annotation encoding="application/x-tex">r</annotation></semantics></math>
+是原始参考，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>r</mi><mrow><mi mathvariant="normal">s</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">f</mi><mi mathvariant="normal">e</mi></mrow></msub><annotation encoding="application/x-tex">r_{\mathrm{safe}}</annotation></semantics></math>
+是经治理后的安全参考。也就是说，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>r</mi><annotation encoding="application/x-tex">r</annotation></semantics></math>
+是任务层给出的目标，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>r</mi><mrow><mi mathvariant="normal">s</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">f</mi><mi mathvariant="normal">e</mi></mrow></msub><annotation encoding="application/x-tex">r_{\mathrm{safe}}</annotation></semantics></math>
+是经过约束检查后仍可执行的目标。</p>
+<p>安全滤波器则直接修正控制输入：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>u</mi><mrow><mi mathvariant="normal">n</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">m</mi></mrow></msub><mo>↦</mo><msub><mi>u</mi><mrow><mi mathvariant="normal">s</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">f</mi><mi mathvariant="normal">e</mi></mrow></msub><mo>,</mo></mrow><annotation encoding="application/x-tex">
+u_{\mathrm{nom}} \mapsto u_{\mathrm{safe}},
+</annotation></semantics></math>
+这里说明，这一式表示安全滤波器直接修正控制输入，使其满足约束条件。</p>
+<p>其中
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>u</mi><mrow><mi mathvariant="normal">n</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">m</mi></mrow></msub><annotation encoding="application/x-tex">u_{\mathrm{nom}}</annotation></semantics></math>
+是名义控制输入，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>u</mi><mrow><mi mathvariant="normal">s</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">f</mi><mi mathvariant="normal">e</mi></mrow></msub><annotation encoding="application/x-tex">u_{\mathrm{safe}}</annotation></semantics></math>
+是满足安全约束后的输入。这里
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>u</mi><mrow><mi mathvariant="normal">n</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">m</mi></mrow></msub><annotation encoding="application/x-tex">u_{\mathrm{nom}}</annotation></semantics></math>
+来自性能控制器，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>u</mi><mrow><mi mathvariant="normal">s</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">f</mi><mi mathvariant="normal">e</mi></mrow></msub><annotation encoding="application/x-tex">u_{\mathrm{safe}}</annotation></semantics></math>
+则是经过安全层修正后的最终执行命令。</p>
+<p>两者区别很重要。参考治理偏任务层，安全滤波偏执行层。高超声速任务中，慢约束常需要先收缩参考，快约束常需要直接改输入。</p>
+<h2 id="与-mpc-和可达性的关系">12.8 与 MPC 和可达性的关系</h2>
+<p>MPC 通过预测未来状态来处理约束，CBF
+通过当前安全函数导数来处理约束，可达性分析则关注未来能否避免危险集合。三者侧重点不同：</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>方法</th>
+<th>主要优势</th>
+<th>主要风险</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CBF</td>
+<td>在线约束形式简单，适合安全滤波</td>
+<td>相对阶、可行性和模型误差</td>
+</tr>
+<tr>
+<td>MPC</td>
+<td>可显式处理多步预测、输入和状态约束</td>
+<td>求解时间、不可行和模型误差</td>
+</tr>
+<tr>
+<td>可达性</td>
+<td>能分析危险集合和安全可行域</td>
+<td>维度高时计算困难</td>
+</tr>
+</tbody>
+</table>
+<p>高超声速控制中，常用组合思路是：外层用参考治理或 MPC
+生成可行命令，内层用 CBF
+或安全滤波处理短时安全，底层控制分配处理执行机构约束。</p>
+<h2 id="估计误差进入安全裕度">12.9 估计误差进入安全裕度</h2>
+<p>安全控制不能只看估计均值，还要看估计不确定性。若某个安全函数写成</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>h</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo>≥</mo><mn>0</mn><mo>,</mo></mrow><annotation encoding="application/x-tex">
+h(x)\ge 0,
+</annotation></semantics></math>
+这里说明，这一式写的是名义安全约束，后面还要考虑估计误差的收缩项。</p>
+<p>而控制器只知道估计状态
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mover><mi>x</mi><mo accent="true">̂</mo></mover><annotation encoding="application/x-tex">\hat{x}</annotation></semantics></math>，则可以把不确定性收缩成</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>h</mi><mo stretchy="false" form="prefix">(</mo><mover><mi>x</mi><mo accent="true">̂</mo></mover><mo stretchy="false" form="postfix">)</mo><mo>−</mo><msub><mi>η</mi><mi>h</mi></msub><mo>≥</mo><mn>0</mn><mo>,</mo></mrow><annotation encoding="application/x-tex">
+h(\hat{x})-\eta_h\ge 0,
+</annotation></semantics></math>
+这里说明，这一式把估计不确定性显式扣除，得到更保守的安全判断。</p>
+<p>其中
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>η</mi><mi>h</mi></msub><annotation encoding="application/x-tex">\eta_h</annotation></semantics></math>
+是由估计误差、传感器偏置、模型误差和数值延迟综合造成的保守项。这里
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>h</mi><mo stretchy="false" form="prefix">(</mo><mover><mi>x</mi><mo accent="true">̂</mo></mover><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">h(\hat{x})</annotation></semantics></math>
+只反映名义估计下的安全裕度，而
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>η</mi><mi>h</mi></msub><annotation encoding="application/x-tex">\eta_h</annotation></semantics></math>
+是为了把不确定性从裕度中扣除。</p>
+<p>若已知协方差
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>P</mi><annotation encoding="application/x-tex">P</annotation></semantics></math>，可用一阶近似把状态不确定性传播到安全函数上，得到
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>η</mi><mi>h</mi></msub><annotation encoding="application/x-tex">\eta_h</annotation></semantics></math>。这里的目标不是追求漂亮公式，而是把安全判断从“看起来没问题”变成“考虑了估计误差后仍没问题”。</p>
+<h2 id="三层安全结构">12.10 三层安全结构</h2>
+<p>高超声速安全控制最好按三层理解：</p>
+<ol type="1">
+<li>任务层：决定想去哪儿，输出参考轨迹和目标；</li>
+<li>约束层：决定能不能这么飞，处理动压、热流、攻角和终端约束；</li>
+<li>执行层：决定实际能不能做出来，处理舵面、推力和分配限制。</li>
+</ol>
+<p>这三层不是彼此独立的。任务层给出的参考若不可行，约束层必须收缩；约束层给出的命令若执行不了，执行层必须再降级；执行层若已经失去控制权限，系统就应该进入更保守的模式或任务终止逻辑。</p>
+<h2 id="高超声速约束体系">12.11 高超声速约束体系</h2>
+<p>高超声速安全约束至少包括：</p>
+<table>
+<thead>
+<tr>
+<th>约束</th>
+<th>典型意义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>动压</td>
+<td>结构和气动载荷</td>
+</tr>
+<tr>
+<td>热流</td>
+<td>热防护安全</td>
+</tr>
+<tr>
+<td>过载</td>
+<td>结构和任务限制</td>
+</tr>
+<tr>
+<td>攻角</td>
+<td>气动效率和稳定性</td>
+</tr>
+<tr>
+<td>侧滑角</td>
+<td>横侧向稳定</td>
+</tr>
+<tr>
+<td>舵偏/舵速</td>
+<td>执行机构可实现性</td>
+</tr>
+<tr>
+<td>推力/进气道</td>
+<td>吸气式推进安全</td>
+</tr>
+<tr>
+<td>终端约束</td>
+<td>命中、落角、速度和时间</td>
+</tr>
+</tbody>
+</table>
+<p>一个合格的高超声速安全控制案例应说明处理了哪些约束、忽略了哪些约束，以及忽略原因。不能因为动压安全就声称热流、过载、攻角和执行机构也都安全。</p>
+<h2 id="仿真验证与任务降级">12.12 仿真验证与任务降级</h2>
+<p>安全控制验证不应只画跟踪误差曲线。至少应记录：</p>
+<table>
+<thead>
+<tr>
+<th>指标</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>最小安全裕度</td>
+<td>离边界最近的距离</td>
+</tr>
+<tr>
+<td>违反积分</td>
+<td>约束违规的累计程度</td>
+</tr>
+<tr>
+<td>违反持续时间</td>
+<td>状态处于约束外的时间</td>
+</tr>
+<tr>
+<td>输入峰值</td>
+<td>舵偏、推力、力矩命令是否超限</td>
+</tr>
+<tr>
+<td>输入速率峰值</td>
+<td>舵速和推力变化率是否超限</td>
+</tr>
+<tr>
+<td>QP 不可行次数</td>
+<td>安全滤波或 MPC 是否可执行</td>
+</tr>
+<tr>
+<td>参考修改代价</td>
+<td>参考治理器对任务命令的改变</td>
+</tr>
+<tr>
+<td>失败样本</td>
+<td>哪些初值、扰动或故障导致安全失败</td>
+</tr>
+</tbody>
+</table>
+<p>任务降级在高超声速控制里不是失败，而是安全控制的一部分。它可以表现为改慢参考变化率、降低攻角或过载目标、调整高度或速度指令、提前进入更保守的飞行走廊，或者切换到更低自由度的控制模式。</p>
+<h2 id="安全控制对象包">12.13 安全控制对象包</h2>
+<p>一个安全控制问题能否进入后续控制器设计，关键不在于是否写出了
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>h</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">h(x)</annotation></semantics></math>，而在于安全集合、控制权限、相对阶和验证指标是否交代完整。建议每个约束控制案例都整理成下面的交付包。</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>项目</th>
+<th>必须写清的内容</th>
+<th>控制含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>安全集</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>𝒮</mi><mo>=</mo><mo stretchy="false" form="prefix">{</mo><mi>x</mi><mo>:</mo><msub><mi>h</mi><mi>i</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo>≥</mo><mn>0</mn><mo>,</mo><mspace width="0.222em"></mspace><mi>i</mi><mo>=</mo><mn>1</mn><mo>,</mo><mi>…</mi><mo>,</mo><mi>m</mi><mo stretchy="false" form="postfix">}</mo></mrow><annotation encoding="application/x-tex">\mathcal{S}=\{x:h_i(x)\ge 0,\ i=1,\ldots,m\}</annotation></semantics></math></td>
+<td>明确哪些状态被保护</td>
+</tr>
+<tr>
+<td>约束来源</td>
+<td>结构载荷、热防护、气动稳定、任务终端或执行机构限制</td>
+<td>避免把数学边界写成任意阈值</td>
+</tr>
+<tr>
+<td>控制输入</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>u</mi><annotation encoding="application/x-tex">u</annotation></semantics></math>
+的物理含义、上下界、速率界和分配关系</td>
+<td>判断安全条件是否可实现</td>
+</tr>
+<tr>
+<td>相对阶</td>
+<td>每个
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>h</mi><mi>i</mi></msub><annotation encoding="application/x-tex">h_i</annotation></semantics></math>
+对控制输入的相对阶</td>
+<td>决定用一阶 CBF 还是高阶 CBF</td>
+</tr>
+<tr>
+<td>可行域</td>
+<td>该状态下是否存在满足安全条件的允许输入</td>
+<td>区分安全滤波失败和任务本身不可行</td>
+</tr>
+<tr>
+<td>性能目标</td>
+<td>跟踪、能量管理、终端制导或姿态稳定目标</td>
+<td>说明安全和性能如何权衡</td>
+</tr>
+<tr>
+<td>估计裕度</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>x</mi><mo accent="true">̂</mo></mover><mo>,</mo><mi>P</mi><mo>,</mo><msub><mi>η</mi><mi>h</mi></msub></mrow><annotation encoding="application/x-tex">\hat{x},P,\eta_h</annotation></semantics></math>
+或确定性误差界</td>
+<td>避免只用估计均值判断安全</td>
+</tr>
+<tr>
+<td>离散实现</td>
+<td>采样周期、计算延迟、输入保持和采样间检查</td>
+<td>避免只在采样点安全</td>
+</tr>
+<tr>
+<td>失效逻辑</td>
+<td>QP 不可行、参考降级、任务中止或控制分配失败</td>
+<td>说明边界外如何处理</td>
+</tr>
+<tr>
+<td>验证指标</td>
+<td>最小裕度、违反积分、输入峰值、不可行次数、参考修改代价</td>
+<td>把安全结论变成可复核证据</td>
+</tr>
+</tbody>
+</table>
+<h2 id="安全证据层次及其与后续章节的关系">12.14
+安全证据层次及其与后续章节的关系</h2>
+<p>安全控制的证据强度可以按下表分层。</p>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr>
+<th>等级</th>
+<th>证据</th>
+<th>能说明什么</th>
+<th>不能说明什么</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>S0</td>
+<td>只给一条安全变量曲线</td>
+<td>该场景可能未越界</td>
+<td>不能证明不变性或可行性</td>
+</tr>
+<tr>
+<td>S1</td>
+<td>给最小裕度、违反积分、输入峰值和单位</td>
+<td>单场景安全裕度</td>
+<td>不能证明扰动和初值变化下安全</td>
+</tr>
+<tr>
+<td>S2</td>
+<td>给 CBF/BLF/MPC 条件、相对阶、输入约束和不可行统计</td>
+<td>安全条件与控制权限一致</td>
+<td>不能覆盖模型误差和估计误差</td>
+</tr>
+<tr>
+<td>S3</td>
+<td>给多初值、多飞行点、扰动、故障、估计误差和采样延迟扫描</td>
+<td>安全策略在教学级场景中的稳健性</td>
+<td>不能替代高保真气动热验证</td>
+</tr>
+<tr>
+<td>S4</td>
+<td>给闭环任务指标、失败样本、降级逻辑和跨工具复核</td>
+<td>方法可用于论文或工程论证的证据链</td>
+<td>仍需说明适用飞行包线和模型边界</td>
+</tr>
+</tbody>
+</table>
+<h2 id="常见错误">12.15 常见错误</h2>
+<ol type="1">
+<li>只证明跟踪误差稳定，不证明安全集合不变。</li>
+<li>初始状态不在约束内，却使用 BLF。</li>
+<li>CBF 相对阶没有分析。</li>
+<li>安全滤波器产生的输入超出执行机构限制。</li>
+<li>把动压安全推广成热流、过载、攻角都安全。</li>
+<li>QP 不报告不可行次数。</li>
+<li>只检查离散采样点，不检查采样间约束违反。</li>
+<li>给 CBF 随意加松弛变量，使硬安全约束变软。</li>
+<li>忽略估计误差和传感器延迟对安全裕度的影响。</li>
+<li>只给成功样本，不报告失败初值和不可行场景。</li>
+<li>把多个约束逐个验证，却不检查同一个输入是否能同时满足。</li>
+<li>没有说明哪些约束是硬边界，哪些目标可以降级。</li>
+<li>只在采样时刻检查安全，不分析输入保持期间的采样间风险。</li>
+<li>把 QP
+求解成功等同于物理输入一定可执行，忽略控制分配和执行机构动态。</li>
+</ol>
+<h2 id="本章小结">12.16 本章小结</h2>
+<p>约束系统与安全控制基础是高超声速控制的核心理论模块。它要求明确安全集合、控制不变性、相对阶、执行机构限制、估计误差和可行性。动压约束是代表案例，但本教程必须覆盖更完整的高超声速约束体系。</p>
+<p>一个可用的安全控制章节不仅要写出 BLF、CBF 或 MPC
+公式，还要交付约束来源、输入权限、可行性诊断、证据等级和下游接口。</p>
+
+      </article>
+      
+      <nav class="book-bottom-nav" aria-label="章节导航">
+        <a href="./11-stochastic-filtering-estimation.html">上一章：第11章 随机系统、滤波与状态估计</a>
+        <a href="./index.html">卷首页</a>
+        <a href="./13-numerical-convex-optimization.html">下一章：第13章 数值优化与凸优化基础</a>
+      </nav>
+    </main>
+  </div>
+</body>
+</html>

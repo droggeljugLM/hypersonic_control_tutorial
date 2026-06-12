@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>第14章 高超声速飞行器类型与任务剖面</title>
+  <style>
+    :root {
+      --paper: #f7f3eb;
+      --ink: #1f2937;
+      --muted: #5b6472;
+      --line: color-mix(in srgb, #e3f5f2 68%, #cbd5e1 32%);
+      --accent: #18786f;
+      --accent-soft: #e3f5f2;
+      --accent-deep: #0e4b45;
+      color-scheme: light;
+    }
+    html {
+      -webkit-text-size-adjust: 100%;
+      background:
+        radial-gradient(circle at top left, #e3f5f2 0, rgba(255,255,255,0) 32%),
+        linear-gradient(180deg, #fbfaf6 0%, var(--paper) 18%, #f7f1e6 100%);
+    }
+    body {
+      margin: 0;
+      font-family: "Source Han Serif SC", "Songti SC", "Noto Serif CJK SC", "Microsoft YaHei", serif;
+      color: var(--ink);
+      line-height: 1.78;
+      letter-spacing: 0;
+    }
+    a { color: var(--accent-deep); }
+    .book-app {
+      display: grid;
+      grid-template-columns: 280px minmax(0, 1fr);
+      min-height: 100vh;
+    }
+    .book-sidebar {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow: auto;
+      padding: 1.2rem 1rem 1.2rem 1.15rem;
+      border-right: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(255,255,255,0.86), rgba(255,255,255,0.72));
+      backdrop-filter: blur(10px);
+    }
+    .sidebar-shell { position: sticky; top: 0; display: flex; flex-direction: column; gap: 1rem; }
+    .sidebar-brand {
+      padding: 0.95rem 0.95rem 1rem;
+      border-radius: 18px;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.95), rgba(255,255,255,0.84)),
+        linear-gradient(135deg, var(--accent-soft), rgba(255,255,255,0));
+      border: 1px solid var(--line);
+      box-shadow: 0 12px 28px rgba(31, 41, 55, 0.06);
+    }
+    .sidebar-brand .kicker { margin: 0; color: var(--accent); font-size: 0.82rem; font-weight: 700; }
+    .sidebar-brand h2 { margin: 0.45rem 0 0.25rem; font-size: 1.08rem; line-height: 1.3; color: var(--ink); }
+    .sidebar-brand p { margin: 0.35rem 0 0; color: var(--muted); font-size: 0.9rem; }
+    .sidebar-links { display: grid; gap: 0.45rem; }
+    .sidebar-link {
+      display: grid;
+      grid-template-columns: 2.2rem minmax(0, 1fr);
+      gap: 0.6rem;
+      align-items: start;
+      padding: 0.7rem 0.75rem;
+      border-radius: 14px;
+      text-decoration: none;
+      background: rgba(255,255,255,0.72);
+      border: 1px solid rgba(31,41,55,0.07);
+      color: var(--ink);
+    }
+    .sidebar-link:hover { background: rgba(255,255,255,0.95); border-color: var(--line); }
+    .sidebar-link.active {
+      background: linear-gradient(135deg, rgba(255,255,255,0.98), rgba(255,255,255,0.9));
+      border-color: var(--accent-soft);
+      box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent-soft) 68%, #ffffff 32%);
+    }
+    .sidebar-index {
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      min-width: 2rem;
+      height: 2rem;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent-deep);
+      font-size: 0.78rem;
+      font-weight: 800;
+    }
+    .sidebar-title { font-size: 0.94rem; line-height: 1.35; }
+    .book-main { min-width: 0; padding: 1.25rem 1.45rem 1.8rem; }
+    .book-page-header {
+      padding: 0.85rem 0 1rem;
+      margin-bottom: 1rem;
+      border-bottom: 1px solid var(--line);
+    }
+    .page-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.28rem 0.72rem;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.82);
+      border: 1px solid var(--line);
+      color: var(--accent-deep);
+      font-size: 0.8rem;
+      font-weight: 700;
+    }
+    .book-page-header h1 {
+      margin: 0.7rem 0 0;
+      font-size: 1.85rem;
+      line-height: 1.22;
+      color: var(--accent-deep);
+      border: 0;
+      padding: 0;
+    }
+    .book-page-header p { margin: 0.45rem 0 0; color: var(--muted); max-width: 62rem; }
+    .book-article { max-width: 900px; margin: 0; padding: 0 0 1.2rem; }
+    .book-article h1, .book-article h2, .book-article h3, .book-article h4, .book-article h5, .book-article h6 {
+      line-height: 1.28;
+      margin-top: 1.45em;
+      margin-bottom: 0.55em;
+      color: var(--accent-deep);
+    }
+    .book-article h1 { font-size: 2rem; border-bottom: 2px solid var(--line); padding-bottom: 0.42rem; }
+    .book-article h1:first-of-type { margin-top: 0; }
+    .book-article h2 { font-size: 1.42rem; }
+    .book-article h3 { font-size: 1.12rem; }
+    .book-article p, .book-article li, .book-article dd, .book-article td, .book-article th { text-align: justify; text-justify: inter-ideograph; }
+    .book-article p { margin: 0.85rem 0; }
+    .book-article code, .book-article pre { font-family: "Cascadia Mono", "Source Code Pro", Consolas, monospace; font-size: 0.94em; }
+    .book-article code {
+      padding: 0.02rem 0.24rem;
+      background: color-mix(in srgb, var(--accent-soft) 34%, #ffffff 66%);
+      border: 0;
+      border-bottom: 1px solid color-mix(in srgb, var(--accent-soft) 74%, #d1d5db 26%);
+      border-radius: 4px;
+      color: #253244;
+      box-decoration-break: clone;
+      -webkit-box-decoration-break: clone;
+    }
+    .book-article pre {
+      padding: 1rem 1.1rem;
+      overflow: auto;
+      background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,253,248,0.98));
+      border: 1px solid color-mix(in srgb, var(--accent-soft) 54%, #d1d5db 46%);
+      border-left: 5px solid var(--accent);
+      border-radius: 14px;
+      box-shadow: 0 8px 22px rgba(31, 41, 55, 0.05);
+    }
+    .book-article pre code { padding: 0; border: 0; background: transparent; color: inherit; }
+    .book-article table {
+      border-collapse: collapse;
+      width: 100%;
+      margin: 1rem 0 1.25rem;
+      background: rgba(255,255,255,0.82);
+      overflow: hidden;
+      border-radius: 12px;
+    }
+    .book-article th, .book-article td { border: 1px solid var(--line); padding: 0.5rem 0.7rem; vertical-align: top; }
+    .book-article th { background: color-mix(in srgb, var(--accent-soft) 42%, #ffffff 58%); }
+    .book-article blockquote {
+      margin: 1rem 0;
+      padding: 0.25rem 0 0.25rem 1rem;
+      border-left: 4px solid var(--accent);
+      color: #374151;
+      background: linear-gradient(90deg, rgba(255,255,255,0.72), rgba(255,255,255,0.48));
+      border-radius: 0 12px 12px 0;
+    }
+    .book-bottom-nav {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-top: 2.2rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--line);
+    }
+    .book-bottom-nav a {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.6rem 0.9rem;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.84);
+      text-decoration: none;
+      font-weight: 700;
+    }
+    .book-bottom-nav span {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.6rem 0.9rem;
+      border-radius: 999px;
+      border: 1px solid rgba(31,41,55,0.08);
+      background: rgba(255,255,255,0.54);
+      color: rgba(31,41,55,0.42);
+      font-weight: 700;
+    }
+    .book-bottom-nav a:hover { background: rgba(255,255,255,0.98); }
+    .book-volume-intro {
+      margin: 0 0 1.25rem;
+      padding: 1.2rem 1.25rem 1.1rem;
+      border-radius: 18px;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.96), rgba(255,255,255,0.78)),
+        linear-gradient(135deg, var(--accent-soft), rgba(255,255,255,0));
+      border: 1px solid var(--line);
+      box-shadow: 0 14px 34px rgba(31, 41, 55, 0.06);
+    }
+    .volume-intro-kicker {
+      margin: 0;
+      color: var(--accent);
+      font-size: 0.84rem;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    .book-volume-intro h2 {
+      margin: 0.55rem 0 0.55rem;
+      font-size: 1.28rem;
+      line-height: 1.35;
+      color: var(--accent-deep);
+    }
+    .volume-intro-summary {
+      margin: 0;
+      color: var(--muted);
+      max-width: 68rem;
+    }
+    .volume-intro-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.8rem;
+      margin-top: 1rem;
+    }
+    .volume-intro-box {
+      padding: 0.85rem 0.9rem;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.72);
+      border: 1px solid rgba(31,41,55,0.08);
+    }
+    .volume-intro-box span {
+      display: block;
+      color: var(--accent);
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+    }
+    .volume-intro-box strong {
+      display: block;
+      margin-top: 0.35rem;
+      color: var(--ink);
+      font-size: 0.95rem;
+      line-height: 1.45;
+    }
+    .volume-intro-note {
+      margin-top: 0.9rem;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+    @media (max-width: 1180px) {
+      .book-app { grid-template-columns: 1fr; }
+      .book-sidebar {
+        position: relative;
+        height: auto;
+        border-right: 0;
+        border-bottom: 1px solid var(--line);
+      }
+      .sidebar-shell { position: static; }
+    }
+    @media (max-width: 900px) {
+      .book-main { padding: 1rem 1rem 1.5rem; }
+      .book-bottom-nav { flex-direction: column; }
+      .volume-intro-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="book-app">
+    <aside class="book-sidebar">
+      <div class="sidebar-shell">
+        <div class="sidebar-brand">
+          <p class="kicker">高超声速飞行器控制教程</p>
+          <h2>第二卷 高超声速飞行器建模与飞行动力学</h2>
+          <p>对象与模型</p>
+        </div>
+        <nav class="sidebar-links" aria-label="本卷目录">
+          <a class="sidebar-link" href="./index.html"><span class="sidebar-index">0</span><span class="sidebar-title">卷首页</span></a>
+<a class="sidebar-link active" href="./14-vehicle-types-mission-profiles.html"><span class="sidebar-index">01</span><span class="sidebar-title">第14章 高超声速飞行器类型与任务剖面</span></a>
+<a class="sidebar-link" href="./15-coordinate-kinematics-attitude.html"><span class="sidebar-index">02</span><span class="sidebar-title">第15章 坐标系、运动学与姿态描述</span></a>
+<a class="sidebar-link" href="./16-atmosphere-flight-conditions.html"><span class="sidebar-index">03</span><span class="sidebar-title">第16章 大气环境与飞行条件</span></a>
+<a class="sidebar-link" href="./17-aerodynamic-force-moment-modeling.html"><span class="sidebar-index">04</span><span class="sidebar-title">第17章 气动力与气动力矩建模</span></a>
+<a class="sidebar-link" href="./18-propulsion-aero-propulsive-coupling.html"><span class="sidebar-index">05</span><span class="sidebar-title">第18章 推进系统与气动推进耦合</span></a>
+<a class="sidebar-link" href="./19-point-mass-dynamics.html"><span class="sidebar-index">06</span><span class="sidebar-title">第19章 质点动力学模型</span></a>
+<a class="sidebar-link" href="./20-longitudinal-rigid-body-dynamics.html"><span class="sidebar-index">07</span><span class="sidebar-title">第20章 纵向刚体动力学模型</span></a>
+<a class="sidebar-link" href="./21-lateral-directional-dynamics.html"><span class="sidebar-index">08</span><span class="sidebar-title">第21章 横侧向动力学模型</span></a>
+<a class="sidebar-link" href="./22-six-dof-rigid-body-model.html"><span class="sidebar-index">09</span><span class="sidebar-title">第22章 六自由度刚体模型</span></a>
+<a class="sidebar-link" href="./23-flexible-aeroelastic-modeling.html"><span class="sidebar-index">10</span><span class="sidebar-title">第23章 刚柔耦合与气动弹性模型</span></a>
+<a class="sidebar-link" href="./24-actuator-sensor-computation-modeling.html"><span class="sidebar-index">11</span><span class="sidebar-title">第24章 执行机构、传感器与计算系统建模</span></a>
+<a class="sidebar-link" href="./25-trim-linearization-modal-analysis.html"><span class="sidebar-index">12</span><span class="sidebar-title">第25章 配平、线性化与模态分析</span></a>
+        </nav>
+      </div>
+    </aside>
+    <main class="book-main">
+      <header class="book-page-header">
+        <div class="page-eyebrow">第2册·章节页01</div>
+        <h1 id="volume2--14-vehicle-types-mission-profiles">第14章 高超声速飞行器类型与任务剖面</h1>
+        <p>本页是章节正文页。左侧目录用于回到本卷其他章节，底部导航用于前后章跳转。</p>
+      </header>
+      <article class="book-article">
+        <h2 id="为什么要先分对象">14.1 为什么要先分对象</h2>
+<p>高超声速飞行器控制不能先默认一个固定对象，再把所有方法套上去。不同飞行器的动力来源、任务段、控制权限和约束完全不同。同样是
+Mach 5
+以上飞行，吸气式巡航飞行器、助推滑翔飞行器、再入飞行器和空天飞行器的控制问题并不相同。</p>
+<p>如果不先做对象分类，后续容易出现三个错误：</p>
+<ol type="1">
+<li>用纵向速度高度控制代表全部高超声速控制；</li>
+<li>用动压约束代表全部安全约束；</li>
+<li>用某个论文案例的模型假设代表全部任务剖面。</li>
+</ol>
+<p>参考书级教程应先建立对象地图，再进入坐标系、大气、气动、推进和刚体动力学。</p>
+<h2 id="对象描述模板">14.2 对象描述模板</h2>
+<p>对任意一种高超声速飞行器，建议先用下面模板描述：</p>
+<table>
+<thead>
+<tr>
+<th>项目</th>
+<th>应回答的问题</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>对象类型</td>
+<td>是巡航、吸气式、助推滑翔、再入、空天还是终端机动对象</td>
+</tr>
+<tr>
+<td>任务段</td>
+<td>是助推、爬升、巡航、滑翔、再入、末制导还是着陆/回收</td>
+</tr>
+<tr>
+<td>状态</td>
+<td>需要速度、高度、位置、姿态、角速度、质量、热状态或弹性模态吗</td>
+</tr>
+<tr>
+<td>输入</td>
+<td>舵面、油门、推力矢量、RCS、倾侧角、参考轨迹或制导命令</td>
+</tr>
+<tr>
+<td>输出</td>
+<td>跟踪速度/高度、姿态角、过载、终端误差、热流、动压或能量</td>
+</tr>
+<tr>
+<td>约束</td>
+<td>动压、热流、过载、攻角、侧滑角、舵偏、舵速、进气道、终端角</td>
+</tr>
+<tr>
+<td>扰动</td>
+<td>大气、风场、气动参数、质量、推力、传感器噪声、执行机构故障</td>
+</tr>
+<tr>
+<td>模型层级</td>
+<td>质点、纵向、横侧向、六自由度、刚柔耦合或气动推进耦合</td>
+</tr>
+<tr>
+<td>验证指标</td>
+<td>跟踪误差、约束裕度、终端误差、控制能量、鲁棒通过率</td>
+</tr>
+</tbody>
+</table>
+<p>这一模板的作用是防止控制器设计脱离对象。控制律写成公式之前，必须先知道它到底在控制什么系统。</p>
+<h2 id="高超声速巡航飞行器">14.3 高超声速巡航飞行器</h2>
+<p>高超声速巡航飞行器通常在大气层内较长时间保持高 Mach
+数飞行。控制目标常包括：</p>
+<ul>
+<li>速度保持；</li>
+<li>高度保持；</li>
+<li>攻角或姿态稳定；</li>
+<li>动压、热流和过载约束；</li>
+<li>推进系统工作边界保护；</li>
+<li>对气动和推力不确定性的鲁棒性。</li>
+</ul>
+<p>巡航问题的特点是气动、推进和姿态控制强耦合。油门变化不仅改变速度，还可能改变俯仰力矩；攻角变化不仅改变升力，也影响进气道和热流。因此这一类对象不能长期使用“推力只进入速度方程、舵面只进入姿态方程”的弱耦合假设。</p>
+<h2 id="吸气式高超声速飞行器">14.4 吸气式高超声速飞行器</h2>
+<p>吸气式高超声速飞行器依赖冲压或超燃冲压推进。它的控制难点比一般巡航对象更集中在气动推进一体化：</p>
+<ul>
+<li>前体压缩面影响进气道；</li>
+<li>攻角和侧滑角影响进气质量流量；</li>
+<li>燃烧室和喷管影响推力与力矩；</li>
+<li>进气道不起动会导致推力突变和姿态扰动；</li>
+<li>推进系统动态比理想油门命令慢；</li>
+<li>推进约束可能限制可用姿态和机动能力。</li>
+</ul>
+<p>因此，这一类对象在控制上通常需要把推进、气动和姿态放在同一闭环里讨论，而不能只看单个通道。</p>
+<h2 id="助推滑翔飞行器">14.5 助推滑翔飞行器</h2>
+<p>助推滑翔飞行器一般经历助推段、滑翔段和末端机动段。控制问题在不同阶段完全不同。</p>
+<ul>
+<li>助推段更关注推力、姿态建立和阶段切换；</li>
+<li>滑翔段更关注高度、速度和动压走廊；</li>
+<li>末端机动段更关注终端命中、姿态带宽和剩余控制权限。</li>
+</ul>
+<p>因此，助推滑翔任务的建模和验证应写清阶段切换点、切换条件以及每一段的主要控制目标。若把整个任务都写成同一个连续跟踪问题，往往会忽略阶段边界处的控制重置和约束重收缩。</p>
+<h2 id="再入飞行器">14.6 再入飞行器</h2>
+<p>再入飞行器的典型任务是从高空高速进入大气层，按照走廊完成减速、减热和终端落点控制。其约束通常比巡航对象更硬：</p>
+<ul>
+<li>热流上限；</li>
+<li>动压走廊；</li>
+<li>过载约束；</li>
+<li>路径高度走廊；</li>
+<li>倾侧角调节能力；</li>
+<li>终端位置或速度约束。</li>
+</ul>
+<p>再入问题的控制核心是“在走廊内耗散能量并满足终端条件”，不是简单高度跟踪。对此类对象，控制策略通常要显式面对路径约束和阶段性目标切换。</p>
+<h2 id="空天飞行器与跨域飞行对象">14.7 空天飞行器与跨域飞行对象</h2>
+<p>空天飞行器可能跨越大气层内外，存在不同动力学模式：</p>
+<ul>
+<li>稀薄大气中气动力减弱；</li>
+<li>低轨或亚轨道段更接近轨道力学；</li>
+<li>再入段重新进入高密度大气后，气动和热约束迅速增强。</li>
+</ul>
+<p>跨域对象通常可以用分段模式描述，并在每段下写清：</p>
+<ul>
+<li>主要状态；</li>
+<li>主要输入；</li>
+<li>主要约束；</li>
+<li>主要验证指标；</li>
+<li>切换时是否重置控制器或估计器。</li>
+</ul>
+<p>这样后续章节在引用对象时，就不会把不同阶段混成一个全局对象。</p>
+<h2 id="本章对后续章节的接口意义">14.8 本章对后续章节的接口意义</h2>
+<p>本章的对象分类会直接影响后面的建模、控制和验证。对象类型决定你要不要强调推进耦合，任务剖面决定你要不要强调阶段切换，控制权限决定你该优先看舵面、推力还是
+RCS，验证矩阵决定你应该报告哪些指标。</p>
+<p>因此，第二卷后续章节在写模型时，必须回到本章先问一遍：这个模型服务的是巡航、滑翔、再入、终端机动，还是混合任务？如果回答不清，后面的动力学方程、控制设计和仿真结果就容易各说各话。</p>
+<h2 id="本章小结">14.9 本章小结</h2>
+<p>对象分类不是外层说明，而是控制问题定义的一部分。高超声速巡航、吸气式、助推滑翔、再入、空天和终端机动对象的状态、输入、约束和指标不同，因此控制方法、验证矩阵和工程边界也不同。第二卷从这里起步，是为了保证后面的建模、控制和验证都建立在同一对象语义上。</p>
+<h2 id="练习">14.10 练习</h2>
+<ol type="1">
+<li>选择一种高超声速对象，按本章模板列出状态、输入、输出、扰动和约束。</li>
+<li>比较吸气式巡航飞行器和助推滑翔飞行器在控制输入上的差异。</li>
+<li>解释为什么再入控制不是简单高度跟踪。</li>
+<li>给出终端机动任务至少 8 个必须报告的验证指标。</li>
+<li>用
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>x</mi><mo accent="true">̇</mo></mover><mo>=</mo><msub><mi>f</mi><mrow><mi>m</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo></mrow></msub><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>u</mi><mo>,</mo><mi>d</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\dot{x}=f_{m(t)}(x,u,d)</annotation></semantics></math>
+表示一个跨模式飞行任务，并说明每个模式的控制权限。</li>
+<li>说明当前纵向动压案例在全书中应被放在哪些章节使用。</li>
+<li>为助推滑翔任务画出阶段序列，并列出每个阶段的主要约束。</li>
+<li>对一个空天飞行器任务，说明舵面、RCS
+和推力矢量的控制权限如何随高度变化。</li>
+<li>给出一个对象类型到验证指标的表格，说明为什么不能只看跟踪误差。</li>
+<li>选择一个现有教学代码入口，说明它能支持哪些对象结论、不能支持哪些对象结论。</li>
+</ol>
+
+      </article>
+      
+      <nav class="book-bottom-nav" aria-label="章节导航">
+        <a href="./index.html">上一章：卷首页</a>
+        <a href="./index.html">卷首页</a>
+        <a href="./15-coordinate-kinematics-attitude.html">下一章：第15章 坐标系、运动学与姿态描述</a>
+      </nav>
+    </main>
+  </div>
+</body>
+</html>

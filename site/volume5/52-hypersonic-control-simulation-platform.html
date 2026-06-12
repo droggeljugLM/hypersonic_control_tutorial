@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>第52章 高超声速控制仿真平台设计</title>
+  <style>
+    :root {
+      --paper: #f7f3eb;
+      --ink: #1f2937;
+      --muted: #5b6472;
+      --line: color-mix(in srgb, #e4e8fb 68%, #cbd5e1 32%);
+      --accent: #4a5fb2;
+      --accent-soft: #e4e8fb;
+      --accent-deep: #2a3568;
+      color-scheme: light;
+    }
+    html {
+      -webkit-text-size-adjust: 100%;
+      background:
+        radial-gradient(circle at top left, #e4e8fb 0, rgba(255,255,255,0) 32%),
+        linear-gradient(180deg, #fbfaf6 0%, var(--paper) 18%, #f7f1e6 100%);
+    }
+    body {
+      margin: 0;
+      font-family: "Source Han Serif SC", "Songti SC", "Noto Serif CJK SC", "Microsoft YaHei", serif;
+      color: var(--ink);
+      line-height: 1.78;
+      letter-spacing: 0;
+    }
+    a { color: var(--accent-deep); }
+    .book-app {
+      display: grid;
+      grid-template-columns: 280px minmax(0, 1fr);
+      min-height: 100vh;
+    }
+    .book-sidebar {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow: auto;
+      padding: 1.2rem 1rem 1.2rem 1.15rem;
+      border-right: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(255,255,255,0.86), rgba(255,255,255,0.72));
+      backdrop-filter: blur(10px);
+    }
+    .sidebar-shell { position: sticky; top: 0; display: flex; flex-direction: column; gap: 1rem; }
+    .sidebar-brand {
+      padding: 0.95rem 0.95rem 1rem;
+      border-radius: 18px;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.95), rgba(255,255,255,0.84)),
+        linear-gradient(135deg, var(--accent-soft), rgba(255,255,255,0));
+      border: 1px solid var(--line);
+      box-shadow: 0 12px 28px rgba(31, 41, 55, 0.06);
+    }
+    .sidebar-brand .kicker { margin: 0; color: var(--accent); font-size: 0.82rem; font-weight: 700; }
+    .sidebar-brand h2 { margin: 0.45rem 0 0.25rem; font-size: 1.08rem; line-height: 1.3; color: var(--ink); }
+    .sidebar-brand p { margin: 0.35rem 0 0; color: var(--muted); font-size: 0.9rem; }
+    .sidebar-links { display: grid; gap: 0.45rem; }
+    .sidebar-link {
+      display: grid;
+      grid-template-columns: 2.2rem minmax(0, 1fr);
+      gap: 0.6rem;
+      align-items: start;
+      padding: 0.7rem 0.75rem;
+      border-radius: 14px;
+      text-decoration: none;
+      background: rgba(255,255,255,0.72);
+      border: 1px solid rgba(31,41,55,0.07);
+      color: var(--ink);
+    }
+    .sidebar-link:hover { background: rgba(255,255,255,0.95); border-color: var(--line); }
+    .sidebar-link.active {
+      background: linear-gradient(135deg, rgba(255,255,255,0.98), rgba(255,255,255,0.9));
+      border-color: var(--accent-soft);
+      box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent-soft) 68%, #ffffff 32%);
+    }
+    .sidebar-index {
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      min-width: 2rem;
+      height: 2rem;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent-deep);
+      font-size: 0.78rem;
+      font-weight: 800;
+    }
+    .sidebar-title { font-size: 0.94rem; line-height: 1.35; }
+    .book-main { min-width: 0; padding: 1.25rem 1.45rem 1.8rem; }
+    .book-page-header {
+      padding: 0.85rem 0 1rem;
+      margin-bottom: 1rem;
+      border-bottom: 1px solid var(--line);
+    }
+    .page-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.28rem 0.72rem;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.82);
+      border: 1px solid var(--line);
+      color: var(--accent-deep);
+      font-size: 0.8rem;
+      font-weight: 700;
+    }
+    .book-page-header h1 {
+      margin: 0.7rem 0 0;
+      font-size: 1.85rem;
+      line-height: 1.22;
+      color: var(--accent-deep);
+      border: 0;
+      padding: 0;
+    }
+    .book-page-header p { margin: 0.45rem 0 0; color: var(--muted); max-width: 62rem; }
+    .book-article { max-width: 900px; margin: 0; padding: 0 0 1.2rem; }
+    .book-article h1, .book-article h2, .book-article h3, .book-article h4, .book-article h5, .book-article h6 {
+      line-height: 1.28;
+      margin-top: 1.45em;
+      margin-bottom: 0.55em;
+      color: var(--accent-deep);
+    }
+    .book-article h1 { font-size: 2rem; border-bottom: 2px solid var(--line); padding-bottom: 0.42rem; }
+    .book-article h1:first-of-type { margin-top: 0; }
+    .book-article h2 { font-size: 1.42rem; }
+    .book-article h3 { font-size: 1.12rem; }
+    .book-article p, .book-article li, .book-article dd, .book-article td, .book-article th { text-align: justify; text-justify: inter-ideograph; }
+    .book-article p { margin: 0.85rem 0; }
+    .book-article code, .book-article pre { font-family: "Cascadia Mono", "Source Code Pro", Consolas, monospace; font-size: 0.94em; }
+    .book-article code {
+      padding: 0.02rem 0.24rem;
+      background: color-mix(in srgb, var(--accent-soft) 34%, #ffffff 66%);
+      border: 0;
+      border-bottom: 1px solid color-mix(in srgb, var(--accent-soft) 74%, #d1d5db 26%);
+      border-radius: 4px;
+      color: #253244;
+      box-decoration-break: clone;
+      -webkit-box-decoration-break: clone;
+    }
+    .book-article pre {
+      padding: 1rem 1.1rem;
+      overflow: auto;
+      background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,253,248,0.98));
+      border: 1px solid color-mix(in srgb, var(--accent-soft) 54%, #d1d5db 46%);
+      border-left: 5px solid var(--accent);
+      border-radius: 14px;
+      box-shadow: 0 8px 22px rgba(31, 41, 55, 0.05);
+    }
+    .book-article pre code { padding: 0; border: 0; background: transparent; color: inherit; }
+    .book-article table {
+      border-collapse: collapse;
+      width: 100%;
+      margin: 1rem 0 1.25rem;
+      background: rgba(255,255,255,0.82);
+      overflow: hidden;
+      border-radius: 12px;
+    }
+    .book-article th, .book-article td { border: 1px solid var(--line); padding: 0.5rem 0.7rem; vertical-align: top; }
+    .book-article th { background: color-mix(in srgb, var(--accent-soft) 42%, #ffffff 58%); }
+    .book-article blockquote {
+      margin: 1rem 0;
+      padding: 0.25rem 0 0.25rem 1rem;
+      border-left: 4px solid var(--accent);
+      color: #374151;
+      background: linear-gradient(90deg, rgba(255,255,255,0.72), rgba(255,255,255,0.48));
+      border-radius: 0 12px 12px 0;
+    }
+    .book-bottom-nav {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-top: 2.2rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--line);
+    }
+    .book-bottom-nav a {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.6rem 0.9rem;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.84);
+      text-decoration: none;
+      font-weight: 700;
+    }
+    .book-bottom-nav span {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.6rem 0.9rem;
+      border-radius: 999px;
+      border: 1px solid rgba(31,41,55,0.08);
+      background: rgba(255,255,255,0.54);
+      color: rgba(31,41,55,0.42);
+      font-weight: 700;
+    }
+    .book-bottom-nav a:hover { background: rgba(255,255,255,0.98); }
+    .book-volume-intro {
+      margin: 0 0 1.25rem;
+      padding: 1.2rem 1.25rem 1.1rem;
+      border-radius: 18px;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.96), rgba(255,255,255,0.78)),
+        linear-gradient(135deg, var(--accent-soft), rgba(255,255,255,0));
+      border: 1px solid var(--line);
+      box-shadow: 0 14px 34px rgba(31, 41, 55, 0.06);
+    }
+    .volume-intro-kicker {
+      margin: 0;
+      color: var(--accent);
+      font-size: 0.84rem;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    .book-volume-intro h2 {
+      margin: 0.55rem 0 0.55rem;
+      font-size: 1.28rem;
+      line-height: 1.35;
+      color: var(--accent-deep);
+    }
+    .volume-intro-summary {
+      margin: 0;
+      color: var(--muted);
+      max-width: 68rem;
+    }
+    .volume-intro-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.8rem;
+      margin-top: 1rem;
+    }
+    .volume-intro-box {
+      padding: 0.85rem 0.9rem;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.72);
+      border: 1px solid rgba(31,41,55,0.08);
+    }
+    .volume-intro-box span {
+      display: block;
+      color: var(--accent);
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+    }
+    .volume-intro-box strong {
+      display: block;
+      margin-top: 0.35rem;
+      color: var(--ink);
+      font-size: 0.95rem;
+      line-height: 1.45;
+    }
+    .volume-intro-note {
+      margin-top: 0.9rem;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+    @media (max-width: 1180px) {
+      .book-app { grid-template-columns: 1fr; }
+      .book-sidebar {
+        position: relative;
+        height: auto;
+        border-right: 0;
+        border-bottom: 1px solid var(--line);
+      }
+      .sidebar-shell { position: static; }
+    }
+    @media (max-width: 900px) {
+      .book-main { padding: 1rem 1rem 1.5rem; }
+      .book-bottom-nav { flex-direction: column; }
+      .volume-intro-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="book-app">
+    <aside class="book-sidebar">
+      <div class="sidebar-shell">
+        <div class="sidebar-brand">
+          <p class="kicker">高超声速飞行器控制教程</p>
+          <h2>第五卷 仿真验证、工程实现与研究训练</h2>
+          <p>验证与训练</p>
+        </div>
+        <nav class="sidebar-links" aria-label="本卷目录">
+          <a class="sidebar-link" href="./index.html"><span class="sidebar-index">0</span><span class="sidebar-title">卷首页</span></a>
+<a class="sidebar-link active" href="./52-hypersonic-control-simulation-platform.html"><span class="sidebar-index">01</span><span class="sidebar-title">第52章 高超声速控制仿真平台设计</span></a>
+<a class="sidebar-link" href="./53-numerical-integration-simulation-credibility.html"><span class="sidebar-index">02</span><span class="sidebar-title">第53章 数值积分与仿真可信性</span></a>
+<a class="sidebar-link" href="./54-aerodynamic-data-tables-parameter-management.html"><span class="sidebar-index">03</span><span class="sidebar-title">第54章 气动数据表、插值与参数管理</span></a>
+<a class="sidebar-link" href="./55-controller-discretization-real-time-implementation.html"><span class="sidebar-index">04</span><span class="sidebar-title">第55章 控制器离散化与实时实现</span></a>
+<a class="sidebar-link" href="./56-verification-metrics-system.html"><span class="sidebar-index">05</span><span class="sidebar-title">第56章 验证指标体系</span></a>
+<a class="sidebar-link" href="./57-uncertainty-monte-carlo-verification.html"><span class="sidebar-index">06</span><span class="sidebar-title">第57章 不确定性分析与 Monte Carlo 验证</span></a>
+<a class="sidebar-link" href="./58-typical-case-library.html"><span class="sidebar-index">07</span><span class="sidebar-title">第58章 典型案例库</span></a>
+<a class="sidebar-link" href="./59-hypersonic-control-paper-reading-method.html"><span class="sidebar-index">08</span><span class="sidebar-title">第59章 高超声速控制论文阅读方法</span></a>
+<a class="sidebar-link" href="./60-frontiers-research-roadmap.html"><span class="sidebar-index">09</span><span class="sidebar-title">第60章 前沿问题与研究路线</span></a>
+<a class="sidebar-link" href="./case-library-code-mapping.html"><span class="sidebar-index">10</span><span class="sidebar-title">第五卷案例映射</span></a>
+        </nav>
+      </div>
+    </aside>
+    <main class="book-main">
+      <header class="book-page-header">
+        <div class="page-eyebrow">第5册·章节页01</div>
+        <h1 id="volume5--52-hypersonic-control-simulation-platform">第52章 高超声速控制仿真平台设计</h1>
+        <p>本页是章节正文页。左侧目录用于回到本卷其他章节，底部导航用于前后章跳转。</p>
+      </header>
+      <article class="book-article">
+        <h2 id="问题背景">52.1 问题背景</h2>
+<p>高超声速控制教程不能只停留在控制律推导。控制律是否有意义，最终要通过闭环仿真、指标统计和可复现实验来检验。仿真平台的作用不是把公式翻译成代码，而是把飞行器模型、控制器、执行机构、传感器、扰动、安全约束和数据记录组织成一个可审计的闭环系统。</p>
+<p>平台首先要面对的是对象、接口和证据边界。围绕这些问题，本章再展开平台层级、主循环、连续与离散的连接方式、场景和配置管理、数据记录以及工具链分工。平台不是把若干脚本拼成一个能跑的程序，而是把飞行器模型、控制器、执行机构、传感器、扰动、安全约束和日志系统组织成一个闭环系统，且这个闭环必须能够被审计和复现。</p>
+<p>因此，本章强调的不是“写出一个仿真框架”，而是“定义一条后续章节都能复用的主接口”。后续数值积分、气动数据管理、实时实现、指标体系和
+Monte Carlo 验证都依赖这里定义的平台边界。</p>
+<p>本章的写法因此要偏向“接口化”和“证据化”，而不是偏向“代码说明书”。也就是说，先讲平台要承载什么对象、记录什么信息、保留什么边界，再谈具体工具链如何实现这些要求。</p>
+<h2 id="闭环平台的基本对象">52.2 闭环平台的基本对象</h2>
+<p>一个高超声速控制仿真平台至少包含下面的闭环链路：</p>
+<ul>
+<li>任务或参考生成；</li>
+<li>安全层或参考治理；</li>
+<li>控制器；</li>
+<li>控制分配；</li>
+<li>执行机构；</li>
+<li>飞行器动力学；</li>
+<li>传感器和估计器；</li>
+<li>指标计算和数据记录。</li>
+</ul>
+<p>在最简单纵向教学模型中，可以暂时合并制导、控制分配和估计器；但平台结构仍应保留这些接口。否则从纵向速度高度控制扩展到三维
+IGC、故障容错或六自由度闭环时，原有实现会被迫整体返工。</p>
+<h2 id="平台设计前的对象接口和证据检查">52.3
+平台设计前的对象、接口和证据检查</h2>
+<p>第52章首先要澄清的平台对象、接口和证据层次，决定了主循环怎么写。若这三件事不先定下来，后面的模块拆分、日志设计和复现实验都会失去边界。</p>
+<p>可以先按下面的顺序把平台范围说清楚：对象类型、模型层级、闭环链路、状态与命令的区分、场景对象、记录对象、复现条件和证据目标。这样写，读者才能一眼看出平台是面向巡航、再入、滑翔、终端制导还是姿态内环，是质点、纵向、三维质点、六自由度还是刚柔耦合，也能看出参考生成、安全层、控制器、分配器、执行机构、传感器和估计器是否都在链路里。</p>
+<h2 id="平台数学接口">52.4 平台数学接口</h2>
+<p>被控对象可抽象为：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>x</mi><mo accent="true">̇</mo></mover><mo>=</mo><mi>f</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo>,</mo><msub><mi>u</mi><mi>a</mi></msub><mo>,</mo><mi>p</mi><mo>,</mo><mi>d</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
+\dot{x}=f(x,u_a,p,d)
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>x</mi><annotation encoding="application/x-tex">x</annotation></semantics></math>
+是飞行器状态，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>u</mi><mi>a</mi></msub><annotation encoding="application/x-tex">u_a</annotation></semantics></math>
+是执行机构实际输出，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>p</mi><annotation encoding="application/x-tex">p</annotation></semantics></math>
+是模型参数，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>d</mi><annotation encoding="application/x-tex">d</annotation></semantics></math>
+是外部扰动或模型误差，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mo stretchy="false" form="prefix">(</mo><mi>⋅</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">f(\cdot)</annotation></semantics></math>
+是连续时间动力学函数。
+这个式子只描述连续对象本身，不直接包含控制器采样、执行机构保持和安全修正。</p>
+<p>传感器输出为：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>y</mi><mi>k</mi></msub><mo>=</mo><mi>h</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>t</mi><mi>k</mi></msub><mo stretchy="false" form="postfix">)</mo><mo>,</mo><mi>p</mi><mo stretchy="false" form="postfix">)</mo><mo>+</mo><msub><mi>v</mi><mi>k</mi></msub></mrow><annotation encoding="application/x-tex">
+y_k=h(x(t_k),p)+v_k
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>y</mi><mi>k</mi></msub><annotation encoding="application/x-tex">y_k</annotation></semantics></math>
+是第
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>k</mi><annotation encoding="application/x-tex">k</annotation></semantics></math>
+个采样时刻的测量值，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>h</mi><mo stretchy="false" form="prefix">(</mo><mi>⋅</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">h(\cdot)</annotation></semantics></math>
+是传感器映射，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>v</mi><mi>k</mi></msub><annotation encoding="application/x-tex">v_k</annotation></semantics></math>
+是测量噪声。
+这说明传感器输出是对连续状态的离散观测，不是对象状态本身。</p>
+<p>名义控制器输出命令：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>u</mi><mrow><mi>c</mi><mo>,</mo><mi>k</mi></mrow></msub><mo>=</mo><mi>π</mi><mo stretchy="false" form="prefix">(</mo><msub><mover><mi>x</mi><mo accent="true">̂</mo></mover><mi>k</mi></msub><mo>,</mo><msub><mi>r</mi><mi>k</mi></msub><mo>,</mo><msub><mi>z</mi><mi>k</mi></msub><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
+u_{c,k}=\pi(\hat{x}_k,r_k,z_k)
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>u</mi><mrow><mi>c</mi><mo>,</mo><mi>k</mi></mrow></msub><annotation encoding="application/x-tex">u_{c,k}</annotation></semantics></math>
+是控制器命令，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mover><mi>x</mi><mo accent="true">̂</mo></mover><mi>k</mi></msub><annotation encoding="application/x-tex">\hat{x}_k</annotation></semantics></math>
+是估计状态，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>r</mi><mi>k</mi></msub><annotation encoding="application/x-tex">r_k</annotation></semantics></math>
+是参考量，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>z</mi><mi>k</mi></msub><annotation encoding="application/x-tex">z_k</annotation></semantics></math>
+是控制器内部状态，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>π</mi><mo stretchy="false" form="prefix">(</mo><mi>⋅</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\pi(\cdot)</annotation></semantics></math>
+是控制律。
+因此，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>u</mi><mrow><mi>c</mi><mo>,</mo><mi>k</mi></mrow></msub><annotation encoding="application/x-tex">u_{c,k}</annotation></semantics></math>
+只是命令，不等于实际执行输入。</p>
+<p>安全层或控制分配可能进一步修正命令：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>u</mi><mrow><mi>m</mi><mo>,</mo><mi>k</mi></mrow></msub><mo>=</mo><mi>s</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>u</mi><mrow><mi>c</mi><mo>,</mo><mi>k</mi></mrow></msub><mo>,</mo><mi>𝒞</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
+u_{m,k}=s(u_{c,k},\mathcal{C})
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>u</mi><mrow><mi>m</mi><mo>,</mo><mi>k</mi></mrow></msub><annotation encoding="application/x-tex">u_{m,k}</annotation></semantics></math>
+是修正后的控制命令，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>s</mi><mo stretchy="false" form="prefix">(</mo><mi>⋅</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">s(\cdot)</annotation></semantics></math>
+是安全滤波或控制分配映射，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝒞</mi><annotation encoding="application/x-tex">\mathcal{C}</annotation></semantics></math>
+表示动压、热流、攻角、舵偏、舵速、过载、进气道和终端等约束集合。
+这一步的作用是把不可直接执行的命令变成满足约束的可执行命令。</p>
+<p>执行机构实际输出可写为：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>u</mi><mrow><mi>a</mi><mo>,</mo><mi>k</mi></mrow></msub><mo>=</mo><mi>a</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>u</mi><mrow><mi>m</mi><mo>,</mo><mi>k</mi></mrow></msub><mo>,</mo><msub><mi>ξ</mi><mi>k</mi></msub><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
+u_{a,k}=a(u_{m,k},\xi_k)
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>u</mi><mrow><mi>a</mi><mo>,</mo><mi>k</mi></mrow></msub><annotation encoding="application/x-tex">u_{a,k}</annotation></semantics></math>
+是执行机构实际输出，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>a</mi><mo stretchy="false" form="prefix">(</mo><mi>⋅</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">a(\cdot)</annotation></semantics></math>
+是执行机构动态映射，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ξ</mi><mi>k</mi></msub><annotation encoding="application/x-tex">\xi_k</annotation></semantics></math>
+是执行机构内部状态。平台设计的关键是把这些变量的层级分清楚：控制器命令、分配后命令和执行机构实际输出不是同一个量。
+也就是说，真正驱动对象积分的是
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>u</mi><mrow><mi>a</mi><mo>,</mo><mi>k</mi></mrow></msub><annotation encoding="application/x-tex">u_{a,k}</annotation></semantics></math>，而不是前两层的抽象命令。</p>
+<h2 id="平台层级">52.5 平台层级</h2>
+<p>仿真平台可粗分为若干层：环境层负责大气、风场、重力、地球曲率和热环境，输出
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ρ</mi><annotation encoding="application/x-tex">\rho</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>a</mi><annotation encoding="application/x-tex">a</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>g</mi><annotation encoding="application/x-tex">g</annotation></semantics></math>、风速和热流参数；气动/推进层负责气动系数、力、力矩、推力和气动推进耦合，输出
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>L</mi><mo>,</mo><mi>D</mi><mo>,</mo><mi>Y</mi><mo>,</mo><mi>M</mi><mo>,</mo><mi>N</mi><mo>,</mo><mi>T</mi></mrow><annotation encoding="application/x-tex">L,D,Y,M,N,T</annotation></semantics></math>；动力学层负责质点、纵向、横侧向、六自由度和刚柔耦合，输出
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mover><mi>x</mi><mo accent="true">̇</mo></mover><annotation encoding="application/x-tex">\dot{x}</annotation></semantics></math>；执行机构层负责舵面、推力、RCS、速率限制、延迟和故障，输出
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>u</mi><mi>a</mi></msub><annotation encoding="application/x-tex">u_a</annotation></semantics></math>；传感器层负责噪声、偏置、采样、滤波和丢包，输出
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>y</mi><annotation encoding="application/x-tex">y</annotation></semantics></math>；估计层负责
+Kalman、EKF、UKF、ESO 和参数估计，输出
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mover><mi>x</mi><mo accent="true">̂</mo></mover><annotation encoding="application/x-tex">\hat{x}</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mover><mi>p</mi><mo accent="true">̂</mo></mover><annotation encoding="application/x-tex">\hat{p}</annotation></semantics></math>；制导或参考层负责轨迹、速度高度参考、终端制导和能量管理，输出
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>r</mi><annotation encoding="application/x-tex">r</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>a</mi><mi>c</mi></msub><annotation encoding="application/x-tex">a_c</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>γ</mi><mi>c</mi></msub><annotation encoding="application/x-tex">\gamma_c</annotation></semantics></math>；控制层负责
+PID、LQR、NDI、反步、滑模、鲁棒和自适应，输出
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>u</mi><mi>c</mi></msub><annotation encoding="application/x-tex">u_c</annotation></semantics></math>；安全或约束层负责
+BLF、CBF、MPC、参考治理器和限幅，输出
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>u</mi><mi>m</mi></msub><annotation encoding="application/x-tex">u_m</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>r</mi><mi>m</mi></msub><annotation encoding="application/x-tex">r_m</annotation></semantics></math>；分配层负责力矩到舵面、多执行机构分配和故障重构，输出
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>δ</mi><mi>c</mi></msub><annotation encoding="application/x-tex">\delta_c</annotation></semantics></math>、残差；记录和指标层则负责轨迹、配置、事件、指标和图表来源。</p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ρ</mi><annotation encoding="application/x-tex">\rho</annotation></semantics></math>
+是大气密度，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>a</mi><annotation encoding="application/x-tex">a</annotation></semantics></math>
+是当地声速，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>g</mi><annotation encoding="application/x-tex">g</annotation></semantics></math>
+是重力加速度，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>L</mi><annotation encoding="application/x-tex">L</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>D</mi><annotation encoding="application/x-tex">D</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>Y</mi><annotation encoding="application/x-tex">Y</annotation></semantics></math>
+分别表示升力、阻力和侧力，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>M</mi><annotation encoding="application/x-tex">M</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>N</mi><annotation encoding="application/x-tex">N</annotation></semantics></math>
+分别表示俯仰和偏航力矩，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>T</mi><annotation encoding="application/x-tex">T</annotation></semantics></math>
+是推力，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mover><mi>x</mi><mo accent="true">̇</mo></mover><annotation encoding="application/x-tex">\dot{x}</annotation></semantics></math>
+是状态导数，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>u</mi><mi>a</mi></msub><annotation encoding="application/x-tex">u_a</annotation></semantics></math>
+是执行机构实际输出，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>y</mi><annotation encoding="application/x-tex">y</annotation></semantics></math>
+是传感器输出，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mover><mi>x</mi><mo accent="true">̂</mo></mover><annotation encoding="application/x-tex">\hat{x}</annotation></semantics></math>
+和
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mover><mi>p</mi><mo accent="true">̂</mo></mover><annotation encoding="application/x-tex">\hat{p}</annotation></semantics></math>
+分别是状态估计和参数估计，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>r</mi><annotation encoding="application/x-tex">r</annotation></semantics></math>
+是参考命令，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>a</mi><mi>c</mi></msub><annotation encoding="application/x-tex">a_c</annotation></semantics></math>
+是加速度型制导命令，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>γ</mi><mi>c</mi></msub><annotation encoding="application/x-tex">\gamma_c</annotation></semantics></math>
+是航迹角命令，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>u</mi><mi>c</mi></msub><annotation encoding="application/x-tex">u_c</annotation></semantics></math>
+是控制器命令，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>u</mi><mi>m</mi></msub><annotation encoding="application/x-tex">u_m</annotation></semantics></math>
+是修正后的命令，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>r</mi><mi>m</mi></msub><annotation encoding="application/x-tex">r_m</annotation></semantics></math>
+是修正后的参考，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>δ</mi><mi>c</mi></msub><annotation encoding="application/x-tex">\delta_c</annotation></semantics></math>
+是分配后的舵面命令，残差表示分配后仍未完全满足的力矩或输入失配。</p>
+<p>教学平台可以从少数层开始，但不应把层级概念删除。层级清楚，后续才能逐步提高模型复杂度。</p>
+<h2 id="仿真主循环">52.6 仿真主循环</h2>
+<p>一个离散时间闭环主循环更适合写成固定步骤流：</p>
+<ol type="1">
+<li>初始化状态、参数、随机种子和记录器。</li>
+<li>对每个采样时刻
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>k</mi><mo>=</mo><mn>0</mn><mo>,</mo><mn>1</mn><mo>,</mo><mi>…</mi><mo>,</mo><mi>N</mi></mrow><annotation encoding="application/x-tex">k=0,1,\ldots,N</annotation></semantics></math>，依次执行：
+<ol type="1">
+<li>读取连续状态
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>x</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>t</mi><mi>k</mi></msub><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">x(t_k)</annotation></semantics></math>；</li>
+<li>生成传感器输出
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>y</mi><mi>k</mi></msub><annotation encoding="application/x-tex">y_k</annotation></semantics></math>；</li>
+<li>更新估计器
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mover><mi>x</mi><mo accent="true">̂</mo></mover><mi>k</mi></msub><annotation encoding="application/x-tex">\hat{x}_k</annotation></semantics></math>；</li>
+<li>生成任务参考
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>r</mi><mi>k</mi></msub><annotation encoding="application/x-tex">r_k</annotation></semantics></math>；</li>
+<li>计算名义控制命令
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>u</mi><mrow><mi>c</mi><mo>,</mo><mi>k</mi></mrow></msub><annotation encoding="application/x-tex">u_{c,k}</annotation></semantics></math>；</li>
+<li>进行安全修正或参考治理；</li>
+<li>执行控制分配和执行机构更新；</li>
+<li>在
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">[</mo><msub><mi>t</mi><mi>k</mi></msub><mo>,</mo><msub><mi>t</mi><mrow><mi>k</mi><mo>+</mo><mn>1</mn></mrow></msub><mo stretchy="false" form="postfix">]</mo></mrow><annotation encoding="application/x-tex">[t_k,t_{k+1}]</annotation></semantics></math>
+上积分飞行动力学；</li>
+<li>检查事件、约束、故障和终止条件；</li>
+<li>记录状态、命令、指标中间量和配置标识。</li>
+</ol></li>
+<li>全部样本结束后，计算指标并生成报告。</li>
+</ol>
+<p>这个顺序必须固定并记录。若某次实验先更新执行机构、另一次实验先积分动力学，闭环指标可能发生变化。比较不同控制器时，主循环顺序、步长、初值和扰动样本应保持一致。</p>
+<h2 id="连续模型和离散控制接口">52.7 连续模型和离散控制接口</h2>
+<p>飞行动力学通常是连续时间系统，数字控制器通常是离散时间实现。最简单接口是零阶保持：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>u</mi><mi>c</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><msub><mi>u</mi><mrow><mi>c</mi><mo>,</mo><mi>k</mi></mrow></msub><mo>,</mo><mspace width="1.0em"></mspace><mi>t</mi><mo>∈</mo><mo stretchy="false" form="prefix">[</mo><msub><mi>t</mi><mi>k</mi></msub><mo>,</mo><msub><mi>t</mi><mrow><mi>k</mi><mo>+</mo><mn>1</mn></mrow></msub><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
+u_c(t)=u_{c,k},\quad t\in[t_k,t_{k+1})
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>u</mi><mi>c</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">u_c(t)</annotation></semantics></math>
+是保持后的控制命令，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>u</mi><mrow><mi>c</mi><mo>,</mo><mi>k</mi></mrow></msub><annotation encoding="application/x-tex">u_{c,k}</annotation></semantics></math>
+是第
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>k</mi><annotation encoding="application/x-tex">k</annotation></semantics></math>
+个采样点的控制器输出，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>t</mi><mi>k</mi></msub><annotation encoding="application/x-tex">t_k</annotation></semantics></math>
+和
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>t</mi><mrow><mi>k</mi><mo>+</mo><mn>1</mn></mrow></msub><annotation encoding="application/x-tex">t_{k+1}</annotation></semantics></math>
+是相邻采样时刻。</p>
+<p>连续对象在一个采样周期内可写为：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>x</mi><mrow><mi>k</mi><mo>+</mo><mn>1</mn></mrow></msub><mo>=</mo><msub><mi mathvariant="normal">Φ</mi><mrow><mi mathvariant="normal">Δ</mi><mi>t</mi></mrow></msub><mo stretchy="false" form="prefix">(</mo><msub><mi>x</mi><mi>k</mi></msub><mo>,</mo><msub><mi>u</mi><mrow><mi>a</mi><mo>,</mo><mi>k</mi></mrow></msub><mo>,</mo><mi>p</mi><mo>,</mo><msub><mi>d</mi><mi>k</mi></msub><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
+x_{k+1}=\Phi_{\Delta t}(x_k,u_{a,k},p,d_k)
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi mathvariant="normal">Φ</mi><mrow><mi mathvariant="normal">Δ</mi><mi>t</mi></mrow></msub><mo stretchy="false" form="prefix">(</mo><mi>⋅</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\Phi_{\Delta t}(\cdot)</annotation></semantics></math>
+是步长为
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Δ</mi><mi>t</mi></mrow><annotation encoding="application/x-tex">\Delta t</annotation></semantics></math>
+的数值流映射，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>x</mi><mi>k</mi></msub><annotation encoding="application/x-tex">x_k</annotation></semantics></math>
+是离散状态，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>u</mi><mrow><mi>a</mi><mo>,</mo><mi>k</mi></mrow></msub><annotation encoding="application/x-tex">u_{a,k}</annotation></semantics></math>
+是第
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>k</mi><annotation encoding="application/x-tex">k</annotation></semantics></math>
+个采样时刻的实际执行输入，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>d</mi><mi>k</mi></msub><annotation encoding="application/x-tex">d_k</annotation></semantics></math>
+是离散扰动近似。
+这个接口把连续对象在一个采样周期内的演化压缩成离散一步，因此平台必须记录步长、积分器和保持方式。</p>
+<p>若平台把控制器更新和对象积分分离，还应记录控制更新时刻、积分网格和执行机构保持方式。这样，后续章节才能明确比较的是“同一个对象上的不同控制器”，而不是“不同离散实现细节下的不同系统”。</p>
+<h2 id="配置管理">52.8 配置管理</h2>
+<p>平台配置至少应包含：</p>
+<table>
+<thead>
+<tr>
+<th>配置项</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>模型层级</td>
+<td>质点、纵向、横侧向、六自由度或刚柔耦合</td>
+</tr>
+<tr>
+<td>参考对象</td>
+<td>速度、高度、攻角、位置、终端约束等</td>
+</tr>
+<tr>
+<td>控制器版本</td>
+<td>名义控制器、安全层、分配器与回退逻辑</td>
+</tr>
+<tr>
+<td>数值设置</td>
+<td>步长、积分器、采样周期和容差</td>
+</tr>
+<tr>
+<td>扰动与故障</td>
+<td>风场、参数摄动、传感器噪声和故障注入</td>
+</tr>
+<tr>
+<td>验收阈值</td>
+<td>跟踪、安全、输入、终端和计算量阈值</td>
+</tr>
+<tr>
+<td>随机种子</td>
+<td>Monte Carlo 和成对比较复现实验所需</td>
+</tr>
+</tbody>
+</table>
+<p>配置与代码要分开记录。否则一旦控制器改动，便无法判断变化来自算法还是来自实验设置。</p>
+<h2 id="记录与指标">52.9 记录与指标</h2>
+<p>平台最重要的输出不是单张曲线，而是可追溯记录：</p>
+<ul>
+<li>原始状态轨迹；</li>
+<li>控制命令轨迹；</li>
+<li>实际执行轨迹；</li>
+<li>事件标志；</li>
+<li>指标中间量；</li>
+<li>配置标识；</li>
+<li>失败样本标识。</li>
+</ul>
+<p>这些记录为第56章指标体系、第57章统计验证和第58章案例库提供共同数据源。</p>
+<h2 id="平台对象与证据对象">52.10 平台对象与证据对象</h2>
+<p>平台对象可以写成：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>𝒫</mi><mo>=</mo><mo stretchy="false" form="prefix">(</mo><mi>𝒪</mi><mo>,</mo><mi>ℒ</mi><mo>,</mo><mi>ℐ</mi><mo>,</mo><mi>𝒮</mi><mo>,</mo><mi>ℛ</mi><mo>,</mo><mi>𝒩</mi><mo>,</mo><mi>ℰ</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
+\mathcal{P}=(\mathcal{O},\mathcal{L},\mathcal{I},\mathcal{S},\mathcal{R},\mathcal{N},\mathcal{E})
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝒪</mi><annotation encoding="application/x-tex">\mathcal{O}</annotation></semantics></math>
+表示对象与任务，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ℒ</mi><annotation encoding="application/x-tex">\mathcal{L}</annotation></semantics></math>
+表示分层结构，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ℐ</mi><annotation encoding="application/x-tex">\mathcal{I}</annotation></semantics></math>
+表示接口定义，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝒮</mi><annotation encoding="application/x-tex">\mathcal{S}</annotation></semantics></math>
+表示场景配置，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ℛ</mi><annotation encoding="application/x-tex">\mathcal{R}</annotation></semantics></math>
+表示记录字段，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝒩</mi><annotation encoding="application/x-tex">\mathcal{N}</annotation></semantics></math>
+表示数值设置，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ℰ</mi><annotation encoding="application/x-tex">\mathcal{E}</annotation></semantics></math>
+表示证据边界。
+这个七元组不是装饰性记号，而是为了把平台中哪些内容可替换、哪些内容必须保留说清楚。</p>
+<p>这样交付后，平台才真正可被后续章节复用和审查。</p>
+<h2 id="平台证据层次及其与后续章节的关系">52.11
+平台证据层次及其与后续章节的关系</h2>
+<p>为了避免把“写了一套零散实现”误写成“已经具备系统仿真平台”，本章可把平台证据粗分为五级：</p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>S</mi><mi>p</mi></mrow><annotation encoding="application/x-tex">Sp</annotation></semantics></math>
+表示平台证据等级，数字从 0 到 4 表示证据成熟度从低到高。</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>等级</th>
+<th>最低证据</th>
+<th>仍缺什么</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>S</mi><mi>p</mi><mn>0</mn></mrow><annotation encoding="application/x-tex">Sp0</annotation></semantics></math></td>
+<td>只有模型和控制器的零散实现</td>
+<td>没有统一接口、配置和记录字段</td>
+</tr>
+<tr>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>S</mi><mi>p</mi><mn>1</mn></mrow><annotation encoding="application/x-tex">Sp1</annotation></semantics></math></td>
+<td>已有主循环、接口变量和单场景可运行算例</td>
+<td>没有统一配置管理、事件记录和失败样本</td>
+</tr>
+<tr>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>S</mi><mi>p</mi><mn>2</mn></mrow><annotation encoding="application/x-tex">Sp2</annotation></semantics></math></td>
+<td>已有分层结构、配置字段、原始记录和独立指标计算流程</td>
+<td>没有跨案例复用和系统统计能力</td>
+</tr>
+<tr>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>S</mi><mi>p</mi><mn>3</mn></mrow><annotation encoding="application/x-tex">Sp3</annotation></semantics></math></td>
+<td>已有案例承载体、故障/随机场景和失败样本保留机制</td>
+<td>仍缺更高保真模型和跨实现一致性验证</td>
+</tr>
+<tr>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>S</mi><mi>p</mi><mn>4</mn></mrow><annotation encoding="application/x-tex">Sp4</annotation></semantics></math></td>
+<td>已形成跨模型、跨案例、跨工具链的系统平台证据</td>
+<td>才接近研究级验证平台口径</td>
+</tr>
+</tbody>
+</table>
+<p>与相关章节的衔接关系可再概括为：</p>
+<table>
+<thead>
+<tr>
+<th>本章完成的内容</th>
+<th>相关章节继续完成的内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>平台接口和主循环</td>
+<td>第53到第55章继续细化数值、数据和实现问题</td>
+</tr>
+<tr>
+<td>配置、记录和事件字段</td>
+<td>第 56、57 章继续细化指标和统计</td>
+</tr>
+<tr>
+<td>案例承载体和模块替换能力</td>
+<td>第58章继续组织成案例库和扩展方向</td>
+</tr>
+<tr>
+<td>复现边界和平台局限</td>
+<td>第 59、60 章继续上升为论文复现和研究路线</td>
+</tr>
+</tbody>
+</table>
+<p>因此，第52章在于建立一个对象、接口、配置和记录都可交接的基础设施框架。</p>
+<h2 id="本章适用范围">52.12 本章适用范围</h2>
+<p>与第52章相衔接的材料已经覆盖平台搭建、数值可信性、数据表管理和案例承载方式。换句话说，第52章不是孤立写法，而是和后面的积分可信性、参数管理与案例库共用一套平台语境。</p>
+<p>本章边界必须写清楚：</p>
+<ul>
+<li>本书呈现平台分层、主循环、配置管理和记录字段的主线；</li>
+<li>这些素材能支撑从教学复现到研究原型级的闭环平台组织和案例复现；</li>
+<li>但它还不是完整高保真工程平台规范，也不是硬件在环或飞行任务级验证体系；</li>
+<li>因此，第52章能支撑“如何保守、系统地搭建高超声速控制仿真平台”，不能支撑“平台已经完成工程级集成验证”。</li>
+</ul>
+<h2 id="常见错误">52.13 常见错误</h2>
+<ol type="1">
+<li>把所有功能写在同一份实现文件里，导致模型、控制器和指标无法替换。</li>
+<li>不区分控制命令和执行机构实际输出。</li>
+<li>不记录随机种子和配置文件。</li>
+<li>只保存图，不保存生成图的数据。</li>
+<li>对不同控制器使用不同初值、扰动或步长。</li>
+<li>用教学级模型结果声称高保真闭环有效。</li>
+<li>把控制器内部安全标志当作独立验证结果。</li>
+</ol>
+<h2 id="练习">52.14 练习</h2>
+<ol type="1">
+<li>画出一个纵向速度高度控制仿真平台的模块图，并标出
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>x</mi><annotation encoding="application/x-tex">x</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>y</mi><annotation encoding="application/x-tex">y</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>u</mi><mi>c</mi></msub><annotation encoding="application/x-tex">u_c</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>u</mi><mi>a</mi></msub><annotation encoding="application/x-tex">u_a</annotation></semantics></math>
+和
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>r</mi><annotation encoding="application/x-tex">r</annotation></semantics></math>。</li>
+<li>设计一个仿真配置表，要求包含模型、控制器、扰动、故障、数值方法和验收判据。</li>
+<li>对比“控制器命令舵偏”和“实际舵偏”，说明为什么二者不能混用。</li>
+<li>设计一个记录字段清单，使其能支持动压约束、安全滤波和故障注入实验。</li>
+<li>说明从纵向教学模型升级到六自由度 IGC
+平台时，哪些接口必须提前保留。</li>
+</ol>
+<h2 id="本章应形成的成果">52.15 本章应形成的成果</h2>
+<p>第52章的任务不是搭一个“能跑”的实验脚本，而是交付一套能让后续章节复用的平台对象。这样，平台才不是一次性演示程序，而是后续验证章节共同依托的基础设施。</p>
+<h3 id="平台对象">平台对象</h3>
+<p>平台对象至少应包含：</p>
+<ul>
+<li>被控对象；</li>
+<li>分层结构；</li>
+<li>控制器接口；</li>
+<li>估计接口；</li>
+<li>安全层接口；</li>
+<li>控制分配接口；</li>
+<li>执行机构接口；</li>
+<li>记录和指标接口。</li>
+</ul>
+<h3 id="配置对象">配置对象</h3>
+<p>平台配置对象至少应包含：</p>
+<ul>
+<li>模型层级；</li>
+<li>初始条件；</li>
+<li>参考命令；</li>
+<li>扰动和故障；</li>
+<li>数值设置；</li>
+<li>随机种子；</li>
+<li>验收判据。</li>
+</ul>
+<h3 id="证据对象">证据对象</h3>
+<p>平台最终要交付的不是“仿真结果”，而是可复查的证据对象：</p>
+<ul>
+<li>原始记录；</li>
+<li>生成图表的数据；</li>
+<li>指标计算脚本；</li>
+<li>失败样本；</li>
+<li>配置文件；</li>
+<li>场景说明。</li>
+</ul>
+<h3 id="接口对象">接口对象</h3>
+<p>平台的接口对象要明确四个问题：</p>
+<ol type="1">
+<li>谁向谁传递状态、命令和参考；</li>
+<li>哪些量属于命令，哪些量属于实际执行；</li>
+<li>哪些模块可以替换，哪些模块必须保留；</li>
+<li>哪些结论只能在教学级平台上成立，哪些还不能外推到工程级结论。</li>
+</ol>
+<p>这一层写清楚，第53到第60章才有共同的平台语境。</p>
+
+      </article>
+      
+      <nav class="book-bottom-nav" aria-label="章节导航">
+        <a href="./index.html">上一章：卷首页</a>
+        <a href="./index.html">卷首页</a>
+        <a href="./53-numerical-integration-simulation-credibility.html">下一章：第53章 数值积分与仿真可信性</a>
+      </nav>
+    </main>
+  </div>
+</body>
+</html>

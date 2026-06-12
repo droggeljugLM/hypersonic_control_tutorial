@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>第42章 障碍 Lyapunov 函数与约束跟踪控制</title>
+  <style>
+    :root {
+      --paper: #f7f3eb;
+      --ink: #1f2937;
+      --muted: #5b6472;
+      --line: color-mix(in srgb, #f5dfe9 68%, #cbd5e1 32%);
+      --accent: #8b3f67;
+      --accent-soft: #f5dfe9;
+      --accent-deep: #522640;
+      color-scheme: light;
+    }
+    html {
+      -webkit-text-size-adjust: 100%;
+      background:
+        radial-gradient(circle at top left, #f5dfe9 0, rgba(255,255,255,0) 32%),
+        linear-gradient(180deg, #fbfaf6 0%, var(--paper) 18%, #f7f1e6 100%);
+    }
+    body {
+      margin: 0;
+      font-family: "Source Han Serif SC", "Songti SC", "Noto Serif CJK SC", "Microsoft YaHei", serif;
+      color: var(--ink);
+      line-height: 1.78;
+      letter-spacing: 0;
+    }
+    a { color: var(--accent-deep); }
+    .book-app {
+      display: grid;
+      grid-template-columns: 280px minmax(0, 1fr);
+      min-height: 100vh;
+    }
+    .book-sidebar {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow: auto;
+      padding: 1.2rem 1rem 1.2rem 1.15rem;
+      border-right: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(255,255,255,0.86), rgba(255,255,255,0.72));
+      backdrop-filter: blur(10px);
+    }
+    .sidebar-shell { position: sticky; top: 0; display: flex; flex-direction: column; gap: 1rem; }
+    .sidebar-brand {
+      padding: 0.95rem 0.95rem 1rem;
+      border-radius: 18px;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.95), rgba(255,255,255,0.84)),
+        linear-gradient(135deg, var(--accent-soft), rgba(255,255,255,0));
+      border: 1px solid var(--line);
+      box-shadow: 0 12px 28px rgba(31, 41, 55, 0.06);
+    }
+    .sidebar-brand .kicker { margin: 0; color: var(--accent); font-size: 0.82rem; font-weight: 700; }
+    .sidebar-brand h2 { margin: 0.45rem 0 0.25rem; font-size: 1.08rem; line-height: 1.3; color: var(--ink); }
+    .sidebar-brand p { margin: 0.35rem 0 0; color: var(--muted); font-size: 0.9rem; }
+    .sidebar-links { display: grid; gap: 0.45rem; }
+    .sidebar-link {
+      display: grid;
+      grid-template-columns: 2.2rem minmax(0, 1fr);
+      gap: 0.6rem;
+      align-items: start;
+      padding: 0.7rem 0.75rem;
+      border-radius: 14px;
+      text-decoration: none;
+      background: rgba(255,255,255,0.72);
+      border: 1px solid rgba(31,41,55,0.07);
+      color: var(--ink);
+    }
+    .sidebar-link:hover { background: rgba(255,255,255,0.95); border-color: var(--line); }
+    .sidebar-link.active {
+      background: linear-gradient(135deg, rgba(255,255,255,0.98), rgba(255,255,255,0.9));
+      border-color: var(--accent-soft);
+      box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent-soft) 68%, #ffffff 32%);
+    }
+    .sidebar-index {
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      min-width: 2rem;
+      height: 2rem;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent-deep);
+      font-size: 0.78rem;
+      font-weight: 800;
+    }
+    .sidebar-title { font-size: 0.94rem; line-height: 1.35; }
+    .book-main { min-width: 0; padding: 1.25rem 1.45rem 1.8rem; }
+    .book-page-header {
+      padding: 0.85rem 0 1rem;
+      margin-bottom: 1rem;
+      border-bottom: 1px solid var(--line);
+    }
+    .page-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.28rem 0.72rem;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.82);
+      border: 1px solid var(--line);
+      color: var(--accent-deep);
+      font-size: 0.8rem;
+      font-weight: 700;
+    }
+    .book-page-header h1 {
+      margin: 0.7rem 0 0;
+      font-size: 1.85rem;
+      line-height: 1.22;
+      color: var(--accent-deep);
+      border: 0;
+      padding: 0;
+    }
+    .book-page-header p { margin: 0.45rem 0 0; color: var(--muted); max-width: 62rem; }
+    .book-article { max-width: 900px; margin: 0; padding: 0 0 1.2rem; }
+    .book-article h1, .book-article h2, .book-article h3, .book-article h4, .book-article h5, .book-article h6 {
+      line-height: 1.28;
+      margin-top: 1.45em;
+      margin-bottom: 0.55em;
+      color: var(--accent-deep);
+    }
+    .book-article h1 { font-size: 2rem; border-bottom: 2px solid var(--line); padding-bottom: 0.42rem; }
+    .book-article h1:first-of-type { margin-top: 0; }
+    .book-article h2 { font-size: 1.42rem; }
+    .book-article h3 { font-size: 1.12rem; }
+    .book-article p, .book-article li, .book-article dd, .book-article td, .book-article th { text-align: justify; text-justify: inter-ideograph; }
+    .book-article p { margin: 0.85rem 0; }
+    .book-article code, .book-article pre { font-family: "Cascadia Mono", "Source Code Pro", Consolas, monospace; font-size: 0.94em; }
+    .book-article code {
+      padding: 0.02rem 0.24rem;
+      background: color-mix(in srgb, var(--accent-soft) 34%, #ffffff 66%);
+      border: 0;
+      border-bottom: 1px solid color-mix(in srgb, var(--accent-soft) 74%, #d1d5db 26%);
+      border-radius: 4px;
+      color: #253244;
+      box-decoration-break: clone;
+      -webkit-box-decoration-break: clone;
+    }
+    .book-article pre {
+      padding: 1rem 1.1rem;
+      overflow: auto;
+      background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,253,248,0.98));
+      border: 1px solid color-mix(in srgb, var(--accent-soft) 54%, #d1d5db 46%);
+      border-left: 5px solid var(--accent);
+      border-radius: 14px;
+      box-shadow: 0 8px 22px rgba(31, 41, 55, 0.05);
+    }
+    .book-article pre code { padding: 0; border: 0; background: transparent; color: inherit; }
+    .book-article table {
+      border-collapse: collapse;
+      width: 100%;
+      margin: 1rem 0 1.25rem;
+      background: rgba(255,255,255,0.82);
+      overflow: hidden;
+      border-radius: 12px;
+    }
+    .book-article th, .book-article td { border: 1px solid var(--line); padding: 0.5rem 0.7rem; vertical-align: top; }
+    .book-article th { background: color-mix(in srgb, var(--accent-soft) 42%, #ffffff 58%); }
+    .book-article blockquote {
+      margin: 1rem 0;
+      padding: 0.25rem 0 0.25rem 1rem;
+      border-left: 4px solid var(--accent);
+      color: #374151;
+      background: linear-gradient(90deg, rgba(255,255,255,0.72), rgba(255,255,255,0.48));
+      border-radius: 0 12px 12px 0;
+    }
+    .book-bottom-nav {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-top: 2.2rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--line);
+    }
+    .book-bottom-nav a {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.6rem 0.9rem;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.84);
+      text-decoration: none;
+      font-weight: 700;
+    }
+    .book-bottom-nav span {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.6rem 0.9rem;
+      border-radius: 999px;
+      border: 1px solid rgba(31,41,55,0.08);
+      background: rgba(255,255,255,0.54);
+      color: rgba(31,41,55,0.42);
+      font-weight: 700;
+    }
+    .book-bottom-nav a:hover { background: rgba(255,255,255,0.98); }
+    .book-volume-intro {
+      margin: 0 0 1.25rem;
+      padding: 1.2rem 1.25rem 1.1rem;
+      border-radius: 18px;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.96), rgba(255,255,255,0.78)),
+        linear-gradient(135deg, var(--accent-soft), rgba(255,255,255,0));
+      border: 1px solid var(--line);
+      box-shadow: 0 14px 34px rgba(31, 41, 55, 0.06);
+    }
+    .volume-intro-kicker {
+      margin: 0;
+      color: var(--accent);
+      font-size: 0.84rem;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    .book-volume-intro h2 {
+      margin: 0.55rem 0 0.55rem;
+      font-size: 1.28rem;
+      line-height: 1.35;
+      color: var(--accent-deep);
+    }
+    .volume-intro-summary {
+      margin: 0;
+      color: var(--muted);
+      max-width: 68rem;
+    }
+    .volume-intro-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.8rem;
+      margin-top: 1rem;
+    }
+    .volume-intro-box {
+      padding: 0.85rem 0.9rem;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.72);
+      border: 1px solid rgba(31,41,55,0.08);
+    }
+    .volume-intro-box span {
+      display: block;
+      color: var(--accent);
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+    }
+    .volume-intro-box strong {
+      display: block;
+      margin-top: 0.35rem;
+      color: var(--ink);
+      font-size: 0.95rem;
+      line-height: 1.45;
+    }
+    .volume-intro-note {
+      margin-top: 0.9rem;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+    @media (max-width: 1180px) {
+      .book-app { grid-template-columns: 1fr; }
+      .book-sidebar {
+        position: relative;
+        height: auto;
+        border-right: 0;
+        border-bottom: 1px solid var(--line);
+      }
+      .sidebar-shell { position: static; }
+    }
+    @media (max-width: 900px) {
+      .book-main { padding: 1rem 1rem 1.5rem; }
+      .book-bottom-nav { flex-direction: column; }
+      .volume-intro-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="book-app">
+    <aside class="book-sidebar">
+      <div class="sidebar-shell">
+        <div class="sidebar-brand">
+          <p class="kicker">高超声速飞行器控制教程</p>
+          <h2>第四卷 约束、安全、容错与制导控制一体化</h2>
+          <p>约束与安全</p>
+        </div>
+        <nav class="sidebar-links" aria-label="本卷目录">
+          <a class="sidebar-link" href="./index.html"><span class="sidebar-index">0</span><span class="sidebar-title">卷首页</span></a>
+<a class="sidebar-link" href="./40-hypersonic-flight-constraints.html"><span class="sidebar-index">01</span><span class="sidebar-title">第40章 高超声速飞行约束体系</span></a>
+<a class="sidebar-link" href="./41-input-saturation-anti-windup.html"><span class="sidebar-index">02</span><span class="sidebar-title">第41章 输入饱和与抗积分饱和控制</span></a>
+<a class="sidebar-link active" href="./42-barrier-lyapunov-constrained-tracking.html"><span class="sidebar-index">03</span><span class="sidebar-title">第42章 障碍 Lyapunov 函数与约束跟踪控制</span></a>
+<a class="sidebar-link" href="./43-control-barrier-function-safety-filter.html"><span class="sidebar-index">04</span><span class="sidebar-title">第43章 控制障碍函数与安全滤波</span></a>
+<a class="sidebar-link" href="./44-model-predictive-control.html"><span class="sidebar-index">05</span><span class="sidebar-title">第44章 模型预测控制</span></a>
+<a class="sidebar-link" href="./45-control-allocation-theory.html"><span class="sidebar-index">06</span><span class="sidebar-title">第45章 控制分配理论</span></a>
+<a class="sidebar-link" href="./46-fault-diagnosis-fault-tolerant-control.html"><span class="sidebar-index">07</span><span class="sidebar-title">第46章 故障诊断与容错控制</span></a>
+<a class="sidebar-link" href="./47-guidance-theory-foundations.html"><span class="sidebar-index">08</span><span class="sidebar-title">第47章 制导理论基础</span></a>
+<a class="sidebar-link" href="./48-integrated-guidance-control.html"><span class="sidebar-index">09</span><span class="sidebar-title">第48章 制导控制一体化</span></a>
+<a class="sidebar-link" href="./49-reentry-flight-control.html"><span class="sidebar-index">10</span><span class="sidebar-title">第49章 再入飞行控制</span></a>
+<a class="sidebar-link" href="./50-glide-energy-management-control.html"><span class="sidebar-index">11</span><span class="sidebar-title">第50章 滑翔飞行与能量管理控制</span></a>
+<a class="sidebar-link" href="./51-airbreathing-hypersonic-cruise-control.html"><span class="sidebar-index">12</span><span class="sidebar-title">第51章 吸气式高超声速巡航控制</span></a>
+        </nav>
+      </div>
+    </aside>
+    <main class="book-main">
+      <header class="book-page-header">
+        <div class="page-eyebrow">第4册·章节页03</div>
+        <h1 id="volume4--42-barrier-lyapunov-constrained-tracking">第42章 障碍 Lyapunov 函数与约束跟踪控制</h1>
+        <p>本页是章节正文页。左侧目录用于回到本卷其他章节，底部导航用于前后章跳转。</p>
+      </header>
+      <article class="book-article">
+        <h2 id="问题背景">42.1 问题背景</h2>
+<p>障碍 Lyapunov 函数，Barrier Lyapunov
+Function，BLF，是处理状态或误差约束的一类常用方法。它的核心思想是：当误差接近约束边界时，Lyapunov
+函数趋于无穷，从而把边界写进控制设计本身。</p>
+<p>BLF 适合约束跟踪，但不能把所有安全问题都归结为 BLF。后续第43章会讨论
+CBF 和安全滤波，第44章会讨论模型预测控制。</p>
+<h2 id="从普通-lyapunov-到-blf">42.2 从普通 Lyapunov 到 BLF</h2>
+<p>普通跟踪误差可定义为</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>e</mi><mo>=</mo><mi>x</mi><mo>−</mo><msub><mi>x</mi><mi>c</mi></msub></mrow><annotation encoding="application/x-tex">
+e = x - x_c
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>e</mi><annotation encoding="application/x-tex">e</annotation></semantics></math>
+是跟踪误差，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>x</mi><annotation encoding="application/x-tex">x</annotation></semantics></math>
+是实际状态或输出，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>x</mi><mi>c</mi></msub><annotation encoding="application/x-tex">x_c</annotation></semantics></math>
+是参考或期望轨迹。</p>
+<p>若只用普通 Lyapunov 函数，例如</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>V</mi><mo>=</mo><mfrac><mn>1</mn><mn>2</mn></mfrac><msup><mi>e</mi><mn>2</mn></msup></mrow><annotation encoding="application/x-tex">
+V = \frac{1}{2}e^2
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>V</mi><annotation encoding="application/x-tex">V</annotation></semantics></math>
+是候选 Lyapunov 函数。</p>
+<p>则它只能保证误差收敛，不会自动阻止误差穿越边界。BLF
+则会把边界写进函数形式中。例如，对误差约束</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">|</mo><mi>e</mi><mo stretchy="false" form="prefix">|</mo><mo>&lt;</mo><msub><mi>k</mi><mi>b</mi></msub></mrow><annotation encoding="application/x-tex">
+|e| &lt; k_b
+</annotation></semantics></math></p>
+<p>可以构造对数型 BLF</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>V</mi><mi>b</mi></msub><mo>=</mo><mfrac><mn>1</mn><mn>2</mn></mfrac><mi>ln</mi><mo>&#8289;</mo><mspace width="-0.167em"></mspace><mrow><mo stretchy="true" form="prefix">(</mo><mfrac><msubsup><mi>k</mi><mi>b</mi><mn>2</mn></msubsup><mrow><msubsup><mi>k</mi><mi>b</mi><mn>2</mn></msubsup><mo>−</mo><msup><mi>e</mi><mn>2</mn></msup></mrow></mfrac><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">
+V_b = \frac{1}{2}\ln\!\left(\frac{k_b^2}{k_b^2-e^2}\right)
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>k</mi><mi>b</mi></msub><annotation encoding="application/x-tex">k_b</annotation></semantics></math>
+是边界常数，表示允许的误差上界。</p>
+<h2 id="约束误差与归一化变量">42.3 约束误差与归一化变量</h2>
+<p>为了把状态约束写成统一形式，常先引入归一化变量。例如高度约束可写为</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>h</mi><mi>min</mi><mo>&#8289;</mo></msub><mo>&lt;</mo><mi>h</mi><mo>&lt;</mo><msub><mi>h</mi><mi>max</mi><mo>&#8289;</mo></msub></mrow><annotation encoding="application/x-tex">
+h_{\min} &lt; h &lt; h_{\max}
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>h</mi><annotation encoding="application/x-tex">h</annotation></semantics></math>
+是高度，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>h</mi><mi>min</mi><mo>&#8289;</mo></msub><annotation encoding="application/x-tex">h_{\min}</annotation></semantics></math>
+是最小安全高度，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>h</mi><mi>max</mi><mo>&#8289;</mo></msub><annotation encoding="application/x-tex">h_{\max}</annotation></semantics></math>
+是最大允许高度。</p>
+<p>定义归一化误差</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ξ</mi><mi>h</mi></msub><mo>=</mo><mfrac><mrow><mn>2</mn><mi>h</mi><mo>−</mo><msub><mi>h</mi><mi>min</mi><mo>&#8289;</mo></msub><mo>−</mo><msub><mi>h</mi><mi>max</mi><mo>&#8289;</mo></msub></mrow><mrow><msub><mi>h</mi><mi>max</mi><mo>&#8289;</mo></msub><mo>−</mo><msub><mi>h</mi><mi>min</mi><mo>&#8289;</mo></msub></mrow></mfrac></mrow><annotation encoding="application/x-tex">
+\xi_h = \frac{2h-h_{\min}-h_{\max}}{h_{\max}-h_{\min}}
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ξ</mi><mi>h</mi></msub><annotation encoding="application/x-tex">\xi_h</annotation></semantics></math>
+是归一化高度变量。</p>
+<p>当
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">|</mo><msub><mi>ξ</mi><mi>h</mi></msub><mo stretchy="false" form="prefix">|</mo><mo>→</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">|\xi_h| \to 1</annotation></semantics></math>
+时，状态接近边界。类似地，动压裕度可写为</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi mathvariant="normal">Δ</mi><mi>q</mi></msub><mo>=</mo><msub><mover><mi>q</mi><mo accent="true">‾</mo></mover><mi>max</mi><mo>&#8289;</mo></msub><mo>−</mo><mover><mi>q</mi><mo accent="true">‾</mo></mover></mrow><annotation encoding="application/x-tex">
+\Delta_q = \bar q_{\max} - \bar q
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi mathvariant="normal">Δ</mi><mi>q</mi></msub><annotation encoding="application/x-tex">\Delta_q</annotation></semantics></math>
+是动压裕度，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mover><mi>q</mi><mo accent="true">‾</mo></mover><annotation encoding="application/x-tex">\bar q</annotation></semantics></math>
+是动压，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mover><mi>q</mi><mo accent="true">‾</mo></mover><mi>max</mi><mo>&#8289;</mo></msub><annotation encoding="application/x-tex">\bar q_{\max}</annotation></semantics></math>
+是允许上界。</p>
+<h2 id="blf-的核心思想">42.4 BLF 的核心思想</h2>
+<p>BLF 的本质不是“硬推控制力一定很大”，而是把边界写入 Lyapunov
+函数，使得稳定性条件在接近边界时自动变得更严格。这样一来，控制器就会主动回避边界，而不是事后发现越界。</p>
+<h2 id="blf-反步骨架">42.5 BLF 反步骨架</h2>
+<p>考虑 strict-feedback 系统的一个教学级骨架：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mover><mi>x</mi><mo accent="true">̇</mo></mover><mn>1</mn></msub><mo>=</mo><msub><mi>f</mi><mn>1</mn></msub><mo stretchy="false" form="prefix">(</mo><msub><mi>x</mi><mn>1</mn></msub><mo stretchy="false" form="postfix">)</mo><mo>+</mo><msub><mi>g</mi><mn>1</mn></msub><mo stretchy="false" form="prefix">(</mo><msub><mi>x</mi><mn>1</mn></msub><mo stretchy="false" form="postfix">)</mo><msub><mi>x</mi><mn>2</mn></msub><mo>,</mo><mspace width="2.0em"></mspace><msub><mover><mi>x</mi><mo accent="true">̇</mo></mover><mn>2</mn></msub><mo>=</mo><msub><mi>f</mi><mn>2</mn></msub><mo stretchy="false" form="prefix">(</mo><msub><mi>x</mi><mn>1</mn></msub><mo>,</mo><msub><mi>x</mi><mn>2</mn></msub><mo stretchy="false" form="postfix">)</mo><mo>+</mo><msub><mi>g</mi><mn>2</mn></msub><mo stretchy="false" form="prefix">(</mo><msub><mi>x</mi><mn>1</mn></msub><mo>,</mo><msub><mi>x</mi><mn>2</mn></msub><mo stretchy="false" form="postfix">)</mo><mi>u</mi></mrow><annotation encoding="application/x-tex">
+\dot x_1 = f_1(x_1) + g_1(x_1)x_2,\qquad
+\dot x_2 = f_2(x_1,x_2) + g_2(x_1,x_2)u
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>x</mi><mn>1</mn></msub><annotation encoding="application/x-tex">x_1</annotation></semantics></math>
+是第一层状态，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>x</mi><mn>2</mn></msub><annotation encoding="application/x-tex">x_2</annotation></semantics></math>
+是第二层状态，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>u</mi><annotation encoding="application/x-tex">u</annotation></semantics></math>
+是真实输入。</p>
+<p>第一步定义第一层误差</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>e</mi><mn>1</mn></msub><mo>=</mo><msub><mi>x</mi><mn>1</mn></msub><mo>−</mo><msub><mi>x</mi><mrow><mn>1</mn><mi>c</mi></mrow></msub></mrow><annotation encoding="application/x-tex">
+e_1 = x_1 - x_{1c}
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>x</mi><mrow><mn>1</mn><mi>c</mi></mrow></msub><annotation encoding="application/x-tex">x_{1c}</annotation></semantics></math>
+是第一层参考。</p>
+<p>BLF 反步中的虚拟控制可取为</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>x</mi><mrow><mn>2</mn><mi>c</mi></mrow></msub><mo>=</mo><mi>−</mi><msub><mi>k</mi><mn>1</mn></msub><msub><mi>e</mi><mn>1</mn></msub></mrow><annotation encoding="application/x-tex">
+x_{2c} = -k_1 e_1
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>k</mi><mn>1</mn></msub><annotation encoding="application/x-tex">k_1</annotation></semantics></math>
+是第一层反馈增益，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>x</mi><mrow><mn>2</mn><mi>c</mi></mrow></msub><annotation encoding="application/x-tex">x_{2c}</annotation></semantics></math>
+是虚拟控制命令。</p>
+<p>第二步定义第二层误差</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>e</mi><mn>2</mn></msub><mo>=</mo><msub><mi>x</mi><mn>2</mn></msub><mo>−</mo><msub><mi>x</mi><mrow><mn>2</mn><mi>c</mi></mrow></msub></mrow><annotation encoding="application/x-tex">
+e_2 = x_2 - x_{2c}
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>e</mi><mn>2</mn></msub><annotation encoding="application/x-tex">e_2</annotation></semantics></math>
+是第二层误差。</p>
+<p>若选择真实输入使</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mover><mi>e</mi><mo accent="true">̇</mo></mover><mn>2</mn></msub><mo>=</mo><mi>−</mi><msub><mi>k</mi><mn>2</mn></msub><msub><mi>e</mi><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">
+\dot e_2 = -k_2 e_2
+</annotation></semantics></math></p>
+<p>则可设计</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>u</mi><mo>=</mo><msub><mi>g</mi><mn>2</mn></msub><mo stretchy="false" form="prefix">(</mo><msub><mi>x</mi><mn>1</mn></msub><mo>,</mo><msub><mi>x</mi><mn>2</mn></msub><msup><mo stretchy="false" form="postfix">)</mo><mrow><mi>−</mi><mn>1</mn></mrow></msup><mrow><mo stretchy="true" form="prefix">(</mo><mi>−</mi><msub><mi>f</mi><mn>2</mn></msub><mo stretchy="false" form="prefix">(</mo><msub><mi>x</mi><mn>1</mn></msub><mo>,</mo><msub><mi>x</mi><mn>2</mn></msub><mo stretchy="false" form="postfix">)</mo><mo>+</mo><msub><mover><mi>x</mi><mo accent="true">̇</mo></mover><mrow><mn>2</mn><mi>c</mi></mrow></msub><mo>−</mo><msub><mi>k</mi><mn>2</mn></msub><msub><mi>e</mi><mn>2</mn></msub><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">
+u = g_2(x_1,x_2)^{-1}\left(-f_2(x_1,x_2) + \dot x_{2c} - k_2 e_2\right)
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>k</mi><mn>2</mn></msub><annotation encoding="application/x-tex">k_2</annotation></semantics></math>
+是第二层反馈增益，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>g</mi><mn>2</mn></msub><mo stretchy="false" form="prefix">(</mo><msub><mi>x</mi><mn>1</mn></msub><mo>,</mo><msub><mi>x</mi><mn>2</mn></msub><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">g_2(x_1,x_2)</annotation></semantics></math>
+是输入增益函数。</p>
+<h2 id="收缩包络与预设性能视角">42.6 收缩包络与预设性能视角</h2>
+<p>BLF 的约束思想和预设性能控制很接近。若希望误差满足一个收缩包络</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">|</mo><mi>e</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="prefix">|</mo><mo>&lt;</mo><mi>ρ</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
+|e(t)| &lt; \rho(t)
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ρ</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\rho(t)</annotation></semantics></math>
+是随时间递减的误差包络。</p>
+<p>则控制律必须保证误差始终处于包络内。对高超声速任务，这类包络常用于高度、攻角或速度误差的安全跟踪。</p>
+<h2 id="blf-与-cbf-的区别">42.7 BLF 与 CBF 的区别</h2>
+<p>BLF 通常在控制律设计中构造 Lyapunov
+函数，强调跟踪误差保持在边界内。CBF
+通常定义安全集，更强调安全可行域和在线安全修正。</p>
+<p>若初始状态已经越界，BLF
+可能失去直接适用性。工程上可以采用恢复模式、收缩边界、参考治理器或 CBF
+来处理安全恢复。</p>
+<h2 id="输入饱和与可行性">42.8 输入饱和与可行性</h2>
+<p>BLF 推导得到的控制律可能要求很大输入。若考虑一个简单教学模型</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>e</mi><mo accent="true">̇</mo></mover><mo>=</mo><mi>a</mi><mi>e</mi><mo>+</mo><mi>b</mi><mi>u</mi></mrow><annotation encoding="application/x-tex">
+\dot e = a e + b u
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>a</mi><annotation encoding="application/x-tex">a</annotation></semantics></math>
+和
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>b</mi><annotation encoding="application/x-tex">b</annotation></semantics></math>
+是系统参数，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>u</mi><annotation encoding="application/x-tex">u</annotation></semantics></math>
+是控制输入。</p>
+<p>则带边界的 BLF 推导常会使分母中出现类似</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>k</mi><mi>b</mi><mn>2</mn></msubsup><mo>−</mo><msup><mi>e</mi><mn>2</mn></msup></mrow><annotation encoding="application/x-tex">
+k_b^2 - e^2
+</annotation></semantics></math></p>
+<p>这样的项。靠近边界时，控制输入会越来越强烈，因而必须检查输入是否会越过执行机构边界。</p>
+<h2 id="blf-与约束控制接口">42.9 BLF 与约束控制接口</h2>
+<p>约束跟踪不是单纯的误差收敛，而是要把安全约束和控制接口一起写清楚。至少应说明：</p>
+<table>
+<thead>
+<tr>
+<th>项目</th>
+<th>交代要点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>受控对象</td>
+<td>姿态、攻角、速度高度还是轨迹跟踪</td>
+</tr>
+<tr>
+<td>约束来源</td>
+<td>结构、热流、动压、任务走廊还是终端条件</td>
+</tr>
+<tr>
+<td>误差定义</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>e</mi><annotation encoding="application/x-tex">e</annotation></semantics></math>
+来自状态、输出还是制导误差</td>
+</tr>
+<tr>
+<td>虚拟控制</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>x</mi><mrow><mn>2</mn><mi>c</mi></mrow></msub><annotation encoding="application/x-tex">x_{2c}</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ρ</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\rho(t)</annotation></semantics></math>
+或安全包络如何定义</td>
+</tr>
+<tr>
+<td>输入边界</td>
+<td>舵偏、舵速、推力或控制分配边界</td>
+</tr>
+<tr>
+<td>安全恢复</td>
+<td>越界后如何降级、重构或切换</td>
+</tr>
+</tbody>
+</table>
+<h2 id="约束冲突">42.10 约束冲突</h2>
+<p>约束之间常会冲突。比如：</p>
+<ul>
+<li>想要更快跟踪，可能需要更大舵偏和更高动压；</li>
+<li>想要低热流，可能需要降低速度或改变攻角，进而影响终端时间；</li>
+<li>想要更小过载，可能需要更长飞行时间，增加累计热负荷；</li>
+<li>想要更强鲁棒性，可能需要更保守的控制动作，影响任务完成度。</li>
+</ul>
+<p>因此，约束问题本质上是可行性和优先级问题。</p>
+<h2 id="最小验证协议">42.11 最小验证协议</h2>
+<p>对 BLF
+教学算例，更适合先做最小成对验证，而不是一上来就堆复杂场景：</p>
+<ol type="1">
+<li>选择同一条参考、同一组扰动和同一组初始条件，分别运行普通基线控制与
+BLF 约束控制；</li>
+<li>参考或初值应故意把系统推向约束边界附近，否则看不出 BLF 的价值；</li>
+<li>至少记录误差、最小边界距离、物理约束裕度、实际输入和是否出现饱和；</li>
+<li>评价时同时检查边界是否守住和跟踪是否仍可接受。</li>
+</ol>
+<h2 id="证据层次">42.12 证据层次</h2>
+<p>为了避免把“给出一个带边界的误差函数”误写成已经完成约束跟踪控制设计，本章可把证据粗分为四级：</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>等级</th>
+<th>最低证据</th>
+<th>仍缺什么</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>B</mi><mn>0</mn></mrow><annotation encoding="application/x-tex">B0</annotation></semantics></math></td>
+<td>给出误差定义、边界定义和 BLF 形式</td>
+<td>没有闭环和输入边界证据</td>
+</tr>
+<tr>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>B</mi><mn>1</mn></mrow><annotation encoding="application/x-tex">B1</annotation></semantics></math></td>
+<td>有单通道闭环仿真和边界保持结果</td>
+<td>没有多约束冲突和恢复证据</td>
+</tr>
+<tr>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>B</mi><mn>2</mn></mrow><annotation encoding="application/x-tex">B2</annotation></semantics></math></td>
+<td>有输入饱和、初值偏移和扰动扫描</td>
+<td>没有安全恢复和多场景复测</td>
+</tr>
+<tr>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>B</mi><mn>3</mn></mrow><annotation encoding="application/x-tex">B3</annotation></semantics></math></td>
+<td>控制器、安全层、输入边界和任务接口共同闭环</td>
+<td>工程级约束跟踪证据</td>
+</tr>
+</tbody>
+</table>
+<h2 id="本章小结">42.13 本章小结</h2>
+<p>第42章主要是把约束跟踪这一路线的方法边界和证据边界写清楚。BLF
+很适合约束跟踪，但它不是万能安全机制，也不能单独解决已经越界后的恢复问题。</p>
+<h2 id="练习">42.14 练习</h2>
+<ol type="1">
+<li>写出普通误差和 BLF 的基本形式。</li>
+<li>说明为什么 BLF 接近边界时会变得更“敏感”。</li>
+<li>比较 BLF 和 CBF 的侧重点。</li>
+<li>解释为什么初值越界时 BLF 可能失去定义。</li>
+<li>设计一个 BLF 最小成对验证表。</li>
+</ol>
+
+      </article>
+      
+      <nav class="book-bottom-nav" aria-label="章节导航">
+        <a href="./41-input-saturation-anti-windup.html">上一章：第41章 输入饱和与抗积分饱和控制</a>
+        <a href="./index.html">卷首页</a>
+        <a href="./43-control-barrier-function-safety-filter.html">下一章：第43章 控制障碍函数与安全滤波</a>
+      </nav>
+    </main>
+  </div>
+</body>
+</html>

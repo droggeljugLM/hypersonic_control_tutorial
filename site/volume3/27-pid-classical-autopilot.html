@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>第27章 PID 与经典自动驾驶仪</title>
+  <style>
+    :root {
+      --paper: #f7f3eb;
+      --ink: #1f2937;
+      --muted: #5b6472;
+      --line: color-mix(in srgb, #f6ecd1 68%, #cbd5e1 32%);
+      --accent: #9a6d1c;
+      --accent-soft: #f6ecd1;
+      --accent-deep: #5d4010;
+      color-scheme: light;
+    }
+    html {
+      -webkit-text-size-adjust: 100%;
+      background:
+        radial-gradient(circle at top left, #f6ecd1 0, rgba(255,255,255,0) 32%),
+        linear-gradient(180deg, #fbfaf6 0%, var(--paper) 18%, #f7f1e6 100%);
+    }
+    body {
+      margin: 0;
+      font-family: "Source Han Serif SC", "Songti SC", "Noto Serif CJK SC", "Microsoft YaHei", serif;
+      color: var(--ink);
+      line-height: 1.78;
+      letter-spacing: 0;
+    }
+    a { color: var(--accent-deep); }
+    .book-app {
+      display: grid;
+      grid-template-columns: 280px minmax(0, 1fr);
+      min-height: 100vh;
+    }
+    .book-sidebar {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow: auto;
+      padding: 1.2rem 1rem 1.2rem 1.15rem;
+      border-right: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(255,255,255,0.86), rgba(255,255,255,0.72));
+      backdrop-filter: blur(10px);
+    }
+    .sidebar-shell { position: sticky; top: 0; display: flex; flex-direction: column; gap: 1rem; }
+    .sidebar-brand {
+      padding: 0.95rem 0.95rem 1rem;
+      border-radius: 18px;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.95), rgba(255,255,255,0.84)),
+        linear-gradient(135deg, var(--accent-soft), rgba(255,255,255,0));
+      border: 1px solid var(--line);
+      box-shadow: 0 12px 28px rgba(31, 41, 55, 0.06);
+    }
+    .sidebar-brand .kicker { margin: 0; color: var(--accent); font-size: 0.82rem; font-weight: 700; }
+    .sidebar-brand h2 { margin: 0.45rem 0 0.25rem; font-size: 1.08rem; line-height: 1.3; color: var(--ink); }
+    .sidebar-brand p { margin: 0.35rem 0 0; color: var(--muted); font-size: 0.9rem; }
+    .sidebar-links { display: grid; gap: 0.45rem; }
+    .sidebar-link {
+      display: grid;
+      grid-template-columns: 2.2rem minmax(0, 1fr);
+      gap: 0.6rem;
+      align-items: start;
+      padding: 0.7rem 0.75rem;
+      border-radius: 14px;
+      text-decoration: none;
+      background: rgba(255,255,255,0.72);
+      border: 1px solid rgba(31,41,55,0.07);
+      color: var(--ink);
+    }
+    .sidebar-link:hover { background: rgba(255,255,255,0.95); border-color: var(--line); }
+    .sidebar-link.active {
+      background: linear-gradient(135deg, rgba(255,255,255,0.98), rgba(255,255,255,0.9));
+      border-color: var(--accent-soft);
+      box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent-soft) 68%, #ffffff 32%);
+    }
+    .sidebar-index {
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      min-width: 2rem;
+      height: 2rem;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent-deep);
+      font-size: 0.78rem;
+      font-weight: 800;
+    }
+    .sidebar-title { font-size: 0.94rem; line-height: 1.35; }
+    .book-main { min-width: 0; padding: 1.25rem 1.45rem 1.8rem; }
+    .book-page-header {
+      padding: 0.85rem 0 1rem;
+      margin-bottom: 1rem;
+      border-bottom: 1px solid var(--line);
+    }
+    .page-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.28rem 0.72rem;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.82);
+      border: 1px solid var(--line);
+      color: var(--accent-deep);
+      font-size: 0.8rem;
+      font-weight: 700;
+    }
+    .book-page-header h1 {
+      margin: 0.7rem 0 0;
+      font-size: 1.85rem;
+      line-height: 1.22;
+      color: var(--accent-deep);
+      border: 0;
+      padding: 0;
+    }
+    .book-page-header p { margin: 0.45rem 0 0; color: var(--muted); max-width: 62rem; }
+    .book-article { max-width: 900px; margin: 0; padding: 0 0 1.2rem; }
+    .book-article h1, .book-article h2, .book-article h3, .book-article h4, .book-article h5, .book-article h6 {
+      line-height: 1.28;
+      margin-top: 1.45em;
+      margin-bottom: 0.55em;
+      color: var(--accent-deep);
+    }
+    .book-article h1 { font-size: 2rem; border-bottom: 2px solid var(--line); padding-bottom: 0.42rem; }
+    .book-article h1:first-of-type { margin-top: 0; }
+    .book-article h2 { font-size: 1.42rem; }
+    .book-article h3 { font-size: 1.12rem; }
+    .book-article p, .book-article li, .book-article dd, .book-article td, .book-article th { text-align: justify; text-justify: inter-ideograph; }
+    .book-article p { margin: 0.85rem 0; }
+    .book-article code, .book-article pre { font-family: "Cascadia Mono", "Source Code Pro", Consolas, monospace; font-size: 0.94em; }
+    .book-article code {
+      padding: 0.02rem 0.24rem;
+      background: color-mix(in srgb, var(--accent-soft) 34%, #ffffff 66%);
+      border: 0;
+      border-bottom: 1px solid color-mix(in srgb, var(--accent-soft) 74%, #d1d5db 26%);
+      border-radius: 4px;
+      color: #253244;
+      box-decoration-break: clone;
+      -webkit-box-decoration-break: clone;
+    }
+    .book-article pre {
+      padding: 1rem 1.1rem;
+      overflow: auto;
+      background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,253,248,0.98));
+      border: 1px solid color-mix(in srgb, var(--accent-soft) 54%, #d1d5db 46%);
+      border-left: 5px solid var(--accent);
+      border-radius: 14px;
+      box-shadow: 0 8px 22px rgba(31, 41, 55, 0.05);
+    }
+    .book-article pre code { padding: 0; border: 0; background: transparent; color: inherit; }
+    .book-article table {
+      border-collapse: collapse;
+      width: 100%;
+      margin: 1rem 0 1.25rem;
+      background: rgba(255,255,255,0.82);
+      overflow: hidden;
+      border-radius: 12px;
+    }
+    .book-article th, .book-article td { border: 1px solid var(--line); padding: 0.5rem 0.7rem; vertical-align: top; }
+    .book-article th { background: color-mix(in srgb, var(--accent-soft) 42%, #ffffff 58%); }
+    .book-article blockquote {
+      margin: 1rem 0;
+      padding: 0.25rem 0 0.25rem 1rem;
+      border-left: 4px solid var(--accent);
+      color: #374151;
+      background: linear-gradient(90deg, rgba(255,255,255,0.72), rgba(255,255,255,0.48));
+      border-radius: 0 12px 12px 0;
+    }
+    .book-bottom-nav {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-top: 2.2rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--line);
+    }
+    .book-bottom-nav a {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.6rem 0.9rem;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.84);
+      text-decoration: none;
+      font-weight: 700;
+    }
+    .book-bottom-nav span {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.6rem 0.9rem;
+      border-radius: 999px;
+      border: 1px solid rgba(31,41,55,0.08);
+      background: rgba(255,255,255,0.54);
+      color: rgba(31,41,55,0.42);
+      font-weight: 700;
+    }
+    .book-bottom-nav a:hover { background: rgba(255,255,255,0.98); }
+    .book-volume-intro {
+      margin: 0 0 1.25rem;
+      padding: 1.2rem 1.25rem 1.1rem;
+      border-radius: 18px;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.96), rgba(255,255,255,0.78)),
+        linear-gradient(135deg, var(--accent-soft), rgba(255,255,255,0));
+      border: 1px solid var(--line);
+      box-shadow: 0 14px 34px rgba(31, 41, 55, 0.06);
+    }
+    .volume-intro-kicker {
+      margin: 0;
+      color: var(--accent);
+      font-size: 0.84rem;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    .book-volume-intro h2 {
+      margin: 0.55rem 0 0.55rem;
+      font-size: 1.28rem;
+      line-height: 1.35;
+      color: var(--accent-deep);
+    }
+    .volume-intro-summary {
+      margin: 0;
+      color: var(--muted);
+      max-width: 68rem;
+    }
+    .volume-intro-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.8rem;
+      margin-top: 1rem;
+    }
+    .volume-intro-box {
+      padding: 0.85rem 0.9rem;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.72);
+      border: 1px solid rgba(31,41,55,0.08);
+    }
+    .volume-intro-box span {
+      display: block;
+      color: var(--accent);
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+    }
+    .volume-intro-box strong {
+      display: block;
+      margin-top: 0.35rem;
+      color: var(--ink);
+      font-size: 0.95rem;
+      line-height: 1.45;
+    }
+    .volume-intro-note {
+      margin-top: 0.9rem;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+    @media (max-width: 1180px) {
+      .book-app { grid-template-columns: 1fr; }
+      .book-sidebar {
+        position: relative;
+        height: auto;
+        border-right: 0;
+        border-bottom: 1px solid var(--line);
+      }
+      .sidebar-shell { position: static; }
+    }
+    @media (max-width: 900px) {
+      .book-main { padding: 1rem 1rem 1.5rem; }
+      .book-bottom-nav { flex-direction: column; }
+      .volume-intro-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="book-app">
+    <aside class="book-sidebar">
+      <div class="sidebar-shell">
+        <div class="sidebar-brand">
+          <p class="kicker">高超声速飞行器控制教程</p>
+          <h2>第三卷 经典与现代飞行控制方法</h2>
+          <p>控制方法体系</p>
+        </div>
+        <nav class="sidebar-links" aria-label="本卷目录">
+          <a class="sidebar-link" href="./index.html"><span class="sidebar-index">0</span><span class="sidebar-title">卷首页</span></a>
+<a class="sidebar-link" href="./26-flight-control-system-architecture.html"><span class="sidebar-index">01</span><span class="sidebar-title">第26章 飞行控制系统架构</span></a>
+<a class="sidebar-link active" href="./27-pid-classical-autopilot.html"><span class="sidebar-index">02</span><span class="sidebar-title">第27章 PID 与经典自动驾驶仪</span></a>
+<a class="sidebar-link" href="./28-root-locus-frequency-domain-margins.html"><span class="sidebar-index">03</span><span class="sidebar-title">第28章 根轨迹、频域设计与稳定裕度</span></a>
+<a class="sidebar-link" href="./29-state-feedback-observer-pole-placement.html"><span class="sidebar-index">04</span><span class="sidebar-title">第29章 状态反馈、观测器与极点配置</span></a>
+<a class="sidebar-link" href="./30-lqr-lqg-linear-optimal-control.html"><span class="sidebar-index">05</span><span class="sidebar-title">第30章 LQR、LQG 与线性最优控制</span></a>
+<a class="sidebar-link" href="./31-h2-hinf-robust-flight-control.html"><span class="sidebar-index">06</span><span class="sidebar-title">第31章 $H_2$、$H_\infty$ 与鲁棒飞行控制</span></a>
+<a class="sidebar-link" href="./32-gain-scheduling-lpv-control.html"><span class="sidebar-index">07</span><span class="sidebar-title">第32章 增益调度与 LPV 控制</span></a>
+<a class="sidebar-link" href="./33-feedback-linearization-dynamic-inversion.html"><span class="sidebar-index">08</span><span class="sidebar-title">第33章 反馈线性化与动态逆控制</span></a>
+<a class="sidebar-link" href="./34-incremental-nonlinear-dynamic-inversion.html"><span class="sidebar-index">09</span><span class="sidebar-title">第34章 增量非线性动态逆控制</span></a>
+<a class="sidebar-link" href="./35-backstepping-dynamic-surface-control.html"><span class="sidebar-index">10</span><span class="sidebar-title">第35章 反步控制与动态面控制</span></a>
+<a class="sidebar-link" href="./36-sliding-mode-high-order-sliding-control.html"><span class="sidebar-index">11</span><span class="sidebar-title">第36章 滑模控制与高阶滑模控制</span></a>
+<a class="sidebar-link" href="./37-adaptive-flight-control.html"><span class="sidebar-index">12</span><span class="sidebar-title">第37章 自适应飞行控制</span></a>
+<a class="sidebar-link" href="./38-intelligent-approximation-control.html"><span class="sidebar-index">13</span><span class="sidebar-title">第38章 智能逼近控制</span></a>
+<a class="sidebar-link" href="./39-disturbance-observer-eso-adrc.html"><span class="sidebar-index">14</span><span class="sidebar-title">第39章 扰动观测器、扩张状态观测器与 ADRC</span></a>
+        </nav>
+      </div>
+    </aside>
+    <main class="book-main">
+      <header class="book-page-header">
+        <div class="page-eyebrow">第3册·章节页02</div>
+        <h1 id="volume3--27-pid-classical-autopilot">第27章 PID 与经典自动驾驶仪</h1>
+        <p>本页是章节正文页。左侧目录用于回到本卷其他章节，底部导航用于前后章跳转。</p>
+      </header>
+      <article class="book-article">
+        <h2 id="问题背景">27.1 问题背景</h2>
+<p>PID
+和经典自动驾驶仪是飞行控制的入门方法，也是后续高级方法的重要比较基线。高超声速控制教程如果一开始只讲反步、滑模、自适应或学习控制，会让读者误以为算法复杂度就是控制水平。实际工程里，清楚的
+PID
+串级结构、限幅、滤波、抗饱和和调度，往往比形式复杂但接口不清的控制律更可靠。</p>
+<p>这一章的目标，是把最常见的工程自动驾驶仪讲清楚，并说明它为什么仍然值得作为比较基线。</p>
+<h2 id="pid-的基本形式">27.2 PID 的基本形式</h2>
+<p>对误差：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>e</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mi>r</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo>−</mo><mi>y</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
+e(t)=r(t)-y(t)
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>e</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">e(t)</annotation></semantics></math>
+是跟踪误差，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>r</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">r(t)</annotation></semantics></math>
+是参考，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>y</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">y(t)</annotation></semantics></math>
+是输出。</p>
+<p>典型 PID 可写为：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>u</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><msub><mi>K</mi><mi>p</mi></msub><mi>e</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo>+</mo><msub><mi>K</mi><mi>i</mi></msub><msubsup><mo>∫</mo><mn>0</mn><mi>t</mi></msubsup><mi>e</mi><mo stretchy="false" form="prefix">(</mo><mi>τ</mi><mo stretchy="false" form="postfix">)</mo><mspace width="0.167em"></mspace><mi>d</mi><mi>τ</mi><mo>+</mo><msub><mi>K</mi><mi>d</mi></msub><mover><mi>e</mi><mo accent="true">̇</mo></mover><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
+u(t)=K_p e(t)+K_i\int_0^t e(\tau)\,d\tau+K_d\dot e(t)
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>K</mi><mi>p</mi></msub><annotation encoding="application/x-tex">K_p</annotation></semantics></math>
+是比例增益，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>K</mi><mi>i</mi></msub><annotation encoding="application/x-tex">K_i</annotation></semantics></math>
+是积分增益，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>K</mi><mi>d</mi></msub><annotation encoding="application/x-tex">K_d</annotation></semantics></math>
+是微分增益，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>u</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">u(t)</annotation></semantics></math>
+是控制输出。</p>
+<p>实际飞控中常对微分项加滤波：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>u</mi><mi>d</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>s</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><msub><mi>K</mi><mi>d</mi></msub><mfrac><mi>s</mi><mrow><mn>1</mn><mo>+</mo><mi>s</mi><msub><mi>T</mi><mi>f</mi></msub></mrow></mfrac><mi>e</mi><mo stretchy="false" form="prefix">(</mo><mi>s</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
+u_d(s)=K_d\frac{s}{1+sT_f}e(s)
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>T</mi><mi>f</mi></msub><annotation encoding="application/x-tex">T_f</annotation></semantics></math>
+是滤波时间常数。</p>
+<p>PID
+的三项分别承担不同责任：比例项提供即时修正，积分项消除稳态误差，微分项增加阻尼或提前量。</p>
+<h2 id="串级自动驾驶仪">27.3 串级自动驾驶仪</h2>
+<p>飞行控制通常不是单环
+PID，而是串级结构。一个典型纵向串级链可写成：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>h</mi><mi>c</mi></msub><mo>→</mo><msub><mi>γ</mi><mi>c</mi></msub><mo>→</mo><msub><mi>α</mi><mi>c</mi></msub><mo>→</mo><msub><mi>q</mi><mi>c</mi></msub><mo>→</mo><msub><mi>δ</mi><mrow><mi>e</mi><mo>,</mo><mi>c</mi></mrow></msub></mrow><annotation encoding="application/x-tex">
+h_c \rightarrow \gamma_c \rightarrow \alpha_c \rightarrow q_c \rightarrow \delta_{e,c}
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>h</mi><mi>c</mi></msub><annotation encoding="application/x-tex">h_c</annotation></semantics></math>
+是高度参考，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>γ</mi><mi>c</mi></msub><annotation encoding="application/x-tex">\gamma_c</annotation></semantics></math>
+是航迹角命令，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>α</mi><mi>c</mi></msub><annotation encoding="application/x-tex">\alpha_c</annotation></semantics></math>
+是攻角命令，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>q</mi><mi>c</mi></msub><annotation encoding="application/x-tex">q_c</annotation></semantics></math>
+是俯仰角速度命令，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>δ</mi><mrow><mi>e</mi><mo>,</mo><mi>c</mi></mrow></msub><annotation encoding="application/x-tex">\delta_{e,c}</annotation></semantics></math>
+是升降舵命令。</p>
+<p>速度通道常写成：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>V</mi><mi>c</mi></msub><mo>→</mo><msub><mi>ϕ</mi><mrow><mi>T</mi><mo>,</mo><mi>c</mi></mrow></msub></mrow><annotation encoding="application/x-tex">
+V_c \rightarrow \phi_{T,c}
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>V</mi><mi>c</mi></msub><annotation encoding="application/x-tex">V_c</annotation></semantics></math>
+是速度参考，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ϕ</mi><mrow><mi>T</mi><mo>,</mo><mi>c</mi></mrow></msub><annotation encoding="application/x-tex">\phi_{T,c}</annotation></semantics></math>
+是推力命令。</p>
+<p>这说明 PID
+在飞行控制里往往承担的是“组织误差链条”的工作，而不是直接对物理输入做最终决策。</p>
+<h2 id="姿态角速度内环">27.4 姿态角速度内环</h2>
+<p>角速度内环是很多飞控系统的底层稳定环。俯仰通道可写成：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>δ</mi><mrow><mi>e</mi><mo>,</mo><mi>c</mi></mrow></msub><mo>=</mo><msub><mi>K</mi><mi>q</mi></msub><mo stretchy="false" form="prefix">(</mo><msub><mi>q</mi><mi>c</mi></msub><mo>−</mo><mi>q</mi><mo stretchy="false" form="postfix">)</mo><mo>+</mo><msub><mi>K</mi><mi>i</mi></msub><mo>∫</mo><mo stretchy="false" form="prefix">(</mo><msub><mi>q</mi><mi>c</mi></msub><mo>−</mo><mi>q</mi><mo stretchy="false" form="postfix">)</mo><mspace width="0.167em"></mspace><mi>d</mi><mi>t</mi></mrow><annotation encoding="application/x-tex">
+\delta_{e,c}=K_q(q_c-q)+K_i\int (q_c-q)\,dt
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>q</mi><mi>c</mi></msub><annotation encoding="application/x-tex">q_c</annotation></semantics></math>
+是俯仰角速度参考，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>q</mi><annotation encoding="application/x-tex">q</annotation></semantics></math>
+是实际俯仰角速度。</p>
+<p>这个内环的作用是让外环看到一个更像“理想执行器”的对象。若内环不稳，外环设计再好也没有意义。</p>
+<h2 id="高度航迹角和攻角外环">27.5 高度、航迹角和攻角外环</h2>
+<p>高度控制通常先生成航迹角命令：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>γ</mi><mi>c</mi></msub><mo>=</mo><mfrac><mn>1</mn><mi>V</mi></mfrac><mrow><mo stretchy="true" form="prefix">(</mo><msub><mover><mi>h</mi><mo accent="true">̇</mo></mover><mi>c</mi></msub><mo>−</mo><msub><mi>k</mi><mi>h</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>h</mi><mo>−</mo><msub><mi>h</mi><mi>c</mi></msub><mo stretchy="false" form="postfix">)</mo><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">
+\gamma_c=\frac{1}{V}\left(\dot h_c-k_h(h-h_c)\right)
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mover><mi>h</mi><mo accent="true">̇</mo></mover><mi>c</mi></msub><annotation encoding="application/x-tex">\dot h_c</annotation></semantics></math>
+是高度参考变化率，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>k</mi><mi>h</mi></msub><annotation encoding="application/x-tex">k_h</annotation></semantics></math>
+是高度收敛增益。</p>
+<p>再由航迹角误差生成攻角命令：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>α</mi><mi>c</mi></msub><mo>=</mo><msub><mi>α</mi><mn>0</mn></msub><mo>+</mo><msub><mi>k</mi><mi>α</mi></msub><mo stretchy="false" form="prefix">(</mo><msub><mi>γ</mi><mi>c</mi></msub><mo>−</mo><mi>γ</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
+\alpha_c=\alpha_0+k_\alpha(\gamma_c-\gamma)
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>α</mi><mn>0</mn></msub><annotation encoding="application/x-tex">\alpha_0</annotation></semantics></math>
+是攻角偏置，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>k</mi><mi>α</mi></msub><annotation encoding="application/x-tex">k_\alpha</annotation></semantics></math>
+是攻角增益。</p>
+<p>对高超声速飞行器来说，攻角并不是纯姿态量，它同时影响升力、阻力、热流和动压走廊。因此，外环不能只看高度误差，还必须看攻角和动压裕度。</p>
+<h2 id="速度通道">27.6 速度通道</h2>
+<p>速度控制如果由推力承担，可写为：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ϕ</mi><mrow><mi>T</mi><mo>,</mo><mi>c</mi></mrow></msub><mo>=</mo><msub><mi>ϕ</mi><mrow><mi>T</mi><mo>,</mo><mn>0</mn></mrow></msub><mo>+</mo><msub><mi>K</mi><mi>V</mi></msub><mo stretchy="false" form="prefix">(</mo><msub><mi>V</mi><mi>c</mi></msub><mo>−</mo><mi>V</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
+\phi_{T,c}=\phi_{T,0}+K_V(V_c-V)
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ϕ</mi><mrow><mi>T</mi><mo>,</mo><mn>0</mn></mrow></msub><annotation encoding="application/x-tex">\phi_{T,0}</annotation></semantics></math>
+是推力偏置，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>K</mi><mi>V</mi></msub><annotation encoding="application/x-tex">K_V</annotation></semantics></math>
+是速度增益。</p>
+<p>对吸气式高超声速巡航飞行器，速度控制不是简单油门问题。推力、进气道、攻角和高度相互耦合，过快的速度环可能破坏推进系统稳定性。对滑翔飞行器，速度可能主要由能量管理和航迹角决定，不能假设油门可用。</p>
+<h2 id="前馈">27.7 前馈</h2>
+<p>PID 不等于纯反馈。飞行控制常需要前馈：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>u</mi><mo>=</mo><msub><mi>K</mi><mi>p</mi></msub><mi>e</mi><mo>+</mo><msub><mi>K</mi><mi>i</mi></msub><mo>∫</mo><mi>e</mi><mspace width="0.167em"></mspace><mi>d</mi><mi>t</mi><mo>+</mo><msub><mi>K</mi><mi>d</mi></msub><mover><mi>e</mi><mo accent="true">̇</mo></mover><mo>+</mo><msub><mi>u</mi><mrow><mi mathvariant="normal">f</mi><mi mathvariant="normal">f</mi></mrow></msub></mrow><annotation encoding="application/x-tex">
+u=K_p e+K_i\int e\,dt+K_d\dot e+u_{\mathrm{ff}}
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>u</mi><mrow><mi mathvariant="normal">f</mi><mi mathvariant="normal">f</mi></mrow></msub><annotation encoding="application/x-tex">u_{\mathrm{ff}}</annotation></semantics></math>
+是前馈项。</p>
+<p>前馈的作用是把已知的重力、配平、气动或推力需求提前补偿掉，让反馈只处理剩余误差。</p>
+<h2 id="抗积分饱和">27.8 抗积分饱和</h2>
+<p>当执行机构进入饱和时，积分项容易继续积累，造成积分饱和。一个常用的抗饱和思路是只在未饱和时积分，或者在饱和时反馈积分误差修正：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>z</mi><mo accent="true">̇</mo></mover><mo>=</mo><mi>e</mi><mo>−</mo><msub><mi>k</mi><mrow><mi mathvariant="normal">a</mi><mi mathvariant="normal">w</mi></mrow></msub><mo stretchy="false" form="prefix">(</mo><mi>u</mi><mo>−</mo><msub><mi>u</mi><mrow><mi mathvariant="normal">s</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">t</mi></mrow></msub><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
+\dot z=e-k_{\mathrm{aw}}(u-u_{\mathrm{sat}})
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>z</mi><annotation encoding="application/x-tex">z</annotation></semantics></math>
+是积分状态，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>k</mi><mrow><mi mathvariant="normal">a</mi><mi mathvariant="normal">w</mi></mrow></msub><annotation encoding="application/x-tex">k_{\mathrm{aw}}</annotation></semantics></math>
+是抗饱和增益，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>u</mi><mrow><mi mathvariant="normal">s</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">t</mi></mrow></msub><annotation encoding="application/x-tex">u_{\mathrm{sat}}</annotation></semantics></math>
+是饱和后的控制量。</p>
+<p>对高超声速对象，抗饱和不是附属功能，而是约束控制能否维持稳定的核心环节。</p>
+<h2 id="低阶线性分析">27.9 低阶线性分析</h2>
+<p>若局部线性模型为：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Δ</mi><mover><mi>x</mi><mo accent="true">̇</mo></mover><mo>=</mo><mi>A</mi><mi mathvariant="normal">Δ</mi><mi>x</mi><mo>+</mo><mi>B</mi><mi mathvariant="normal">Δ</mi><mi>u</mi></mrow><annotation encoding="application/x-tex">
+\Delta \dot x=A\Delta x+B\Delta u
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Δ</mi><mi>x</mi></mrow><annotation encoding="application/x-tex">\Delta x</annotation></semantics></math>
+是状态增量，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Δ</mi><mi>u</mi></mrow><annotation encoding="application/x-tex">\Delta u</annotation></semantics></math>
+是输入增量，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>A</mi><annotation encoding="application/x-tex">A</annotation></semantics></math>
+和
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>B</mi><annotation encoding="application/x-tex">B</annotation></semantics></math>
+是线化矩阵。</p>
+<p>那么 PID
+和经典自动驾驶仪至少应在该局部模型上检查稳定性、阻尼和响应速度。若单点分析都站不住，就不应把该控制器推广到整包线。</p>
+<h2 id="调度">27.10 调度</h2>
+<p>高超声速飞行包线宽，PID
+增益往往要随飞行条件变化。调度变量可写为：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ρ</mi><mi>s</mi></msub><mo>=</mo><msub><mi>ρ</mi><mi>s</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>h</mi><mo>,</mo><mi>V</mi><mo>,</mo><mi>M</mi><mi>a</mi><mo>,</mo><mover><mi>q</mi><mo accent="true">‾</mo></mover><mo>,</mo><mi>α</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
+\rho_s=\rho_s(h,V,Ma,\bar q,\alpha)
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ρ</mi><mi>s</mi></msub><annotation encoding="application/x-tex">\rho_s</annotation></semantics></math>
+是调度变量，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>h</mi><annotation encoding="application/x-tex">h</annotation></semantics></math>
+是高度，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>V</mi><annotation encoding="application/x-tex">V</annotation></semantics></math>
+是速度，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>M</mi><mi>a</mi></mrow><annotation encoding="application/x-tex">Ma</annotation></semantics></math>
+是马赫数，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mover><mi>q</mi><mo accent="true">‾</mo></mover><annotation encoding="application/x-tex">\bar q</annotation></semantics></math>
+是动压，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>α</mi><annotation encoding="application/x-tex">\alpha</annotation></semantics></math>
+是攻角。</p>
+<p>调度表设计必须检查：</p>
+<ul>
+<li>每个网格点是否配平成功；</li>
+<li>每个局部 PID 是否有裕度；</li>
+<li>插值后增益是否连续；</li>
+<li>调度变量估计是否可靠；</li>
+<li>飞行点快速变化时是否引入附加动态。</li>
+</ul>
+<h2 id="高超声速应用边界">27.11 高超声速应用边界</h2>
+<p>PID
+的优点是结构透明、易于实现、便于调试、适合作为基线，也容易加入限幅、滤波和抗饱和。</p>
+<p>PID
+的限制是：对强耦合多变量系统处理有限；对大范围非线性依赖调度；对不确定性和约束的处理能力弱；在执行机构和传感器复杂时，性能容易受实现细节影响。</p>
+<p>所以，PID
+在本书中的定位不是“落后方法”，而是“最值得信任的比较基线”。</p>
+<h2 id="本章小结">27.12 本章小结</h2>
+<p>经典自动驾驶仪之所以仍然重要，是因为它把飞行控制最基本的工程责任说清了：如何把误差变成命令，如何在执行机构和约束条件下保持可实现，如何作为后续方法的统一比较基线。对于高超声速飞行器，经典控制不是终点，但它是判断复杂方法是否真的更好的起点。</p>
+<h2 id="练习">27.13 练习</h2>
+<ol type="1">
+<li>写出 PID 的标准形式，并解释三项的作用。</li>
+<li>画出一个纵向串级自动驾驶仪的命令链。</li>
+<li>说明为什么积分环节需要抗饱和。</li>
+<li>解释速度通道和高度通道为什么不能完全独立设计。</li>
+<li>设计一个 PID 调度表需要检查哪些量。</li>
+</ol>
+
+      </article>
+      
+      <nav class="book-bottom-nav" aria-label="章节导航">
+        <a href="./26-flight-control-system-architecture.html">上一章：第26章 飞行控制系统架构</a>
+        <a href="./index.html">卷首页</a>
+        <a href="./28-root-locus-frequency-domain-margins.html">下一章：第28章 根轨迹、频域设计与稳定裕度</a>
+      </nav>
+    </main>
+  </div>
+</body>
+</html>

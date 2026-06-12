@@ -1,0 +1,956 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>第56章 验证指标体系</title>
+  <style>
+    :root {
+      --paper: #f7f3eb;
+      --ink: #1f2937;
+      --muted: #5b6472;
+      --line: color-mix(in srgb, #e4e8fb 68%, #cbd5e1 32%);
+      --accent: #4a5fb2;
+      --accent-soft: #e4e8fb;
+      --accent-deep: #2a3568;
+      color-scheme: light;
+    }
+    html {
+      -webkit-text-size-adjust: 100%;
+      background:
+        radial-gradient(circle at top left, #e4e8fb 0, rgba(255,255,255,0) 32%),
+        linear-gradient(180deg, #fbfaf6 0%, var(--paper) 18%, #f7f1e6 100%);
+    }
+    body {
+      margin: 0;
+      font-family: "Source Han Serif SC", "Songti SC", "Noto Serif CJK SC", "Microsoft YaHei", serif;
+      color: var(--ink);
+      line-height: 1.78;
+      letter-spacing: 0;
+    }
+    a { color: var(--accent-deep); }
+    .book-app {
+      display: grid;
+      grid-template-columns: 280px minmax(0, 1fr);
+      min-height: 100vh;
+    }
+    .book-sidebar {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow: auto;
+      padding: 1.2rem 1rem 1.2rem 1.15rem;
+      border-right: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(255,255,255,0.86), rgba(255,255,255,0.72));
+      backdrop-filter: blur(10px);
+    }
+    .sidebar-shell { position: sticky; top: 0; display: flex; flex-direction: column; gap: 1rem; }
+    .sidebar-brand {
+      padding: 0.95rem 0.95rem 1rem;
+      border-radius: 18px;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.95), rgba(255,255,255,0.84)),
+        linear-gradient(135deg, var(--accent-soft), rgba(255,255,255,0));
+      border: 1px solid var(--line);
+      box-shadow: 0 12px 28px rgba(31, 41, 55, 0.06);
+    }
+    .sidebar-brand .kicker { margin: 0; color: var(--accent); font-size: 0.82rem; font-weight: 700; }
+    .sidebar-brand h2 { margin: 0.45rem 0 0.25rem; font-size: 1.08rem; line-height: 1.3; color: var(--ink); }
+    .sidebar-brand p { margin: 0.35rem 0 0; color: var(--muted); font-size: 0.9rem; }
+    .sidebar-links { display: grid; gap: 0.45rem; }
+    .sidebar-link {
+      display: grid;
+      grid-template-columns: 2.2rem minmax(0, 1fr);
+      gap: 0.6rem;
+      align-items: start;
+      padding: 0.7rem 0.75rem;
+      border-radius: 14px;
+      text-decoration: none;
+      background: rgba(255,255,255,0.72);
+      border: 1px solid rgba(31,41,55,0.07);
+      color: var(--ink);
+    }
+    .sidebar-link:hover { background: rgba(255,255,255,0.95); border-color: var(--line); }
+    .sidebar-link.active {
+      background: linear-gradient(135deg, rgba(255,255,255,0.98), rgba(255,255,255,0.9));
+      border-color: var(--accent-soft);
+      box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent-soft) 68%, #ffffff 32%);
+    }
+    .sidebar-index {
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      min-width: 2rem;
+      height: 2rem;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent-deep);
+      font-size: 0.78rem;
+      font-weight: 800;
+    }
+    .sidebar-title { font-size: 0.94rem; line-height: 1.35; }
+    .book-main { min-width: 0; padding: 1.25rem 1.45rem 1.8rem; }
+    .book-page-header {
+      padding: 0.85rem 0 1rem;
+      margin-bottom: 1rem;
+      border-bottom: 1px solid var(--line);
+    }
+    .page-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.28rem 0.72rem;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.82);
+      border: 1px solid var(--line);
+      color: var(--accent-deep);
+      font-size: 0.8rem;
+      font-weight: 700;
+    }
+    .book-page-header h1 {
+      margin: 0.7rem 0 0;
+      font-size: 1.85rem;
+      line-height: 1.22;
+      color: var(--accent-deep);
+      border: 0;
+      padding: 0;
+    }
+    .book-page-header p { margin: 0.45rem 0 0; color: var(--muted); max-width: 62rem; }
+    .book-article { max-width: 900px; margin: 0; padding: 0 0 1.2rem; }
+    .book-article h1, .book-article h2, .book-article h3, .book-article h4, .book-article h5, .book-article h6 {
+      line-height: 1.28;
+      margin-top: 1.45em;
+      margin-bottom: 0.55em;
+      color: var(--accent-deep);
+    }
+    .book-article h1 { font-size: 2rem; border-bottom: 2px solid var(--line); padding-bottom: 0.42rem; }
+    .book-article h1:first-of-type { margin-top: 0; }
+    .book-article h2 { font-size: 1.42rem; }
+    .book-article h3 { font-size: 1.12rem; }
+    .book-article p, .book-article li, .book-article dd, .book-article td, .book-article th { text-align: justify; text-justify: inter-ideograph; }
+    .book-article p { margin: 0.85rem 0; }
+    .book-article code, .book-article pre { font-family: "Cascadia Mono", "Source Code Pro", Consolas, monospace; font-size: 0.94em; }
+    .book-article code {
+      padding: 0.02rem 0.24rem;
+      background: color-mix(in srgb, var(--accent-soft) 34%, #ffffff 66%);
+      border: 0;
+      border-bottom: 1px solid color-mix(in srgb, var(--accent-soft) 74%, #d1d5db 26%);
+      border-radius: 4px;
+      color: #253244;
+      box-decoration-break: clone;
+      -webkit-box-decoration-break: clone;
+    }
+    .book-article pre {
+      padding: 1rem 1.1rem;
+      overflow: auto;
+      background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,253,248,0.98));
+      border: 1px solid color-mix(in srgb, var(--accent-soft) 54%, #d1d5db 46%);
+      border-left: 5px solid var(--accent);
+      border-radius: 14px;
+      box-shadow: 0 8px 22px rgba(31, 41, 55, 0.05);
+    }
+    .book-article pre code { padding: 0; border: 0; background: transparent; color: inherit; }
+    .book-article table {
+      border-collapse: collapse;
+      width: 100%;
+      margin: 1rem 0 1.25rem;
+      background: rgba(255,255,255,0.82);
+      overflow: hidden;
+      border-radius: 12px;
+    }
+    .book-article th, .book-article td { border: 1px solid var(--line); padding: 0.5rem 0.7rem; vertical-align: top; }
+    .book-article th { background: color-mix(in srgb, var(--accent-soft) 42%, #ffffff 58%); }
+    .book-article blockquote {
+      margin: 1rem 0;
+      padding: 0.25rem 0 0.25rem 1rem;
+      border-left: 4px solid var(--accent);
+      color: #374151;
+      background: linear-gradient(90deg, rgba(255,255,255,0.72), rgba(255,255,255,0.48));
+      border-radius: 0 12px 12px 0;
+    }
+    .book-bottom-nav {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-top: 2.2rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--line);
+    }
+    .book-bottom-nav a {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.6rem 0.9rem;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.84);
+      text-decoration: none;
+      font-weight: 700;
+    }
+    .book-bottom-nav span {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.6rem 0.9rem;
+      border-radius: 999px;
+      border: 1px solid rgba(31,41,55,0.08);
+      background: rgba(255,255,255,0.54);
+      color: rgba(31,41,55,0.42);
+      font-weight: 700;
+    }
+    .book-bottom-nav a:hover { background: rgba(255,255,255,0.98); }
+    .book-volume-intro {
+      margin: 0 0 1.25rem;
+      padding: 1.2rem 1.25rem 1.1rem;
+      border-radius: 18px;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.96), rgba(255,255,255,0.78)),
+        linear-gradient(135deg, var(--accent-soft), rgba(255,255,255,0));
+      border: 1px solid var(--line);
+      box-shadow: 0 14px 34px rgba(31, 41, 55, 0.06);
+    }
+    .volume-intro-kicker {
+      margin: 0;
+      color: var(--accent);
+      font-size: 0.84rem;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    .book-volume-intro h2 {
+      margin: 0.55rem 0 0.55rem;
+      font-size: 1.28rem;
+      line-height: 1.35;
+      color: var(--accent-deep);
+    }
+    .volume-intro-summary {
+      margin: 0;
+      color: var(--muted);
+      max-width: 68rem;
+    }
+    .volume-intro-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.8rem;
+      margin-top: 1rem;
+    }
+    .volume-intro-box {
+      padding: 0.85rem 0.9rem;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.72);
+      border: 1px solid rgba(31,41,55,0.08);
+    }
+    .volume-intro-box span {
+      display: block;
+      color: var(--accent);
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+    }
+    .volume-intro-box strong {
+      display: block;
+      margin-top: 0.35rem;
+      color: var(--ink);
+      font-size: 0.95rem;
+      line-height: 1.45;
+    }
+    .volume-intro-note {
+      margin-top: 0.9rem;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+    @media (max-width: 1180px) {
+      .book-app { grid-template-columns: 1fr; }
+      .book-sidebar {
+        position: relative;
+        height: auto;
+        border-right: 0;
+        border-bottom: 1px solid var(--line);
+      }
+      .sidebar-shell { position: static; }
+    }
+    @media (max-width: 900px) {
+      .book-main { padding: 1rem 1rem 1.5rem; }
+      .book-bottom-nav { flex-direction: column; }
+      .volume-intro-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="book-app">
+    <aside class="book-sidebar">
+      <div class="sidebar-shell">
+        <div class="sidebar-brand">
+          <p class="kicker">高超声速飞行器控制教程</p>
+          <h2>第五卷 仿真验证、工程实现与研究训练</h2>
+          <p>验证与训练</p>
+        </div>
+        <nav class="sidebar-links" aria-label="本卷目录">
+          <a class="sidebar-link" href="./index.html"><span class="sidebar-index">0</span><span class="sidebar-title">卷首页</span></a>
+<a class="sidebar-link" href="./52-hypersonic-control-simulation-platform.html"><span class="sidebar-index">01</span><span class="sidebar-title">第52章 高超声速控制仿真平台设计</span></a>
+<a class="sidebar-link" href="./53-numerical-integration-simulation-credibility.html"><span class="sidebar-index">02</span><span class="sidebar-title">第53章 数值积分与仿真可信性</span></a>
+<a class="sidebar-link" href="./54-aerodynamic-data-tables-parameter-management.html"><span class="sidebar-index">03</span><span class="sidebar-title">第54章 气动数据表、插值与参数管理</span></a>
+<a class="sidebar-link" href="./55-controller-discretization-real-time-implementation.html"><span class="sidebar-index">04</span><span class="sidebar-title">第55章 控制器离散化与实时实现</span></a>
+<a class="sidebar-link active" href="./56-verification-metrics-system.html"><span class="sidebar-index">05</span><span class="sidebar-title">第56章 验证指标体系</span></a>
+<a class="sidebar-link" href="./57-uncertainty-monte-carlo-verification.html"><span class="sidebar-index">06</span><span class="sidebar-title">第57章 不确定性分析与 Monte Carlo 验证</span></a>
+<a class="sidebar-link" href="./58-typical-case-library.html"><span class="sidebar-index">07</span><span class="sidebar-title">第58章 典型案例库</span></a>
+<a class="sidebar-link" href="./59-hypersonic-control-paper-reading-method.html"><span class="sidebar-index">08</span><span class="sidebar-title">第59章 高超声速控制论文阅读方法</span></a>
+<a class="sidebar-link" href="./60-frontiers-research-roadmap.html"><span class="sidebar-index">09</span><span class="sidebar-title">第60章 前沿问题与研究路线</span></a>
+<a class="sidebar-link" href="./case-library-code-mapping.html"><span class="sidebar-index">10</span><span class="sidebar-title">第五卷案例映射</span></a>
+        </nav>
+      </div>
+    </aside>
+    <main class="book-main">
+      <header class="book-page-header">
+        <div class="page-eyebrow">第5册·章节页05</div>
+        <h1 id="volume5--56-verification-metrics-system">第56章 验证指标体系</h1>
+        <p>本页是章节正文页。左侧目录用于回到本卷其他章节，底部导航用于前后章跳转。</p>
+      </header>
+      <article class="book-article">
+        <h2 id="问题背景">56.1 问题背景</h2>
+<p>高超声速控制论文和教程常见问题是只展示若干状态曲线，然后用“跟踪效果良好”“控制输入平滑”“满足约束”等语言总结。这种表述缺乏可核查性。控制系统验证必须把曲线转化为指标，把指标转化为判据，把判据转化为可复现实验表。</p>
+<p>本章先把对象、任务、阈值来源和证据目标说清楚，再讨论指标分类、误差口径、动态响应、安全裕度、终端任务和计算实现。指标不是曲线旁边的装饰文字，而是把仿真结果转成可核查证据的语言。</p>
+<p>本章是第五卷的核心验收章节。没有统一的指标体系，仿真平台和控制器实现就很难形成可比较、可审查、可复现的证据链。</p>
+<p>这意味着，指标体系的价值不在于“列出更多数字”，而在于把不同章节的结果放到同一把尺子上。若一个方法只改进了曲线，却没有改善对应的约束裕度、终端误差或计算代价，那么它的结论就不能被夸大。</p>
+<h2 id="指标分类">56.2 指标分类</h2>
+<p>可以把指标分为七类：</p>
+<table>
+<thead>
+<tr>
+<th>类别</th>
+<th>目的</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>跟踪指标</td>
+<td>衡量输出或状态接近参考的程度</td>
+</tr>
+<tr>
+<td>动态响应指标</td>
+<td>衡量超调、调节时间、稳态误差和振荡</td>
+</tr>
+<tr>
+<td>输入指标</td>
+<td>衡量舵偏、舵速、推力、控制能量和饱和</td>
+</tr>
+<tr>
+<td>安全约束指标</td>
+<td>衡量动压、热流、过载、攻角、侧滑角等裕度</td>
+</tr>
+<tr>
+<td>终端任务指标</td>
+<td>衡量终端位置、速度、角度、时间和视线约束</td>
+</tr>
+<tr>
+<td>鲁棒性指标</td>
+<td>衡量扰动、参数摄动和故障下的性能保持</td>
+</tr>
+<tr>
+<td>计算实现指标</td>
+<td>衡量采样、延迟、计算时间、超时和回退</td>
+</tr>
+</tbody>
+</table>
+<p>不同章节可以重点不同，但不应只保留跟踪指标。</p>
+<h2 id="指标定义前的对象阈值和证据检查">56.3
+指标定义前的对象、阈值和证据检查</h2>
+<p>第56章先要做的，不是罗列常用指标，而是把对象、任务、阈值来源和证据目标说清楚。只有先确定这些前提，指标才不会变成一张彼此孤立的名单。</p>
+<p>进入指标计算之前，先把一些问题想清楚：</p>
+<table>
+<thead>
+<tr>
+<th>项目</th>
+<th>需要先说明的问题</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>对象类型</td>
+<td>是巡航、再入、滑翔、终端制导还是姿态内环问题</td>
+</tr>
+<tr>
+<td>模型层级</td>
+<td>质点、纵向、三维质点、六自由度还是刚柔耦合</td>
+</tr>
+<tr>
+<td>任务段</td>
+<td>巡航保持、再入走廊、末制导还是容错过渡段</td>
+</tr>
+<tr>
+<td>参考对象</td>
+<td>是原始任务参考、修正参考还是可执行参考</td>
+</tr>
+<tr>
+<td>约束对象</td>
+<td>动压、热流、过载、攻角、舵偏、舵速和终端约束哪些必须进入</td>
+</tr>
+<tr>
+<td>阈值来源</td>
+<td>阈值来自任务需求、结构限制、数值稳定条件还是教学验收门槛</td>
+</tr>
+<tr>
+<td>统计对象</td>
+<td>是单场景、成对比较、Monte Carlo 还是故障扫描</td>
+</tr>
+<tr>
+<td>证据目标</td>
+<td>是教学级可复现实验、研究原型比较还是更高层级验证</td>
+</tr>
+</tbody>
+</table>
+<p>因此，更自然的起点，是先问清楚一些指标到底服务哪个对象、哪段任务、什么验收门槛，以及准备支撑到哪一级结论，再去算
+RMS。</p>
+<h2 id="跟踪误差">56.4 跟踪误差</h2>
+<p>设输出
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>y</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">y(t)</annotation></semantics></math>
+跟踪参考
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>r</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">r(t)</annotation></semantics></math>，误差为</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>e</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mi>y</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo>−</mo><mi>r</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
+e(t)=y(t)-r(t)
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>e</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">e(t)</annotation></semantics></math>
+是跟踪误差，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>y</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">y(t)</annotation></semantics></math>
+是实际输出，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>r</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">r(t)</annotation></semantics></math>
+是参考输出，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>t</mi><annotation encoding="application/x-tex">t</annotation></semantics></math>
+是时间。</p>
+<p>常用指标包括</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>e</mi><mrow><mi mathvariant="normal">r</mi><mi mathvariant="normal">m</mi><mi mathvariant="normal">s</mi></mrow></msub><mo>=</mo><msqrt><mrow><mfrac><mn>1</mn><mi>T</mi></mfrac><msubsup><mo>∫</mo><mn>0</mn><mi>T</mi></msubsup><msup><mi>e</mi><mn>2</mn></msup><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mspace width="0.167em"></mspace><mi>d</mi><mi>t</mi></mrow></msqrt></mrow><annotation encoding="application/x-tex">
+e_{\mathrm{rms}}=\sqrt{\frac{1}{T}\int_0^T e^2(t)\,dt}
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>e</mi><mrow><mi mathvariant="normal">r</mi><mi mathvariant="normal">m</mi><mi mathvariant="normal">s</mi></mrow></msub><annotation encoding="application/x-tex">e_{\mathrm{rms}}</annotation></semantics></math>
+是均方根误差，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>T</mi><annotation encoding="application/x-tex">T</annotation></semantics></math>
+是统计时间长度。</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>e</mi><mi>max</mi><mo>&#8289;</mo></msub><mo>=</mo><munder><mi>max</mi><mo>&#8289;</mo><mrow><mi>t</mi><mo>∈</mo><mo stretchy="false" form="prefix">[</mo><mn>0</mn><mo>,</mo><mi>T</mi><mo stretchy="false" form="postfix">]</mo></mrow></munder><mo stretchy="false" form="prefix">|</mo><mi>e</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="prefix">|</mo></mrow><annotation encoding="application/x-tex">
+e_{\max}=\max_{t\in[0,T]}|e(t)|
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>e</mi><mi>max</mi><mo>&#8289;</mo></msub><annotation encoding="application/x-tex">e_{\max}</annotation></semantics></math>
+是最大绝对误差。</p>
+<p>离散数据中</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>e</mi><mrow><mi mathvariant="normal">r</mi><mi mathvariant="normal">m</mi><mi mathvariant="normal">s</mi></mrow></msub><mo>=</mo><msqrt><mrow><mfrac><mn>1</mn><mi>N</mi></mfrac><munderover><mo>∑</mo><mrow><mi>k</mi><mo>=</mo><mn>1</mn></mrow><mi>N</mi></munderover><msubsup><mi>e</mi><mi>k</mi><mn>2</mn></msubsup></mrow></msqrt></mrow><annotation encoding="application/x-tex">
+e_{\mathrm{rms}}=\sqrt{\frac{1}{N}\sum_{k=1}^{N}e_k^2}
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>N</mi><annotation encoding="application/x-tex">N</annotation></semantics></math>
+是采样点数，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>e</mi><mi>k</mi></msub><annotation encoding="application/x-tex">e_k</annotation></semantics></math>
+是第
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>k</mi><annotation encoding="application/x-tex">k</annotation></semantics></math>
+个采样点的误差。</p>
+<p>对速度高度控制，可报告速度均方根误差、高度均方根误差、航迹角均方根误差和攻角均方根误差。</p>
+<p>对姿态控制，可报告滚转角、俯仰角、偏航角以及角速度的均方根误差。</p>
+<p>跟踪误差应明确相对于原始参考还是修正参考。若参考治理器修改了参考，必须同时报告原始任务误差和修正参考跟踪误差。</p>
+<h2 id="稳态误差超调和调节时间">56.5 稳态误差、超调和调节时间</h2>
+<p>稳态误差可定义为末段平均误差：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>e</mi><mrow><mi mathvariant="normal">s</mi><mi mathvariant="normal">s</mi></mrow></msub><mo>=</mo><mfrac><mn>1</mn><mrow><msub><mi>T</mi><mn>2</mn></msub><mo>−</mo><msub><mi>T</mi><mn>1</mn></msub></mrow></mfrac><msubsup><mo>∫</mo><msub><mi>T</mi><mn>1</mn></msub><msub><mi>T</mi><mn>2</mn></msub></msubsup><mi>e</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mspace width="0.167em"></mspace><mi>d</mi><mi>t</mi></mrow><annotation encoding="application/x-tex">
+e_{\mathrm{ss}}=\frac{1}{T_2-T_1}\int_{T_1}^{T_2}e(t)\,dt
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>e</mi><mrow><mi mathvariant="normal">s</mi><mi mathvariant="normal">s</mi></mrow></msub><annotation encoding="application/x-tex">e_{\mathrm{ss}}</annotation></semantics></math>
+是稳态误差，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">[</mo><msub><mi>T</mi><mn>1</mn></msub><mo>,</mo><msub><mi>T</mi><mn>2</mn></msub><mo stretchy="false" form="postfix">]</mo></mrow><annotation encoding="application/x-tex">[T_1,T_2]</annotation></semantics></math>
+是末段统计区间。 这个定义强调的是末段平均偏差，而不是瞬时峰值。</p>
+<p>超调可定义为：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>M</mi><mi>p</mi></msub><mo>=</mo><mfrac><mrow><msub><mi>y</mi><mi>max</mi><mo>&#8289;</mo></msub><mo>−</mo><msub><mi>r</mi><mrow><mi mathvariant="normal">f</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">n</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">l</mi></mrow></msub></mrow><mrow><mo stretchy="false" form="prefix">|</mo><msub><mi>r</mi><mrow><mi mathvariant="normal">f</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">n</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">l</mi></mrow></msub><mo>−</mo><mi>y</mi><mo stretchy="false" form="prefix">(</mo><mn>0</mn><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="prefix">|</mo></mrow></mfrac></mrow><annotation encoding="application/x-tex">
+M_p=\frac{y_{\max}-r_{\mathrm{final}}}{|r_{\mathrm{final}}-y(0)|}
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>M</mi><mi>p</mi></msub><annotation encoding="application/x-tex">M_p</annotation></semantics></math>
+是超调量，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>y</mi><mi>max</mi><mo>&#8289;</mo></msub><annotation encoding="application/x-tex">y_{\max}</annotation></semantics></math>
+是输出峰值，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>r</mi><mrow><mi mathvariant="normal">f</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">n</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">l</mi></mrow></msub><annotation encoding="application/x-tex">r_{\mathrm{final}}</annotation></semantics></math>
+是最终参考值，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>y</mi><mo stretchy="false" form="prefix">(</mo><mn>0</mn><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">y(0)</annotation></semantics></math>
+是初始输出。</p>
+<p>调节时间是误差进入并保持在给定阈值内的时间：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>t</mi><mi>s</mi></msub><mo>=</mo><mi>inf</mi><mo>&#8289;</mo><mo stretchy="false" form="prefix">{</mo><mi>t</mi><mo>:</mo><mo stretchy="false" form="prefix">|</mo><mi>e</mi><mo stretchy="false" form="prefix">(</mo><mi>τ</mi><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="prefix">|</mo><mo>≤</mo><mi>ϵ</mi><mo>,</mo><mspace width="0.222em"></mspace><mo>∀</mo><mi>τ</mi><mo>≥</mo><mi>t</mi><mo stretchy="false" form="postfix">}</mo></mrow><annotation encoding="application/x-tex">
+t_s=\inf\{t:|e(\tau)|\le \epsilon,\ \forall \tau\ge t\}
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ϵ</mi><annotation encoding="application/x-tex">\epsilon</annotation></semantics></math>
+是误差容限，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>t</mi><mi>s</mi></msub><annotation encoding="application/x-tex">t_s</annotation></semantics></math>
+是调节时间。</p>
+<p>高超声速控制中，调节时间阈值必须结合任务阶段。例如再入终端制导关注末段误差，巡航控制关注长时间稳态，高机动滑翔则关注路径约束下的动态响应。</p>
+<h2 id="控制输入指标">56.6 控制输入指标</h2>
+<p>控制输入指标用于检查实现代价：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>J</mi><mi>u</mi></msub><mo>=</mo><msubsup><mo>∫</mo><mn>0</mn><mi>T</mi></msubsup><msup><mi>u</mi><mi>⊤</mi></msup><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mi>R</mi><mi>u</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mspace width="0.167em"></mspace><mi>d</mi><mi>t</mi></mrow><annotation encoding="application/x-tex">
+J_u=\int_0^T u^\top(t)Ru(t)\,dt
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>J</mi><mi>u</mi></msub><annotation encoding="application/x-tex">J_u</annotation></semantics></math>
+是控制能量指标，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>u</mi><annotation encoding="application/x-tex">u</annotation></semantics></math>
+是控制输入，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>R</mi><annotation encoding="application/x-tex">R</annotation></semantics></math>
+是权重矩阵。</p>
+<p>舵偏和舵速指标包括：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>δ</mi><mi>max</mi><mo>&#8289;</mo></msub><mo>=</mo><munder><mi>max</mi><mo>&#8289;</mo><mrow><mi>t</mi><mo>∈</mo><mo stretchy="false" form="prefix">[</mo><mn>0</mn><mo>,</mo><mi>T</mi><mo stretchy="false" form="postfix">]</mo></mrow></munder><mo stretchy="false" form="prefix">|</mo><mi>δ</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="prefix">|</mo></mrow><annotation encoding="application/x-tex">
+\delta_{\max}=\max_{t\in[0,T]}|\delta(t)|
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>δ</mi><mi>max</mi><mo>&#8289;</mo></msub><annotation encoding="application/x-tex">\delta_{\max}</annotation></semantics></math>
+是舵偏峰值，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>δ</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\delta(t)</annotation></semantics></math>
+是舵面偏角。</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mover><mi>δ</mi><mo accent="true">̇</mo></mover><mi>max</mi><mo>&#8289;</mo></msub><mo>=</mo><munder><mi>max</mi><mo>&#8289;</mo><mrow><mi>t</mi><mo>∈</mo><mo stretchy="false" form="prefix">[</mo><mn>0</mn><mo>,</mo><mi>T</mi><mo stretchy="false" form="postfix">]</mo></mrow></munder><mo stretchy="false" form="prefix">|</mo><mover><mi>δ</mi><mo accent="true">̇</mo></mover><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="prefix">|</mo></mrow><annotation encoding="application/x-tex">
+\dot{\delta}_{\max}=\max_{t\in[0,T]}|\dot{\delta}(t)|
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mover><mi>δ</mi><mo accent="true">̇</mo></mover><mi>max</mi><mo>&#8289;</mo></msub><annotation encoding="application/x-tex">\dot{\delta}_{\max}</annotation></semantics></math>
+是舵速峰值。</p>
+<p>饱和时间比例：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>η</mi><mrow><mi mathvariant="normal">s</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">t</mi></mrow></msub><mo>=</mo><mfrac><mn>1</mn><mi>T</mi></mfrac><msubsup><mo>∫</mo><mn>0</mn><mi>T</mi></msubsup><msub><mn>𝟏</mn><mrow><mo stretchy="false" form="prefix">(</mo><mo stretchy="false" form="prefix">|</mo><mi>δ</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="prefix">|</mo><mo>≥</mo><msubsup><mi>δ</mi><mi>max</mi><mo>&#8289;</mo><mrow><mi mathvariant="normal">l</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">m</mi></mrow></msubsup><mo stretchy="false" form="postfix">)</mo></mrow></msub><mspace width="0.167em"></mspace><mi>d</mi><mi>t</mi></mrow><annotation encoding="application/x-tex">
+\eta_{\mathrm{sat}}=\frac{1}{T}\int_0^T \mathbf{1}_{(|\delta(t)|\ge \delta_{\max}^{\mathrm{lim}})}\,dt
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>η</mi><mrow><mi mathvariant="normal">s</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">t</mi></mrow></msub><annotation encoding="application/x-tex">\eta_{\mathrm{sat}}</annotation></semantics></math>
+是饱和时间比例，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mn>𝟏</mn><mrow><mo stretchy="false" form="prefix">(</mo><mi>⋅</mi><mo stretchy="false" form="postfix">)</mo></mrow></msub><annotation encoding="application/x-tex">\mathbf{1}_{(\cdot)}</annotation></semantics></math>
+是指示函数，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msubsup><mi>δ</mi><mi>max</mi><mo>&#8289;</mo><mrow><mi mathvariant="normal">l</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">m</mi></mrow></msubsup><annotation encoding="application/x-tex">\delta_{\max}^{\mathrm{lim}}</annotation></semantics></math>
+是舵偏上限。</p>
+<p>对推力或油门，还应报告油门峰值、油门变化率峰值和油门饱和时间比例。</p>
+<p>若安全改善完全依赖长期饱和或极大控制能量，该控制器工程价值有限。</p>
+<h2 id="动压热流和过载裕度">56.7 动压、热流和过载裕度</h2>
+<p>安全约束常写为：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>c</mi><mi>i</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo>≤</mo><msub><mi>c</mi><mrow><mi>i</mi><mo>,</mo><mi>max</mi><mo>&#8289;</mo></mrow></msub></mrow><annotation encoding="application/x-tex">
+c_i(x)\le c_{i,\max}
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>c</mi><mi>i</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">c_i(x)</annotation></semantics></math>
+是第
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>i</mi><annotation encoding="application/x-tex">i</annotation></semantics></math>
+类约束函数，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>c</mi><mrow><mi>i</mi><mo>,</mo><mi>max</mi><mo>&#8289;</mo></mrow></msub><annotation encoding="application/x-tex">c_{i,\max}</annotation></semantics></math>
+是约束上界。</p>
+<p>裕度定义为：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>m</mi><mi>i</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><msub><mi>c</mi><mrow><mi>i</mi><mo>,</mo><mi>max</mi><mo>&#8289;</mo></mrow></msub><mo>−</mo><msub><mi>c</mi><mi>i</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
+m_i(t)=c_{i,\max}-c_i(x(t))
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>m</mi><mi>i</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">m_i(t)</annotation></semantics></math>
+是约束裕度。</p>
+<p>最小裕度：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>m</mi><mrow><mi>i</mi><mo>,</mo><mi>min</mi><mo>&#8289;</mo></mrow></msub><mo>=</mo><munder><mi>min</mi><mo>&#8289;</mo><mrow><mi>t</mi><mo>∈</mo><mo stretchy="false" form="prefix">[</mo><mn>0</mn><mo>,</mo><mi>T</mi><mo stretchy="false" form="postfix">]</mo></mrow></munder><msub><mi>m</mi><mi>i</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
+m_{i,\min}=\min_{t\in[0,T]}m_i(t)
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>m</mi><mrow><mi>i</mi><mo>,</mo><mi>min</mi><mo>&#8289;</mo></mrow></msub><annotation encoding="application/x-tex">m_{i,\min}</annotation></semantics></math>
+是整个仿真区间上的最小裕度。
+如果这个值接近零，说明系统曾经逼近约束边界；若为负，则说明已经越界。</p>
+<p>对高超声速飞行器，至少应考虑：</p>
+<table>
+<thead>
+<tr>
+<th>指标</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>最小动压裕度
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>m</mi><mrow><mi>q</mi><mo>,</mo><mi>min</mi><mo>&#8289;</mo></mrow></msub><annotation encoding="application/x-tex">m_{q,\min}</annotation></semantics></math></td>
+<td>衡量距动压上限最近还有多少余量</td>
+</tr>
+<tr>
+<td>最小热流裕度
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>m</mi><mrow><mover><mi>Q</mi><mo accent="true">̇</mo></mover><mo>,</mo><mi>min</mi><mo>&#8289;</mo></mrow></msub><annotation encoding="application/x-tex">m_{\dot Q,\min}</annotation></semantics></math></td>
+<td>衡量距热流上限最近还有多少余量</td>
+</tr>
+<tr>
+<td>最小过载裕度
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>m</mi><mrow><mi>n</mi><mo>,</mo><mi>min</mi><mo>&#8289;</mo></mrow></msub><annotation encoding="application/x-tex">m_{n,\min}</annotation></semantics></math></td>
+<td>衡量距过载上限最近还有多少余量</td>
+</tr>
+<tr>
+<td>最小攻角裕度
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>m</mi><mrow><mi>α</mi><mo>,</mo><mi>min</mi><mo>&#8289;</mo></mrow></msub><annotation encoding="application/x-tex">m_{\alpha,\min}</annotation></semantics></math></td>
+<td>衡量距攻角上限最近还有多少余量</td>
+</tr>
+<tr>
+<td>最小侧滑角裕度
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>m</mi><mrow><mi>β</mi><mo>,</mo><mi>min</mi><mo>&#8289;</mo></mrow></msub><annotation encoding="application/x-tex">m_{\beta,\min}</annotation></semantics></math></td>
+<td>衡量距侧滑角上限最近还有多少余量</td>
+</tr>
+</tbody>
+</table>
+<p>如果
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>m</mi><mrow><mi>i</mi><mo>,</mo><mi>min</mi><mo>&#8289;</mo></mrow></msub><mo>&lt;</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">m_{i,\min}&lt;0</annotation></semantics></math>，说明出现约束违反。此时不能只报告平均裕度，还应报告违反时间和违反积分。</p>
+<h2 id="违反时间和违反积分">56.8 违反时间和违反积分</h2>
+<p>违反幅度定义为：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>v</mi><mi>i</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mi>max</mi><mo>&#8289;</mo><mo stretchy="false" form="prefix">{</mo><mn>0</mn><mo>,</mo><mi>−</mi><msub><mi>m</mi><mi>i</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">}</mo></mrow><annotation encoding="application/x-tex">
+v_i(t)=\max\{0,-m_i(t)\}
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>v</mi><mi>i</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">v_i(t)</annotation></semantics></math>
+是约束违反幅度。</p>
+<p>违反时间：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mrow><mi mathvariant="normal">v</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">l</mi></mrow></msub><mo>=</mo><msubsup><mo>∫</mo><mn>0</mn><mi>T</mi></msubsup><msub><mn>𝟏</mn><mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>v</mi><mi>i</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo>&gt;</mo><mn>0</mn><mo stretchy="false" form="postfix">)</mo></mrow></msub><mspace width="0.167em"></mspace><mi>d</mi><mi>t</mi></mrow><annotation encoding="application/x-tex">
+T_{\mathrm{viol}}=\int_0^T \mathbf{1}_{(v_i(t)&gt;0)}\,dt
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>T</mi><mrow><mi mathvariant="normal">v</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">l</mi></mrow></msub><annotation encoding="application/x-tex">T_{\mathrm{viol}}</annotation></semantics></math>
+是违反持续时间。 它回答的是“越界持续了多久”。</p>
+<p>违反积分：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>I</mi><mrow><mi mathvariant="normal">v</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">l</mi></mrow></msub><mo>=</mo><msubsup><mo>∫</mo><mn>0</mn><mi>T</mi></msubsup><msub><mi>v</mi><mi>i</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mspace width="0.167em"></mspace><mi>d</mi><mi>t</mi></mrow><annotation encoding="application/x-tex">
+I_{\mathrm{viol}}=\int_0^T v_i(t)\,dt
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>I</mi><mrow><mi mathvariant="normal">v</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">l</mi></mrow></msub><annotation encoding="application/x-tex">I_{\mathrm{viol}}</annotation></semantics></math>
+是违反严重程度的积分量。 它回答的是“越界到底有多严重”。</p>
+<p>违反时间说明持续多久，违反积分说明严重程度。一个短时小幅超限和长时间大幅超限不应被同等对待。</p>
+<h2 id="终端任务指标">56.9 终端任务指标</h2>
+<p>制导和再入任务需要终端指标：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>e</mi><mrow><mi>r</mi><mo>,</mo><mi>f</mi></mrow></msub><mo>=</mo><mo stretchy="false" form="postfix">∥</mo><mi>r</mi><mo stretchy="false" form="prefix">(</mo><mi>T</mi><mo stretchy="false" form="postfix">)</mo><mo>−</mo><msubsup><mi>r</mi><mi>f</mi><mo>⋆</mo></msubsup><mo stretchy="false" form="postfix">∥</mo></mrow><annotation encoding="application/x-tex">
+e_{r,f}=\|r(T)-r_f^\star\|
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>e</mi><mrow><mi>r</mi><mo>,</mo><mi>f</mi></mrow></msub><annotation encoding="application/x-tex">e_{r,f}</annotation></semantics></math>
+是终端位置误差，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>r</mi><mo stretchy="false" form="prefix">(</mo><mi>T</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">r(T)</annotation></semantics></math>
+是终端位置，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msubsup><mi>r</mi><mi>f</mi><mo>⋆</mo></msubsup><annotation encoding="application/x-tex">r_f^\star</annotation></semantics></math>
+是目标终端位置。</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>e</mi><mrow><mi>V</mi><mo>,</mo><mi>f</mi></mrow></msub><mo>=</mo><mo stretchy="false" form="prefix">|</mo><mi>V</mi><mo stretchy="false" form="prefix">(</mo><mi>T</mi><mo stretchy="false" form="postfix">)</mo><mo>−</mo><msubsup><mi>V</mi><mi>f</mi><mo>⋆</mo></msubsup><mo stretchy="false" form="prefix">|</mo></mrow><annotation encoding="application/x-tex">
+e_{V,f}=|V(T)-V_f^\star|
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>e</mi><mrow><mi>V</mi><mo>,</mo><mi>f</mi></mrow></msub><annotation encoding="application/x-tex">e_{V,f}</annotation></semantics></math>
+是终端速度误差，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msubsup><mi>V</mi><mi>f</mi><mo>⋆</mo></msubsup><annotation encoding="application/x-tex">V_f^\star</annotation></semantics></math>
+是目标终端速度。</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>e</mi><mrow><mi>ψ</mi><mo>,</mo><mi>f</mi></mrow></msub><mo>=</mo><mo stretchy="false" form="prefix">|</mo><mi>ψ</mi><mo stretchy="false" form="prefix">(</mo><mi>T</mi><mo stretchy="false" form="postfix">)</mo><mo>−</mo><msubsup><mi>ψ</mi><mi>f</mi><mo>⋆</mo></msubsup><mo stretchy="false" form="prefix">|</mo></mrow><annotation encoding="application/x-tex">
+e_{\psi,f}=|\psi(T)-\psi_f^\star|
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>e</mi><mrow><mi>ψ</mi><mo>,</mo><mi>f</mi></mrow></msub><annotation encoding="application/x-tex">e_{\psi,f}</annotation></semantics></math>
+是终端角度误差，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msubsup><mi>ψ</mi><mi>f</mi><mo>⋆</mo></msubsup><annotation encoding="application/x-tex">\psi_f^\star</annotation></semantics></math>
+是目标终端角度。</p>
+<p>常见终端指标包括：</p>
+<table>
+<thead>
+<tr>
+<th>指标</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>终端位置误差
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>e</mi><mrow><mi>r</mi><mo>,</mo><mi>f</mi></mrow></msub><annotation encoding="application/x-tex">e_{r,f}</annotation></semantics></math></td>
+<td>终端位置偏差</td>
+</tr>
+<tr>
+<td>终端速度误差
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>e</mi><mrow><mi>V</mi><mo>,</mo><mi>f</mi></mrow></msub><annotation encoding="application/x-tex">e_{V,f}</annotation></semantics></math></td>
+<td>终端速度偏差</td>
+</tr>
+<tr>
+<td>终端角度误差
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>e</mi><mrow><mi>ψ</mi><mo>,</mo><mi>f</mi></mrow></msub><annotation encoding="application/x-tex">e_{\psi,f}</annotation></semantics></math></td>
+<td>终端航向、航迹角或视线角偏差</td>
+</tr>
+<tr>
+<td>到达时间误差</td>
+<td>终端时序偏差</td>
+</tr>
+<tr>
+<td>脱靶量</td>
+<td>拦截或末制导偏离目标的距离</td>
+</tr>
+</tbody>
+</table>
+<p>终端指标必须和路径安全一起报告。终端命中但中途热流超限，不能称为任务成功。</p>
+<h2 id="鲁棒性和故障指标">56.10 鲁棒性和故障指标</h2>
+<p>扰动或故障下应报告：</p>
+<table>
+<thead>
+<tr>
+<th>指标</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>通过率</td>
+<td>满足组合判据的样本比例</td>
+</tr>
+<tr>
+<td>最差样本安全裕度</td>
+<td>最不利样本距离约束边界还有多少余量</td>
+</tr>
+<tr>
+<td>相对标称性能退化</td>
+<td>相对标称工况的性能损失</td>
+</tr>
+<tr>
+<td>故障检测延迟</td>
+<td>故障发生到被识别的时间</td>
+</tr>
+<tr>
+<td>误报率</td>
+<td>无故障时误报的比例</td>
+</tr>
+<tr>
+<td>漏检率</td>
+<td>有故障时未检出的比例</td>
+</tr>
+<tr>
+<td>故障后跟踪误差</td>
+<td>故障发生后的残余跟踪误差</td>
+</tr>
+<tr>
+<td>控制重构时间</td>
+<td>容错切换或控制重构所需时间</td>
+</tr>
+</tbody>
+</table>
+<p>容错控制不能只报告故障检测成功，还要报告故障后剩余控制能力、任务降级和安全约束。</p>
+<h2 id="计算实现指标">56.11 计算实现指标</h2>
+<p>实时实现指标包括：</p>
+<table>
+<thead>
+<tr>
+<th>指标</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>平均单步计算时间</td>
+<td>常规工况下的平均计算负担</td>
+</tr>
+<tr>
+<td>最大单步计算时间</td>
+<td>最不利工况下的计算开销</td>
+</tr>
+<tr>
+<td>截止时间违例次数</td>
+<td>超过采样周期的次数</td>
+</tr>
+<tr>
+<td>优化器失败次数</td>
+<td>在线求解未成功结束的次数</td>
+</tr>
+<tr>
+<td>回退控制触发次数</td>
+<td>因超时或无解而启用降级策略的次数</td>
+</tr>
+<tr>
+<td>控制周期</td>
+<td>控制更新节拍</td>
+</tr>
+<tr>
+<td>延迟步数</td>
+<td>离散实现中的等效延迟长度</td>
+</tr>
+</tbody>
+</table>
+<p>若一个控制器跟踪和安全指标都很好，但经常超过实时截止时间，它不能算工程可实现。</p>
+<h2 id="组合通过判据">56.12 组合通过判据</h2>
+<p>建议把多指标合成为一个总体通过判据：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi mathvariant="normal">Π</mi><mrow><mi mathvariant="normal">a</mi><mi mathvariant="normal">l</mi><mi mathvariant="normal">l</mi></mrow></msub><mo>=</mo><msub><mi mathvariant="normal">Π</mi><mrow><mi mathvariant="normal">t</mi><mi mathvariant="normal">r</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">c</mi><mi mathvariant="normal">k</mi></mrow></msub><mo>∧</mo><msub><mi mathvariant="normal">Π</mi><mrow><mi mathvariant="normal">s</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">f</mi><mi mathvariant="normal">e</mi><mi mathvariant="normal">t</mi><mi mathvariant="normal">y</mi></mrow></msub><mo>∧</mo><msub><mi mathvariant="normal">Π</mi><mrow><mi mathvariant="normal">i</mi><mi mathvariant="normal">n</mi><mi mathvariant="normal">p</mi><mi mathvariant="normal">u</mi><mi mathvariant="normal">t</mi></mrow></msub><mo>∧</mo><msub><mi mathvariant="normal">Π</mi><mrow><mi mathvariant="normal">t</mi><mi mathvariant="normal">e</mi><mi mathvariant="normal">r</mi><mi mathvariant="normal">m</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">n</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">l</mi></mrow></msub><mo>∧</mo><msub><mi mathvariant="normal">Π</mi><mrow><mi mathvariant="normal">n</mi><mi mathvariant="normal">u</mi><mi mathvariant="normal">m</mi></mrow></msub><mo>∧</mo><msub><mi mathvariant="normal">Π</mi><mrow><mi mathvariant="normal">r</mi><mi mathvariant="normal">t</mi></mrow></msub></mrow><annotation encoding="application/x-tex">
+\Pi_{\mathrm{all}}=\Pi_{\mathrm{track}}\land \Pi_{\mathrm{safety}}\land \Pi_{\mathrm{input}}\land \Pi_{\mathrm{terminal}}\land \Pi_{\mathrm{num}}\land \Pi_{\mathrm{rt}}
+</annotation></semantics></math></p>
+<p>其中：</p>
+<ul>
+<li><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi mathvariant="normal">Π</mi><mrow><mi mathvariant="normal">t</mi><mi mathvariant="normal">r</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">c</mi><mi mathvariant="normal">k</mi></mrow></msub><annotation encoding="application/x-tex">\Pi_{\mathrm{track}}</annotation></semantics></math>：跟踪误差低于阈值；</li>
+<li><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi mathvariant="normal">Π</mi><mrow><mi mathvariant="normal">s</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">f</mi><mi mathvariant="normal">e</mi><mi mathvariant="normal">t</mi><mi mathvariant="normal">y</mi></mrow></msub><annotation encoding="application/x-tex">\Pi_{\mathrm{safety}}</annotation></semantics></math>：所有约束最小裕度非负，或违反积分低于允许阈值；</li>
+<li><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi mathvariant="normal">Π</mi><mrow><mi mathvariant="normal">i</mi><mi mathvariant="normal">n</mi><mi mathvariant="normal">p</mi><mi mathvariant="normal">u</mi><mi mathvariant="normal">t</mi></mrow></msub><annotation encoding="application/x-tex">\Pi_{\mathrm{input}}</annotation></semantics></math>：舵偏、舵速、推力和饱和时间满足限制；</li>
+<li><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi mathvariant="normal">Π</mi><mrow><mi mathvariant="normal">t</mi><mi mathvariant="normal">e</mi><mi mathvariant="normal">r</mi><mi mathvariant="normal">m</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">n</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">l</mi></mrow></msub><annotation encoding="application/x-tex">\Pi_{\mathrm{terminal}}</annotation></semantics></math>：终端误差满足任务要求；</li>
+<li><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi mathvariant="normal">Π</mi><mrow><mi mathvariant="normal">n</mi><mi mathvariant="normal">u</mi><mi mathvariant="normal">m</mi></mrow></msub><annotation encoding="application/x-tex">\Pi_{\mathrm{num}}</annotation></semantics></math>：无
+NaN、无异常终止，步长检查通过；</li>
+<li><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi mathvariant="normal">Π</mi><mrow><mi mathvariant="normal">r</mi><mi mathvariant="normal">t</mi></mrow></msub><annotation encoding="application/x-tex">\Pi_{\mathrm{rt}}</annotation></semantics></math>：计算时间满足采样周期。</li>
+</ul>
+<p>组合判据应提前定义，不能在仿真后临时调整。</p>
+<h2 id="成对比较">56.13 成对比较</h2>
+<p>比较基线方法和改进方法时，应使用同一场景、初值、扰动和随机种子。成对差值可写为：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Δ</mi><mi>J</mi><mo>=</mo><msub><mi>J</mi><mrow><mi mathvariant="normal">n</mi><mi mathvariant="normal">e</mi><mi mathvariant="normal">w</mi></mrow></msub><mo>−</mo><msub><mi>J</mi><mrow><mi mathvariant="normal">b</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">s</mi><mi mathvariant="normal">e</mi></mrow></msub></mrow><annotation encoding="application/x-tex">
+\Delta J = J_{\mathrm{new}}-J_{\mathrm{base}}
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>J</mi><mrow><mi mathvariant="normal">n</mi><mi mathvariant="normal">e</mi><mi mathvariant="normal">w</mi></mrow></msub><annotation encoding="application/x-tex">J_{\mathrm{new}}</annotation></semantics></math>
+是候选方法指标，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>J</mi><mrow><mi mathvariant="normal">b</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">s</mi><mi mathvariant="normal">e</mi></mrow></msub><annotation encoding="application/x-tex">J_{\mathrm{base}}</annotation></semantics></math>
+是基线方法指标，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Δ</mi><mi>J</mi></mrow><annotation encoding="application/x-tex">\Delta J</annotation></semantics></math>
+是成对差值。</p>
+<p>若要比较多个指标，应把每个指标都写成差值或比值，并说明正负方向。</p>
+<h2 id="统一结果对象">56.14 统一结果对象</h2>
+<p>为了把指标、通过判据、成对比较和边界一起管理，可把结果对象写成：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ℛ</mi><mo>=</mo><mo stretchy="false" form="prefix">(</mo><mi>𝒪</mi><mo>,</mo><msub><mi>ℛ</mi><mi>f</mi></msub><mo>,</mo><mi>𝒞</mi><mo>,</mo><mi>ℳ</mi><mo>,</mo><mi>𝒯</mi><mo>,</mo><mi>𝒫</mi><mo>,</mo><mi>ℰ</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
+\mathcal{R}=(\mathcal{O},\mathcal{R}_f,\mathcal{C},\mathcal{M},\mathcal{T},\mathcal{P},\mathcal{E})
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝒪</mi><annotation encoding="application/x-tex">\mathcal{O}</annotation></semantics></math>
+表示对象与任务，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ℛ</mi><mi>f</mi></msub><annotation encoding="application/x-tex">\mathcal{R}_f</annotation></semantics></math>
+表示参考与约束，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝒞</mi><annotation encoding="application/x-tex">\mathcal{C}</annotation></semantics></math>
+表示对比控制器集合，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ℳ</mi><annotation encoding="application/x-tex">\mathcal{M}</annotation></semantics></math>
+表示指标字段，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝒯</mi><annotation encoding="application/x-tex">\mathcal{T}</annotation></semantics></math>
+表示阈值来源，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝒫</mi><annotation encoding="application/x-tex">\mathcal{P}</annotation></semantics></math>
+表示通过判据，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ℰ</mi><annotation encoding="application/x-tex">\mathcal{E}</annotation></semantics></math>
+表示证据边界。
+这个对象把指标、判据和边界统一收进一个结果包，方便后续章节直接复用同一套验收口径。</p>
+<h2 id="指标证据层次及其与后续章节的关系">56.15
+指标证据层次及其与后续章节的关系</h2>
+<p>为了避免把“算出几个指标”误写成“已经建立可信验证体系”，本章可把指标证据粗分为五级：</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>等级</th>
+<th>最低证据</th>
+<th>仍缺什么</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Vm0</td>
+<td>只有指标名称和直觉解释</td>
+<td>没有阈值、通过判据和计算口径</td>
+</tr>
+<tr>
+<td>Vm1</td>
+<td>已有单场景指标定义和计算方法</td>
+<td>没有统一阈值、成对比较和异常记录</td>
+</tr>
+<tr>
+<td>Vm2</td>
+<td>已有阈值、组合通过判据和成对比较字段</td>
+<td>没有 Monte Carlo、失败样本和统计报告</td>
+</tr>
+<tr>
+<td>Vm3</td>
+<td>已有统一统计表、失败样本记录和案例验收口径</td>
+<td>仍缺跨模型、跨语言或更高保真一致性检查</td>
+</tr>
+<tr>
+<td>Vm4</td>
+<td>已形成跨案例、跨实现和跨研究任务的统一验证协议</td>
+<td>才接近系统化研究验证口径</td>
+</tr>
+</tbody>
+</table>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>V</mi><mi>m</mi><mn>0</mn></mrow><annotation encoding="application/x-tex">Vm0</annotation></semantics></math>
+只是知道“有哪些指标”，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>V</mi><mi>m</mi><mn>1</mn></mrow><annotation encoding="application/x-tex">Vm1</annotation></semantics></math>
+说明“每个指标怎么算”，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>V</mi><mi>m</mi><mn>2</mn></mrow><annotation encoding="application/x-tex">Vm2</annotation></semantics></math>
+说明“这些指标怎样组成验收门槛”，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>V</mi><mi>m</mi><mn>3</mn></mrow><annotation encoding="application/x-tex">Vm3</annotation></semantics></math>
+说明“指标已经进入统计证据层”，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>V</mi><mi>m</mi><mn>4</mn></mrow><annotation encoding="application/x-tex">Vm4</annotation></semantics></math>
+说明“同一套指标口径可以支撑更高一级的研究比较”。换句话说，指标不是越多越好，而是要能稳定地回答三件事：有没有跟好、有没有越界、有没有按时算完。</p>
+<h2 id="本章应保留的最小信息集">56.16 本章应保留的最小信息集</h2>
+<p>如果正文只剩下一个指标名称列表，它还不足以支撑验证。第56章至少应保留以下信息：</p>
+<ul>
+<li>每个指标对应的对象、参考和统计区间；</li>
+<li>每个约束阈值的来源；</li>
+<li>单场景、成对比较和 Monte Carlo 的统一口径；</li>
+<li>通过判据和失败判据；</li>
+<li>约束违反时间、违反积分和最坏样本的定义；</li>
+<li>与第 55、57、58 章之间可直接复用的结果对象。</li>
+</ul>
+<p>把这些内容写稳，后面的案例和统计章节才不会各说各话。</p>
+<p>与相关章节的衔接关系可再概括为：</p>
+<table>
+<thead>
+<tr>
+<th>本章完成的内容</th>
+<th>相关章节继续完成的内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>指标字段和计算口径</td>
+<td>第55章继续说明实现中的提取方式</td>
+</tr>
+<tr>
+<td>组合通过判据</td>
+<td>第57章继续把判据放入随机样本验证</td>
+</tr>
+<tr>
+<td>指标验收表</td>
+<td>第58章继续写入案例库条目</td>
+</tr>
+<tr>
+<td>基线与公平性审查</td>
+<td>第59章继续审查论文证据</td>
+</tr>
+<tr>
+<td>验证协议</td>
+<td>第60章继续上升为研究路线条件</td>
+</tr>
+</tbody>
+</table>
+<h2 id="本章内容的边界">56.17 本章内容的边界</h2>
+<p>与第56章相衔接的材料主要包括：</p>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>素材</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>第55章控制器离散化与实时实现</td>
+<td>提供实时日志、节拍和实现字段</td>
+</tr>
+<tr>
+<td>第57章不确定性分析与 Monte Carlo 验证</td>
+<td>提供统计检验、失败样本和成对比较</td>
+</tr>
+<tr>
+<td>第58章典型案例库</td>
+<td>提供案例条目、验收表和案例分级视角</td>
+</tr>
+<tr>
+<td>第59章高超声速控制论文阅读方法</td>
+<td>提供论文中的基线和指标公平性审查方法</td>
+</tr>
+<tr>
+<td>第60章前沿问题与研究路线</td>
+<td>提供研究路线中的验收矩阵</td>
+</tr>
+</tbody>
+</table>
+<p>本章边界必须写清楚：</p>
+<ul>
+<li>本书可以把验证指标体系、报告模板和通过判据统一起来；</li>
+<li>这些素材可以支撑教学级验证、研究原型比较和案例验收；</li>
+<li>但它还不是自动生成结论的工具，也不是高保真飞行试验的替代品；</li>
+<li>因此，第56章能支撑“如何把结果写成可核查证据”，不能支撑“任何结果都天然成立”。</li>
+</ul>
+<h2 id="常见错误">56.18 常见错误</h2>
+<ol type="1">
+<li>只报跟踪曲线，不报安全裕度。</li>
+<li>只报平均值，不报最差样本和分位数。</li>
+<li>只报成功样本，不保留失败样本。</li>
+<li>把原始参考和修正参考混为一谈。</li>
+<li>只看控制效果，不看计算时间和实时性。</li>
+<li>组合判据在仿真后临时修改。</li>
+<li>用“满足约束”代替明确阈值和数值。</li>
+</ol>
+<h2 id="练习">56.19 练习</h2>
+<ol type="1">
+<li>为纵向动压约束控制设计一组完整的跟踪、安全、输入和终端指标。</li>
+<li>写出违反时间和违反积分的计算方法。</li>
+<li>为一个再入任务设计单场景报告模板和 Monte Carlo 报告模板。</li>
+<li>设计一个基线方法与改进方法的成对比较表。</li>
+<li>说明为什么终端命中但路径超限不能算任务成功。</li>
+</ol>
+<h2 id="本章应形成的成果">56.20 本章应形成的成果</h2>
+<p>第56章的作用，不是把指标列得更多，而是把验证结果写成可复现的证据对象。</p>
+<h3 id="指标对象">指标对象</h3>
+<p>本章应交付的指标对象至少包括：</p>
+<ul>
+<li>跟踪误差；</li>
+<li>动态响应指标；</li>
+<li>输入指标；</li>
+<li>安全裕度；</li>
+<li>违反时间和违反积分；</li>
+<li>终端任务指标；</li>
+<li>鲁棒性和故障指标；</li>
+<li>计算实现指标。</li>
+</ul>
+<h3 id="判据对象">判据对象</h3>
+<p>本章应明确判据对象，包括：</p>
+<ul>
+<li>单项阈值；</li>
+<li>组合通过判据；</li>
+<li>成对比较差值；</li>
+<li>单场景验收表；</li>
+<li>Monte Carlo 统计表。</li>
+</ul>
+<h3 id="结论对象">结论对象</h3>
+<p>本章最后应输出结论边界：</p>
+<ol type="1">
+<li>这组仿真结果到底满足了哪些指标；</li>
+<li>哪些指标改善了，哪些代价上升了；</li>
+<li>最坏样本暴露了什么问题；</li>
+<li>当前证据能支撑到什么层级，不能外推到什么层级。</li>
+</ol>
+<p>写到这里，验证指标体系才真正从“列指标”变成“证据语言”。</p>
+
+      </article>
+      
+      <nav class="book-bottom-nav" aria-label="章节导航">
+        <a href="./55-controller-discretization-real-time-implementation.html">上一章：第55章 控制器离散化与实时实现</a>
+        <a href="./index.html">卷首页</a>
+        <a href="./57-uncertainty-monte-carlo-verification.html">下一章：第57章 不确定性分析与 Monte Carlo 验证</a>
+      </nav>
+    </main>
+  </div>
+</body>
+</html>

@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>第4章 非线性系统理论</title>
+  <style>
+    :root {
+      --paper: #f7f3eb;
+      --ink: #1f2937;
+      --muted: #5b6472;
+      --line: color-mix(in srgb, #e7eef7 68%, #cbd5e1 32%);
+      --accent: #335c81;
+      --accent-soft: #e7eef7;
+      --accent-deep: #1e3d57;
+      color-scheme: light;
+    }
+    html {
+      -webkit-text-size-adjust: 100%;
+      background:
+        radial-gradient(circle at top left, #e7eef7 0, rgba(255,255,255,0) 32%),
+        linear-gradient(180deg, #fbfaf6 0%, var(--paper) 18%, #f7f1e6 100%);
+    }
+    body {
+      margin: 0;
+      font-family: "Source Han Serif SC", "Songti SC", "Noto Serif CJK SC", "Microsoft YaHei", serif;
+      color: var(--ink);
+      line-height: 1.78;
+      letter-spacing: 0;
+    }
+    a { color: var(--accent-deep); }
+    .book-app {
+      display: grid;
+      grid-template-columns: 280px minmax(0, 1fr);
+      min-height: 100vh;
+    }
+    .book-sidebar {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow: auto;
+      padding: 1.2rem 1rem 1.2rem 1.15rem;
+      border-right: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(255,255,255,0.86), rgba(255,255,255,0.72));
+      backdrop-filter: blur(10px);
+    }
+    .sidebar-shell { position: sticky; top: 0; display: flex; flex-direction: column; gap: 1rem; }
+    .sidebar-brand {
+      padding: 0.95rem 0.95rem 1rem;
+      border-radius: 18px;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.95), rgba(255,255,255,0.84)),
+        linear-gradient(135deg, var(--accent-soft), rgba(255,255,255,0));
+      border: 1px solid var(--line);
+      box-shadow: 0 12px 28px rgba(31, 41, 55, 0.06);
+    }
+    .sidebar-brand .kicker { margin: 0; color: var(--accent); font-size: 0.82rem; font-weight: 700; }
+    .sidebar-brand h2 { margin: 0.45rem 0 0.25rem; font-size: 1.08rem; line-height: 1.3; color: var(--ink); }
+    .sidebar-brand p { margin: 0.35rem 0 0; color: var(--muted); font-size: 0.9rem; }
+    .sidebar-links { display: grid; gap: 0.45rem; }
+    .sidebar-link {
+      display: grid;
+      grid-template-columns: 2.2rem minmax(0, 1fr);
+      gap: 0.6rem;
+      align-items: start;
+      padding: 0.7rem 0.75rem;
+      border-radius: 14px;
+      text-decoration: none;
+      background: rgba(255,255,255,0.72);
+      border: 1px solid rgba(31,41,55,0.07);
+      color: var(--ink);
+    }
+    .sidebar-link:hover { background: rgba(255,255,255,0.95); border-color: var(--line); }
+    .sidebar-link.active {
+      background: linear-gradient(135deg, rgba(255,255,255,0.98), rgba(255,255,255,0.9));
+      border-color: var(--accent-soft);
+      box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent-soft) 68%, #ffffff 32%);
+    }
+    .sidebar-index {
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      min-width: 2rem;
+      height: 2rem;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent-deep);
+      font-size: 0.78rem;
+      font-weight: 800;
+    }
+    .sidebar-title { font-size: 0.94rem; line-height: 1.35; }
+    .book-main { min-width: 0; padding: 1.25rem 1.45rem 1.8rem; }
+    .book-page-header {
+      padding: 0.85rem 0 1rem;
+      margin-bottom: 1rem;
+      border-bottom: 1px solid var(--line);
+    }
+    .page-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.28rem 0.72rem;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.82);
+      border: 1px solid var(--line);
+      color: var(--accent-deep);
+      font-size: 0.8rem;
+      font-weight: 700;
+    }
+    .book-page-header h1 {
+      margin: 0.7rem 0 0;
+      font-size: 1.85rem;
+      line-height: 1.22;
+      color: var(--accent-deep);
+      border: 0;
+      padding: 0;
+    }
+    .book-page-header p { margin: 0.45rem 0 0; color: var(--muted); max-width: 62rem; }
+    .book-article { max-width: 900px; margin: 0; padding: 0 0 1.2rem; }
+    .book-article h1, .book-article h2, .book-article h3, .book-article h4, .book-article h5, .book-article h6 {
+      line-height: 1.28;
+      margin-top: 1.45em;
+      margin-bottom: 0.55em;
+      color: var(--accent-deep);
+    }
+    .book-article h1 { font-size: 2rem; border-bottom: 2px solid var(--line); padding-bottom: 0.42rem; }
+    .book-article h1:first-of-type { margin-top: 0; }
+    .book-article h2 { font-size: 1.42rem; }
+    .book-article h3 { font-size: 1.12rem; }
+    .book-article p, .book-article li, .book-article dd, .book-article td, .book-article th { text-align: justify; text-justify: inter-ideograph; }
+    .book-article p { margin: 0.85rem 0; }
+    .book-article code, .book-article pre { font-family: "Cascadia Mono", "Source Code Pro", Consolas, monospace; font-size: 0.94em; }
+    .book-article code {
+      padding: 0.02rem 0.24rem;
+      background: color-mix(in srgb, var(--accent-soft) 34%, #ffffff 66%);
+      border: 0;
+      border-bottom: 1px solid color-mix(in srgb, var(--accent-soft) 74%, #d1d5db 26%);
+      border-radius: 4px;
+      color: #253244;
+      box-decoration-break: clone;
+      -webkit-box-decoration-break: clone;
+    }
+    .book-article pre {
+      padding: 1rem 1.1rem;
+      overflow: auto;
+      background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,253,248,0.98));
+      border: 1px solid color-mix(in srgb, var(--accent-soft) 54%, #d1d5db 46%);
+      border-left: 5px solid var(--accent);
+      border-radius: 14px;
+      box-shadow: 0 8px 22px rgba(31, 41, 55, 0.05);
+    }
+    .book-article pre code { padding: 0; border: 0; background: transparent; color: inherit; }
+    .book-article table {
+      border-collapse: collapse;
+      width: 100%;
+      margin: 1rem 0 1.25rem;
+      background: rgba(255,255,255,0.82);
+      overflow: hidden;
+      border-radius: 12px;
+    }
+    .book-article th, .book-article td { border: 1px solid var(--line); padding: 0.5rem 0.7rem; vertical-align: top; }
+    .book-article th { background: color-mix(in srgb, var(--accent-soft) 42%, #ffffff 58%); }
+    .book-article blockquote {
+      margin: 1rem 0;
+      padding: 0.25rem 0 0.25rem 1rem;
+      border-left: 4px solid var(--accent);
+      color: #374151;
+      background: linear-gradient(90deg, rgba(255,255,255,0.72), rgba(255,255,255,0.48));
+      border-radius: 0 12px 12px 0;
+    }
+    .book-bottom-nav {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-top: 2.2rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--line);
+    }
+    .book-bottom-nav a {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.6rem 0.9rem;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.84);
+      text-decoration: none;
+      font-weight: 700;
+    }
+    .book-bottom-nav span {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.6rem 0.9rem;
+      border-radius: 999px;
+      border: 1px solid rgba(31,41,55,0.08);
+      background: rgba(255,255,255,0.54);
+      color: rgba(31,41,55,0.42);
+      font-weight: 700;
+    }
+    .book-bottom-nav a:hover { background: rgba(255,255,255,0.98); }
+    .book-volume-intro {
+      margin: 0 0 1.25rem;
+      padding: 1.2rem 1.25rem 1.1rem;
+      border-radius: 18px;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.96), rgba(255,255,255,0.78)),
+        linear-gradient(135deg, var(--accent-soft), rgba(255,255,255,0));
+      border: 1px solid var(--line);
+      box-shadow: 0 14px 34px rgba(31, 41, 55, 0.06);
+    }
+    .volume-intro-kicker {
+      margin: 0;
+      color: var(--accent);
+      font-size: 0.84rem;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    .book-volume-intro h2 {
+      margin: 0.55rem 0 0.55rem;
+      font-size: 1.28rem;
+      line-height: 1.35;
+      color: var(--accent-deep);
+    }
+    .volume-intro-summary {
+      margin: 0;
+      color: var(--muted);
+      max-width: 68rem;
+    }
+    .volume-intro-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.8rem;
+      margin-top: 1rem;
+    }
+    .volume-intro-box {
+      padding: 0.85rem 0.9rem;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.72);
+      border: 1px solid rgba(31,41,55,0.08);
+    }
+    .volume-intro-box span {
+      display: block;
+      color: var(--accent);
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+    }
+    .volume-intro-box strong {
+      display: block;
+      margin-top: 0.35rem;
+      color: var(--ink);
+      font-size: 0.95rem;
+      line-height: 1.45;
+    }
+    .volume-intro-note {
+      margin-top: 0.9rem;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+    @media (max-width: 1180px) {
+      .book-app { grid-template-columns: 1fr; }
+      .book-sidebar {
+        position: relative;
+        height: auto;
+        border-right: 0;
+        border-bottom: 1px solid var(--line);
+      }
+      .sidebar-shell { position: static; }
+    }
+    @media (max-width: 900px) {
+      .book-main { padding: 1rem 1rem 1.5rem; }
+      .book-bottom-nav { flex-direction: column; }
+      .volume-intro-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="book-app">
+    <aside class="book-sidebar">
+      <div class="sidebar-shell">
+        <div class="sidebar-brand">
+          <p class="kicker">高超声速飞行器控制教程</p>
+          <h2>第一卷 数学基础与控制理论基础</h2>
+          <p>控制理论地基</p>
+        </div>
+        <nav class="sidebar-links" aria-label="本卷目录">
+          <a class="sidebar-link" href="./index.html"><span class="sidebar-index">0</span><span class="sidebar-title">卷首页</span></a>
+<a class="sidebar-link" href="./01-hypersonic-control-problem-intro.html"><span class="sidebar-index">01</span><span class="sidebar-title">第1章 高超声速飞行器控制问题导论</span></a>
+<a class="sidebar-link" href="./02-dynamical-systems-state-space.html"><span class="sidebar-index">02</span><span class="sidebar-title">第2章 动力系统与状态空间方法</span></a>
+<a class="sidebar-link" href="./03-linear-systems-theory.html"><span class="sidebar-index">03</span><span class="sidebar-title">第3章 线性系统理论</span></a>
+<a class="sidebar-link active" href="./04-nonlinear-systems-theory.html"><span class="sidebar-index">04</span><span class="sidebar-title">第4章 非线性系统理论</span></a>
+<a class="sidebar-link" href="./05-lyapunov-stability-theory.html"><span class="sidebar-index">05</span><span class="sidebar-title">第5章 Lyapunov 稳定性理论</span></a>
+<a class="sidebar-link" href="./06-input-output-small-gain.html"><span class="sidebar-index">06</span><span class="sidebar-title">第6章 输入输出稳定性与小增益理论</span></a>
+<a class="sidebar-link" href="./07-singular-perturbation-multitime-scale.html"><span class="sidebar-index">07</span><span class="sidebar-title">第7章 奇异摄动与多时间尺度系统</span></a>
+<a class="sidebar-link" href="./08-optimal-control-theory.html"><span class="sidebar-index">08</span><span class="sidebar-title">第8章 最优控制理论</span></a>
+<a class="sidebar-link" href="./09-robust-control-theory.html"><span class="sidebar-index">09</span><span class="sidebar-title">第9章 鲁棒控制理论</span></a>
+<a class="sidebar-link" href="./10-adaptive-control-theory.html"><span class="sidebar-index">10</span><span class="sidebar-title">第10章 自适应控制理论</span></a>
+<a class="sidebar-link" href="./11-stochastic-filtering-estimation.html"><span class="sidebar-index">11</span><span class="sidebar-title">第11章 随机系统、滤波与状态估计</span></a>
+<a class="sidebar-link" href="./12-constrained-safety-control-foundations.html"><span class="sidebar-index">12</span><span class="sidebar-title">第12章 约束系统与安全控制基础</span></a>
+<a class="sidebar-link" href="./13-numerical-convex-optimization.html"><span class="sidebar-index">13</span><span class="sidebar-title">第13章 数值优化与凸优化基础</span></a>
+<a class="sidebar-link" href="./13-hybrid-sampled-control.html"><span class="sidebar-index">14</span><span class="sidebar-title">混杂系统与采样控制专题</span></a>
+        </nav>
+      </div>
+    </aside>
+    <main class="book-main">
+      <header class="book-page-header">
+        <div class="page-eyebrow">第1册·章节页04</div>
+        <h1 id="volume1--04-nonlinear-systems-theory">第4章 非线性系统理论</h1>
+        <p>本页是章节正文页。左侧目录用于回到本卷其他章节，底部导航用于前后章跳转。</p>
+      </header>
+      <article class="book-article">
+        <h2 id="问题背景">4.1 问题背景</h2>
+<p>本章先讨论通用非线性系统理论，不依赖任何单一对象、特定任务背景或特定论文的写法。它的任务是把非线性控制最基本的语言先统一起来，方便后面处理各类工程系统、机械系统和动态系统。</p>
+<p>这一章刻意保持对象中立，只讲非线性系统的通用结构，不替任何具体飞行器、具体任务或具体案例预设叙事。这里的例子尽量保持低阶和通用，不以高超声速对象作为默认起点。</p>
+<p>现实中的许多控制对象都不是“线性系统加一点扰动”。只要系统同时包含强耦合、状态相关增益、约束、切换、饱和或多时间尺度，非线性就会成为主导结构。对这类系统，先讲清状态空间、相对阶、零动态、可行域和局部线性化，比急着套用某个具体控制律更重要。</p>
+<p>典型非线性控制系统可写为</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>x</mi><mo accent="true">̇</mo></mover><mo>=</mo><mi>f</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>u</mi><mo>,</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo>+</mo><mi>d</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo>,</mo><mspace width="2.0em"></mspace><mi>y</mi><mo>=</mo><mi>h</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
+\dot{x}=f(x,u,t)+d(x,t),\qquad y=h(x,t)
+</annotation></semantics></math></p>
+<p>其中
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>x</mi><mo>∈</mo><msup><mi>ℝ</mi><mi>n</mi></msup></mrow><annotation encoding="application/x-tex">x\in\mathbb{R}^n</annotation></semantics></math>
+是状态向量，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>u</mi><mo>∈</mo><msup><mi>ℝ</mi><mi>m</mi></msup></mrow><annotation encoding="application/x-tex">u\in\mathbb{R}^m</annotation></semantics></math>
+是控制输入，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>d</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">d(x,t)</annotation></semantics></math>
+是外部扰动或未建模项，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>y</mi><mo>∈</mo><msup><mi>ℝ</mi><mi>p</mi></msup></mrow><annotation encoding="application/x-tex">y\in\mathbb{R}^p</annotation></semantics></math>
+是输出，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mo stretchy="false" form="prefix">(</mo><mi>⋅</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">f(\cdot)</annotation></semantics></math>
+是状态方程，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>h</mi><mo stretchy="false" form="prefix">(</mo><mi>⋅</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">h(\cdot)</annotation></semantics></math>
+是输出映射，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>t</mi><annotation encoding="application/x-tex">t</annotation></semantics></math>
+是时间。这里
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>n</mi><mo>,</mo><mi>m</mi><mo>,</mo><mi>p</mi></mrow><annotation encoding="application/x-tex">n,m,p</annotation></semantics></math>
+分别表示状态维数、输入维数和输出维数。
+这一定义先把状态、输入、扰动和输出分层，后续所有非线性结构都围绕这组接口展开。
+先把一般非线性系统的基本接口定住，再进入输入仿射、局部线性化和零动态分析。</p>
+<p>如果系统对输入是仿射的，则进一步写成</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>x</mi><mo accent="true">̇</mo></mover><mo>=</mo><mi>f</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo>+</mo><mi>g</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mi>u</mi></mrow><annotation encoding="application/x-tex">
+\dot{x}=f(x)+g(x)u
+</annotation></semantics></math></p>
+<p>其中
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">f(x)</annotation></semantics></math>
+是漂移项，表示没有控制输入时系统也会自然演化的部分；<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>g</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">g(x)</annotation></semantics></math>
+是输入分布矩阵，描述输入通道如何进入状态方程。输入仿射形式非常重要，因为反馈线性化、动态逆、滑模、反步、控制障碍函数和许多自适应控制推导都会用到
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">f(x)</annotation></semantics></math>
+与
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>g</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">g(x)</annotation></semantics></math>
+的分解。
+把输入仿射形式单独提出来，是为了让漂移项和输入通道在后续推导里各司其职。
+这一形式后面会反复出现，因为它是把非线性控制问题拆成可分析结构的起点。
+它的作用不是增加一个新模型，而是让后面的控制设计始终围绕同一个输入通道展开。</p>
+<p>系统要能用于控制设计，首先必须满足基本适定性。若
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>u</mi><mo>,</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">f(x,u,t)</annotation></semantics></math>
+对
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>x</mi><annotation encoding="application/x-tex">x</annotation></semantics></math>
+局部 Lipschitz，且
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>u</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">u(t)</annotation></semantics></math>
+分段连续，则在给定初值附近存在唯一局部解。若解不会在有限时间逃逸到无穷大，则称系统前向完备。仿真中出现数值发散时，问题未必只在积分器，也可能说明模型、控制律或约束处理没有保证前向完备性。</p>
+<p>扰动和不确定性常写为</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>x</mi><mo accent="true">̇</mo></mover><mo>=</mo><mi>f</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo>+</mo><mi>g</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mi>u</mi><mo>+</mo><msub><mi mathvariant="normal">Δ</mi><mi>f</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo>+</mo><mi>G</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mi>w</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
+\dot{x}=f(x)+g(x)u+\Delta_f(x,t)+G(x,t)w(t)
+</annotation></semantics></math></p>
+<p>其中
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi mathvariant="normal">Δ</mi><mi>f</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\Delta_f(x,t)</annotation></semantics></math>
+表示可加到漂移项上的建模误差，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>G</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mi>w</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">G(x,t)w(t)</annotation></semantics></math>
+表示通过某个通道进入系统的扰动，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>w</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">w(t)</annotation></semantics></math>
+是扰动信号。实际工程中，这些项常由参数偏差、外部环境变化、执行机构退化和未建模柔性模态组成。它们把状态变量、输入变量和约束变量耦合在一起；即使某些单独模块看起来平滑，组合后的动力学也不再是线性的。
+把建模误差和外部扰动分开写出来，避免把不同来源的非线性混成一类。
+这一区分后面会直接影响鲁棒项、观测器和约束层的设计方式。
+换句话说，非线性系统的难点往往不是“有没有扰动”，而是“扰动从哪里进入、该怎样补偿”。</p>
+<h2 id="平衡点工作点和局部线性化">4.2 平衡点、工作点和局部线性化</h2>
+<p>对系统</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>x</mi><mo accent="true">̇</mo></mover><mo>=</mo><mi>f</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>u</mi><mo>,</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
+\dot{x}=f(x,u,t)
+</annotation></semantics></math></p>
+<p>若在
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">(</mo><msup><mi>x</mi><mo>⋆</mo></msup><mo>,</mo><msup><mi>u</mi><mo>⋆</mo></msup><mo>,</mo><msup><mi>t</mi><mo>⋆</mo></msup><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">(x^\star,u^\star,t^\star)</annotation></semantics></math>
+处满足</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mo stretchy="false" form="prefix">(</mo><msup><mi>x</mi><mo>⋆</mo></msup><mo>,</mo><msup><mi>u</mi><mo>⋆</mo></msup><mo>,</mo><msup><mi>t</mi><mo>⋆</mo></msup><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">
+f(x^\star,u^\star,t^\star)=0
+</annotation></semantics></math></p>
+<p>这里把平衡条件写成零向量约束，说明该点处系统不需要额外漂移。 则称
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">(</mo><msup><mi>x</mi><mo>⋆</mo></msup><mo>,</mo><msup><mi>u</mi><mo>⋆</mo></msup><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">(x^\star,u^\star)</annotation></semantics></math>
+为一个平衡点或定常工作点。这里
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>x</mi><mo>⋆</mo></msup><annotation encoding="application/x-tex">x^\star</annotation></semantics></math>
+和
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>u</mi><mo>⋆</mo></msup><annotation encoding="application/x-tex">u^\star</annotation></semantics></math>
+分别表示平衡点处的状态和输入，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>t</mi><mo>⋆</mo></msup><annotation encoding="application/x-tex">t^\star</annotation></semantics></math>
+是对应时刻。将状态和输入写成小扰动形式，便于后面的一阶展开。
+这一步的意义，是把“某个点附近怎么动”变成可展开、可线性化的问题。
+因此，平衡点的定义不是形式主义，而是后面做一阶展开和局部设计的起点。</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>x</mi><mo>=</mo><msup><mi>x</mi><mo>⋆</mo></msup><mo>+</mo><mover><mi>x</mi><mo accent="true">̃</mo></mover><mo>,</mo><mspace width="2.0em"></mspace><mi>u</mi><mo>=</mo><msup><mi>u</mi><mo>⋆</mo></msup><mo>+</mo><mover><mi>u</mi><mo accent="true">̃</mo></mover></mrow><annotation encoding="application/x-tex">
+x=x^\star+\tilde{x},\qquad u=u^\star+\tilde{u}
+</annotation></semantics></math></p>
+<p>把状态和输入分解成标称量加小扰动，后面的一阶展开都围绕这个分解进行。
+并在该点作一阶展开，可得</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mover><mi>x</mi><mo accent="true">̃</mo></mover><mo accent="true">̇</mo></mover><mo>=</mo><mi>A</mi><mover><mi>x</mi><mo accent="true">̃</mo></mover><mo>+</mo><mi>B</mi><mover><mi>u</mi><mo accent="true">̃</mo></mover><mo>+</mo><mi>r</mi><mo stretchy="false" form="prefix">(</mo><mover><mi>x</mi><mo accent="true">̃</mo></mover><mo>,</mo><mover><mi>u</mi><mo accent="true">̃</mo></mover><mo>,</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
+\dot{\tilde{x}}=A\tilde{x}+B\tilde{u}+r(\tilde{x},\tilde{u},t)
+</annotation></semantics></math></p>
+<p>这里把局部线性化和高阶余项分开，便于后面判断近似误差。 其中</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>A</mi><mo>=</mo><msub><mrow><mfrac><mrow><mi>∂</mi><mi>f</mi></mrow><mrow><mi>∂</mi><mi>x</mi></mrow></mfrac><mo stretchy="true" form="postfix">|</mo></mrow><mrow><mo stretchy="false" form="prefix">(</mo><msup><mi>x</mi><mo>⋆</mo></msup><mo>,</mo><msup><mi>u</mi><mo>⋆</mo></msup><mo>,</mo><msup><mi>t</mi><mo>⋆</mo></msup><mo stretchy="false" form="postfix">)</mo></mrow></msub><mo>,</mo><mspace width="2.0em"></mspace><mi>B</mi><mo>=</mo><msub><mrow><mfrac><mrow><mi>∂</mi><mi>f</mi></mrow><mrow><mi>∂</mi><mi>u</mi></mrow></mfrac><mo stretchy="true" form="postfix">|</mo></mrow><mrow><mo stretchy="false" form="prefix">(</mo><msup><mi>x</mi><mo>⋆</mo></msup><mo>,</mo><msup><mi>u</mi><mo>⋆</mo></msup><mo>,</mo><msup><mi>t</mi><mo>⋆</mo></msup><mo stretchy="false" form="postfix">)</mo></mrow></msub></mrow><annotation encoding="application/x-tex">
+A=\left.\frac{\partial f}{\partial x}\right|_{(x^\star,u^\star,t^\star)},\qquad
+B=\left.\frac{\partial f}{\partial u}\right|_{(x^\star,u^\star,t^\star)}
+</annotation></semantics></math></p>
+<p>且余项满足
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>r</mi><mo stretchy="false" form="prefix">(</mo><mover><mi>x</mi><mo accent="true">̃</mo></mover><mo>,</mo><mover><mi>u</mi><mo accent="true">̃</mo></mover><mo>,</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mi>o</mi><mo stretchy="false" form="prefix">(</mo><mo stretchy="false" form="postfix">∥</mo><mo stretchy="false" form="prefix">[</mo><msup><mover><mi>x</mi><mo accent="true">̃</mo></mover><mi>⊤</mi></msup><mo>,</mo><msup><mover><mi>u</mi><mo accent="true">̃</mo></mover><mi>⊤</mi></msup><msup><mo stretchy="false" form="postfix">]</mo><mi>⊤</mi></msup><mo stretchy="false" form="postfix">∥</mo><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">r(\tilde{x},\tilde{u},t)=o(\|[\tilde{x}^\top,\tilde{u}^\top]^\top\|)</annotation></semantics></math>。这里
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>A</mi><annotation encoding="application/x-tex">A</annotation></semantics></math>
+是状态雅可比矩阵，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>B</mi><annotation encoding="application/x-tex">B</annotation></semantics></math>
+是输入雅可比矩阵。局部线性化能帮助分析小扰动，但不能说明大范围变化。若参考轨迹跨越多个工作点、参数区间或运行工况，固定线性模型很快失效。</p>
+<h3 id="局部线性化的一个基本定理">4.2.1 局部线性化的一个基本定理</h3>
+<p>考虑自治系统
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>x</mi><mo accent="true">̇</mo></mover><mo>=</mo><mi>f</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\dot{x}=f(x)</annotation></semantics></math>，并假设
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mo stretchy="false" form="prefix">(</mo><mn>0</mn><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">f(0)=0</annotation></semantics></math>
+且
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>f</mi><annotation encoding="application/x-tex">f</annotation></semantics></math>
+在原点附近二阶连续可微。设</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>A</mi><mo>=</mo><msub><mrow><mfrac><mrow><mi>∂</mi><mi>f</mi></mrow><mrow><mi>∂</mi><mi>x</mi></mrow></mfrac><mo stretchy="true" form="postfix">|</mo></mrow><mrow><mi>x</mi><mo>=</mo><mn>0</mn></mrow></msub></mrow><annotation encoding="application/x-tex">
+A=\left.\frac{\partial f}{\partial x}\right|_{x=0}
+</annotation></semantics></math></p>
+<p>是原点处的线性化矩阵。如果
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>A</mi><annotation encoding="application/x-tex">A</annotation></semantics></math>
+是 Hurwitz
+矩阵，即其全部特征值实部都为负，则原点是局部渐近稳定的。这里的结论只讨论平衡点附近的小邻域，不声称全局稳定。</p>
+<p>证明思路如下。因为
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>A</mi><annotation encoding="application/x-tex">A</annotation></semantics></math>
+是 Hurwitz，对任意给定的对称正定矩阵
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>Q</mi><annotation encoding="application/x-tex">Q</annotation></semantics></math>，都存在唯一对称正定矩阵
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>P</mi><annotation encoding="application/x-tex">P</annotation></semantics></math>
+使</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>A</mi><mi>⊤</mi></msup><mi>P</mi><mo>+</mo><mi>P</mi><mi>A</mi><mo>=</mo><mi>−</mi><mi>Q</mi><mi>.</mi></mrow><annotation encoding="application/x-tex">
+A^\top P+PA=-Q.
+</annotation></semantics></math></p>
+<p>取二次型 Lyapunov 函数</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>V</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><msup><mi>x</mi><mi>⊤</mi></msup><mi>P</mi><mi>x</mi><mi>.</mi></mrow><annotation encoding="application/x-tex">
+V(x)=x^\top Px.
+</annotation></semantics></math></p>
+<p>沿真实非线性系统轨迹求导，可得</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>V</mi><mo accent="true">̇</mo></mover><mo>=</mo><msup><mi>x</mi><mi>⊤</mi></msup><mo stretchy="false" form="prefix">(</mo><msup><mi>A</mi><mi>⊤</mi></msup><mi>P</mi><mo>+</mo><mi>P</mi><mi>A</mi><mo stretchy="false" form="postfix">)</mo><mi>x</mi><mo>+</mo><mn>2</mn><msup><mi>x</mi><mi>⊤</mi></msup><mi>P</mi><mspace width="0.167em"></mspace><mi>r</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo>,</mo></mrow><annotation encoding="application/x-tex">
+\dot V=x^\top(A^\top P+PA)x+2x^\top P\,r(x),
+</annotation></semantics></math></p>
+<p>其中
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>r</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mi>f</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo>−</mo><mi>A</mi><mi>x</mi></mrow><annotation encoding="application/x-tex">r(x)=f(x)-Ax</annotation></semantics></math>
+是非线性余项。由于
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>f</mi><annotation encoding="application/x-tex">f</annotation></semantics></math>
+在原点附近二阶连续可微，故
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>r</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mi>o</mi><mo stretchy="false" form="prefix">(</mo><mo stretchy="false" form="postfix">∥</mo><mi>x</mi><mo stretchy="false" form="postfix">∥</mo><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">r(x)=o(\|x\|)</annotation></semantics></math>。因此在足够小的邻域内，余项的影响可以被二次型主项压住，从而存在常数
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>c</mi><mo>&gt;</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">c&gt;0</annotation></semantics></math>
+使
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>V</mi><mo accent="true">̇</mo></mover><mo>≤</mo><mi>−</mi><mi>c</mi><mo stretchy="false" form="postfix">∥</mo><mi>x</mi><msup><mo stretchy="false" form="postfix">∥</mo><mn>2</mn></msup></mrow><annotation encoding="application/x-tex">\dot V\le -c\|x\|^2</annotation></semantics></math>。于是原点局部渐近稳定。这个结论说明：线性化矩阵不仅能描述局部模态，也能给出局部稳定性的第一层证据。</p>
+<p>对于轨迹线性化，做法类似，只是把原点换成工作点或沿轨迹的局部坐标，得到的是时变局部结论，而不是全局结论。</p>
+<p>先把非自治系统和轨迹跟踪问题的标称轨迹写出来。</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mover><mi>x</mi><mo accent="true">̇</mo></mover><mo>⋆</mo></msup><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mi>f</mi><mo stretchy="false" form="prefix">(</mo><msup><mi>x</mi><mo>⋆</mo></msup><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo>,</mo><msup><mi>u</mi><mo>⋆</mo></msup><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo>,</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
+\dot{x}^\star(t)=f(x^\star(t),u^\star(t),t)
+</annotation></semantics></math></p>
+<p>这里把标称轨迹看成一条由同一动力学生成的参考路径。
+它和定常平衡点的区别在于：这里允许系统沿着一条时间变化的参考路径运动。
+并可写成误差形式</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>x</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><msup><mi>x</mi><mo>⋆</mo></msup><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo>+</mo><mover><mi>x</mi><mo accent="true">̃</mo></mover><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo>,</mo><mspace width="2.0em"></mspace><mi>u</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><msup><mi>u</mi><mo>⋆</mo></msup><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo>+</mo><mover><mi>u</mi><mo accent="true">̃</mo></mover><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
+x(t)=x^\star(t)+\tilde{x}(t),\qquad u(t)=u^\star(t)+\tilde{u}(t)
+</annotation></semantics></math></p>
+<p>这里把轨迹误差也写成标称量加偏差量，便于转成沿轨迹的局部模型。
+从而得到时变线性化模型</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mover><mi>x</mi><mo accent="true">̃</mo></mover><mo accent="true">̇</mo></mover><mo>=</mo><mi>A</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mover><mi>x</mi><mo accent="true">̃</mo></mover><mo>+</mo><mi>B</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mover><mi>u</mi><mo accent="true">̃</mo></mover><mo>+</mo><mi>r</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo>,</mo><mover><mi>x</mi><mo accent="true">̃</mo></mover><mo>,</mo><mover><mi>u</mi><mo accent="true">̃</mo></mover><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
+\dot{\tilde{x}}=A(t)\tilde{x}+B(t)\tilde{u}+r(t,\tilde{x},\tilde{u})
+</annotation></semantics></math></p>
+<p>这里说明线化矩阵随轨迹变化，而不是只在单一工作点上固定不变。 其中</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>A</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><msub><mrow><mfrac><mrow><mi>∂</mi><mi>f</mi></mrow><mrow><mi>∂</mi><mi>x</mi></mrow></mfrac><mo stretchy="true" form="postfix">|</mo></mrow><mrow><mo stretchy="false" form="prefix">(</mo><msup><mi>x</mi><mo>⋆</mo></msup><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo>,</mo><msup><mi>u</mi><mo>⋆</mo></msup><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo>,</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo></mrow></msub><mo>,</mo><mspace width="2.0em"></mspace><mi>B</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><msub><mrow><mfrac><mrow><mi>∂</mi><mi>f</mi></mrow><mrow><mi>∂</mi><mi>u</mi></mrow></mfrac><mo stretchy="true" form="postfix">|</mo></mrow><mrow><mo stretchy="false" form="prefix">(</mo><msup><mi>x</mi><mo>⋆</mo></msup><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo>,</mo><msup><mi>u</mi><mo>⋆</mo></msup><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo>,</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo></mrow></msub></mrow><annotation encoding="application/x-tex">
+A(t)=\left.\frac{\partial f}{\partial x}\right|_{(x^\star(t),u^\star(t),t)},\qquad
+B(t)=\left.\frac{\partial f}{\partial u}\right|_{(x^\star(t),u^\star(t),t)}
+</annotation></semantics></math></p>
+<p>这里把时变雅可比矩阵明确写出来，说明每个时刻都对应一个局部模型。
+这个线化例子说明，非线性系统不能只问“系统是否稳定”，还要问“围绕哪个平衡点稳定、初始条件在哪个区域内、扰动能否把状态推出吸引域”。</p>
+<h2 id="局部半全局和全局结论">4.3 局部、半全局和全局结论</h2>
+<p>非线性控制文献中经常出现局部稳定、半全局稳定和全局稳定。三者差别很大。</p>
+<p>局部稳定表示结论只对平衡点附近某个邻域成立。许多基于线化或局部反馈线性化的控制器只能给出局部结论。</p>
+<p>半全局稳定表示对任意给定的大紧集，都可以通过参数选择使闭环在该紧集内满足稳定或有界性质。它不是全局稳定，因为控制参数可能依赖于给定集合大小。</p>
+<p>全局稳定表示对所有初始条件成立。对真实工程对象，真正全局结论很少，因为状态变量、参数表、执行机构和约束本身往往都有定义域限制。</p>
+<p>因此，教程中更可靠的表述通常是：在给定工作区域、执行机构约束、初始误差集合和扰动上界内，闭环误差有界或收敛。</p>
+<p>这比笼统声称“全局稳定”更符合工程可核查原则。</p>
+<h2 id="lie-导数相对阶和零动态">4.4 Lie 导数、相对阶和零动态</h2>
+<p>对输入输出系统</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>x</mi><mo accent="true">̇</mo></mover><mo>=</mo><mi>f</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo>+</mo><mi>g</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mi>u</mi><mo>,</mo><mspace width="2.0em"></mspace><mi>y</mi><mo>=</mo><mi>h</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
+\dot{x}=f(x)+g(x)u,\qquad y=h(x)
+</annotation></semantics></math></p>
+<p>先看输出的一阶变化，再引入 Lie 导数公式。</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>y</mi><mo accent="true">̇</mo></mover><mo>=</mo><msub><mi>L</mi><mi>f</mi></msub><mi>h</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo>+</mo><msub><mi>L</mi><mi>g</mi></msub><mi>h</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mi>u</mi></mrow><annotation encoding="application/x-tex">
+\dot{y}=L_fh(x)+L_gh(x)u
+</annotation></semantics></math></p>
+<p>把输出的一阶导数写出来，便于直接看输入何时进入输出方程。 其中
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>L</mi><mi>f</mi></msub><mi>h</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">L_fh(x)</annotation></semantics></math>
+表示沿漂移项
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">f(x)</annotation></semantics></math>
+对输出函数
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>h</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">h(x)</annotation></semantics></math>
+的 Lie
+导数，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>L</mi><mi>g</mi></msub><mi>h</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">L_gh(x)</annotation></semantics></math>
+表示输入通道对输出的一阶影响。若
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>L</mi><mi>g</mi></msub><mi>h</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo>≠</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">L_gh(x)\neq 0</annotation></semantics></math>，说明输入已经在一阶导数中出现；若
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>L</mi><mi>g</mi></msub><mi>h</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">L_gh(x)=0</annotation></semantics></math>，则需要继续求导。</p>
+<p>对单输入单输出系统，若存在最小整数
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>r</mi><annotation encoding="application/x-tex">r</annotation></semantics></math>
+使</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>L</mi><mi>g</mi></msub><msubsup><mi>L</mi><mi>f</mi><mi>k</mi></msubsup><mi>h</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mn>0</mn><mo>,</mo><mspace width="1.0em"></mspace><mi>k</mi><mo>=</mo><mn>0</mn><mo>,</mo><mn>1</mn><mo>,</mo><mi>…</mi><mo>,</mo><mi>r</mi><mo>−</mo><mn>2</mn><mo>,</mo><mspace width="2.0em"></mspace><msub><mi>L</mi><mi>g</mi></msub><msubsup><mi>L</mi><mi>f</mi><mrow><mi>r</mi><mo>−</mo><mn>1</mn></mrow></msubsup><mi>h</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo>≠</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">
+L_gL_f^k h(x)=0,\quad k=0,1,\ldots,r-2,\qquad L_gL_f^{r-1}h(x)\neq 0
+</annotation></semantics></math></p>
+<p>这里把相对阶判定写成逐阶消去条件，说明输入要经过几阶导数才显式出现。
+则有</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>y</mi><mrow><mo stretchy="false" form="prefix">(</mo><mi>r</mi><mo stretchy="false" form="postfix">)</mo></mrow></msup><mo>=</mo><msubsup><mi>L</mi><mi>f</mi><mi>r</mi></msubsup><mi>h</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo>+</mo><msub><mi>L</mi><mi>g</mi></msub><msubsup><mi>L</mi><mi>f</mi><mrow><mi>r</mi><mo>−</mo><mn>1</mn></mrow></msubsup><mi>h</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mi>u</mi></mrow><annotation encoding="application/x-tex">
+y^{(r)}=L_f^rh(x)+L_gL_f^{r-1}h(x)u
+</annotation></semantics></math></p>
+<p>这里说明输入在第
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>r</mi><annotation encoding="application/x-tex">r</annotation></semantics></math>
+阶导数里首次显式出现，所以外部输出链可以被直接整形。
+把内部状态单独提出来，再写成链式坐标形式。</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mover><mi>ξ</mi><mo accent="true">̇</mo></mover><mn>1</mn></msub><mo>=</mo><msub><mi>ξ</mi><mn>2</mn></msub><mo>,</mo><mspace width="1.0em"></mspace><msub><mover><mi>ξ</mi><mo accent="true">̇</mo></mover><mn>2</mn></msub><mo>=</mo><msub><mi>ξ</mi><mn>3</mn></msub><mo>,</mo><mspace width="1.0em"></mspace><mi>…</mi><mo>,</mo><mspace width="1.0em"></mspace><msub><mover><mi>ξ</mi><mo accent="true">̇</mo></mover><mi>r</mi></msub><mo>=</mo><mi>a</mi><mo stretchy="false" form="prefix">(</mo><mi>ξ</mi><mo>,</mo><mi>η</mi><mo stretchy="false" form="postfix">)</mo><mo>+</mo><mi>b</mi><mo stretchy="false" form="prefix">(</mo><mi>ξ</mi><mo>,</mo><mi>η</mi><mo stretchy="false" form="postfix">)</mo><mi>u</mi></mrow><annotation encoding="application/x-tex">
+\dot{\xi}_1=\xi_2,\quad \dot{\xi}_2=\xi_3,\quad \ldots,\quad \dot{\xi}_r=a(\xi,\eta)+b(\xi,\eta)u
+</annotation></semantics></math></p>
+<p>这里说明外部链负责输出跟踪，内部链负责剩余行为。</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>η</mi><mo accent="true">̇</mo></mover><mo>=</mo><mi>q</mi><mo stretchy="false" form="prefix">(</mo><mi>ξ</mi><mo>,</mo><mi>η</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
+\dot{\eta}=q(\xi,\eta)
+</annotation></semantics></math></p>
+<p>这里把内部状态单独写成一条动力学，说明外部跟踪并不等于内部安全。
+这里把输出链冻结后的内部演化单独拿出来看。</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>η</mi><mo accent="true">̇</mo></mover><mo>=</mo><mi>q</mi><mo stretchy="false" form="prefix">(</mo><mn>0</mn><mo>,</mo><mi>η</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
+\dot{\eta}=q(0,\eta)
+</annotation></semantics></math></p>
+<p>这里把零动态定义成输出链冻结时内部状态自身的演化。
+这就是零动态。若零动态稳定，系统称为最小相位；若零动态不稳定，即使输出误差收敛，内部状态也可能发散。</p>
+<p>在任何工程系统中，这个结论都非常实用。只控制一个外层输出，常常会把内部状态推到危险范围；只控制一个表观输出，也可能牺牲输入裕度、能量裕度或约束满足性。因此反馈线性化、动态逆和分层控制都必须检查内部状态和约束，而不能只给输出误差曲线。</p>
+<h2 id="非线性耦合">4.5 非线性耦合</h2>
+<p>多输入多输出系统可写为</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>x</mi><mo accent="true">̇</mo></mover><mo>=</mo><mi>f</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo>+</mo><mi>G</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mi>u</mi></mrow><annotation encoding="application/x-tex">
+\dot{x}=f(x)+G(x)u
+</annotation></semantics></math></p>
+<p>其中
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>G</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mo stretchy="false" form="prefix">[</mo><msub><mi>g</mi><mn>1</mn></msub><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo>,</mo><msub><mi>g</mi><mn>2</mn></msub><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo>,</mo><mi>…</mi><mo>,</mo><msub><mi>g</mi><mi>m</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">]</mo></mrow><annotation encoding="application/x-tex">G(x)=[g_1(x),g_2(x),\ldots,g_m(x)]</annotation></semantics></math>，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>g</mi><mi>i</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">g_i(x)</annotation></semantics></math>
+是第
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>i</mi><annotation encoding="application/x-tex">i</annotation></semantics></math>
+个输入通道的向量场。若把输出逐个求导，便会得到一个解耦矩阵。这个矩阵把多输入多输出系统的非线性耦合写成向量场叠加形式。</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>𝒜</mi><mi>d</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mrow><mo stretchy="true" form="prefix">[</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><msub><mi>L</mi><msub><mi>g</mi><mn>1</mn></msub></msub><msubsup><mi>L</mi><mi>f</mi><mrow><msub><mi>r</mi><mn>1</mn></msub><mo>−</mo><mn>1</mn></mrow></msubsup><msub><mi>h</mi><mn>1</mn></msub><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mtd><mtd columnalign="center" style="text-align: center"><mi>⋯</mi></mtd><mtd columnalign="center" style="text-align: center"><msub><mi>L</mi><msub><mi>g</mi><mi>m</mi></msub></msub><msubsup><mi>L</mi><mi>f</mi><mrow><msub><mi>r</mi><mn>1</mn></msub><mo>−</mo><mn>1</mn></mrow></msubsup><msub><mi>h</mi><mn>1</mn></msub><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><mi>⋮</mi></mtd><mtd columnalign="center" style="text-align: center"><mo>⋱</mo></mtd><mtd columnalign="center" style="text-align: center"><mi>⋮</mi></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><msub><mi>L</mi><msub><mi>g</mi><mn>1</mn></msub></msub><msubsup><mi>L</mi><mi>f</mi><mrow><msub><mi>r</mi><mi>p</mi></msub><mo>−</mo><mn>1</mn></mrow></msubsup><msub><mi>h</mi><mi>p</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mtd><mtd columnalign="center" style="text-align: center"><mi>⋯</mi></mtd><mtd columnalign="center" style="text-align: center"><msub><mi>L</mi><msub><mi>g</mi><mi>m</mi></msub></msub><msubsup><mi>L</mi><mi>f</mi><mrow><msub><mi>r</mi><mi>p</mi></msub><mo>−</mo><mn>1</mn></mrow></msubsup><msub><mi>h</mi><mi>p</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mtd></mtr></mtable><mo stretchy="true" form="postfix">]</mo></mrow></mrow><annotation encoding="application/x-tex">
+\mathcal{A}_d(x)=
+\begin{bmatrix}
+L_{g_1}L_f^{r_1-1}h_1(x) &amp; \cdots &amp; L_{g_m}L_f^{r_1-1}h_1(x)\\
+\vdots &amp; \ddots &amp; \vdots\\
+L_{g_1}L_f^{r_p-1}h_p(x) &amp; \cdots &amp; L_{g_m}L_f^{r_p-1}h_p(x)
+\end{bmatrix}
+</annotation></semantics></math></p>
+<p>这里把解耦矩阵写出来，用来检查各个输出通道是否会被输入显式影响。 其中
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>h</mi><mi>i</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">h_i(x)</annotation></semantics></math>
+是第
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>i</mi><annotation encoding="application/x-tex">i</annotation></semantics></math>
+个输出，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>r</mi><mi>i</mi></msub><annotation encoding="application/x-tex">r_i</annotation></semantics></math>
+是它的相对阶，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>L</mi><msub><mi>g</mi><mi>j</mi></msub></msub><annotation encoding="application/x-tex">L_{g_j}</annotation></semantics></math>
+表示沿第
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>j</mi><annotation encoding="application/x-tex">j</annotation></semantics></math>
+个输入通道方向的 Lie
+导数。对控制输入而言，未必是一阶可控的。若输入先影响中间变量，再影响最终输出，则安全滤波器需要处理高阶约束，或者把约束转化为参考治理、命令限制和输入效能调节。
+这里需要的是“通道解耦”，而不是简单的输入矩阵满秩。
+因此，解耦矩阵的意义是说明“哪个输入能在第几阶上影响哪个输出”。</p>
+<p>在非线性系统中，可行集可写成</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ℱ</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mo stretchy="false" form="prefix">{</mo><mi>u</mi><mo>∈</mo><mi>𝒰</mi><mo>∣</mo><msub><mi>h</mi><mi>i</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>u</mi><mo stretchy="false" form="postfix">)</mo><mo>≥</mo><mn>0</mn><mo>,</mo><mspace width="0.222em"></mspace><mi>i</mi><mo>=</mo><mn>1</mn><mo>,</mo><mi>…</mi><mo>,</mo><mi>p</mi><mo stretchy="false" form="postfix">}</mo></mrow><annotation encoding="application/x-tex">
+\mathcal{F}(x)=\{u\in\mathcal{U}\mid h_i(x,u)\ge 0,\ i=1,\ldots,p\}
+</annotation></semantics></math></p>
+<p>这里把可行输入集合写出来，说明约束问题本身就是一个集合判定。 其中
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝒰</mi><annotation encoding="application/x-tex">\mathcal{U}</annotation></semantics></math>
+是输入集合，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>𝒳</mi><mrow><mi mathvariant="normal">s</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">f</mi><mi mathvariant="normal">e</mi></mrow></msub><annotation encoding="application/x-tex">\mathcal{X}_{\mathrm{safe}}</annotation></semantics></math>
+是安全状态集合。若
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ℱ</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\mathcal{F}(x)</annotation></semantics></math>
+为空，任何控制律都无法同时满足所有目标。因此后续控制设计必须讨论可行性，而不是只讨论优化目标。</p>
+<h2 id="扰动匹配性和不确定性">4.6 扰动、匹配性和不确定性</h2>
+<p>考虑系统</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>x</mi><mo accent="true">̇</mo></mover><mo>=</mo><mi>f</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo>+</mo><mi>g</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mi>u</mi><mo>+</mo><msub><mi>d</mi><mi>m</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo>+</mo><msub><mi>d</mi><mi>u</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
+\dot{x}=f(x)+g(x)u+d_m(x,t)+d_u(x,t)
+</annotation></semantics></math></p>
+<p>其中
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>d</mi><mi>m</mi></msub><annotation encoding="application/x-tex">d_m</annotation></semantics></math>
+属于输入通道张成空间，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>d</mi><mi>u</mi></msub><annotation encoding="application/x-tex">d_u</annotation></semantics></math>
+不属于输入通道张成空间。若存在某个
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi mathvariant="normal">Δ</mi><mi>m</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\Delta_m(x,t)</annotation></semantics></math>
+使</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>d</mi><mi>m</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mi>g</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><msub><mi mathvariant="normal">Δ</mi><mi>m</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
+d_m(x,t)=g(x)\Delta_m(x,t)
+</annotation></semantics></math></p>
+<p>这里把匹配扰动写成输入通道上的等效项，说明它可以被并入控制输入。
+则匹配扰动可以并入等效输入</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>u</mi><mrow><mi mathvariant="normal">e</mi><mi mathvariant="normal">q</mi></mrow></msub><mo>=</mo><mi>u</mi><mo>+</mo><msub><mi mathvariant="normal">Δ</mi><mi>m</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
+u_{\mathrm{eq}}=u+\Delta_m(x,t)
+</annotation></semantics></math></p>
+<p>这里把等效输入单独记出来，说明控制器看到的是补偿后的通道。 其中
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>u</mi><mrow><mi mathvariant="normal">e</mi><mi mathvariant="normal">q</mi></mrow></msub><annotation encoding="application/x-tex">u_{\mathrm{eq}}</annotation></semantics></math>
+是等效输入。非匹配扰动则不能这样并入，它通常需要通过鲁棒项、观测器、参考重整形或约束层来处理。</p>
+<p>约束函数也可以写成</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>h</mi><mi>s</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mover><mi>s</mi><mo accent="true">‾</mo></mover><mo>−</mo><mi>s</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
+h_s(x)=\bar{s}-s(x)
+</annotation></semantics></math></p>
+<p>这里把安全裕度写成状态函数的剩余量。
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mover><mi>h</mi><mo accent="true">̇</mo></mover><mi>s</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mi>−</mi><mi>∇</mi><mi>s</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><msup><mo stretchy="false" form="postfix">)</mo><mi>⊤</mi></msup><mover><mi>x</mi><mo accent="true">̇</mo></mover></mrow><annotation encoding="application/x-tex">
+\dot{h}_s(x)=-\nabla s(x)^\top \dot{x}
+</annotation></semantics></math></p>
+<p>这里把安全函数的变化率写出来，后面才能判断约束是否会被破坏。
+这一步之所以重要，是因为安全滤波和 CBF
+都是围绕变化率而不是只围绕函数值来工作的。
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ℱ</mi><mi>s</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mo stretchy="false" form="prefix">{</mo><mi>u</mi><mo>∈</mo><mi>𝒰</mi><mo>∣</mo><msub><mover><mi>h</mi><mo accent="true">̇</mo></mover><mi>s</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>u</mi><mo stretchy="false" form="postfix">)</mo><mo>≥</mo><mi>−</mi><mi>α</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>h</mi><mi>s</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">}</mo></mrow><annotation encoding="application/x-tex">
+\mathcal{F}_s(x)=\{u\in\mathcal{U}\mid \dot{h}_s(x,u)\ge -\alpha(h_s(x))\}
+</annotation></semantics></math></p>
+<p>这里把安全可行集写成对控制输入的约束集合，便于直接用于安全滤波。
+则控制输入若通过某些中间变量间接影响
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>s</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">s(x)</annotation></semantics></math>，约束的控制相对阶和可行性就取决于所选输入通道。这个低阶例子说明：约束不是孤立指标，它会通过状态约束、参考可行域和输入能力进入闭环设计。</p>
+<h2 id="非线性控制方法地图">4.7 非线性控制方法地图</h2>
+<p>后续章节中的非线性控制方法可以按下列问题分类：</p>
+<table>
+<thead>
+<tr>
+<th>方法</th>
+<th>主要解决的问题</th>
+<th>关键风险</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>反馈线性化</td>
+<td>把输入输出关系变为线性</td>
+<td>相对阶、零动态、奇异性</td>
+</tr>
+<tr>
+<td>动态逆</td>
+<td>用模型反解伪控制量</td>
+<td>模型依赖强</td>
+</tr>
+<tr>
+<td>增量动态逆</td>
+<td>用增量模型降低模型依赖</td>
+<td>传感器和执行机构延迟</td>
+</tr>
+<tr>
+<td>反步</td>
+<td>递推构造虚拟控制</td>
+<td>复杂性爆炸、饱和</td>
+</tr>
+<tr>
+<td>动态面</td>
+<td>缓解反步微分爆炸</td>
+<td>滤波误差</td>
+</tr>
+<tr>
+<td>滑模</td>
+<td>抗匹配扰动</td>
+<td>抖振、非匹配扰动</td>
+</tr>
+<tr>
+<td>自适应</td>
+<td>在线补偿参数不确定</td>
+<td>参数漂移、激励不足</td>
+</tr>
+<tr>
+<td>智能逼近</td>
+<td>逼近未知非线性</td>
+<td>稳定性和泛化验证</td>
+</tr>
+</tbody>
+</table>
+<p>本章的写法是先讲这些方法的控制理论基础，再讲具体对象的应用，而不是直接罗列算法公式。它属于全书的通用理论底座，只负责给后续章节提供统一语言，不承担任何单一对象的预演任务。</p>
+<h2 id="从非线性理论到控制设计">4.8 从非线性理论到控制设计</h2>
+<p>非线性理论真正进入控制设计时，通常要回答下面几个最基本的问题：</p>
+<ol type="1">
+<li>系统能否写成输入仿射形式；</li>
+<li>选定的输出是否具有清楚的相对阶；</li>
+<li>内部动态是否稳定或至少有界；</li>
+<li>不确定性属于匹配还是非匹配；</li>
+<li>约束是否会让可行控制集合变空；</li>
+<li>执行机构动态是否需要显式纳入模型；</li>
+<li>证明结论是局部的、半全局的，还是只对某个工作区间成立；</li>
+<li>这些结论是否能够通过仿真、实验或数值回放复查。</li>
+</ol>
+<p>把这些问题先说清楚，比急着给出某个具体控制律更重要。因为对非线性系统来说，方法是否可用，往往先由结构决定，而不是先由增益决定。</p>
+<p>一个实用的非线性分析流程可以写成：</p>
+<ol type="1">
+<li>明确状态、输入、输出、扰动和约束；</li>
+<li>判断系统的主导非线性来源；</li>
+<li>在工作点或工作区间上检查局部线化是否足够；</li>
+<li>若要做输入输出设计，先审查相对阶和零动态；</li>
+<li>若要做安全设计，先把约束写成函数；</li>
+<li>若要做鲁棒设计，区分匹配扰动和非匹配扰动；</li>
+<li>若要做工程实现，把执行机构、采样、饱和和延迟并入闭环；</li>
+<li>最后再选择反馈线性化、动态逆、反步、滑模、自适应或安全滤波等方法。</li>
+</ol>
+<p>这条流程的作用，是让“系统长什么样”先于“控制器怎么写”。</p>
+<h2 id="章内例题二阶跟踪系统">4.9 章内例题：二阶跟踪系统</h2>
+<p>考虑一个二阶输入仿射模型</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mover><mi>z</mi><mo accent="true">̇</mo></mover><mn>1</mn></msub><mo>=</mo><msub><mi>z</mi><mn>2</mn></msub><mo>,</mo><mspace width="2.0em"></mspace><msub><mover><mi>z</mi><mo accent="true">̇</mo></mover><mn>2</mn></msub><mo>=</mo><mi>a</mi><mo stretchy="false" form="prefix">(</mo><mi>z</mi><mo stretchy="false" form="postfix">)</mo><mo>+</mo><mi>b</mi><mo stretchy="false" form="prefix">(</mo><mi>z</mi><mo stretchy="false" form="postfix">)</mo><mi>u</mi><mo>,</mo><mspace width="2.0em"></mspace><mover><mi>η</mi><mo accent="true">̇</mo></mover><mo>=</mo><mi>q</mi><mo stretchy="false" form="prefix">(</mo><mi>z</mi><mo>,</mo><mi>η</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
+\dot{z}_1=z_2,\qquad \dot{z}_2=a(z)+b(z)u,\qquad \dot{\eta}=q(z,\eta)
+</annotation></semantics></math></p>
+<p>把二阶跟踪系统和内部动态分开写出来，便于看清外部链和内部链的分工。
+其中
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>z</mi><mn>1</mn></msub><annotation encoding="application/x-tex">z_1</annotation></semantics></math>
+是输出相关状态，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>z</mi><mn>2</mn></msub><annotation encoding="application/x-tex">z_2</annotation></semantics></math>
+是其一阶导相关状态，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>η</mi><annotation encoding="application/x-tex">\eta</annotation></semantics></math>
+是内部状态，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>u</mi><annotation encoding="application/x-tex">u</annotation></semantics></math>
+是控制输入。若令输出为
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>y</mi><mo>=</mo><msub><mi>z</mi><mn>1</mn></msub></mrow><annotation encoding="application/x-tex">y=z_1</annotation></semantics></math>，则这个二阶模型的相对阶为
+2。这个例子用来说明，外部输出链和内部动态必须分开看。它的目的，是把“输出能跟踪”与“内部是否安全”彻底分开。结论是：输出跟踪问题并不等价于完整闭环问题。它只说明外部输出链条的结构清楚，不代表内部状态已经安全。</p>
+<p>若真实执行量还要经过执行机构动态，例如</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>u</mi><mo accent="true">̇</mo></mover><mo>=</mo><mi>ϕ</mi><mo stretchy="false" form="prefix">(</mo><mi>u</mi><mo>,</mo><mi>v</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
+\dot{u}=\phi(u,v)
+</annotation></semantics></math></p>
+<p>这里把执行机构动态单独写出来，说明真实控制输入比虚拟输入多一层动态。
+那么从虚拟输入
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>v</mi><annotation encoding="application/x-tex">v</annotation></semantics></math>
+到输出
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>y</mi><annotation encoding="application/x-tex">y</annotation></semantics></math>
+的相对阶会进一步增加。这里的关键不是“多了一层动态”，而是设计层和执行层已经不是同一个对象。用虚拟输入得到的控制律，必须再经过执行机构、限幅、限速和控制分配，才能变成真实闭环。</p>
+<p>这个例题至少说明四件事：</p>
+<ol type="1">
+<li>控制输入的定义决定相对阶；</li>
+<li>输出误差收敛不代表内部状态一定安全；</li>
+<li>约束会缩小可行控制集合，而不是只改变性能指标；</li>
+<li>执行机构动态会改变实际闭环的阶次和带宽。</li>
+</ol>
+<h2 id="常见错误">4.10 常见错误</h2>
+<ol type="1">
+<li>把局部线性结论当成全局结论。</li>
+<li>只看输出误差，不看内部状态和零动态。</li>
+<li>忽略输入饱和、速率限制和执行机构动态。</li>
+<li>把匹配扰动和非匹配扰动混为一谈。</li>
+<li>只写控制律，不写它依赖的假设。</li>
+<li>以为相对阶清楚就一定能直接实现动态逆。</li>
+<li>以为安全约束只是在目标函数里加一项惩罚。</li>
+<li>只在一个初始条件上验证，忽略工作区间和可行域。</li>
+</ol>
+<h2 id="本章小结">4.11 本章小结</h2>
+<p>非线性系统理论的重点，不是罗列很多“高级方法”，而是把非线性结构讲清楚：系统是否输入仿射，输出是否有清楚的相对阶，内部动态是否稳定，不确定性是否匹配，约束是否会让控制不可行。只要这些问题没有先弄清楚，后面的反馈线性化、动态逆、反步、滑模、自适应和安全控制都只能算是条件不完整的尝试。</p>
+<p>对工程对象来说，最重要的是把理论变成可复查的分析过程：先看结构，再看约束，再看执行机构，最后才看控制律。这样写出来的章节，才会像一本控制教材，而不是一段方法堆叠。</p>
+<p>如果把第4章放进整本教程的结构里看，它承担的是通用非线性语言的角色，而不是对象专章的角色。真正针对具体对象的讨论，会放到后续的建模卷、方法卷和约束卷里。</p>
+<h2 id="练习">4.12 练习</h2>
+<ol type="1">
+<li>举出三个工程系统中的非线性来源。</li>
+<li>对
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>x</mi><mo accent="true">̇</mo></mover><mo>=</mo><mi>f</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>u</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\dot{x}=f(x,u)</annotation></semantics></math>
+写出局部线性化公式。</li>
+<li>解释相对阶和零动态的含义。</li>
+<li>说明为什么输出误差收敛不一定代表内部状态安全。</li>
+<li>比较动态逆、反步和滑模各自依赖的主要假设。</li>
+<li>给出一个输入饱和破坏稳定性证明的例子。</li>
+<li>对
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>x</mi><mo accent="true">̇</mo></mover><mo>=</mo><mi>x</mi><mo>−</mo><msup><mi>x</mi><mn>3</mn></msup></mrow><annotation encoding="application/x-tex">\dot{x}=x-x^3</annotation></semantics></math>
+判断三个平衡点的局部稳定性，并画出一维相线。</li>
+<li>给定
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>x</mi><mo accent="true">̇</mo></mover><mo>=</mo><mi>f</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo>+</mo><mi>g</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mi>u</mi><mo>,</mo><mspace width="0.222em"></mspace><mi>y</mi><mo>=</mo><mi>h</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\dot{x}=f(x)+g(x)u,\ y=h(x)</annotation></semantics></math>，写出相对阶为
+2 的判定条件。</li>
+<li>说明为什么解耦矩阵接近奇异会导致控制输入过大。</li>
+<li>构造一个匹配扰动和一个非匹配扰动的工程例子。</li>
+</ol>
+
+      </article>
+      
+      <nav class="book-bottom-nav" aria-label="章节导航">
+        <a href="./03-linear-systems-theory.html">上一章：第3章 线性系统理论</a>
+        <a href="./index.html">卷首页</a>
+        <a href="./05-lyapunov-stability-theory.html">下一章：第5章 Lyapunov 稳定性理论</a>
+      </nav>
+    </main>
+  </div>
+</body>
+</html>

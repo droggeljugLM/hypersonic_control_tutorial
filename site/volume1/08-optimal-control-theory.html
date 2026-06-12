@@ -1,0 +1,1034 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>第8章 最优控制理论</title>
+  <style>
+    :root {
+      --paper: #f7f3eb;
+      --ink: #1f2937;
+      --muted: #5b6472;
+      --line: color-mix(in srgb, #e7eef7 68%, #cbd5e1 32%);
+      --accent: #335c81;
+      --accent-soft: #e7eef7;
+      --accent-deep: #1e3d57;
+      color-scheme: light;
+    }
+    html {
+      -webkit-text-size-adjust: 100%;
+      background:
+        radial-gradient(circle at top left, #e7eef7 0, rgba(255,255,255,0) 32%),
+        linear-gradient(180deg, #fbfaf6 0%, var(--paper) 18%, #f7f1e6 100%);
+    }
+    body {
+      margin: 0;
+      font-family: "Source Han Serif SC", "Songti SC", "Noto Serif CJK SC", "Microsoft YaHei", serif;
+      color: var(--ink);
+      line-height: 1.78;
+      letter-spacing: 0;
+    }
+    a { color: var(--accent-deep); }
+    .book-app {
+      display: grid;
+      grid-template-columns: 280px minmax(0, 1fr);
+      min-height: 100vh;
+    }
+    .book-sidebar {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow: auto;
+      padding: 1.2rem 1rem 1.2rem 1.15rem;
+      border-right: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(255,255,255,0.86), rgba(255,255,255,0.72));
+      backdrop-filter: blur(10px);
+    }
+    .sidebar-shell { position: sticky; top: 0; display: flex; flex-direction: column; gap: 1rem; }
+    .sidebar-brand {
+      padding: 0.95rem 0.95rem 1rem;
+      border-radius: 18px;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.95), rgba(255,255,255,0.84)),
+        linear-gradient(135deg, var(--accent-soft), rgba(255,255,255,0));
+      border: 1px solid var(--line);
+      box-shadow: 0 12px 28px rgba(31, 41, 55, 0.06);
+    }
+    .sidebar-brand .kicker { margin: 0; color: var(--accent); font-size: 0.82rem; font-weight: 700; }
+    .sidebar-brand h2 { margin: 0.45rem 0 0.25rem; font-size: 1.08rem; line-height: 1.3; color: var(--ink); }
+    .sidebar-brand p { margin: 0.35rem 0 0; color: var(--muted); font-size: 0.9rem; }
+    .sidebar-links { display: grid; gap: 0.45rem; }
+    .sidebar-link {
+      display: grid;
+      grid-template-columns: 2.2rem minmax(0, 1fr);
+      gap: 0.6rem;
+      align-items: start;
+      padding: 0.7rem 0.75rem;
+      border-radius: 14px;
+      text-decoration: none;
+      background: rgba(255,255,255,0.72);
+      border: 1px solid rgba(31,41,55,0.07);
+      color: var(--ink);
+    }
+    .sidebar-link:hover { background: rgba(255,255,255,0.95); border-color: var(--line); }
+    .sidebar-link.active {
+      background: linear-gradient(135deg, rgba(255,255,255,0.98), rgba(255,255,255,0.9));
+      border-color: var(--accent-soft);
+      box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent-soft) 68%, #ffffff 32%);
+    }
+    .sidebar-index {
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      min-width: 2rem;
+      height: 2rem;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent-deep);
+      font-size: 0.78rem;
+      font-weight: 800;
+    }
+    .sidebar-title { font-size: 0.94rem; line-height: 1.35; }
+    .book-main { min-width: 0; padding: 1.25rem 1.45rem 1.8rem; }
+    .book-page-header {
+      padding: 0.85rem 0 1rem;
+      margin-bottom: 1rem;
+      border-bottom: 1px solid var(--line);
+    }
+    .page-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.28rem 0.72rem;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.82);
+      border: 1px solid var(--line);
+      color: var(--accent-deep);
+      font-size: 0.8rem;
+      font-weight: 700;
+    }
+    .book-page-header h1 {
+      margin: 0.7rem 0 0;
+      font-size: 1.85rem;
+      line-height: 1.22;
+      color: var(--accent-deep);
+      border: 0;
+      padding: 0;
+    }
+    .book-page-header p { margin: 0.45rem 0 0; color: var(--muted); max-width: 62rem; }
+    .book-article { max-width: 900px; margin: 0; padding: 0 0 1.2rem; }
+    .book-article h1, .book-article h2, .book-article h3, .book-article h4, .book-article h5, .book-article h6 {
+      line-height: 1.28;
+      margin-top: 1.45em;
+      margin-bottom: 0.55em;
+      color: var(--accent-deep);
+    }
+    .book-article h1 { font-size: 2rem; border-bottom: 2px solid var(--line); padding-bottom: 0.42rem; }
+    .book-article h1:first-of-type { margin-top: 0; }
+    .book-article h2 { font-size: 1.42rem; }
+    .book-article h3 { font-size: 1.12rem; }
+    .book-article p, .book-article li, .book-article dd, .book-article td, .book-article th { text-align: justify; text-justify: inter-ideograph; }
+    .book-article p { margin: 0.85rem 0; }
+    .book-article code, .book-article pre { font-family: "Cascadia Mono", "Source Code Pro", Consolas, monospace; font-size: 0.94em; }
+    .book-article code {
+      padding: 0.02rem 0.24rem;
+      background: color-mix(in srgb, var(--accent-soft) 34%, #ffffff 66%);
+      border: 0;
+      border-bottom: 1px solid color-mix(in srgb, var(--accent-soft) 74%, #d1d5db 26%);
+      border-radius: 4px;
+      color: #253244;
+      box-decoration-break: clone;
+      -webkit-box-decoration-break: clone;
+    }
+    .book-article pre {
+      padding: 1rem 1.1rem;
+      overflow: auto;
+      background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,253,248,0.98));
+      border: 1px solid color-mix(in srgb, var(--accent-soft) 54%, #d1d5db 46%);
+      border-left: 5px solid var(--accent);
+      border-radius: 14px;
+      box-shadow: 0 8px 22px rgba(31, 41, 55, 0.05);
+    }
+    .book-article pre code { padding: 0; border: 0; background: transparent; color: inherit; }
+    .book-article table {
+      border-collapse: collapse;
+      width: 100%;
+      margin: 1rem 0 1.25rem;
+      background: rgba(255,255,255,0.82);
+      overflow: hidden;
+      border-radius: 12px;
+    }
+    .book-article th, .book-article td { border: 1px solid var(--line); padding: 0.5rem 0.7rem; vertical-align: top; }
+    .book-article th { background: color-mix(in srgb, var(--accent-soft) 42%, #ffffff 58%); }
+    .book-article blockquote {
+      margin: 1rem 0;
+      padding: 0.25rem 0 0.25rem 1rem;
+      border-left: 4px solid var(--accent);
+      color: #374151;
+      background: linear-gradient(90deg, rgba(255,255,255,0.72), rgba(255,255,255,0.48));
+      border-radius: 0 12px 12px 0;
+    }
+    .book-bottom-nav {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-top: 2.2rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--line);
+    }
+    .book-bottom-nav a {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.6rem 0.9rem;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.84);
+      text-decoration: none;
+      font-weight: 700;
+    }
+    .book-bottom-nav span {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.6rem 0.9rem;
+      border-radius: 999px;
+      border: 1px solid rgba(31,41,55,0.08);
+      background: rgba(255,255,255,0.54);
+      color: rgba(31,41,55,0.42);
+      font-weight: 700;
+    }
+    .book-bottom-nav a:hover { background: rgba(255,255,255,0.98); }
+    .book-volume-intro {
+      margin: 0 0 1.25rem;
+      padding: 1.2rem 1.25rem 1.1rem;
+      border-radius: 18px;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.96), rgba(255,255,255,0.78)),
+        linear-gradient(135deg, var(--accent-soft), rgba(255,255,255,0));
+      border: 1px solid var(--line);
+      box-shadow: 0 14px 34px rgba(31, 41, 55, 0.06);
+    }
+    .volume-intro-kicker {
+      margin: 0;
+      color: var(--accent);
+      font-size: 0.84rem;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    .book-volume-intro h2 {
+      margin: 0.55rem 0 0.55rem;
+      font-size: 1.28rem;
+      line-height: 1.35;
+      color: var(--accent-deep);
+    }
+    .volume-intro-summary {
+      margin: 0;
+      color: var(--muted);
+      max-width: 68rem;
+    }
+    .volume-intro-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.8rem;
+      margin-top: 1rem;
+    }
+    .volume-intro-box {
+      padding: 0.85rem 0.9rem;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.72);
+      border: 1px solid rgba(31,41,55,0.08);
+    }
+    .volume-intro-box span {
+      display: block;
+      color: var(--accent);
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+    }
+    .volume-intro-box strong {
+      display: block;
+      margin-top: 0.35rem;
+      color: var(--ink);
+      font-size: 0.95rem;
+      line-height: 1.45;
+    }
+    .volume-intro-note {
+      margin-top: 0.9rem;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+    @media (max-width: 1180px) {
+      .book-app { grid-template-columns: 1fr; }
+      .book-sidebar {
+        position: relative;
+        height: auto;
+        border-right: 0;
+        border-bottom: 1px solid var(--line);
+      }
+      .sidebar-shell { position: static; }
+    }
+    @media (max-width: 900px) {
+      .book-main { padding: 1rem 1rem 1.5rem; }
+      .book-bottom-nav { flex-direction: column; }
+      .volume-intro-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="book-app">
+    <aside class="book-sidebar">
+      <div class="sidebar-shell">
+        <div class="sidebar-brand">
+          <p class="kicker">高超声速飞行器控制教程</p>
+          <h2>第一卷 数学基础与控制理论基础</h2>
+          <p>控制理论地基</p>
+        </div>
+        <nav class="sidebar-links" aria-label="本卷目录">
+          <a class="sidebar-link" href="./index.html"><span class="sidebar-index">0</span><span class="sidebar-title">卷首页</span></a>
+<a class="sidebar-link" href="./01-hypersonic-control-problem-intro.html"><span class="sidebar-index">01</span><span class="sidebar-title">第1章 高超声速飞行器控制问题导论</span></a>
+<a class="sidebar-link" href="./02-dynamical-systems-state-space.html"><span class="sidebar-index">02</span><span class="sidebar-title">第2章 动力系统与状态空间方法</span></a>
+<a class="sidebar-link" href="./03-linear-systems-theory.html"><span class="sidebar-index">03</span><span class="sidebar-title">第3章 线性系统理论</span></a>
+<a class="sidebar-link" href="./04-nonlinear-systems-theory.html"><span class="sidebar-index">04</span><span class="sidebar-title">第4章 非线性系统理论</span></a>
+<a class="sidebar-link" href="./05-lyapunov-stability-theory.html"><span class="sidebar-index">05</span><span class="sidebar-title">第5章 Lyapunov 稳定性理论</span></a>
+<a class="sidebar-link" href="./06-input-output-small-gain.html"><span class="sidebar-index">06</span><span class="sidebar-title">第6章 输入输出稳定性与小增益理论</span></a>
+<a class="sidebar-link" href="./07-singular-perturbation-multitime-scale.html"><span class="sidebar-index">07</span><span class="sidebar-title">第7章 奇异摄动与多时间尺度系统</span></a>
+<a class="sidebar-link active" href="./08-optimal-control-theory.html"><span class="sidebar-index">08</span><span class="sidebar-title">第8章 最优控制理论</span></a>
+<a class="sidebar-link" href="./09-robust-control-theory.html"><span class="sidebar-index">09</span><span class="sidebar-title">第9章 鲁棒控制理论</span></a>
+<a class="sidebar-link" href="./10-adaptive-control-theory.html"><span class="sidebar-index">10</span><span class="sidebar-title">第10章 自适应控制理论</span></a>
+<a class="sidebar-link" href="./11-stochastic-filtering-estimation.html"><span class="sidebar-index">11</span><span class="sidebar-title">第11章 随机系统、滤波与状态估计</span></a>
+<a class="sidebar-link" href="./12-constrained-safety-control-foundations.html"><span class="sidebar-index">12</span><span class="sidebar-title">第12章 约束系统与安全控制基础</span></a>
+<a class="sidebar-link" href="./13-numerical-convex-optimization.html"><span class="sidebar-index">13</span><span class="sidebar-title">第13章 数值优化与凸优化基础</span></a>
+<a class="sidebar-link" href="./13-hybrid-sampled-control.html"><span class="sidebar-index">14</span><span class="sidebar-title">混杂系统与采样控制专题</span></a>
+        </nav>
+      </div>
+    </aside>
+    <main class="book-main">
+      <header class="book-page-header">
+        <div class="page-eyebrow">第1册·章节页08</div>
+        <h1 id="volume1--08-optimal-control-theory">第8章 最优控制理论</h1>
+        <p>本页是章节正文页。左侧目录用于回到本卷其他章节，底部导航用于前后章跳转。</p>
+      </header>
+      <article class="book-article">
+        <h2 id="问题背景-7">8.1 问题背景</h2>
+<p>最优控制回答的是：在动力学和约束条件下，如何选择控制输入，使轨迹、终端误差和控制代价达到一个可解释、可比较、可实现的折中。</p>
+<p>在高超声速飞行器中，最优控制不仅服务于 LQR
+这一类局部二次设计，也服务于再入轨迹优化、滑翔能量管理、模型预测控制、凸优化制导以及制导控制一体化。这里真正重要的不是”名字里有没有最优”，而是问题是否被清晰地写成了状态、输入、约束、代价和求解方式的组合。</p>
+<p>一个标准最优控制问题通常写成</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><munder><mi>min</mi><mo>&#8289;</mo><mrow><mi>u</mi><mo stretchy="false" form="prefix">(</mo><mi>⋅</mi><mo stretchy="false" form="postfix">)</mo></mrow></munder><mi>J</mi><mo>=</mo><mi mathvariant="normal">Φ</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="prefix">(</mo><mi>T</mi><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">)</mo><mo>+</mo><msubsup><mo>∫</mo><msub><mi>t</mi><mn>0</mn></msub><mi>T</mi></msubsup><mi>L</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo>,</mo><mi>u</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo>,</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mspace width="0.167em"></mspace><mi>d</mi><mi>t</mi></mrow><annotation encoding="application/x-tex">
+\min_{u(\cdot)} J=\Phi(x(T))+\int_{t_0}^{T}L(x(t),u(t),t)\,dt
+</annotation></semantics></math></p>
+<p>并满足</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>x</mi><mo accent="true">̇</mo></mover><mo>=</mo><mi>f</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>u</mi><mo>,</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo>,</mo><mspace width="2.0em"></mspace><mi>c</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>u</mi><mo>,</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo>≤</mo><mn>0</mn><mo>,</mo><mspace width="2.0em"></mspace><mi>ψ</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="prefix">(</mo><mi>T</mi><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mn>0</mn><mi>.</mi></mrow><annotation encoding="application/x-tex">
+\dot{x}=f(x,u,t), \qquad c(x,u,t)\le 0, \qquad \psi(x(T))=0.
+</annotation></semantics></math></p>
+<p>其中
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>x</mi><annotation encoding="application/x-tex">x</annotation></semantics></math>
+是状态，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>u</mi><annotation encoding="application/x-tex">u</annotation></semantics></math>
+是控制输入，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>t</mi><mn>0</mn></msub><annotation encoding="application/x-tex">t_0</annotation></semantics></math>
+是初始时刻，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>T</mi><annotation encoding="application/x-tex">T</annotation></semantics></math>
+是终端时刻，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi mathvariant="normal">Φ</mi><annotation encoding="application/x-tex">\Phi</annotation></semantics></math>
+是终端代价，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>L</mi><annotation encoding="application/x-tex">L</annotation></semantics></math>
+是过程代价，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>f</mi><annotation encoding="application/x-tex">f</annotation></semantics></math>
+是系统动力学，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>c</mi><annotation encoding="application/x-tex">c</annotation></semantics></math>
+是路径约束，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ψ</mi><annotation encoding="application/x-tex">\psi</annotation></semantics></math>
+是终端约束。</p>
+<p>对高超声速飞行器来说，常见的约束包括动压、热流、过载、攻角、侧滑角、舵偏、舵速、推力范围和终端命中条件。最优控制的任务就是把这些约束和目标放进同一个问题包里，而不是事后拿一条仿真曲线去补救。</p>
+<h2 id="性能指标与问题写法">8.2 性能指标与问题写法</h2>
+<p>最优控制的性能指标通常分成三类。</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>J</mi><mo>=</mo><mi mathvariant="normal">Φ</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="prefix">(</mo><mi>T</mi><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">)</mo><mo>+</mo><msubsup><mo>∫</mo><msub><mi>t</mi><mn>0</mn></msub><mi>T</mi></msubsup><mi>L</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo>,</mo><mi>u</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo>,</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mspace width="0.167em"></mspace><mi>d</mi><mi>t</mi><mi>.</mi></mrow><annotation encoding="application/x-tex">
+J=\Phi(x(T))+\int_{t_0}^{T}L(x(t),u(t),t)\,dt.
+</annotation></semantics></math></p>
+<p>其中
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Φ</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="prefix">(</mo><mi>T</mi><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\Phi(x(T))</annotation></semantics></math>
+评价终端状态误差，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>L</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo>,</mo><mi>u</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo>,</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">L(x(t),u(t),t)</annotation></semantics></math>
+评价过程性能，积分区间
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">[</mo><msub><mi>t</mi><mn>0</mn></msub><mo>,</mo><mi>T</mi><mo stretchy="false" form="postfix">]</mo></mrow><annotation encoding="application/x-tex">[t_0,T]</annotation></semantics></math>
+给出优化时域。</p>
+<p>若任务是速度和高度联合跟踪，可取</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>L</mi><mo>=</mo><mo stretchy="false" form="prefix">(</mo><mi>V</mi><mo>−</mo><msub><mi>V</mi><mi>r</mi></msub><msup><mo stretchy="false" form="postfix">)</mo><mn>2</mn></msup><msub><mi>q</mi><mi>V</mi></msub><mo>+</mo><mo stretchy="false" form="prefix">(</mo><mi>h</mi><mo>−</mo><msub><mi>h</mi><mi>r</mi></msub><msup><mo stretchy="false" form="postfix">)</mo><mn>2</mn></msup><msub><mi>q</mi><mi>h</mi></msub><mo>+</mo><msup><mi>u</mi><mi>⊤</mi></msup><mi>R</mi><mi>u</mi><mi>.</mi></mrow><annotation encoding="application/x-tex">
+L=(V-V_r)^2 q_V+(h-h_r)^2 q_h+u^\top Ru.
+</annotation></semantics></math></p>
+<p>这里
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>V</mi><annotation encoding="application/x-tex">V</annotation></semantics></math>
+是速度，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>h</mi><annotation encoding="application/x-tex">h</annotation></semantics></math>
+是高度，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>V</mi><mi>r</mi></msub><annotation encoding="application/x-tex">V_r</annotation></semantics></math>
+和
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>h</mi><mi>r</mi></msub><annotation encoding="application/x-tex">h_r</annotation></semantics></math>
+是参考速度和参考高度，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>q</mi><mi>V</mi></msub><annotation encoding="application/x-tex">q_V</annotation></semantics></math>
+和
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>q</mi><mi>h</mi></msub><annotation encoding="application/x-tex">q_h</annotation></semantics></math>
+是误差权重，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>u</mi><annotation encoding="application/x-tex">u</annotation></semantics></math>
+是控制向量，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>R</mi><annotation encoding="application/x-tex">R</annotation></semantics></math>
+是控制权重矩阵。</p>
+<p>为了让问题更接近工程实现，通常还要显式列出：</p>
+<table>
+<thead>
+<tr>
+<th>项目</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>终端目标</td>
+<td>终端位置、速度、落角、能量或到达时间</td>
+</tr>
+<tr>
+<td>路径约束</td>
+<td>动压、热流、过载、攻角、侧滑角、能量走廊</td>
+</tr>
+<tr>
+<td>输入约束</td>
+<td>舵偏、舵速、推力、倾侧角、分配余量</td>
+</tr>
+<tr>
+<td>求解方式</td>
+<td>间接法、直接法、模型预测控制、序列凸优化</td>
+</tr>
+<tr>
+<td>闭环接口</td>
+<td>参考轨迹、前馈输入、反馈控制器、安全滤波器</td>
+</tr>
+</tbody>
+</table>
+<p>这类写法的目的，是把”最优”从一个口号变成一个可核查的数学对象。</p>
+<h2 id="可行最优和可实现">8.3 可行、最优和可实现</h2>
+<p>最优控制里至少要区分三件事。</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>层次</th>
+<th>含义</th>
+<th>高超声速控制中的典型问题</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>可行</td>
+<td>存在满足动力学和约束的轨迹</td>
+<td>再入走廊、热流和舵偏是否能同时满足</td>
+</tr>
+<tr>
+<td>最优</td>
+<td>在可行集合内代价最小</td>
+<td>航程、终端误差、热载荷和控制能量如何折中</td>
+</tr>
+<tr>
+<td>可实现</td>
+<td>控制器能在实时、估计误差和执行机构限制下执行</td>
+<td>求解时间、带宽、饱和和控制分配是否可接受</td>
+</tr>
+</tbody>
+</table>
+<p>很多实现问题出在把”离线求得一条参考轨迹”误当成”闭环已经安全”。实际上，优化解只说明标称模型下存在候选解，不自动说明闭环系统可执行。</p>
+<p>若路径约束写成</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>c</mi><mi>i</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo>,</mo><mi>u</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo>,</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo>≤</mo><mn>0</mn><mo>,</mo></mrow><annotation encoding="application/x-tex">
+c_i(x(t),u(t),t)\le 0,
+</annotation></semantics></math></p>
+<p>就必须说明它是连续时间约束，还是仅在离散节点检查；若状态估计有误差，就要说明是否留了保守裕度；若数值求解失败，还要说明回退策略是什么。</p>
+<h2 id="pontryagin-极小值原理">8.4 Pontryagin 极小值原理</h2>
+<p>Pontryagin 极小值原理给出最优轨迹的一阶必要条件。定义 Hamiltonian</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>H</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>u</mi><mo>,</mo><mi>λ</mi><mo>,</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mi>L</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>u</mi><mo>,</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo>+</mo><msup><mi>λ</mi><mi>⊤</mi></msup><mi>f</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>u</mi><mo>,</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo>,</mo></mrow><annotation encoding="application/x-tex">
+H(x,u,\lambda,t)=L(x,u,t)+\lambda^\top f(x,u,t),
+</annotation></semantics></math></p>
+<p>其中
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>λ</mi><annotation encoding="application/x-tex">\lambda</annotation></semantics></math>
+是协状态。</p>
+<p>必要条件通常写成</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>x</mi><mo accent="true">̇</mo></mover><mo>=</mo><mfrac><mrow><mi>∂</mi><mi>H</mi></mrow><mrow><mi>∂</mi><mi>λ</mi></mrow></mfrac><mo>,</mo><mspace width="2.0em"></mspace><mover><mi>λ</mi><mo accent="true">̇</mo></mover><mo>=</mo><mi>−</mi><mfrac><mrow><mi>∂</mi><mi>H</mi></mrow><mrow><mi>∂</mi><mi>x</mi></mrow></mfrac><mo>,</mo><mspace width="2.0em"></mspace><msup><mi>u</mi><mo>⋆</mo></msup><mo>=</mo><mi>arg</mi><mo>&#8289;</mo><munder><mi>min</mi><mo>&#8289;</mo><mi>u</mi></munder><mi>H</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>u</mi><mo>,</mo><mi>λ</mi><mo>,</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mi>.</mi></mrow><annotation encoding="application/x-tex">
+\dot{x}=\frac{\partial H}{\partial \lambda}, \qquad
+\dot{\lambda}=-\frac{\partial H}{\partial x}, \qquad
+u^\star=\arg\min_u H(x,u,\lambda,t).
+</annotation></semantics></math></p>
+<p>这里
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>u</mi><mo>⋆</mo></msup><annotation encoding="application/x-tex">u^\star</annotation></semantics></math>
+是最优控制输入。第一条是状态方程，第二条是协状态方程，第三条是最优性条件。</p>
+<p>若终端状态自由，则常见的终端条件为</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>λ</mi><mo stretchy="false" form="prefix">(</mo><mi>T</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mfrac><mrow><mi>∂</mi><mi mathvariant="normal">Φ</mi></mrow><mrow><mi>∂</mi><mi>x</mi></mrow></mfrac><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="prefix">(</mo><mi>T</mi><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">)</mo><mi>.</mi></mrow><annotation encoding="application/x-tex">
+\lambda(T)=\frac{\partial \Phi}{\partial x}(x(T)).
+</annotation></semantics></math></p>
+<p>若还有终端等式约束</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ψ</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="prefix">(</mo><mi>T</mi><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mn>0</mn><mo>,</mo></mrow><annotation encoding="application/x-tex">
+\psi(x(T))=0,
+</annotation></semantics></math></p>
+<p>则终端条件要再加上相应的乘子项。</p>
+<p>PMP
+的优点是能揭示最优控制结构，缺点是通常会把问题变成两点边值问题，对初值敏感、对路径约束处理也不直接。对高超声速再入和滑翔轨迹优化而言，PMP
+很适合解释结构，不一定适合直接在线实现。</p>
+<h2 id="直接法离散化与数值求解">8.5 直接法、离散化与数值求解</h2>
+<p>直接法先离散状态和控制，再把连续最优控制问题转成有限维优化问题：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><munder><mi>min</mi><mo>&#8289;</mo><mrow><mi>X</mi><mo>,</mo><mi>U</mi></mrow></munder><msub><mi>J</mi><mi>d</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>X</mi><mo>,</mo><mi>U</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
+\min_{X,U} J_d(X,U)
+</annotation></semantics></math></p>
+<p>并满足离散动力学</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>x</mi><mrow><mi>k</mi><mo>+</mo><mn>1</mn></mrow></msub><mo>=</mo><msub><mi>F</mi><mi>d</mi></msub><mo stretchy="false" form="prefix">(</mo><msub><mi>x</mi><mi>k</mi></msub><mo>,</mo><msub><mi>u</mi><mi>k</mi></msub><mo stretchy="false" form="postfix">)</mo><mo>,</mo></mrow><annotation encoding="application/x-tex">
+x_{k+1}=F_d(x_k,u_k),
+</annotation></semantics></math></p>
+<p>以及离散约束</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>c</mi><mi>d</mi></msub><mo stretchy="false" form="prefix">(</mo><msub><mi>x</mi><mi>k</mi></msub><mo>,</mo><msub><mi>u</mi><mi>k</mi></msub><mo stretchy="false" form="postfix">)</mo><mo>≤</mo><mn>0</mn><mi>.</mi></mrow><annotation encoding="application/x-tex">
+c_d(x_k,u_k)\le 0.
+</annotation></semantics></math></p>
+<p>这里
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>X</mi><annotation encoding="application/x-tex">X</annotation></semantics></math>
+和
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>U</mi><annotation encoding="application/x-tex">U</annotation></semantics></math>
+分别表示离散后的状态序列和控制序列，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>F</mi><mi>d</mi></msub><annotation encoding="application/x-tex">F_d</annotation></semantics></math>
+是离散动力学映射，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>J</mi><mi>d</mi></msub><annotation encoding="application/x-tex">J_d</annotation></semantics></math>
+是离散代价函数。</p>
+<p>高超声速轨迹优化中，常见直接法包括直接打靶、直接配点和伪谱方法。它们的优点是路径约束、输入约束和终端约束容易统一写入数值问题；缺点是网格点满足约束，不代表节点之间一定满足约束。</p>
+<p>因此，数值求解时至少要检查：</p>
+<ol type="1">
+<li>网格密度是否足以捕捉短时峰值；</li>
+<li>初始猜测是否接近可行域；</li>
+<li>求解器是否收敛，是否需要热启动；</li>
+<li>离线最优解是否经过闭环验证。</li>
+</ol>
+<h2 id="动态规划与-hjb-方程">8.6 动态规划与 HJB 方程</h2>
+<p>动态规划从价值函数出发。定义</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>V</mi><mo>⋆</mo></msup><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><munder><mi>min</mi><mo>&#8289;</mo><mrow><mi>u</mi><mo stretchy="false" form="prefix">(</mo><mi>⋅</mi><mo stretchy="false" form="postfix">)</mo></mrow></munder><mrow><mo stretchy="true" form="prefix">[</mo><mi mathvariant="normal">Φ</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="prefix">(</mo><mi>T</mi><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">)</mo><mo>+</mo><msubsup><mo>∫</mo><mi>t</mi><mi>T</mi></msubsup><mi>L</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>u</mi><mo>,</mo><mi>τ</mi><mo stretchy="false" form="postfix">)</mo><mspace width="0.167em"></mspace><mi>d</mi><mi>τ</mi><mo stretchy="true" form="postfix">]</mo></mrow><mi>.</mi></mrow><annotation encoding="application/x-tex">
+V^\star(x,t)=\min_{u(\cdot)}\left[\Phi(x(T))+\int_t^T L(x,u,\tau)\,d\tau\right].
+</annotation></semantics></math></p>
+<p>其中
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>V</mi><mo>⋆</mo></msup><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">V^\star(x,t)</annotation></semantics></math>
+是最优价值函数，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>τ</mi><annotation encoding="application/x-tex">\tau</annotation></semantics></math>
+是积分变量。</p>
+<p>对应的 Hamilton-Jacobi-Bellman 方程为</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>−</mi><mfrac><mrow><mi>∂</mi><msup><mi>V</mi><mo>⋆</mo></msup></mrow><mrow><mi>∂</mi><mi>t</mi></mrow></mfrac><mo>=</mo><munder><mi>min</mi><mo>&#8289;</mo><mi>u</mi></munder><mrow><mo stretchy="true" form="prefix">[</mo><mi>L</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>u</mi><mo>,</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo>+</mo><mfrac><mrow><mi>∂</mi><msup><mi>V</mi><mo>⋆</mo></msup></mrow><mrow><mi>∂</mi><mi>x</mi></mrow></mfrac><mi>f</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>u</mi><mo>,</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo stretchy="true" form="postfix">]</mo></mrow><mi>.</mi></mrow><annotation encoding="application/x-tex">
+-\frac{\partial V^\star}{\partial t}
+=\min_u\left[L(x,u,t)+\frac{\partial V^\star}{\partial x}f(x,u,t)\right].
+</annotation></semantics></math></p>
+<p>这里
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mfrac><mrow><mi>∂</mi><msup><mi>V</mi><mo>⋆</mo></msup></mrow><mrow><mi>∂</mi><mi>x</mi></mrow></mfrac><annotation encoding="application/x-tex">\frac{\partial V^\star}{\partial x}</annotation></semantics></math>
+是价值函数对状态的梯度。</p>
+<p>HJB
+的优点是天然给出反馈最优形式，缺点是高维系统几乎总是算不动。对高超声速六自由度系统来说，直接求全维
+HJB 通常不可行，所以工程上往往退回到
+LQR、轨迹优化加反馈、模型预测控制或近似动态规划。</p>
+<h2 id="lqr-与有限时域-lqr">8.7 LQR 与有限时域 LQR</h2>
+<p>线性系统</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>x</mi><mo accent="true">̇</mo></mover><mo>=</mo><mi>A</mi><mi>x</mi><mo>+</mo><mi>B</mi><mi>u</mi></mrow><annotation encoding="application/x-tex">
+\dot{x}=Ax+Bu
+</annotation></semantics></math></p>
+<p>和二次型代价</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>J</mi><mo>=</mo><msubsup><mo>∫</mo><mn>0</mn><mi>∞</mi></msubsup><mo stretchy="false" form="prefix">(</mo><msup><mi>x</mi><mi>⊤</mi></msup><mi>Q</mi><mi>x</mi><mo>+</mo><msup><mi>u</mi><mi>⊤</mi></msup><mi>R</mi><mi>u</mi><mo stretchy="false" form="postfix">)</mo><mspace width="0.167em"></mspace><mi>d</mi><mi>t</mi></mrow><annotation encoding="application/x-tex">
+J=\int_0^\infty (x^\top Qx+u^\top Ru)\,dt
+</annotation></semantics></math></p>
+<p>对应的 LQR 控制律是</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>u</mi><mo>=</mo><mi>−</mi><mi>K</mi><mi>x</mi><mo>,</mo></mrow><annotation encoding="application/x-tex">
+u=-Kx,
+</annotation></semantics></math></p>
+<p>其中</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>K</mi><mo>=</mo><msup><mi>R</mi><mrow><mi>−</mi><mn>1</mn></mrow></msup><msup><mi>B</mi><mi>⊤</mi></msup><mi>P</mi><mi>.</mi></mrow><annotation encoding="application/x-tex">
+K=R^{-1}B^\top P.
+</annotation></semantics></math></p>
+<p>这里
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>A</mi><annotation encoding="application/x-tex">A</annotation></semantics></math>
+和
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>B</mi><annotation encoding="application/x-tex">B</annotation></semantics></math>
+是线性系统矩阵，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>Q</mi><annotation encoding="application/x-tex">Q</annotation></semantics></math>
+和
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>R</mi><annotation encoding="application/x-tex">R</annotation></semantics></math>
+是权重矩阵，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>P</mi><annotation encoding="application/x-tex">P</annotation></semantics></math>
+是代数 Riccati 方程的解。</p>
+<p>代数 Riccati 方程为</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>A</mi><mi>⊤</mi></msup><mi>P</mi><mo>+</mo><mi>P</mi><mi>A</mi><mo>−</mo><mi>P</mi><mi>B</mi><msup><mi>R</mi><mrow><mi>−</mi><mn>1</mn></mrow></msup><msup><mi>B</mi><mi>⊤</mi></msup><mi>P</mi><mo>+</mo><mi>Q</mi><mo>=</mo><mn>0</mn><mi>.</mi></mrow><annotation encoding="application/x-tex">
+A^\top P+PA-PBR^{-1}B^\top P+Q=0.
+</annotation></semantics></math></p>
+<p>有限时域 LQR 的代价通常写成</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>J</mi><mo>=</mo><mi>x</mi><mo stretchy="false" form="prefix">(</mo><mi>T</mi><msup><mo stretchy="false" form="postfix">)</mo><mi>⊤</mi></msup><mi>S</mi><mi>x</mi><mo stretchy="false" form="prefix">(</mo><mi>T</mi><mo stretchy="false" form="postfix">)</mo><mo>+</mo><msubsup><mo>∫</mo><mn>0</mn><mi>T</mi></msubsup><mo stretchy="false" form="prefix">(</mo><msup><mi>x</mi><mi>⊤</mi></msup><mi>Q</mi><mi>x</mi><mo>+</mo><msup><mi>u</mi><mi>⊤</mi></msup><mi>R</mi><mi>u</mi><mo stretchy="false" form="postfix">)</mo><mspace width="0.167em"></mspace><mi>d</mi><mi>t</mi><mi>.</mi></mrow><annotation encoding="application/x-tex">
+J=x(T)^\top Sx(T)+\int_0^T(x^\top Qx+u^\top Ru)\,dt.
+</annotation></semantics></math></p>
+<p>其中
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>S</mi><annotation encoding="application/x-tex">S</annotation></semantics></math>
+是终端权重矩阵。此时
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>P</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">P(t)</annotation></semantics></math>
+满足反向 Riccati 微分方程，并以
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>P</mi><mo stretchy="false" form="prefix">(</mo><mi>T</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mi>S</mi></mrow><annotation encoding="application/x-tex">P(T)=S</annotation></semantics></math>
+作为终端条件。</p>
+<p>LQR
+的意义不在于”真实飞行器就是二次最优”，而在于它给出局部线性模型下状态误差和控制能量之间的清晰折中，是很多飞行控制章节的基础模块。</p>
+<h2 id="参考轨迹与轨迹优化">8.8 参考轨迹与轨迹优化</h2>
+<p>在高超声速任务中，最优控制常先生成参考轨迹，再交给反馈控制器实现。一个典型的速度高度任务可以写成</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>V</mi><mo>→</mo><msub><mi>V</mi><mi>r</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo>,</mo><mspace width="2.0em"></mspace><mi>h</mi><mo>→</mo><msub><mi>h</mi><mi>r</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mi>.</mi></mrow><annotation encoding="application/x-tex">
+V\to V_r(t), \qquad h\to h_r(t).
+</annotation></semantics></math></p>
+<p>其中
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>V</mi><mi>r</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">V_r(t)</annotation></semantics></math>
+和
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>h</mi><mi>r</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">h_r(t)</annotation></semantics></math>
+是时间变化参考。</p>
+<p>若任务是”在保持速度高度跟踪的同时不突破动压上界”，则最小问题卡可以写成：</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>项目</th>
+<th>最小写法</th>
+<th>控制含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>跟踪目标</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>V</mi><mo>→</mo><msub><mi>V</mi><mi>r</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo>,</mo><mspace width="0.222em"></mspace><mi>h</mi><mo>→</mo><msub><mi>h</mi><mi>r</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">V\to V_r(t),\ h\to h_r(t)</annotation></semantics></math></td>
+<td>明确这是速度高度任务</td>
+</tr>
+<tr>
+<td>终端目标</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">|</mo><mi>V</mi><mo stretchy="false" form="prefix">(</mo><mi>T</mi><mo stretchy="false" form="postfix">)</mo><mo>−</mo><msub><mi>V</mi><mi>f</mi></msub><mo stretchy="false" form="prefix">|</mo><mo>,</mo><mspace width="0.222em"></mspace><mo stretchy="false" form="prefix">|</mo><mi>h</mi><mo stretchy="false" form="prefix">(</mo><mi>T</mi><mo stretchy="false" form="postfix">)</mo><mo>−</mo><msub><mi>h</mi><mi>f</mi></msub><mo stretchy="false" form="prefix">|</mo></mrow><annotation encoding="application/x-tex">|V(T)-V_f|,\ |h(T)-h_f|</annotation></semantics></math>
+或终端窗口</td>
+<td>区分过程性能和任务完成</td>
+</tr>
+<tr>
+<td>过程代价</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>∫</mo><mo stretchy="false" form="prefix">[</mo><mo stretchy="false" form="prefix">(</mo><mi>V</mi><mo>−</mo><msub><mi>V</mi><mi>r</mi></msub><msup><mo stretchy="false" form="postfix">)</mo><mn>2</mn></msup><msub><mi>q</mi><mi>V</mi></msub><mo>+</mo><mo stretchy="false" form="prefix">(</mo><mi>h</mi><mo>−</mo><msub><mi>h</mi><mi>r</mi></msub><msup><mo stretchy="false" form="postfix">)</mo><mn>2</mn></msup><msub><mi>q</mi><mi>h</mi></msub><mo>+</mo><msub><mi>r</mi><mi>α</mi></msub><msup><mi>α</mi><mn>2</mn></msup><mo>+</mo><msub><mi>r</mi><mi>T</mi></msub><msubsup><mi>δ</mi><mi>T</mi><mn>2</mn></msubsup><mo stretchy="false" form="postfix">]</mo><mi>d</mi><mi>t</mi></mrow><annotation encoding="application/x-tex">\int[(V-V_r)^2q_V+(h-h_r)^2q_h+r_\alpha\alpha^2+r_T\delta_T^2]dt</annotation></semantics></math></td>
+<td>明确误差与输入代价的折中</td>
+</tr>
+<tr>
+<td>路径约束</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>q</mi><mo accent="true">‾</mo></mover><mo stretchy="false" form="prefix">(</mo><mi>V</mi><mo>,</mo><mi>h</mi><mo stretchy="false" form="postfix">)</mo><mo>≤</mo><msub><mover><mi>q</mi><mo accent="true">‾</mo></mover><mi>max</mi><mo>&#8289;</mo></msub></mrow><annotation encoding="application/x-tex">\bar q(V,h)\le \bar q_{\max}</annotation></semantics></math></td>
+<td>把动压上界写进问题本身</td>
+</tr>
+<tr>
+<td>输入约束</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>α</mi><mi>min</mi><mo>&#8289;</mo></msub><mo>≤</mo><mi>α</mi><mo>≤</mo><msub><mi>α</mi><mi>max</mi><mo>&#8289;</mo></msub><mo>,</mo><mspace width="0.222em"></mspace><mn>0</mn><mo>≤</mo><msub><mi>δ</mi><mi>T</mi></msub><mo>≤</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">\alpha_{\min}\le\alpha\le\alpha_{\max},\ 0\le\delta_T\le 1</annotation></semantics></math></td>
+<td>让最优解具备执行意义</td>
+</tr>
+<tr>
+<td>输入速率约束</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">|</mo><mover><mi>α</mi><mo accent="true">̇</mo></mover><mo stretchy="false" form="prefix">|</mo><mo>≤</mo><msub><mover><mi>α</mi><mo accent="true">̇</mo></mover><mi>max</mi><mo>&#8289;</mo></msub><mo>,</mo><mspace width="0.222em"></mspace><mo stretchy="false" form="prefix">|</mo><msub><mover><mi>δ</mi><mo accent="true">̇</mo></mover><mi>T</mi></msub><mo stretchy="false" form="prefix">|</mo><mo>≤</mo><msub><mover><mi>δ</mi><mo accent="true">̇</mo></mover><mrow><mi>T</mi><mo>,</mo><mi>max</mi><mo>&#8289;</mo></mrow></msub></mrow><annotation encoding="application/x-tex">|\dot{\alpha}|\le \dot{\alpha}_{\max},\ |\dot{\delta}_T|\le \dot{\delta}_{T,\max}</annotation></semantics></math></td>
+<td>防止不可实现的突变命令</td>
+</tr>
+<tr>
+<td>闭环接口</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>x</mi><mi>r</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo>,</mo><msub><mi>u</mi><mi>r</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">x_r(t),u_r(t)</annotation></semantics></math>
+交给跟踪控制器或模型预测控制</td>
+<td>把离线优化和真实闭环分开</td>
+</tr>
+</tbody>
+</table>
+<p>这里
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mover><mi>q</mi><mo accent="true">‾</mo></mover><annotation encoding="application/x-tex">\bar q</annotation></semantics></math>
+是动压，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mover><mi>q</mi><mo accent="true">‾</mo></mover><mi>max</mi><mo>&#8289;</mo></msub><annotation encoding="application/x-tex">\bar q_{\max}</annotation></semantics></math>
+是动压上界，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>α</mi><annotation encoding="application/x-tex">\alpha</annotation></semantics></math>
+是攻角命令，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>δ</mi><mi>T</mi></msub><annotation encoding="application/x-tex">\delta_T</annotation></semantics></math>
+是推力指令或等效推力指令。</p>
+<p>这类问题既可以给第42章的障碍 Lyapunov
+方法提供边界，也可以给第44章的模型预测控制提供约束模板，还可以给第51章的巡航控制提供任务层定义。</p>
+<h2 id="约束饱和与边界控制">8.9 约束、饱和与边界控制</h2>
+<p>若控制输入有界，</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>u</mi><mi>min</mi><mo>&#8289;</mo></msub><mo>≤</mo><mi>u</mi><mo>≤</mo><msub><mi>u</mi><mi>max</mi><mo>&#8289;</mo></msub><mo>,</mo></mrow><annotation encoding="application/x-tex">
+u_{\min}\le u\le u_{\max},
+</annotation></semantics></math></p>
+<p>则最优输入可能长时间落在边界。这里
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>u</mi><mi>min</mi><mo>&#8289;</mo></msub><annotation encoding="application/x-tex">u_{\min}</annotation></semantics></math>
+和
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>u</mi><mi>max</mi><mo>&#8289;</mo></msub><annotation encoding="application/x-tex">u_{\max}</annotation></semantics></math>
+分别是控制下界和上界。</p>
+<p>对舵面、推力、倾侧角或过载命令而言，这意味着数学上最优的轨迹，工程上未必安全。饱和可能引入舵速约束、热流峰值、结构载荷上升和鲁棒性下降，因此必须和输入饱和、控制分配以及安全滤波一起分析。</p>
+<p>高超声速任务中，路径约束比终端代价更值得认真对待。因为终端误差可以事后补偿，而热流、动压和过载越界往往不可逆。</p>
+<h2 id="轨迹优化与反馈控制">8.10 轨迹优化与反馈控制</h2>
+<p>轨迹优化回答”应该走哪条路”，反馈控制回答”扰动来了怎么修正”。</p>
+<p>二者不能混为一谈。轨迹优化给出的是候选参考
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>x</mi><mi>r</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo>,</mo><msub><mi>u</mi><mi>r</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">x_r(t),u_r(t)</annotation></semantics></math>，反馈控制要面对模型误差、执行机构限制、状态估计误差和外部扰动。</p>
+<p>最稳妥的工程链路是：</p>
+<ol type="1">
+<li>离线求解轨迹优化问题；</li>
+<li>通过反馈控制器跟踪该轨迹；</li>
+<li>用闭环仿真检查约束是否仍然满足；</li>
+<li>若出现越界风险，再引入安全滤波或参考治理器。</li>
+</ol>
+<p>如果只报告开环优化轨迹而不报告闭环跟踪结果，就不能把结论写成”控制成功”。</p>
+<h2 id="模型预测控制与滚动优化">8.11 模型预测控制与滚动优化</h2>
+<p>模型预测控制把最优控制问题放进滚动时域。每个采样时刻都重新求解一个有限时域问题，取当前一步控制输入并向前滚动。</p>
+<p>它的优势是能自然处理约束，典型形式是</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><munder><mi>min</mi><mo>&#8289;</mo><msub><mi>u</mi><mrow><mi>k</mi><mo>:</mo><mi>k</mi><mo>+</mo><mi>N</mi><mo>−</mo><mn>1</mn></mrow></msub></munder><msub><mi>J</mi><mi>N</mi></msub></mrow><annotation encoding="application/x-tex">
+\min_{u_{k:k+N-1}} J_N
+</annotation></semantics></math></p>
+<p>并满足离散动力学和约束集合。这里
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>N</mi><annotation encoding="application/x-tex">N</annotation></semantics></math>
+是预测步长，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>J</mi><mi>N</mi></msub><annotation encoding="application/x-tex">J_N</annotation></semantics></math>
+是有限时域代价。</p>
+<p>模型预测控制在高超声速场景里很有吸引力，因为它可以把动压、热流、舵偏、舵速和终端窗口统一写入同一个问题。但它也必须回答三个现实问题：求解是否足够快，递推是否可行，回退策略是否明确。</p>
+<h2 id="最优控制最小验证协议与失败诊断">8.12
+最优控制最小验证协议与失败诊断</h2>
+<p>最优控制章节如果只有目标函数和求解器名字，通常还达不到参考书级门槛。更稳妥的写法，是在问题定义后立刻给出最小验证协议。</p>
+<ol type="1">
+<li>检查离散节点约束和节点间约束是否都被验证；</li>
+<li>记录求解器是否收敛、是否热启动、是否触发失败策略；</li>
+<li>区分”单次可行”“递推可行”“闭环稳定”三种结论；</li>
+<li>报告约束最大值、违反积分、终端误差、求解时间和回退次数；</li>
+<li>用带扰动闭环仿真检查开环最优参考是否真的可执行。</li>
+</ol>
+<p>常见失败症状可按下表诊断：</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>症状</th>
+<th>常见原因</th>
+<th>应优先检查的位置</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>求解器直接宣告不可行</td>
+<td>初始状态已在安全可行域外，或终端/输入约束同时过紧</td>
+<td>初始条件、终端窗口、输入限幅</td>
+</tr>
+<tr>
+<td>目标函数下降但动压仍越界</td>
+<td>只用了软约束，或节点间未做路径约束检查</td>
+<td>约束类型、网格密度、节点间检查</td>
+</tr>
+<tr>
+<td>开环参考很好，闭环跟踪却失败</td>
+<td>反馈带宽不足、执行机构饱和或控制分配残差过大</td>
+<td>跟踪控制器、舵速限制、分配层</td>
+</tr>
+<tr>
+<td>在线模型预测控制偶尔超时</td>
+<td>预测时域过长、模型过高阶、热启动或回退不足</td>
+<td>求解配置、模型阶次、实时边界</td>
+</tr>
+<tr>
+<td>终端命中只在标称模型成立</td>
+<td>没有把估计误差、扰动和执行机构延迟留进安全裕度</td>
+<td>终端窗口、裕度设计、闭环扰动验证</td>
+</tr>
+</tbody>
+</table>
+<p>最优控制失败时，问题往往不在”算法不够高级”，而在于问题卡没有把对象、约束、数值设置和闭环接口写完整。</p>
+<h2 id="最优控制问题写法">8.13 最优控制问题写法</h2>
+<p>最优控制问题不能只写一句”最小化某个代价”。为了让后续轨迹优化、LQR/LQT、模型预测控制、控制分配和安全滤波使用同一套定义，应把问题整理成可交付的问题包。</p>
+<p>一个最优控制问题包至少应包含：</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>字段</th>
+<th>应记录内容</th>
+<th>控制含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>任务类型</td>
+<td>配平调节、轨迹跟踪、再入制导、滑翔能量管理、控制分配或安全滤波</td>
+<td>决定代价和约束的优先级</td>
+</tr>
+<tr>
+<td>状态与输入</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>x</mi><mo>,</mo><mi>u</mi></mrow><annotation encoding="application/x-tex">x,u</annotation></semantics></math>
+的定义、单位、坐标系、真实输入和虚拟输入</td>
+<td>防止把攻角命令、舵偏和力矩命令混用</td>
+</tr>
+<tr>
+<td>动力学</td>
+<td>连续模型
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>u</mi><mo>,</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">f(x,u,t)</annotation></semantics></math>
+或离散模型
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>F</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>u</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">F(x,u)</annotation></semantics></math>，以及适用飞行区域</td>
+<td>明确优化问题依赖的对象模型</td>
+</tr>
+<tr>
+<td>代价函数</td>
+<td>终端代价、过程代价、控制代价、松弛变量代价和尺度化方式</td>
+<td>说明“最优”到底优化什么</td>
+</tr>
+<tr>
+<td>状态约束</td>
+<td>动压、热流、过载、攻角、侧滑、能量走廊、终端状态</td>
+<td>把安全边界放入问题本身</td>
+</tr>
+<tr>
+<td>输入约束</td>
+<td>舵偏、舵速、推力、倾侧角、控制分配余量</td>
+<td>判断控制序列是否可执行</td>
+</tr>
+<tr>
+<td>终端条件</td>
+<td>终端位置、速度、落角、时间、剩余能量或终端集合</td>
+<td>区分过程跟踪和任务完成</td>
+</tr>
+<tr>
+<td>约束类型</td>
+<td>硬约束、软约束、保守裕度和违反惩罚</td>
+<td>防止软约束被误读为安全保证</td>
+</tr>
+<tr>
+<td>离散化</td>
+<td>网格、配点方式、采样周期、积分格式和节点间约束检查</td>
+<td>判断数值解是否可信</td>
+</tr>
+<tr>
+<td>求解配置</td>
+<td>求解器、容差、初值、热启动、最大迭代和失败判据</td>
+<td>支撑可重复实验和失败诊断</td>
+</tr>
+<tr>
+<td>实时边界</td>
+<td>求解时间、回退、计算平台和最坏情况处理</td>
+<td>区分离线优化和在线控制</td>
+</tr>
+<tr>
+<td>闭环接口</td>
+<td>参考轨迹、前馈输入、反馈控制器、安全层和估计误差裕度</td>
+<td>连接轨迹优化与真实闭环</td>
+</tr>
+<tr>
+<td>验证指标</td>
+<td>可行率、求解失败率、最大约束值、违反积分、终端误差和控制代价</td>
+<td>让“可行、最优、可实现”可核查</td>
+</tr>
+</tbody>
+</table>
+<p>如果这些字段没有明确导出，最优控制就很容易停留在”一个漂亮的解”上，而不是成为可以交给控制器、控制分配和安全层的对象。</p>
+<h2 id="证据层次及后续接口">8.14 证据层次及后续接口</h2>
+<p>最优控制的证据强度差异很大。离线轨迹优化、局部
+LQR/LQT、在线模型预测控制、QP
+安全滤波和控制分配优化，即使都写成优化问题，可支撑的结论也并不相同。</p>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr>
+<th>等级</th>
+<th>证据</th>
+<th>能支持的结论</th>
+<th>不能支持的结论</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>O0</td>
+<td>只给单次优化轨迹、代价值或终端命中结果</td>
+<td>标称模型下求解器给出了候选解</td>
+<td>不能证明约束在节点间满足，更不能证明闭环可执行</td>
+</tr>
+<tr>
+<td>O1</td>
+<td>增加可行率、节点间约束检查、求解时间、回退次数和最大约束值</td>
+<td>给定离散化和求解设置下，问题定义可复查、数值解可复核</td>
+<td>不能证明扰动下递推可行，也不能证明跟踪器足以实现该解</td>
+</tr>
+<tr>
+<td>O2</td>
+<td>增加闭环跟踪验证、执行机构限制、估计误差裕度和失败样本</td>
+<td>候选参考或控制序列在给定跟踪器与执行链下可执行</td>
+<td>不能替代多飞行点或统计性验证</td>
+</tr>
+<tr>
+<td>O3</td>
+<td>增加多飞行点、多初值、Monte Carlo、求解超时与不可行统计</td>
+<td>能支持样本内闭环可实现性和实时边界描述</td>
+<td>不能写成全包线最优或全部扰动下稳定保证</td>
+</tr>
+<tr>
+<td>O4</td>
+<td>增加离散实现、控制分配、安全滤波、容错或 IGC 链路后的综合指标</td>
+<td>优化模块已进入更完整的工程闭环链</td>
+<td>仍不能替代高保真对象和飞行试验</td>
+</tr>
+</tbody>
+</table>
+<p>从优化解进入工程闭环时，至少要经过下表中的交接：</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>后续模块</th>
+<th>从最优控制接收什么</th>
+<th>必须补充什么</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>LQR/LQT</td>
+<td>局部线性模型、二次代价权重、终端权重和参考轨迹</td>
+<td>权重尺度化、输入峰值、闭环极点和非线性验证</td>
+</tr>
+<tr>
+<td>轨迹优化跟踪</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>x</mi><mi>r</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo>,</mo><msub><mi>u</mi><mi>r</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">x_r(t),u_r(t)</annotation></semantics></math>、路径约束裕度和终端条件</td>
+<td>反馈增益、跟踪带宽、执行机构限制和扰动裕度</td>
+</tr>
+<tr>
+<td>模型预测控制</td>
+<td>时域、离散模型、约束集合、终端代价和求解配置</td>
+<td>递推可行性、求解失败处理、实时计算和闭环稳定证据</td>
+</tr>
+<tr>
+<td>制导控制一体化</td>
+<td>终端约束、路径走廊、命令转换链和任务代价</td>
+<td>姿态内环、控制分配、估计误差和命令限速</td>
+</tr>
+<tr>
+<td>控制分配</td>
+<td>期望力矩或力、舵面约束、残差权重和优先级</td>
+<td>故障后可达集合、速率限制和分配残差反馈路径</td>
+</tr>
+<tr>
+<td>安全滤波或参考治理器</td>
+<td>安全集合、路径约束梯度、松弛变量代价和失效回退</td>
+<td>高阶约束相对阶、可行性和采样间安全</td>
+</tr>
+<tr>
+<td>仿真验证</td>
+<td>优化日志、求解时间、约束裕度和失败样本</td>
+<td>Monte Carlo、节点间检查、扰动扫描和报告表格</td>
+</tr>
+</tbody>
+</table>
+<p>这张表的关键，是把”数值最优”降到它应有的位置：它只是候选参考或候选控制序列，不自动等于闭环安全。</p>
+<h2 id="从最优轨迹到闭环实现的最小验证口径">8.15
+从最优轨迹到闭环实现的最小验证口径</h2>
+<p>离线优化、在线滚动和闭环执行之间还隔着一条很长的实现链。为了把这条链写清楚，至少要交代下面几个层次。</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>层次</th>
+<th>应回答的问题</th>
+<th>典型证据</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>优化模型</td>
+<td>代价、状态、输入、路径约束和终端约束是否定义完整</td>
+<td>问题包、KKT 条件、离散化描述</td>
+</tr>
+<tr>
+<td>数值求解</td>
+<td>求解是否收敛，是否有失败样本</td>
+<td>求解日志、不可行次数、求解时间</td>
+</tr>
+<tr>
+<td>候选参考</td>
+<td>生成的
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>x</mi><mi>r</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo>,</mo><msub><mi>u</mi><mi>r</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">x_r(t),u_r(t)</annotation></semantics></math>
+是否满足任务意图</td>
+<td>轨迹图、终端误差、约束裕度</td>
+</tr>
+<tr>
+<td>闭环跟踪</td>
+<td>跟踪器是否能在扰动和执行机构限制下实现候选解</td>
+<td>跟踪误差、舵偏、舵速、残差</td>
+</tr>
+<tr>
+<td>在线修正</td>
+<td>模型预测控制、参考治理器或安全滤波是否改变了原始最优解</td>
+<td>修正幅值、激活次数、失效回退</td>
+</tr>
+<tr>
+<td>工程判定</td>
+<td>闭环能否在规定包线内稳定执行</td>
+<td>通过率、最坏样本、约束违反积分</td>
+</tr>
+</tbody>
+</table>
+<p>这个验证口径的关键，是把”最优轨迹本身”与”轨迹能否执行”分开。前者回答规划问题，后者回答控制问题。</p>
+<h2 id="常见错误-6">8.16 常见错误</h2>
+<ol type="1">
+<li>控制器没有求解优化问题，却称为最优控制器。</li>
+<li>只给 LQR，就声称解决非线性约束最优控制。</li>
+<li>轨迹优化成功，却没有反馈闭环验证。</li>
+<li>只把约束加在代价中，不检查真实约束违反。</li>
+<li>在线模型预测控制不报告计算时间和不可行次数。</li>
+<li>终端约束和路径约束混写，导致问题定义不清。</li>
+<li>轨迹优化只检查离散节点，不检查节点之间的路径约束。</li>
+<li>LQR 权重没有尺度化，导致权重含义和物理代价不一致。</li>
+<li>最优轨迹长时间贴边运行，却没有估计误差和执行机构延迟裕度。</li>
+<li>把软约束罚项当成硬安全保证。</li>
+<li>只报告目标函数下降，不报告约束违反、求解失败和回退。</li>
+<li>没有区分离线轨迹优化、在线模型预测控制、局部 LQR 和安全滤波 QP
+的结论边界。</li>
+</ol>
+<h2 id="本章小结-7">8.17 本章小结</h2>
+<p>最优控制为高超声速轨迹、制导、模型预测控制、LQR
+和控制分配提供统一语言。它的核心不是”把方法叫最优”，而是明确代价、动力学、约束和求解方式。</p>
+<p>本章最重要的工程边界是：可行、最优和可实现不是同一件事。参考轨迹求出来，只说明某个模型和某组约束下存在候选解；闭环能否执行，还取决于估计误差、执行机构、控制分配、求解时间、采样、扰动和安全裕度。</p>
+<h2 id="练习-6">8.18 练习</h2>
+<ol type="1">
+<li>写出一个含终端位置误差和控制能量的最优控制问题。</li>
+<li>推导 LQR 的性能指标和控制律形式。</li>
+<li>解释 PMP 和 HJB 的区别。</li>
+<li>给出三个高超声速路径约束。</li>
+<li>说明轨迹优化和反馈控制为什么不能混为一谈。</li>
+<li>写出带舵偏限制的控制分配优化目标。</li>
+<li>对有限时域 LQR，写出 Riccati 微分方程和终端条件。</li>
+<li>说明软约束和硬约束在热流约束控制中的区别。</li>
+<li>给出一个模型预测控制递推可行性失败的高超声速场景。</li>
+<li>选择一个再入或滑翔任务，列出代价、状态约束、输入约束和终端约束。</li>
+<li>为一个动压受限滑翔任务写出最优控制问题包，至少包含状态、输入、代价、路径约束、终端约束、离散化和求解失败处理。</li>
+<li>解释为什么离线轨迹优化得到的
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>x</mi><mi>r</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo>,</mo><msub><mi>u</mi><mi>r</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">x_r(t),u_r(t)</annotation></semantics></math>
+不能直接证明闭环安全。</li>
+<li>设计一个模型预测控制验证表，包含求解时间、可行率、回退次数、最大约束值和终端误差。</li>
+</ol>
+<h2 id="练习提示-5">8.19 练习提示</h2>
+<ol type="1">
+<li>先写
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>J</mi><mo>=</mo><mi mathvariant="normal">Φ</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="prefix">(</mo><mi>T</mi><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">)</mo><mo>+</mo><mo>∫</mo><mi>L</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>u</mi><mo>,</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mspace width="0.167em"></mspace><mi>d</mi><mi>t</mi></mrow><annotation encoding="application/x-tex">J=\Phi(x(T))+\int L(x,u,t)\,dt</annotation></semantics></math>，再列动力学、输入约束、路径约束和终端条件。</li>
+<li>LQR 使用线性模型和二次代价；控制律通常为
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>u</mi><mo>=</mo><mi>−</mi><mi>K</mi><mi>x</mi></mrow><annotation encoding="application/x-tex">u=-Kx</annotation></semantics></math>，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>K</mi><annotation encoding="application/x-tex">K</annotation></semantics></math>
+来自 Riccati 方程。</li>
+<li>PMP 给必要条件和协状态方程，HJB 给价值函数满足的偏微分方程；HJB
+更接近反馈最优，但高维难求。</li>
+<li>可选动压、热流、过载、攻角、侧滑角、进气道或能量走廊约束。</li>
+<li>轨迹优化给参考，反馈控制处理扰动、模型误差和执行机构限制。</li>
+<li>控制分配可最小化期望力矩与实际力矩残差，同时加入舵偏和舵速约束。</li>
+<li>有限时域 Riccati 方程从终端条件
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>P</mi><mo stretchy="false" form="prefix">(</mo><mi>T</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mi>S</mi></mrow><annotation encoding="application/x-tex">P(T)=S</annotation></semantics></math>
+反向积分。</li>
+<li>软约束允许违反但惩罚违反，硬约束要求可行解满足不等式；安全任务通常不能只依赖软约束。</li>
+<li>例如初始状态接近动压边界且执行机构余量不足，下一步优化可能没有可行输入。</li>
+<li>再入任务可列热流、过载和终端落点；滑翔任务可列能量、航程和动压走廊。</li>
+<li>问题包要写清楚连续约束是否只在网格点检查，以及求解失败时如何降级。</li>
+<li>闭环还要面对估计误差、姿态内环带宽、执行机构延迟、控制分配残差和扰动。</li>
+<li>模型预测控制验证表应区分单次优化可行、递推可行和闭环稳定，不要把求解器成功率当成完整稳定性证明。</li>
+</ol>
+
+      </article>
+      
+      <nav class="book-bottom-nav" aria-label="章节导航">
+        <a href="./07-singular-perturbation-multitime-scale.html">上一章：第7章 奇异摄动与多时间尺度系统</a>
+        <a href="./index.html">卷首页</a>
+        <a href="./09-robust-control-theory.html">下一章：第9章 鲁棒控制理论</a>
+      </nav>
+    </main>
+  </div>
+</body>
+</html>

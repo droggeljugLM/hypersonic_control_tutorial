@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>第26章 飞行控制系统架构</title>
+  <style>
+    :root {
+      --paper: #f7f3eb;
+      --ink: #1f2937;
+      --muted: #5b6472;
+      --line: color-mix(in srgb, #f6ecd1 68%, #cbd5e1 32%);
+      --accent: #9a6d1c;
+      --accent-soft: #f6ecd1;
+      --accent-deep: #5d4010;
+      color-scheme: light;
+    }
+    html {
+      -webkit-text-size-adjust: 100%;
+      background:
+        radial-gradient(circle at top left, #f6ecd1 0, rgba(255,255,255,0) 32%),
+        linear-gradient(180deg, #fbfaf6 0%, var(--paper) 18%, #f7f1e6 100%);
+    }
+    body {
+      margin: 0;
+      font-family: "Source Han Serif SC", "Songti SC", "Noto Serif CJK SC", "Microsoft YaHei", serif;
+      color: var(--ink);
+      line-height: 1.78;
+      letter-spacing: 0;
+    }
+    a { color: var(--accent-deep); }
+    .book-app {
+      display: grid;
+      grid-template-columns: 280px minmax(0, 1fr);
+      min-height: 100vh;
+    }
+    .book-sidebar {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow: auto;
+      padding: 1.2rem 1rem 1.2rem 1.15rem;
+      border-right: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(255,255,255,0.86), rgba(255,255,255,0.72));
+      backdrop-filter: blur(10px);
+    }
+    .sidebar-shell { position: sticky; top: 0; display: flex; flex-direction: column; gap: 1rem; }
+    .sidebar-brand {
+      padding: 0.95rem 0.95rem 1rem;
+      border-radius: 18px;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.95), rgba(255,255,255,0.84)),
+        linear-gradient(135deg, var(--accent-soft), rgba(255,255,255,0));
+      border: 1px solid var(--line);
+      box-shadow: 0 12px 28px rgba(31, 41, 55, 0.06);
+    }
+    .sidebar-brand .kicker { margin: 0; color: var(--accent); font-size: 0.82rem; font-weight: 700; }
+    .sidebar-brand h2 { margin: 0.45rem 0 0.25rem; font-size: 1.08rem; line-height: 1.3; color: var(--ink); }
+    .sidebar-brand p { margin: 0.35rem 0 0; color: var(--muted); font-size: 0.9rem; }
+    .sidebar-links { display: grid; gap: 0.45rem; }
+    .sidebar-link {
+      display: grid;
+      grid-template-columns: 2.2rem minmax(0, 1fr);
+      gap: 0.6rem;
+      align-items: start;
+      padding: 0.7rem 0.75rem;
+      border-radius: 14px;
+      text-decoration: none;
+      background: rgba(255,255,255,0.72);
+      border: 1px solid rgba(31,41,55,0.07);
+      color: var(--ink);
+    }
+    .sidebar-link:hover { background: rgba(255,255,255,0.95); border-color: var(--line); }
+    .sidebar-link.active {
+      background: linear-gradient(135deg, rgba(255,255,255,0.98), rgba(255,255,255,0.9));
+      border-color: var(--accent-soft);
+      box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent-soft) 68%, #ffffff 32%);
+    }
+    .sidebar-index {
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      min-width: 2rem;
+      height: 2rem;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent-deep);
+      font-size: 0.78rem;
+      font-weight: 800;
+    }
+    .sidebar-title { font-size: 0.94rem; line-height: 1.35; }
+    .book-main { min-width: 0; padding: 1.25rem 1.45rem 1.8rem; }
+    .book-page-header {
+      padding: 0.85rem 0 1rem;
+      margin-bottom: 1rem;
+      border-bottom: 1px solid var(--line);
+    }
+    .page-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.28rem 0.72rem;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.82);
+      border: 1px solid var(--line);
+      color: var(--accent-deep);
+      font-size: 0.8rem;
+      font-weight: 700;
+    }
+    .book-page-header h1 {
+      margin: 0.7rem 0 0;
+      font-size: 1.85rem;
+      line-height: 1.22;
+      color: var(--accent-deep);
+      border: 0;
+      padding: 0;
+    }
+    .book-page-header p { margin: 0.45rem 0 0; color: var(--muted); max-width: 62rem; }
+    .book-article { max-width: 900px; margin: 0; padding: 0 0 1.2rem; }
+    .book-article h1, .book-article h2, .book-article h3, .book-article h4, .book-article h5, .book-article h6 {
+      line-height: 1.28;
+      margin-top: 1.45em;
+      margin-bottom: 0.55em;
+      color: var(--accent-deep);
+    }
+    .book-article h1 { font-size: 2rem; border-bottom: 2px solid var(--line); padding-bottom: 0.42rem; }
+    .book-article h1:first-of-type { margin-top: 0; }
+    .book-article h2 { font-size: 1.42rem; }
+    .book-article h3 { font-size: 1.12rem; }
+    .book-article p, .book-article li, .book-article dd, .book-article td, .book-article th { text-align: justify; text-justify: inter-ideograph; }
+    .book-article p { margin: 0.85rem 0; }
+    .book-article code, .book-article pre { font-family: "Cascadia Mono", "Source Code Pro", Consolas, monospace; font-size: 0.94em; }
+    .book-article code {
+      padding: 0.02rem 0.24rem;
+      background: color-mix(in srgb, var(--accent-soft) 34%, #ffffff 66%);
+      border: 0;
+      border-bottom: 1px solid color-mix(in srgb, var(--accent-soft) 74%, #d1d5db 26%);
+      border-radius: 4px;
+      color: #253244;
+      box-decoration-break: clone;
+      -webkit-box-decoration-break: clone;
+    }
+    .book-article pre {
+      padding: 1rem 1.1rem;
+      overflow: auto;
+      background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,253,248,0.98));
+      border: 1px solid color-mix(in srgb, var(--accent-soft) 54%, #d1d5db 46%);
+      border-left: 5px solid var(--accent);
+      border-radius: 14px;
+      box-shadow: 0 8px 22px rgba(31, 41, 55, 0.05);
+    }
+    .book-article pre code { padding: 0; border: 0; background: transparent; color: inherit; }
+    .book-article table {
+      border-collapse: collapse;
+      width: 100%;
+      margin: 1rem 0 1.25rem;
+      background: rgba(255,255,255,0.82);
+      overflow: hidden;
+      border-radius: 12px;
+    }
+    .book-article th, .book-article td { border: 1px solid var(--line); padding: 0.5rem 0.7rem; vertical-align: top; }
+    .book-article th { background: color-mix(in srgb, var(--accent-soft) 42%, #ffffff 58%); }
+    .book-article blockquote {
+      margin: 1rem 0;
+      padding: 0.25rem 0 0.25rem 1rem;
+      border-left: 4px solid var(--accent);
+      color: #374151;
+      background: linear-gradient(90deg, rgba(255,255,255,0.72), rgba(255,255,255,0.48));
+      border-radius: 0 12px 12px 0;
+    }
+    .book-bottom-nav {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-top: 2.2rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--line);
+    }
+    .book-bottom-nav a {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.6rem 0.9rem;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.84);
+      text-decoration: none;
+      font-weight: 700;
+    }
+    .book-bottom-nav span {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.6rem 0.9rem;
+      border-radius: 999px;
+      border: 1px solid rgba(31,41,55,0.08);
+      background: rgba(255,255,255,0.54);
+      color: rgba(31,41,55,0.42);
+      font-weight: 700;
+    }
+    .book-bottom-nav a:hover { background: rgba(255,255,255,0.98); }
+    .book-volume-intro {
+      margin: 0 0 1.25rem;
+      padding: 1.2rem 1.25rem 1.1rem;
+      border-radius: 18px;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.96), rgba(255,255,255,0.78)),
+        linear-gradient(135deg, var(--accent-soft), rgba(255,255,255,0));
+      border: 1px solid var(--line);
+      box-shadow: 0 14px 34px rgba(31, 41, 55, 0.06);
+    }
+    .volume-intro-kicker {
+      margin: 0;
+      color: var(--accent);
+      font-size: 0.84rem;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    .book-volume-intro h2 {
+      margin: 0.55rem 0 0.55rem;
+      font-size: 1.28rem;
+      line-height: 1.35;
+      color: var(--accent-deep);
+    }
+    .volume-intro-summary {
+      margin: 0;
+      color: var(--muted);
+      max-width: 68rem;
+    }
+    .volume-intro-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.8rem;
+      margin-top: 1rem;
+    }
+    .volume-intro-box {
+      padding: 0.85rem 0.9rem;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.72);
+      border: 1px solid rgba(31,41,55,0.08);
+    }
+    .volume-intro-box span {
+      display: block;
+      color: var(--accent);
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+    }
+    .volume-intro-box strong {
+      display: block;
+      margin-top: 0.35rem;
+      color: var(--ink);
+      font-size: 0.95rem;
+      line-height: 1.45;
+    }
+    .volume-intro-note {
+      margin-top: 0.9rem;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+    @media (max-width: 1180px) {
+      .book-app { grid-template-columns: 1fr; }
+      .book-sidebar {
+        position: relative;
+        height: auto;
+        border-right: 0;
+        border-bottom: 1px solid var(--line);
+      }
+      .sidebar-shell { position: static; }
+    }
+    @media (max-width: 900px) {
+      .book-main { padding: 1rem 1rem 1.5rem; }
+      .book-bottom-nav { flex-direction: column; }
+      .volume-intro-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="book-app">
+    <aside class="book-sidebar">
+      <div class="sidebar-shell">
+        <div class="sidebar-brand">
+          <p class="kicker">高超声速飞行器控制教程</p>
+          <h2>第三卷 经典与现代飞行控制方法</h2>
+          <p>控制方法体系</p>
+        </div>
+        <nav class="sidebar-links" aria-label="本卷目录">
+          <a class="sidebar-link" href="./index.html"><span class="sidebar-index">0</span><span class="sidebar-title">卷首页</span></a>
+<a class="sidebar-link active" href="./26-flight-control-system-architecture.html"><span class="sidebar-index">01</span><span class="sidebar-title">第26章 飞行控制系统架构</span></a>
+<a class="sidebar-link" href="./27-pid-classical-autopilot.html"><span class="sidebar-index">02</span><span class="sidebar-title">第27章 PID 与经典自动驾驶仪</span></a>
+<a class="sidebar-link" href="./28-root-locus-frequency-domain-margins.html"><span class="sidebar-index">03</span><span class="sidebar-title">第28章 根轨迹、频域设计与稳定裕度</span></a>
+<a class="sidebar-link" href="./29-state-feedback-observer-pole-placement.html"><span class="sidebar-index">04</span><span class="sidebar-title">第29章 状态反馈、观测器与极点配置</span></a>
+<a class="sidebar-link" href="./30-lqr-lqg-linear-optimal-control.html"><span class="sidebar-index">05</span><span class="sidebar-title">第30章 LQR、LQG 与线性最优控制</span></a>
+<a class="sidebar-link" href="./31-h2-hinf-robust-flight-control.html"><span class="sidebar-index">06</span><span class="sidebar-title">第31章 $H_2$、$H_\infty$ 与鲁棒飞行控制</span></a>
+<a class="sidebar-link" href="./32-gain-scheduling-lpv-control.html"><span class="sidebar-index">07</span><span class="sidebar-title">第32章 增益调度与 LPV 控制</span></a>
+<a class="sidebar-link" href="./33-feedback-linearization-dynamic-inversion.html"><span class="sidebar-index">08</span><span class="sidebar-title">第33章 反馈线性化与动态逆控制</span></a>
+<a class="sidebar-link" href="./34-incremental-nonlinear-dynamic-inversion.html"><span class="sidebar-index">09</span><span class="sidebar-title">第34章 增量非线性动态逆控制</span></a>
+<a class="sidebar-link" href="./35-backstepping-dynamic-surface-control.html"><span class="sidebar-index">10</span><span class="sidebar-title">第35章 反步控制与动态面控制</span></a>
+<a class="sidebar-link" href="./36-sliding-mode-high-order-sliding-control.html"><span class="sidebar-index">11</span><span class="sidebar-title">第36章 滑模控制与高阶滑模控制</span></a>
+<a class="sidebar-link" href="./37-adaptive-flight-control.html"><span class="sidebar-index">12</span><span class="sidebar-title">第37章 自适应飞行控制</span></a>
+<a class="sidebar-link" href="./38-intelligent-approximation-control.html"><span class="sidebar-index">13</span><span class="sidebar-title">第38章 智能逼近控制</span></a>
+<a class="sidebar-link" href="./39-disturbance-observer-eso-adrc.html"><span class="sidebar-index">14</span><span class="sidebar-title">第39章 扰动观测器、扩张状态观测器与 ADRC</span></a>
+        </nav>
+      </div>
+    </aside>
+    <main class="book-main">
+      <header class="book-page-header">
+        <div class="page-eyebrow">第3册·章节页01</div>
+        <h1 id="volume3--26-flight-control-system-architecture">第26章 飞行控制系统架构</h1>
+        <p>本页是章节正文页。左侧目录用于回到本卷其他章节，底部导航用于前后章跳转。</p>
+      </header>
+      <article class="book-article">
+        <h2 id="问题背景">26.1 问题背景</h2>
+<p>第二卷已经把高超声速飞行器建成了控制可用的对象模型。进入控制方法前，必须先回答一个工程问题：控制器到底放在系统的哪一层，接收什么命令，输出什么量，并由谁执行。</p>
+<p>本章关注分层架构、信号流、内外环关系、控制分配、执行机构、监控与故障接口。对高超声速飞行器来说，控制架构不是附属图示，而是控制律、约束、安全和验证能够同时成立的前提。</p>
+<h2 id="从一个控制律到一个系统">26.2 从一个控制律到一个系统</h2>
+<p>很多入门写法会把控制器写成一个直接映射：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>u</mi><mo>=</mo><mi>𝒦</mi><mo stretchy="false" form="prefix">(</mo><mi>r</mi><mo>,</mo><mi>y</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
+u=\mathcal K(r,y)
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>u</mi><annotation encoding="application/x-tex">u</annotation></semantics></math>
+是控制输入，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>r</mi><annotation encoding="application/x-tex">r</annotation></semantics></math>
+是参考，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>y</mi><annotation encoding="application/x-tex">y</annotation></semantics></math>
+是测量输出，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>𝒦</mi><mo stretchy="false" form="prefix">(</mo><mi>⋅</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\mathcal K(\cdot)</annotation></semantics></math>
+是控制律。</p>
+<p>这在数学上没问题，但工程上不够。真实系统里，命令还要经过估计器、制导器、控制器、分配器、执行机构和监控器。也就是说，控制系统不是一个块，而是一串有责任边界的块。</p>
+<h2 id="分层结构">26.3 分层结构</h2>
+<p>高超声速飞行控制常见分层可以写成：</p>
+<ol type="1">
+<li>任务层；</li>
+<li>制导层；</li>
+<li>外环控制层；</li>
+<li>内环稳定层；</li>
+<li>控制分配层；</li>
+<li>执行机构层；</li>
+<li>监控与安全层。</li>
+</ol>
+<p>其中，任务层决定飞什么，制导层决定往哪飞，外环决定要什么轨迹，内环决定姿态和力矩怎么实现，分配层决定多个执行机构怎么协同，执行机构层决定命令如何落地，监控层决定什么时候需要降级或修正参考。</p>
+<h2 id="典型命令链">26.4 典型命令链</h2>
+<p>一个典型纵向命令链可以写成：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>h</mi><mi>c</mi></msub><mo>→</mo><msub><mi>γ</mi><mi>c</mi></msub><mo>→</mo><msub><mi>α</mi><mi>c</mi></msub><mo>→</mo><msub><mi>q</mi><mi>c</mi></msub><mo>→</mo><msub><mi>δ</mi><mrow><mi>e</mi><mo>,</mo><mi>c</mi></mrow></msub></mrow><annotation encoding="application/x-tex">
+h_c \rightarrow \gamma_c \rightarrow \alpha_c \rightarrow q_c \rightarrow \delta_{e,c}
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>h</mi><mi>c</mi></msub><annotation encoding="application/x-tex">h_c</annotation></semantics></math>
+是高度参考，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>γ</mi><mi>c</mi></msub><annotation encoding="application/x-tex">\gamma_c</annotation></semantics></math>
+是航迹角命令，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>α</mi><mi>c</mi></msub><annotation encoding="application/x-tex">\alpha_c</annotation></semantics></math>
+是攻角命令，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>q</mi><mi>c</mi></msub><annotation encoding="application/x-tex">q_c</annotation></semantics></math>
+是俯仰角速度命令，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>δ</mi><mrow><mi>e</mi><mo>,</mo><mi>c</mi></mrow></msub><annotation encoding="application/x-tex">\delta_{e,c}</annotation></semantics></math>
+是升降舵命令。</p>
+<p>速度通道可写成：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>V</mi><mi>c</mi></msub><mo>→</mo><msub><mi>ϕ</mi><mrow><mi>T</mi><mo>,</mo><mi>c</mi></mrow></msub></mrow><annotation encoding="application/x-tex">
+V_c \rightarrow \phi_{T,c}
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>V</mi><mi>c</mi></msub><annotation encoding="application/x-tex">V_c</annotation></semantics></math>
+是速度参考，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ϕ</mi><mrow><mi>T</mi><mo>,</mo><mi>c</mi></mrow></msub><annotation encoding="application/x-tex">\phi_{T,c}</annotation></semantics></math>
+是推力命令。</p>
+<p>对三维任务，还会加入航向、倾侧角、横程和侧滑相关命令。</p>
+<h2 id="内环和外环">26.5 内环和外环</h2>
+<p>内环控制快状态，外环控制慢状态。工程上常希望：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ω</mi><mrow><mi mathvariant="normal">i</mi><mi mathvariant="normal">n</mi></mrow></msub><mo>≫</mo><msub><mi>ω</mi><mrow><mi mathvariant="normal">o</mi><mi mathvariant="normal">u</mi><mi mathvariant="normal">t</mi></mrow></msub></mrow><annotation encoding="application/x-tex">
+\omega_{\mathrm{in}} \gg \omega_{\mathrm{out}}
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ω</mi><mrow><mi mathvariant="normal">i</mi><mi mathvariant="normal">n</mi></mrow></msub><annotation encoding="application/x-tex">\omega_{\mathrm{in}}</annotation></semantics></math>
+是内环带宽，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ω</mi><mrow><mi mathvariant="normal">o</mi><mi mathvariant="normal">u</mi><mi mathvariant="normal">t</mi></mrow></msub><annotation encoding="application/x-tex">\omega_{\mathrm{out}}</annotation></semantics></math>
+是外环带宽。</p>
+<p>这个分离不是形式要求，而是为了让外环命令在内环可实现的范围内变化。如果外环太快，就会逼迫内环和执行机构长期饱和。</p>
+<h2 id="控制分配">26.6 控制分配</h2>
+<p>当一个命令要分给多个执行机构时，可写成：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>τ</mi><mi>c</mi></msub><mo>=</mo><mi>G</mi><msub><mi>u</mi><mi>a</mi></msub></mrow><annotation encoding="application/x-tex">
+\tau_c=G u_a
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>τ</mi><mi>c</mi></msub><annotation encoding="application/x-tex">\tau_c</annotation></semantics></math>
+是期望广义控制量，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>G</mi><annotation encoding="application/x-tex">G</annotation></semantics></math>
+是控制效能矩阵，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>u</mi><mi>a</mi></msub><annotation encoding="application/x-tex">u_a</annotation></semantics></math>
+是实际执行机构命令。</p>
+<p>若存在约束，控制分配可写成优化问题：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>u</mi><mi>a</mi><mo>⋆</mo></msubsup><mo>=</mo><mi>arg</mi><mo>&#8289;</mo><munder><mi>min</mi><mo>&#8289;</mo><msub><mi>u</mi><mi>a</mi></msub></munder><mo stretchy="false" form="postfix">∥</mo><mi>W</mi><mo stretchy="false" form="prefix">(</mo><mi>G</mi><msub><mi>u</mi><mi>a</mi></msub><mo>−</mo><msub><mi>τ</mi><mi>c</mi></msub><mo stretchy="false" form="postfix">)</mo><msup><mo stretchy="false" form="postfix">∥</mo><mn>2</mn></msup></mrow><annotation encoding="application/x-tex">
+u_a^\star=\arg\min_{u_a}\|W(G u_a-\tau_c)\|^2
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>W</mi><annotation encoding="application/x-tex">W</annotation></semantics></math>
+是权重矩阵。</p>
+<p>控制分配的重点是把广义力矩变成可执行输入，同时保留俯仰、滚转、偏航和推进通道的余度。</p>
+<h2 id="约束与安全层">26.7 约束与安全层</h2>
+<p>高超声速飞行控制要同时面对动压、热流、过载、攻角、侧滑角、舵偏、舵速和推进包线等约束。安全层可以只报警，也可以通过参考治理器、安全滤波器、CBF-QP
+或包线保护修改命令。</p>
+<p>如果安全层修改了命令，就必须记录修改量。否则，跟踪指标和安全修正会混在一起，最后无法判断到底是谁改变了轨迹。</p>
+<h2 id="架构接口表">26.8 架构接口表</h2>
+<p>一个清晰的控制架构至少应给出下面的接口：</p>
+<table>
+<thead>
+<tr>
+<th>模块</th>
+<th>数学形式</th>
+<th>必须说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>对象</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>x</mi><mo accent="true">̇</mo></mover><mo>=</mo><mi>f</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>u</mi><mo>,</mo><mi>d</mi><mo>,</mo><mi>p</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\dot x=f(x,u,d,p)</annotation></semantics></math></td>
+<td>状态、输入、扰动、参数</td>
+</tr>
+<tr>
+<td>估计器</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>x</mi><mo accent="true">̂</mo></mover><mo>=</mo><mi>ℰ</mi><mo stretchy="false" form="prefix">(</mo><mi>y</mi><mo>,</mo><mi>u</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\hat x=\mathcal E(y,u)</annotation></semantics></math></td>
+<td>噪声、延迟、估计误差</td>
+</tr>
+<tr>
+<td>制导器</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>c</mi><mo>=</mo><mi>𝒢</mi><mo stretchy="false" form="prefix">(</mo><mi>r</mi><mo>,</mo><mover><mi>x</mi><mo accent="true">̂</mo></mover><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">c=\mathcal G(r,\hat x)</annotation></semantics></math></td>
+<td>命令类型、坐标系、终端指标</td>
+</tr>
+<tr>
+<td>控制器</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ν</mi><mi>c</mi></msub><mo>=</mo><mi>𝒜</mi><mo stretchy="false" form="prefix">(</mo><mi>c</mi><mo>,</mo><mover><mi>x</mi><mo accent="true">̂</mo></mover><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\nu_c=\mathcal A(c,\hat x)</annotation></semantics></math></td>
+<td>控制目标、稳定性条件</td>
+</tr>
+<tr>
+<td>分配器</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>u</mi><mo>=</mo><mi>ℳ</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>ν</mi><mi>c</mi></msub><mo>,</mo><mover><mi>x</mi><mo accent="true">̂</mo></mover><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">u=\mathcal M(\nu_c,\hat x)</annotation></semantics></math></td>
+<td>约束、残差、故障模式</td>
+</tr>
+<tr>
+<td>执行机构</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mover><mi>x</mi><mo accent="true">̇</mo></mover><mi>a</mi></msub><mo>=</mo><msub><mi>f</mi><mi>a</mi></msub><mo stretchy="false" form="prefix">(</mo><msub><mi>x</mi><mi>a</mi></msub><mo>,</mo><mi>u</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\dot x_a=f_a(x_a,u)</annotation></semantics></math></td>
+<td>饱和、速率、带宽、延迟</td>
+</tr>
+<tr>
+<td>监控器</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>s</mi><mo>=</mo><mi>𝒮</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>u</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">s=\mathcal S(x,u)</annotation></semantics></math></td>
+<td>约束裕度、告警、命令修正</td>
+</tr>
+</tbody>
+</table>
+<p>后续章节讨论 PID、LQR、鲁棒、动态逆、反步、滑模、自适应和 CBF
+时，都应能嵌入这张接口表。</p>
+<h2 id="架构验证清单">26.9 架构验证清单</h2>
+<p>飞行控制架构至少应验证：</p>
+<table>
+<thead>
+<tr>
+<th>验证项</th>
+<th>指标</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>接口一致性</td>
+<td>坐标系、单位、符号、采样周期一致</td>
+</tr>
+<tr>
+<td>内外环时间尺度</td>
+<td>内环带宽高于外环且不激发柔性模态</td>
+</tr>
+<tr>
+<td>命令可实现性</td>
+<td>姿态、过载、力矩和执行机构命令未长期饱和</td>
+</tr>
+<tr>
+<td>控制分配残差</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="postfix">∥</mo><mi>G</mi><msub><mi>u</mi><mi>a</mi></msub><mo>−</mo><msub><mi>τ</mi><mi>c</mi></msub><mo stretchy="false" form="postfix">∥</mo></mrow><annotation encoding="application/x-tex">\|G u_a-\tau_c\|</annotation></semantics></math>
+在阈值内</td>
+</tr>
+<tr>
+<td>约束裕度</td>
+<td>动压、热流、过载、攻角、舵偏和舵速有记录</td>
+</tr>
+<tr>
+<td>模式切换</td>
+<td>切换前后状态和命令连续或有过渡逻辑</td>
+</tr>
+<tr>
+<td>故障工况</td>
+<td>传感器或执行机构故障后仍能报告状态和残差</td>
+</tr>
+<tr>
+<td>计算实时性</td>
+<td>每层计算时间小于采样周期预算</td>
+</tr>
+</tbody>
+</table>
+<h2 id="本章小结">26.10 本章小结</h2>
+<p>飞行控制系统架构的作用，是把任务、制导、控制、分配、执行和监控分成有边界的层。高超声速飞行器的控制问题之所以复杂，不只是因为对象非线性强，还因为约束和实现链条长。架构清楚，后面的算法才知道自己站在哪一层。</p>
+<h2 id="练习">26.11 练习</h2>
+<ol type="1">
+<li>画出一条完整的高超声速飞控命令链。</li>
+<li>说明外环和内环为什么需要带宽分离。</li>
+<li>写出控制分配的基本优化形式。</li>
+<li>列出至少 6 个必须进入架构验证的字段。</li>
+</ol>
+
+      </article>
+      
+      <nav class="book-bottom-nav" aria-label="章节导航">
+        <a href="./index.html">上一章：卷首页</a>
+        <a href="./index.html">卷首页</a>
+        <a href="./27-pid-classical-autopilot.html">下一章：第27章 PID 与经典自动驾驶仪</a>
+      </nav>
+    </main>
+  </div>
+</body>
+</html>

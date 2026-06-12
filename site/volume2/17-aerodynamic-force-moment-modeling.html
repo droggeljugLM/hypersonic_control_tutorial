@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>第17章 气动力与气动力矩建模</title>
+  <style>
+    :root {
+      --paper: #f7f3eb;
+      --ink: #1f2937;
+      --muted: #5b6472;
+      --line: color-mix(in srgb, #e3f5f2 68%, #cbd5e1 32%);
+      --accent: #18786f;
+      --accent-soft: #e3f5f2;
+      --accent-deep: #0e4b45;
+      color-scheme: light;
+    }
+    html {
+      -webkit-text-size-adjust: 100%;
+      background:
+        radial-gradient(circle at top left, #e3f5f2 0, rgba(255,255,255,0) 32%),
+        linear-gradient(180deg, #fbfaf6 0%, var(--paper) 18%, #f7f1e6 100%);
+    }
+    body {
+      margin: 0;
+      font-family: "Source Han Serif SC", "Songti SC", "Noto Serif CJK SC", "Microsoft YaHei", serif;
+      color: var(--ink);
+      line-height: 1.78;
+      letter-spacing: 0;
+    }
+    a { color: var(--accent-deep); }
+    .book-app {
+      display: grid;
+      grid-template-columns: 280px minmax(0, 1fr);
+      min-height: 100vh;
+    }
+    .book-sidebar {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow: auto;
+      padding: 1.2rem 1rem 1.2rem 1.15rem;
+      border-right: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(255,255,255,0.86), rgba(255,255,255,0.72));
+      backdrop-filter: blur(10px);
+    }
+    .sidebar-shell { position: sticky; top: 0; display: flex; flex-direction: column; gap: 1rem; }
+    .sidebar-brand {
+      padding: 0.95rem 0.95rem 1rem;
+      border-radius: 18px;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.95), rgba(255,255,255,0.84)),
+        linear-gradient(135deg, var(--accent-soft), rgba(255,255,255,0));
+      border: 1px solid var(--line);
+      box-shadow: 0 12px 28px rgba(31, 41, 55, 0.06);
+    }
+    .sidebar-brand .kicker { margin: 0; color: var(--accent); font-size: 0.82rem; font-weight: 700; }
+    .sidebar-brand h2 { margin: 0.45rem 0 0.25rem; font-size: 1.08rem; line-height: 1.3; color: var(--ink); }
+    .sidebar-brand p { margin: 0.35rem 0 0; color: var(--muted); font-size: 0.9rem; }
+    .sidebar-links { display: grid; gap: 0.45rem; }
+    .sidebar-link {
+      display: grid;
+      grid-template-columns: 2.2rem minmax(0, 1fr);
+      gap: 0.6rem;
+      align-items: start;
+      padding: 0.7rem 0.75rem;
+      border-radius: 14px;
+      text-decoration: none;
+      background: rgba(255,255,255,0.72);
+      border: 1px solid rgba(31,41,55,0.07);
+      color: var(--ink);
+    }
+    .sidebar-link:hover { background: rgba(255,255,255,0.95); border-color: var(--line); }
+    .sidebar-link.active {
+      background: linear-gradient(135deg, rgba(255,255,255,0.98), rgba(255,255,255,0.9));
+      border-color: var(--accent-soft);
+      box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent-soft) 68%, #ffffff 32%);
+    }
+    .sidebar-index {
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      min-width: 2rem;
+      height: 2rem;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent-deep);
+      font-size: 0.78rem;
+      font-weight: 800;
+    }
+    .sidebar-title { font-size: 0.94rem; line-height: 1.35; }
+    .book-main { min-width: 0; padding: 1.25rem 1.45rem 1.8rem; }
+    .book-page-header {
+      padding: 0.85rem 0 1rem;
+      margin-bottom: 1rem;
+      border-bottom: 1px solid var(--line);
+    }
+    .page-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.28rem 0.72rem;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.82);
+      border: 1px solid var(--line);
+      color: var(--accent-deep);
+      font-size: 0.8rem;
+      font-weight: 700;
+    }
+    .book-page-header h1 {
+      margin: 0.7rem 0 0;
+      font-size: 1.85rem;
+      line-height: 1.22;
+      color: var(--accent-deep);
+      border: 0;
+      padding: 0;
+    }
+    .book-page-header p { margin: 0.45rem 0 0; color: var(--muted); max-width: 62rem; }
+    .book-article { max-width: 900px; margin: 0; padding: 0 0 1.2rem; }
+    .book-article h1, .book-article h2, .book-article h3, .book-article h4, .book-article h5, .book-article h6 {
+      line-height: 1.28;
+      margin-top: 1.45em;
+      margin-bottom: 0.55em;
+      color: var(--accent-deep);
+    }
+    .book-article h1 { font-size: 2rem; border-bottom: 2px solid var(--line); padding-bottom: 0.42rem; }
+    .book-article h1:first-of-type { margin-top: 0; }
+    .book-article h2 { font-size: 1.42rem; }
+    .book-article h3 { font-size: 1.12rem; }
+    .book-article p, .book-article li, .book-article dd, .book-article td, .book-article th { text-align: justify; text-justify: inter-ideograph; }
+    .book-article p { margin: 0.85rem 0; }
+    .book-article code, .book-article pre { font-family: "Cascadia Mono", "Source Code Pro", Consolas, monospace; font-size: 0.94em; }
+    .book-article code {
+      padding: 0.02rem 0.24rem;
+      background: color-mix(in srgb, var(--accent-soft) 34%, #ffffff 66%);
+      border: 0;
+      border-bottom: 1px solid color-mix(in srgb, var(--accent-soft) 74%, #d1d5db 26%);
+      border-radius: 4px;
+      color: #253244;
+      box-decoration-break: clone;
+      -webkit-box-decoration-break: clone;
+    }
+    .book-article pre {
+      padding: 1rem 1.1rem;
+      overflow: auto;
+      background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,253,248,0.98));
+      border: 1px solid color-mix(in srgb, var(--accent-soft) 54%, #d1d5db 46%);
+      border-left: 5px solid var(--accent);
+      border-radius: 14px;
+      box-shadow: 0 8px 22px rgba(31, 41, 55, 0.05);
+    }
+    .book-article pre code { padding: 0; border: 0; background: transparent; color: inherit; }
+    .book-article table {
+      border-collapse: collapse;
+      width: 100%;
+      margin: 1rem 0 1.25rem;
+      background: rgba(255,255,255,0.82);
+      overflow: hidden;
+      border-radius: 12px;
+    }
+    .book-article th, .book-article td { border: 1px solid var(--line); padding: 0.5rem 0.7rem; vertical-align: top; }
+    .book-article th { background: color-mix(in srgb, var(--accent-soft) 42%, #ffffff 58%); }
+    .book-article blockquote {
+      margin: 1rem 0;
+      padding: 0.25rem 0 0.25rem 1rem;
+      border-left: 4px solid var(--accent);
+      color: #374151;
+      background: linear-gradient(90deg, rgba(255,255,255,0.72), rgba(255,255,255,0.48));
+      border-radius: 0 12px 12px 0;
+    }
+    .book-bottom-nav {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-top: 2.2rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--line);
+    }
+    .book-bottom-nav a {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.6rem 0.9rem;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.84);
+      text-decoration: none;
+      font-weight: 700;
+    }
+    .book-bottom-nav span {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.6rem 0.9rem;
+      border-radius: 999px;
+      border: 1px solid rgba(31,41,55,0.08);
+      background: rgba(255,255,255,0.54);
+      color: rgba(31,41,55,0.42);
+      font-weight: 700;
+    }
+    .book-bottom-nav a:hover { background: rgba(255,255,255,0.98); }
+    .book-volume-intro {
+      margin: 0 0 1.25rem;
+      padding: 1.2rem 1.25rem 1.1rem;
+      border-radius: 18px;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.96), rgba(255,255,255,0.78)),
+        linear-gradient(135deg, var(--accent-soft), rgba(255,255,255,0));
+      border: 1px solid var(--line);
+      box-shadow: 0 14px 34px rgba(31, 41, 55, 0.06);
+    }
+    .volume-intro-kicker {
+      margin: 0;
+      color: var(--accent);
+      font-size: 0.84rem;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    .book-volume-intro h2 {
+      margin: 0.55rem 0 0.55rem;
+      font-size: 1.28rem;
+      line-height: 1.35;
+      color: var(--accent-deep);
+    }
+    .volume-intro-summary {
+      margin: 0;
+      color: var(--muted);
+      max-width: 68rem;
+    }
+    .volume-intro-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.8rem;
+      margin-top: 1rem;
+    }
+    .volume-intro-box {
+      padding: 0.85rem 0.9rem;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.72);
+      border: 1px solid rgba(31,41,55,0.08);
+    }
+    .volume-intro-box span {
+      display: block;
+      color: var(--accent);
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+    }
+    .volume-intro-box strong {
+      display: block;
+      margin-top: 0.35rem;
+      color: var(--ink);
+      font-size: 0.95rem;
+      line-height: 1.45;
+    }
+    .volume-intro-note {
+      margin-top: 0.9rem;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+    @media (max-width: 1180px) {
+      .book-app { grid-template-columns: 1fr; }
+      .book-sidebar {
+        position: relative;
+        height: auto;
+        border-right: 0;
+        border-bottom: 1px solid var(--line);
+      }
+      .sidebar-shell { position: static; }
+    }
+    @media (max-width: 900px) {
+      .book-main { padding: 1rem 1rem 1.5rem; }
+      .book-bottom-nav { flex-direction: column; }
+      .volume-intro-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="book-app">
+    <aside class="book-sidebar">
+      <div class="sidebar-shell">
+        <div class="sidebar-brand">
+          <p class="kicker">高超声速飞行器控制教程</p>
+          <h2>第二卷 高超声速飞行器建模与飞行动力学</h2>
+          <p>对象与模型</p>
+        </div>
+        <nav class="sidebar-links" aria-label="本卷目录">
+          <a class="sidebar-link" href="./index.html"><span class="sidebar-index">0</span><span class="sidebar-title">卷首页</span></a>
+<a class="sidebar-link" href="./14-vehicle-types-mission-profiles.html"><span class="sidebar-index">01</span><span class="sidebar-title">第14章 高超声速飞行器类型与任务剖面</span></a>
+<a class="sidebar-link" href="./15-coordinate-kinematics-attitude.html"><span class="sidebar-index">02</span><span class="sidebar-title">第15章 坐标系、运动学与姿态描述</span></a>
+<a class="sidebar-link" href="./16-atmosphere-flight-conditions.html"><span class="sidebar-index">03</span><span class="sidebar-title">第16章 大气环境与飞行条件</span></a>
+<a class="sidebar-link active" href="./17-aerodynamic-force-moment-modeling.html"><span class="sidebar-index">04</span><span class="sidebar-title">第17章 气动力与气动力矩建模</span></a>
+<a class="sidebar-link" href="./18-propulsion-aero-propulsive-coupling.html"><span class="sidebar-index">05</span><span class="sidebar-title">第18章 推进系统与气动推进耦合</span></a>
+<a class="sidebar-link" href="./19-point-mass-dynamics.html"><span class="sidebar-index">06</span><span class="sidebar-title">第19章 质点动力学模型</span></a>
+<a class="sidebar-link" href="./20-longitudinal-rigid-body-dynamics.html"><span class="sidebar-index">07</span><span class="sidebar-title">第20章 纵向刚体动力学模型</span></a>
+<a class="sidebar-link" href="./21-lateral-directional-dynamics.html"><span class="sidebar-index">08</span><span class="sidebar-title">第21章 横侧向动力学模型</span></a>
+<a class="sidebar-link" href="./22-six-dof-rigid-body-model.html"><span class="sidebar-index">09</span><span class="sidebar-title">第22章 六自由度刚体模型</span></a>
+<a class="sidebar-link" href="./23-flexible-aeroelastic-modeling.html"><span class="sidebar-index">10</span><span class="sidebar-title">第23章 刚柔耦合与气动弹性模型</span></a>
+<a class="sidebar-link" href="./24-actuator-sensor-computation-modeling.html"><span class="sidebar-index">11</span><span class="sidebar-title">第24章 执行机构、传感器与计算系统建模</span></a>
+<a class="sidebar-link" href="./25-trim-linearization-modal-analysis.html"><span class="sidebar-index">12</span><span class="sidebar-title">第25章 配平、线性化与模态分析</span></a>
+        </nav>
+      </div>
+    </aside>
+    <main class="book-main">
+      <header class="book-page-header">
+        <div class="page-eyebrow">第2册·章节页04</div>
+        <h1 id="volume2--17-aerodynamic-force-moment-modeling">第17章 气动力与气动力矩建模</h1>
+        <p>本页是章节正文页。左侧目录用于回到本卷其他章节，底部导航用于前后章跳转。</p>
+      </header>
+      <article class="book-article">
+        <h2 id="问题背景">17.1 问题背景</h2>
+<p>气动模型是高超声速飞行器控制中连接环境、运动学和控制输入的核心环节。升力、阻力、侧力以及三轴力矩决定轨迹演化、姿态变化、控制效能、约束裕度和不确定性传播。</p>
+<p>从控制科学与工程角度看，气动建模至少要回答五个问题：</p>
+<ul>
+<li>气动力和力矩在哪个坐标系中表达；</li>
+<li>气动系数依赖哪些飞行变量和构型变量；</li>
+<li>控制输入如何通过舵面、喷管或其他执行机构影响力和力矩；</li>
+<li>稳定导数、阻尼导数和控制导数能否支持局部线性设计；</li>
+<li>气动表插值、外推和不确定性如何进入验证与闭环分析。</li>
+</ul>
+<p>本章不追求高保真气动理论全覆盖，而是建立后续配平、线化、控制分配、鲁棒控制和六自由度仿真的统一接口。</p>
+<h2 id="气动力和力矩的基本表达">17.2 气动力和力矩的基本表达</h2>
+<p>在机体系中，气动力和气动力矩通常写成</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtable><mtr><mtd columnalign="right" style="text-align: right; padding-right: 0"><msub><mi>F</mi><mi>A</mi></msub></mtd><mtd columnalign="left" style="text-align: left; padding-left: 0"><mo>=</mo><mover><mi>q</mi><mo accent="true">‾</mo></mover><mi>S</mi><mrow><mo stretchy="true" form="prefix">[</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><msub><mi>C</mi><mi>X</mi></msub></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><msub><mi>C</mi><mi>Y</mi></msub></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><msub><mi>C</mi><mi>Z</mi></msub></mtd></mtr></mtable><mo stretchy="true" form="postfix">]</mo></mrow><mo>,</mo></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right; padding-right: 0"><msub><mi>M</mi><mi>A</mi></msub></mtd><mtd columnalign="left" style="text-align: left; padding-left: 0"><mo>=</mo><mover><mi>q</mi><mo accent="true">‾</mo></mover><mi>S</mi><mrow><mo stretchy="true" form="prefix">[</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><mover><mi>c</mi><mo accent="true">‾</mo></mover><mspace width="0.167em"></mspace><msub><mi>C</mi><mi>l</mi></msub></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><mover><mi>c</mi><mo accent="true">‾</mo></mover><mspace width="0.167em"></mspace><msub><mi>C</mi><mi>m</mi></msub></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><mi>b</mi><mspace width="0.167em"></mspace><msub><mi>C</mi><mi>n</mi></msub></mtd></mtr></mtable><mo stretchy="true" form="postfix">]</mo></mrow><mi>.</mi></mtd></mtr></mtable><annotation encoding="application/x-tex">
+\begin{aligned}
+F_A &amp;= \bar q S \begin{bmatrix} C_X \\ C_Y \\ C_Z \end{bmatrix}, \\
+M_A &amp;= \bar q S \begin{bmatrix} \bar c\, C_l \\ \bar c\, C_m \\ b\, C_n \end{bmatrix}.
+\end{aligned}
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>F</mi><mi>A</mi></msub><annotation encoding="application/x-tex">F_A</annotation></semantics></math>
+表示机体系气动力，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>M</mi><mi>A</mi></msub><annotation encoding="application/x-tex">M_A</annotation></semantics></math>
+表示机体系气动力矩，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mover><mi>q</mi><mo accent="true">‾</mo></mover><annotation encoding="application/x-tex">\bar q</annotation></semantics></math>
+表示动压，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>S</mi><annotation encoding="application/x-tex">S</annotation></semantics></math>
+表示参考面积，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mover><mi>c</mi><mo accent="true">‾</mo></mover><annotation encoding="application/x-tex">\bar c</annotation></semantics></math>
+表示平均气动弦长，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>b</mi><annotation encoding="application/x-tex">b</annotation></semantics></math>
+表示展长，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>C</mi><mi>X</mi></msub><mo>,</mo><msub><mi>C</mi><mi>Y</mi></msub><mo>,</mo><msub><mi>C</mi><mi>Z</mi></msub></mrow><annotation encoding="application/x-tex">C_X,C_Y,C_Z</annotation></semantics></math>
+是力系数，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>C</mi><mi>l</mi></msub><mo>,</mo><msub><mi>C</mi><mi>m</mi></msub><mo>,</mo><msub><mi>C</mi><mi>n</mi></msub></mrow><annotation encoding="application/x-tex">C_l,C_m,C_n</annotation></semantics></math>
+是滚转、俯仰和偏航力矩系数。</p>
+<p>这里的符号约定必须在项目中统一。若采用风轴系或稳定轴系，系数表达会改变，但“系数乘以动压和参考尺度”的建模逻辑不变。控制器设计时应始终明确当前使用的坐标系，以及从气动模型到刚体方程的旋转关系。</p>
+<h2 id="气动系数的变量依赖">17.3 气动系数的变量依赖</h2>
+<p>气动系数通常依赖下列变量：</p>
+<ul>
+<li><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>M</mi><mi>a</mi></mrow><annotation encoding="application/x-tex">Ma</annotation></semantics></math>：Mach
+数；</li>
+<li><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>h</mi><annotation encoding="application/x-tex">h</annotation></semantics></math>：高度；</li>
+<li><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>α</mi><annotation encoding="application/x-tex">\alpha</annotation></semantics></math>：攻角；</li>
+<li><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>β</mi><annotation encoding="application/x-tex">\beta</annotation></semantics></math>：侧滑角；</li>
+<li><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ω</mi><mi>B</mi></msub><mo>=</mo><mo stretchy="false" form="prefix">[</mo><mi>p</mi><mo>,</mo><mi>q</mi><mo>,</mo><mi>r</mi><msup><mo stretchy="false" form="postfix">]</mo><mi>⊤</mi></msup></mrow><annotation encoding="application/x-tex">\omega_B=[p,q,r]^\top</annotation></semantics></math>：机体系角速度；</li>
+<li><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>δ</mi><annotation encoding="application/x-tex">\delta</annotation></semantics></math>：舵面或等效执行机构输入；</li>
+<li><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>η</mi><mi>s</mi></msub><annotation encoding="application/x-tex">\eta_s</annotation></semantics></math>：弹性模态、热变形或构型参数。</li>
+</ul>
+<p>因此，一个较一般的气动系数可写成</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>C</mi><mo>=</mo><mi>C</mi><mo stretchy="false" form="prefix">(</mo><mi>M</mi><mi>a</mi><mo>,</mo><mi>h</mi><mo>,</mo><mi>α</mi><mo>,</mo><mi>β</mi><mo>,</mo><msub><mi>ω</mi><mi>B</mi></msub><mo>,</mo><mi>δ</mi><mo>,</mo><msub><mi>η</mi><mi>s</mi></msub><mo stretchy="false" form="postfix">)</mo><mi>.</mi></mrow><annotation encoding="application/x-tex">
+C = C(Ma,h,\alpha,\beta,\omega_B,\delta,\eta_s).
+</annotation></semantics></math></p>
+<p>这里的
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>C</mi><annotation encoding="application/x-tex">C</annotation></semantics></math>
+表示任一气动系数，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>M</mi><mi>a</mi></mrow><annotation encoding="application/x-tex">Ma</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>h</mi><annotation encoding="application/x-tex">h</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>α</mi><annotation encoding="application/x-tex">\alpha</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>β</mi><annotation encoding="application/x-tex">\beta</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ω</mi><mi>B</mi></msub><annotation encoding="application/x-tex">\omega_B</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>δ</mi><annotation encoding="application/x-tex">\delta</annotation></semantics></math>
+和
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>η</mi><mi>s</mi></msub><annotation encoding="application/x-tex">\eta_s</annotation></semantics></math>
+是它的主要自变量。</p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>C</mi><annotation encoding="application/x-tex">C</annotation></semantics></math>
+可以代表任一力系数或力矩系数。入门模型可以忽略一部分变量，但必须说明被忽略变量将以不确定性、外扰或未建模动态的形式进入后续验证。</p>
+<h2 id="静态项导数项和控制导数">17.4 静态项、导数项和控制导数</h2>
+<p>在局部建模中，气动系数常在某个平衡点附近展开为</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>C</mi><mo>≈</mo><msub><mi>C</mi><mn>0</mn></msub><mo>+</mo><msub><mi>C</mi><mi>x</mi></msub><mspace width="0.167em"></mspace><mi mathvariant="normal">Δ</mi><mi>x</mi><mo>+</mo><msub><mi>C</mi><mi>δ</mi></msub><mspace width="0.167em"></mspace><mi mathvariant="normal">Δ</mi><mi>δ</mi><mo>+</mo><msub><mi>C</mi><mi>ω</mi></msub><mspace width="0.167em"></mspace><mi mathvariant="normal">Δ</mi><msub><mi>ω</mi><mi>B</mi></msub><mi>.</mi></mrow><annotation encoding="application/x-tex">
+C \approx C_0 + C_x\,\Delta x + C_\delta\,\Delta \delta + C_\omega\,\Delta \omega_B.
+</annotation></semantics></math></p>
+<p>这里的
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>C</mi><mn>0</mn></msub><annotation encoding="application/x-tex">C_0</annotation></semantics></math>
+是静态项，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>C</mi><mi>x</mi></msub><annotation encoding="application/x-tex">C_x</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>C</mi><mi>δ</mi></msub><annotation encoding="application/x-tex">C_\delta</annotation></semantics></math>
+和
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>C</mi><mi>ω</mi></msub><annotation encoding="application/x-tex">C_\omega</annotation></semantics></math>
+分别对应状态、控制和阻尼方向的局部导数。</p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>C</mi><mn>0</mn></msub><annotation encoding="application/x-tex">C_0</annotation></semantics></math>
+表示静态项，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Δ</mi><mi>x</mi></mrow><annotation encoding="application/x-tex">\Delta x</annotation></semantics></math>
+表示攻角、侧滑角或其他状态变量的偏差，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>C</mi><mi>x</mi></msub><annotation encoding="application/x-tex">C_x</annotation></semantics></math>
+表示状态导数项，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Δ</mi><mi>δ</mi></mrow><annotation encoding="application/x-tex">\Delta \delta</annotation></semantics></math>
+表示控制输入偏差，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>C</mi><mi>δ</mi></msub><annotation encoding="application/x-tex">C_\delta</annotation></semantics></math>
+表示控制导数项，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Δ</mi><msub><mi>ω</mi><mi>B</mi></msub></mrow><annotation encoding="application/x-tex">\Delta \omega_B</annotation></semantics></math>
+表示角速度偏差，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>C</mi><mi>ω</mi></msub><annotation encoding="application/x-tex">C_\omega</annotation></semantics></math>
+表示阻尼导数项。</p>
+<p>对纵向俯仰力矩，局部线性化常写成</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Δ</mi><msub><mi>M</mi><mi>y</mi></msub><mo>≈</mo><mover><mi>q</mi><mo accent="true">‾</mo></mover><mi>S</mi><mover><mi>c</mi><mo accent="true">‾</mo></mover><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>C</mi><msub><mi>m</mi><mi>α</mi></msub></msub><mi mathvariant="normal">Δ</mi><mi>α</mi><mo>+</mo><msub><mi>C</mi><msub><mi>m</mi><mi>q</mi></msub></msub><mfrac><mover><mi>c</mi><mo accent="true">‾</mo></mover><mrow><mn>2</mn><mi>V</mi></mrow></mfrac><mi mathvariant="normal">Δ</mi><mi>q</mi><mo>+</mo><msub><mi>C</mi><msub><mi>m</mi><msub><mi>δ</mi><mi>e</mi></msub></msub></msub><mi mathvariant="normal">Δ</mi><msub><mi>δ</mi><mi>e</mi></msub><mi>⋯</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>,</mo></mrow><annotation encoding="application/x-tex">
+\Delta M_y \approx \bar q S \bar c \left(
+C_{m_\alpha}\Delta \alpha
++ C_{m_q}\frac{\bar c}{2V}\Delta q
++ C_{m_{\delta_e}}\Delta \delta_e
+\cdots
+\right),
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>M</mi><mi>y</mi></msub><annotation encoding="application/x-tex">M_y</annotation></semantics></math>
+是俯仰力矩，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>q</mi><annotation encoding="application/x-tex">q</annotation></semantics></math>
+是俯仰角速度，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>V</mi><annotation encoding="application/x-tex">V</annotation></semantics></math>
+是速度，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>δ</mi><mi>e</mi></msub><annotation encoding="application/x-tex">\delta_e</annotation></semantics></math>
+是升降舵偏角，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>C</mi><msub><mi>m</mi><mi>α</mi></msub></msub><annotation encoding="application/x-tex">C_{m_\alpha}</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>C</mi><msub><mi>m</mi><mi>q</mi></msub></msub><annotation encoding="application/x-tex">C_{m_q}</annotation></semantics></math>
+和
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>C</mi><msub><mi>m</mi><msub><mi>δ</mi><mi>e</mi></msub></msub></msub><annotation encoding="application/x-tex">C_{m_{\delta_e}}</annotation></semantics></math>
+分别是攻角导数、俯仰阻尼导数和升降舵控制导数。</p>
+<p>这里的关键不只是“存在导数”，而是导数决定了输入矩阵的方向、尺度和符号。若控制导数符号写错，闭环设计会从根上失配。</p>
+<h2 id="控制效能矩阵">17.5 控制效能矩阵</h2>
+<p>多执行机构系统常写成</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ν</mi><mo>=</mo><msub><mi>B</mi><mi>a</mi></msub><mi>δ</mi><mo>,</mo></mrow><annotation encoding="application/x-tex">
+\nu = B_a \delta,
+</annotation></semantics></math></p>
+<p>这里的
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ν</mi><annotation encoding="application/x-tex">\nu</annotation></semantics></math>
+是期望控制量，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>B</mi><mi>a</mi></msub><annotation encoding="application/x-tex">B_a</annotation></semantics></math>
+是控制效能矩阵，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>δ</mi><annotation encoding="application/x-tex">\delta</annotation></semantics></math>
+是实际舵面向量。</p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ν</mi><annotation encoding="application/x-tex">\nu</annotation></semantics></math>
+是期望广义控制量或期望力矩向量，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>B</mi><mi>a</mi></msub><annotation encoding="application/x-tex">B_a</annotation></semantics></math>
+是控制效能矩阵，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>δ</mi><annotation encoding="application/x-tex">\delta</annotation></semantics></math>
+是实际舵面或执行机构偏角向量。</p>
+<p>在高超声速飞行器上，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>B</mi><mi>a</mi></msub><annotation encoding="application/x-tex">B_a</annotation></semantics></math>
+可能随
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>M</mi><mi>a</mi></mrow><annotation encoding="application/x-tex">Ma</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>h</mi><annotation encoding="application/x-tex">h</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>α</mi><annotation encoding="application/x-tex">\alpha</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>β</mi><annotation encoding="application/x-tex">\beta</annotation></semantics></math>
+和动压显著变化。控制分配和动态逆设计不能只在标称点看
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>B</mi><mi>a</mi></msub><annotation encoding="application/x-tex">B_a</annotation></semantics></math>，还要检查以下问题：</p>
+<ul>
+<li>控制效能是否随飞行条件变号；</li>
+<li>低动压下是否接近通道失效；</li>
+<li>舵面之间是否存在强耦合；</li>
+<li>饱和后剩余控制权限是否足够；</li>
+<li>故障后
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>B</mi><mi>a</mi></msub><annotation encoding="application/x-tex">B_a</annotation></semantics></math>
+的秩是否下降。</li>
+</ul>
+<p>若
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>B</mi><mi>a</mi></msub><annotation encoding="application/x-tex">B_a</annotation></semantics></math>
+不可信，控制分配优化即使数学上可解，也不代表真实执行机构能产生所需力矩。</p>
+<h2 id="气动表与插值">17.6 气动表与插值</h2>
+<p>工程中常使用多维气动表描述系数随变量变化的关系，例如</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>C</mi><mo>=</mo><mi>𝒯</mi><mo stretchy="false" form="prefix">(</mo><mi>M</mi><mi>a</mi><mo>,</mo><mi>h</mi><mo>,</mo><mi>α</mi><mo>,</mo><mi>β</mi><mo>,</mo><mi>δ</mi><mo>,</mo><msub><mi>ω</mi><mi>B</mi></msub><mo>,</mo><msub><mi>η</mi><mi>s</mi></msub><mo stretchy="false" form="postfix">)</mo><mo>,</mo></mrow><annotation encoding="application/x-tex">
+C = \mathcal{T}(Ma,h,\alpha,\beta,\delta,\omega_B,\eta_s),
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝒯</mi><annotation encoding="application/x-tex">\mathcal{T}</annotation></semantics></math>
+表示气动表或代理模型。多维气动表可能对
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>δ</mi><annotation encoding="application/x-tex">\delta</annotation></semantics></math>
+呈现强非线性，对
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>α</mi><annotation encoding="application/x-tex">\alpha</annotation></semantics></math>
+和
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>β</mi><annotation encoding="application/x-tex">\beta</annotation></semantics></math>
+呈现局部非单调，对
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>M</mi><mi>a</mi></mrow><annotation encoding="application/x-tex">Ma</annotation></semantics></math>
+和
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>h</mi><annotation encoding="application/x-tex">h</annotation></semantics></math>
+呈现分段特征。</p>
+<p>因此，教程和论文中必须明确：</p>
+<ul>
+<li>使用的是全局查表、局部线化还是代理模型；</li>
+<li>解耦矩阵是否可能奇异；</li>
+<li>控制输入是否超出表格范围；</li>
+<li>表格外推是否记录日志并触发保护；</li>
+<li>模型误差如何由鲁棒项、观测器或增量式控制补偿。</li>
+</ul>
+<p>如果直接把线性控制效能矩阵当作全局模型使用，结果通常只在很窄的包线内成立。</p>
+<h2 id="气动导数与动压效应">17.7 气动导数与动压效应</h2>
+<p>考虑纵向教学模型，气动力矩在局部可近似为</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Δ</mi><msub><mi>M</mi><mi>y</mi></msub><mo>≈</mo><mover><mi>q</mi><mo accent="true">‾</mo></mover><mi>S</mi><mover><mi>c</mi><mo accent="true">‾</mo></mover><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>C</mi><msub><mi>m</mi><mi>α</mi></msub></msub><mi mathvariant="normal">Δ</mi><mi>α</mi><mo>+</mo><msub><mi>C</mi><msub><mi>m</mi><mi>q</mi></msub></msub><mfrac><mover><mi>c</mi><mo accent="true">‾</mo></mover><mrow><mn>2</mn><mi>V</mi></mrow></mfrac><mi mathvariant="normal">Δ</mi><mi>q</mi><mo>+</mo><msub><mi>C</mi><msub><mi>m</mi><msub><mi>δ</mi><mi>e</mi></msub></msub></msub><mi mathvariant="normal">Δ</mi><msub><mi>δ</mi><mi>e</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mi>.</mi></mrow><annotation encoding="application/x-tex">
+\Delta M_y \approx \bar q S \bar c \left( C_{m_\alpha}\Delta \alpha + C_{m_q}\frac{\bar c}{2V}\Delta q + C_{m_{\delta_e}}\Delta \delta_e \right).
+</annotation></semantics></math></p>
+<p>这里的
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Δ</mi><msub><mi>M</mi><mi>y</mi></msub></mrow><annotation encoding="application/x-tex">\Delta M_y</annotation></semantics></math>
+表示局部俯仰力矩增量，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mover><mi>q</mi><mo accent="true">‾</mo></mover><annotation encoding="application/x-tex">\bar q</annotation></semantics></math>
+通过动压把导数项放大到实际力矩尺度。</p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>C</mi><msub><mi>m</mi><mi>α</mi></msub></msub><annotation encoding="application/x-tex">C_{m_\alpha}</annotation></semantics></math>
+是攻角导数，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>C</mi><msub><mi>m</mi><mi>q</mi></msub></msub><annotation encoding="application/x-tex">C_{m_q}</annotation></semantics></math>
+是俯仰阻尼导数，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>C</mi><msub><mi>m</mi><msub><mi>δ</mi><mi>e</mi></msub></msub></msub><annotation encoding="application/x-tex">C_{m_{\delta_e}}</annotation></semantics></math>
+是升降舵控制导数。</p>
+<p>这个表达直接告诉我们：<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mover><mi>q</mi><mo accent="true">‾</mo></mover><annotation encoding="application/x-tex">\bar q</annotation></semantics></math>
+是一个放大因子。</p>
+<ul>
+<li>低动压时，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>∂</mi><msub><mi>M</mi><mi>y</mi></msub><mi>/</mi><mi>∂</mi><msub><mi>δ</mi><mi>e</mi></msub></mrow><annotation encoding="application/x-tex">\partial M_y/\partial \delta_e</annotation></semantics></math>
+变小，俯仰控制效能不足；</li>
+<li>高动压时，舵面效能增强，但结构载荷、热风险和舵面力矩约束更紧；</li>
+<li>动压接近边界时，控制器可能需要降低参考、限制输入或引入效能折减模型。</li>
+</ul>
+<p>因此，气动导数不能只在一个标称点报告。至少应随
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>M</mi><mi>a</mi><mo>,</mo><mi>h</mi><mo>,</mo><mi>α</mi><mo>,</mo><mover><mi>q</mi><mo accent="true">‾</mo></mover></mrow><annotation encoding="application/x-tex">Ma,h,\alpha,\bar q</annotation></semantics></math>
+检查控制效能范围。如果
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>C</mi><msub><mi>m</mi><msub><mi>δ</mi><mi>e</mi></msub></msub></msub><annotation encoding="application/x-tex">C_{m_{\delta_e}}</annotation></semantics></math>
+或
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>q</mi><mo accent="true">‾</mo></mover><mi>S</mi><mover><mi>c</mi><mo accent="true">‾</mo></mover><msub><mi>C</mi><msub><mi>m</mi><msub><mi>δ</mi><mi>e</mi></msub></msub></msub></mrow><annotation encoding="application/x-tex">\bar q S \bar c C_{m_{\delta_e}}</annotation></semantics></math>
+接近零，动态逆和控制分配都可能变得病态。</p>
+<h2 id="气动接口契约">17.8 气动接口契约</h2>
+<p>一个可复用的气动模型应明确输入、输出、单位和状态标志。建议最小契约如下：</p>
+<table>
+<thead>
+<tr>
+<th>类别</th>
+<th>字段</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>输入</td>
+<td>马赫数</td>
+<td>气动表索引和压缩性效应</td>
+</tr>
+<tr>
+<td>输入</td>
+<td>高度</td>
+<td>大气密度和温度相关输入</td>
+</tr>
+<tr>
+<td>输入</td>
+<td>攻角、侧滑角</td>
+<td>气动角，必须注明弧度</td>
+</tr>
+<tr>
+<td>输入</td>
+<td>机体系角速度</td>
+<td>机体系角速度</td>
+</tr>
+<tr>
+<td>输入</td>
+<td>各舵面实际偏角</td>
+<td>各执行机构实际偏角，不是命令偏角</td>
+</tr>
+<tr>
+<td>输入</td>
+<td>动压</td>
+<td>气动力和力矩尺度</td>
+</tr>
+<tr>
+<td>输出</td>
+<td>机体系气动力</td>
+<td>机体系气动力</td>
+</tr>
+<tr>
+<td>输出</td>
+<td>机体系气动力矩</td>
+<td>机体系气动力矩</td>
+</tr>
+<tr>
+<td>输出</td>
+<td>系数集合</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>C</mi><mi>X</mi></msub><mo>,</mo><msub><mi>C</mi><mi>Y</mi></msub><mo>,</mo><msub><mi>C</mi><mi>Z</mi></msub><mo>,</mo><msub><mi>C</mi><mi>l</mi></msub><mo>,</mo><msub><mi>C</mi><mi>m</mi></msub><mo>,</mo><msub><mi>C</mi><mi>n</mi></msub></mrow><annotation encoding="application/x-tex">C_X,C_Y,C_Z,C_l,C_m,C_n</annotation></semantics></math>
+或等价系数</td>
+</tr>
+<tr>
+<td>标志</td>
+<td>是否在气动表范围内</td>
+<td>表格输入是否落在可用区间内</td>
+</tr>
+<tr>
+<td>标志</td>
+<td>表格输入是否被限幅</td>
+<td>为避免外推而对表格输入进行限幅</td>
+</tr>
+<tr>
+<td>标志</td>
+<td>uncertainty_sample_id</td>
+<td>当前不确定性样本</td>
+</tr>
+</tbody>
+</table>
+<p>控制器设计时，气动模型必须使用实际执行机构偏角。如果把命令偏角直接送入气动模型，就会掩盖执行机构滞后、饱和、速率限制和故障带来的真实力矩损失。</p>
+<h2 id="气动数据验收矩阵">17.9 气动数据验收矩阵</h2>
+<p>教学合成气动表也需要验收。一个最小检查矩阵可写为：</p>
+<table>
+<thead>
+<tr>
+<th>检查</th>
+<th>扫描变量</th>
+<th>通过口径</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>攻角趋势</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>α</mi><annotation encoding="application/x-tex">\alpha</annotation></semantics></math></td>
+<td>升力趋势、阻力趋势和俯仰力矩趋势符合设定符号</td>
+</tr>
+<tr>
+<td>舵面效能</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>δ</mi><mi>e</mi></msub><mo>,</mo><msub><mi>δ</mi><mi>a</mi></msub><mo>,</mo><msub><mi>δ</mi><mi>r</mi></msub></mrow><annotation encoding="application/x-tex">\delta_e,\delta_a,\delta_r</annotation></semantics></math></td>
+<td>力矩方向和控制器约定一致</td>
+</tr>
+<tr>
+<td>侧滑趋势</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>β</mi><annotation encoding="application/x-tex">\beta</annotation></semantics></math></td>
+<td>侧力、滚转和偏航趋势符号一致</td>
+</tr>
+<tr>
+<td>角速度阻尼</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi><mo>,</mo><mi>q</mi><mo>,</mo><mi>r</mi></mrow><annotation encoding="application/x-tex">p,q,r</annotation></semantics></math></td>
+<td>动导数提供合理阻尼或明确说明简化</td>
+</tr>
+<tr>
+<td>动压尺度</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mover><mi>q</mi><mo accent="true">‾</mo></mover><annotation encoding="application/x-tex">\bar q</annotation></semantics></math></td>
+<td>力和力矩按动压线性缩放</td>
+</tr>
+<tr>
+<td>表格边界</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>M</mi><mi>a</mi><mo>,</mo><mi>α</mi><mo>,</mo><mi>β</mi><mo>,</mo><mi>δ</mi></mrow><annotation encoding="application/x-tex">Ma,\alpha,\beta,\delta</annotation></semantics></math></td>
+<td>超界时有标志、限幅或失败记录</td>
+</tr>
+<tr>
+<td>导数平滑性</td>
+<td>差分步长扫描</td>
+<td>局部线化导数不过度跳变</td>
+</tr>
+<tr>
+<td>不确定性</td>
+<td>系数扰动样本</td>
+<td>扰动幅值、种子和作用通道可追溯</td>
+</tr>
+</tbody>
+</table>
+<p>这张矩阵的作用不是证明气动模型真实，而是证明当前模型在教学范围内自洽。若要支撑高保真结论，还需要风洞、CFD、飞行数据或经过审查的气动数据库。</p>
+<h2 id="与后续章节的接口">17.10 与后续章节的接口</h2>
+<p>本章的输出会直接进入后续几章：</p>
+<ul>
+<li>第18章使用气动力与推进耦合；</li>
+<li>第19章使用气动合力建立质点动力学；</li>
+<li>第20章和第21章把气动导数映射到纵向和横侧向刚体模型；</li>
+<li>第22章在六自由度框架中统一气动、推进和重力项；</li>
+<li>第23章继续引入弹性模态与气动弹性效应。</li>
+</ul>
+<p>因此，本章不是“系数列表”，而是一个接口定义章。后续所有建模、控制和验证章节都应继承这里的符号、单位和输入输出约定。</p>
+<h2 id="常见错误">17.11 常见错误</h2>
+<ol type="1">
+<li>升力、阻力、侧力坐标系没有说明。</li>
+<li>攻角单位在度和弧度之间混用。</li>
+<li>气动表外推没有任何日志字段。</li>
+<li>舵面正方向和控制器正方向相反。</li>
+<li>用静态气动表，却声称验证了高速姿态动态。</li>
+<li>线化导数由噪声表格差分得到，却不检查平滑性。</li>
+<li>气动不确定性只在文字中出现，没有进入仿真。</li>
+<li>合成教学气动表被表述成高保真数据库。</li>
+<li>用命令舵偏计算气动力，而不是用执行机构实际舵偏。</li>
+<li>不检查低动压下控制效能矩阵是否病态。</li>
+</ol>
+<h2 id="本章小结">17.12 本章小结</h2>
+<p>气动力与气动力矩建模决定高超声速控制器是否有真实对象可控。参考书级教程必须把气动系数、气动表、稳定导数、控制导数、插值外推、不确定性和验证指标讲清楚。后续配平、线化、增益调度、控制分配、鲁棒控制、NDI/INDI
+和六自由度仿真都建立在本章接口之上。</p>
+<h2 id="练习">17.13 练习</h2>
+<ol type="1">
+<li>写出三维气动力和气动力矩的系数表达。</li>
+<li>解释稳定导数和控制导数的区别。</li>
+<li>说明气动表外推为什么会破坏仿真可信性。</li>
+<li>给出一个多执行机构控制效能矩阵
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>B</mi><mi>a</mi></msub><annotation encoding="application/x-tex">B_a</annotation></semantics></math>
+的定义。</li>
+<li>设计一个气动不确定性 Monte Carlo 采样方案。</li>
+<li>列出气动模型轨迹记录中应记录的字段。</li>
+<li>对纵向气动系数模型，推导
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>∂</mi><msub><mi>M</mi><mi>y</mi></msub><mi>/</mi><mi>∂</mi><msub><mi>δ</mi><mi>e</mi></msub></mrow><annotation encoding="application/x-tex">\partial M_y/\partial \delta_e</annotation></semantics></math>。</li>
+<li>说明为什么气动模型必须使用实际舵偏而不是控制器命令。</li>
+<li>设计一个气动数据验收矩阵，覆盖攻角、侧滑、舵面和动压扫描。</li>
+</ol>
+
+      </article>
+      
+      <nav class="book-bottom-nav" aria-label="章节导航">
+        <a href="./16-atmosphere-flight-conditions.html">上一章：第16章 大气环境与飞行条件</a>
+        <a href="./index.html">卷首页</a>
+        <a href="./18-propulsion-aero-propulsive-coupling.html">下一章：第18章 推进系统与气动推进耦合</a>
+      </nav>
+    </main>
+  </div>
+</body>
+</html>

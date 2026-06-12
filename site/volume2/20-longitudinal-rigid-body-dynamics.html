@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>第20章 纵向刚体动力学模型</title>
+  <style>
+    :root {
+      --paper: #f7f3eb;
+      --ink: #1f2937;
+      --muted: #5b6472;
+      --line: color-mix(in srgb, #e3f5f2 68%, #cbd5e1 32%);
+      --accent: #18786f;
+      --accent-soft: #e3f5f2;
+      --accent-deep: #0e4b45;
+      color-scheme: light;
+    }
+    html {
+      -webkit-text-size-adjust: 100%;
+      background:
+        radial-gradient(circle at top left, #e3f5f2 0, rgba(255,255,255,0) 32%),
+        linear-gradient(180deg, #fbfaf6 0%, var(--paper) 18%, #f7f1e6 100%);
+    }
+    body {
+      margin: 0;
+      font-family: "Source Han Serif SC", "Songti SC", "Noto Serif CJK SC", "Microsoft YaHei", serif;
+      color: var(--ink);
+      line-height: 1.78;
+      letter-spacing: 0;
+    }
+    a { color: var(--accent-deep); }
+    .book-app {
+      display: grid;
+      grid-template-columns: 280px minmax(0, 1fr);
+      min-height: 100vh;
+    }
+    .book-sidebar {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow: auto;
+      padding: 1.2rem 1rem 1.2rem 1.15rem;
+      border-right: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(255,255,255,0.86), rgba(255,255,255,0.72));
+      backdrop-filter: blur(10px);
+    }
+    .sidebar-shell { position: sticky; top: 0; display: flex; flex-direction: column; gap: 1rem; }
+    .sidebar-brand {
+      padding: 0.95rem 0.95rem 1rem;
+      border-radius: 18px;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.95), rgba(255,255,255,0.84)),
+        linear-gradient(135deg, var(--accent-soft), rgba(255,255,255,0));
+      border: 1px solid var(--line);
+      box-shadow: 0 12px 28px rgba(31, 41, 55, 0.06);
+    }
+    .sidebar-brand .kicker { margin: 0; color: var(--accent); font-size: 0.82rem; font-weight: 700; }
+    .sidebar-brand h2 { margin: 0.45rem 0 0.25rem; font-size: 1.08rem; line-height: 1.3; color: var(--ink); }
+    .sidebar-brand p { margin: 0.35rem 0 0; color: var(--muted); font-size: 0.9rem; }
+    .sidebar-links { display: grid; gap: 0.45rem; }
+    .sidebar-link {
+      display: grid;
+      grid-template-columns: 2.2rem minmax(0, 1fr);
+      gap: 0.6rem;
+      align-items: start;
+      padding: 0.7rem 0.75rem;
+      border-radius: 14px;
+      text-decoration: none;
+      background: rgba(255,255,255,0.72);
+      border: 1px solid rgba(31,41,55,0.07);
+      color: var(--ink);
+    }
+    .sidebar-link:hover { background: rgba(255,255,255,0.95); border-color: var(--line); }
+    .sidebar-link.active {
+      background: linear-gradient(135deg, rgba(255,255,255,0.98), rgba(255,255,255,0.9));
+      border-color: var(--accent-soft);
+      box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent-soft) 68%, #ffffff 32%);
+    }
+    .sidebar-index {
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      min-width: 2rem;
+      height: 2rem;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent-deep);
+      font-size: 0.78rem;
+      font-weight: 800;
+    }
+    .sidebar-title { font-size: 0.94rem; line-height: 1.35; }
+    .book-main { min-width: 0; padding: 1.25rem 1.45rem 1.8rem; }
+    .book-page-header {
+      padding: 0.85rem 0 1rem;
+      margin-bottom: 1rem;
+      border-bottom: 1px solid var(--line);
+    }
+    .page-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.28rem 0.72rem;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.82);
+      border: 1px solid var(--line);
+      color: var(--accent-deep);
+      font-size: 0.8rem;
+      font-weight: 700;
+    }
+    .book-page-header h1 {
+      margin: 0.7rem 0 0;
+      font-size: 1.85rem;
+      line-height: 1.22;
+      color: var(--accent-deep);
+      border: 0;
+      padding: 0;
+    }
+    .book-page-header p { margin: 0.45rem 0 0; color: var(--muted); max-width: 62rem; }
+    .book-article { max-width: 900px; margin: 0; padding: 0 0 1.2rem; }
+    .book-article h1, .book-article h2, .book-article h3, .book-article h4, .book-article h5, .book-article h6 {
+      line-height: 1.28;
+      margin-top: 1.45em;
+      margin-bottom: 0.55em;
+      color: var(--accent-deep);
+    }
+    .book-article h1 { font-size: 2rem; border-bottom: 2px solid var(--line); padding-bottom: 0.42rem; }
+    .book-article h1:first-of-type { margin-top: 0; }
+    .book-article h2 { font-size: 1.42rem; }
+    .book-article h3 { font-size: 1.12rem; }
+    .book-article p, .book-article li, .book-article dd, .book-article td, .book-article th { text-align: justify; text-justify: inter-ideograph; }
+    .book-article p { margin: 0.85rem 0; }
+    .book-article code, .book-article pre { font-family: "Cascadia Mono", "Source Code Pro", Consolas, monospace; font-size: 0.94em; }
+    .book-article code {
+      padding: 0.02rem 0.24rem;
+      background: color-mix(in srgb, var(--accent-soft) 34%, #ffffff 66%);
+      border: 0;
+      border-bottom: 1px solid color-mix(in srgb, var(--accent-soft) 74%, #d1d5db 26%);
+      border-radius: 4px;
+      color: #253244;
+      box-decoration-break: clone;
+      -webkit-box-decoration-break: clone;
+    }
+    .book-article pre {
+      padding: 1rem 1.1rem;
+      overflow: auto;
+      background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,253,248,0.98));
+      border: 1px solid color-mix(in srgb, var(--accent-soft) 54%, #d1d5db 46%);
+      border-left: 5px solid var(--accent);
+      border-radius: 14px;
+      box-shadow: 0 8px 22px rgba(31, 41, 55, 0.05);
+    }
+    .book-article pre code { padding: 0; border: 0; background: transparent; color: inherit; }
+    .book-article table {
+      border-collapse: collapse;
+      width: 100%;
+      margin: 1rem 0 1.25rem;
+      background: rgba(255,255,255,0.82);
+      overflow: hidden;
+      border-radius: 12px;
+    }
+    .book-article th, .book-article td { border: 1px solid var(--line); padding: 0.5rem 0.7rem; vertical-align: top; }
+    .book-article th { background: color-mix(in srgb, var(--accent-soft) 42%, #ffffff 58%); }
+    .book-article blockquote {
+      margin: 1rem 0;
+      padding: 0.25rem 0 0.25rem 1rem;
+      border-left: 4px solid var(--accent);
+      color: #374151;
+      background: linear-gradient(90deg, rgba(255,255,255,0.72), rgba(255,255,255,0.48));
+      border-radius: 0 12px 12px 0;
+    }
+    .book-bottom-nav {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-top: 2.2rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--line);
+    }
+    .book-bottom-nav a {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.6rem 0.9rem;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.84);
+      text-decoration: none;
+      font-weight: 700;
+    }
+    .book-bottom-nav span {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.6rem 0.9rem;
+      border-radius: 999px;
+      border: 1px solid rgba(31,41,55,0.08);
+      background: rgba(255,255,255,0.54);
+      color: rgba(31,41,55,0.42);
+      font-weight: 700;
+    }
+    .book-bottom-nav a:hover { background: rgba(255,255,255,0.98); }
+    .book-volume-intro {
+      margin: 0 0 1.25rem;
+      padding: 1.2rem 1.25rem 1.1rem;
+      border-radius: 18px;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.96), rgba(255,255,255,0.78)),
+        linear-gradient(135deg, var(--accent-soft), rgba(255,255,255,0));
+      border: 1px solid var(--line);
+      box-shadow: 0 14px 34px rgba(31, 41, 55, 0.06);
+    }
+    .volume-intro-kicker {
+      margin: 0;
+      color: var(--accent);
+      font-size: 0.84rem;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    .book-volume-intro h2 {
+      margin: 0.55rem 0 0.55rem;
+      font-size: 1.28rem;
+      line-height: 1.35;
+      color: var(--accent-deep);
+    }
+    .volume-intro-summary {
+      margin: 0;
+      color: var(--muted);
+      max-width: 68rem;
+    }
+    .volume-intro-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.8rem;
+      margin-top: 1rem;
+    }
+    .volume-intro-box {
+      padding: 0.85rem 0.9rem;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.72);
+      border: 1px solid rgba(31,41,55,0.08);
+    }
+    .volume-intro-box span {
+      display: block;
+      color: var(--accent);
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+    }
+    .volume-intro-box strong {
+      display: block;
+      margin-top: 0.35rem;
+      color: var(--ink);
+      font-size: 0.95rem;
+      line-height: 1.45;
+    }
+    .volume-intro-note {
+      margin-top: 0.9rem;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+    @media (max-width: 1180px) {
+      .book-app { grid-template-columns: 1fr; }
+      .book-sidebar {
+        position: relative;
+        height: auto;
+        border-right: 0;
+        border-bottom: 1px solid var(--line);
+      }
+      .sidebar-shell { position: static; }
+    }
+    @media (max-width: 900px) {
+      .book-main { padding: 1rem 1rem 1.5rem; }
+      .book-bottom-nav { flex-direction: column; }
+      .volume-intro-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="book-app">
+    <aside class="book-sidebar">
+      <div class="sidebar-shell">
+        <div class="sidebar-brand">
+          <p class="kicker">高超声速飞行器控制教程</p>
+          <h2>第二卷 高超声速飞行器建模与飞行动力学</h2>
+          <p>对象与模型</p>
+        </div>
+        <nav class="sidebar-links" aria-label="本卷目录">
+          <a class="sidebar-link" href="./index.html"><span class="sidebar-index">0</span><span class="sidebar-title">卷首页</span></a>
+<a class="sidebar-link" href="./14-vehicle-types-mission-profiles.html"><span class="sidebar-index">01</span><span class="sidebar-title">第14章 高超声速飞行器类型与任务剖面</span></a>
+<a class="sidebar-link" href="./15-coordinate-kinematics-attitude.html"><span class="sidebar-index">02</span><span class="sidebar-title">第15章 坐标系、运动学与姿态描述</span></a>
+<a class="sidebar-link" href="./16-atmosphere-flight-conditions.html"><span class="sidebar-index">03</span><span class="sidebar-title">第16章 大气环境与飞行条件</span></a>
+<a class="sidebar-link" href="./17-aerodynamic-force-moment-modeling.html"><span class="sidebar-index">04</span><span class="sidebar-title">第17章 气动力与气动力矩建模</span></a>
+<a class="sidebar-link" href="./18-propulsion-aero-propulsive-coupling.html"><span class="sidebar-index">05</span><span class="sidebar-title">第18章 推进系统与气动推进耦合</span></a>
+<a class="sidebar-link" href="./19-point-mass-dynamics.html"><span class="sidebar-index">06</span><span class="sidebar-title">第19章 质点动力学模型</span></a>
+<a class="sidebar-link active" href="./20-longitudinal-rigid-body-dynamics.html"><span class="sidebar-index">07</span><span class="sidebar-title">第20章 纵向刚体动力学模型</span></a>
+<a class="sidebar-link" href="./21-lateral-directional-dynamics.html"><span class="sidebar-index">08</span><span class="sidebar-title">第21章 横侧向动力学模型</span></a>
+<a class="sidebar-link" href="./22-six-dof-rigid-body-model.html"><span class="sidebar-index">09</span><span class="sidebar-title">第22章 六自由度刚体模型</span></a>
+<a class="sidebar-link" href="./23-flexible-aeroelastic-modeling.html"><span class="sidebar-index">10</span><span class="sidebar-title">第23章 刚柔耦合与气动弹性模型</span></a>
+<a class="sidebar-link" href="./24-actuator-sensor-computation-modeling.html"><span class="sidebar-index">11</span><span class="sidebar-title">第24章 执行机构、传感器与计算系统建模</span></a>
+<a class="sidebar-link" href="./25-trim-linearization-modal-analysis.html"><span class="sidebar-index">12</span><span class="sidebar-title">第25章 配平、线性化与模态分析</span></a>
+        </nav>
+      </div>
+    </aside>
+    <main class="book-main">
+      <header class="book-page-header">
+        <div class="page-eyebrow">第2册·章节页07</div>
+        <h1 id="volume2--20-longitudinal-rigid-body-dynamics">第20章 纵向刚体动力学模型</h1>
+        <p>本页是章节正文页。左侧目录用于回到本卷其他章节，底部导航用于前后章跳转。</p>
+      </header>
+      <article class="book-article">
+        <h2 id="问题背景">20.1 问题背景</h2>
+<p>纵向刚体模型是高超声速飞行器控制从质点层进入姿态层的第一步。它把速度、高度、航迹角、攻角、俯仰角、俯仰角速度、升降舵和推力放进同一个闭环对象里，从而可以讨论“速度和高度怎样被姿态与力矩真正实现”。</p>
+<p>这一层的价值很明确：外环不再直接面对理想加速度，而是面对带有执行机构动态、气动耦合和力矩约束的真实对象。对控制科学而言，这意味着可行性、稳定性和鲁棒性都要在更真实的动态系统上重新检查。</p>
+<h2 id="模型层级中的位置">20.2 模型层级中的位置</h2>
+<p>第二卷的模型链路可以理解为：</p>
+<ul>
+<li>质点路径模型；</li>
+<li>纵向刚体模型；</li>
+<li>横侧向刚体模型；</li>
+<li>六自由度刚体模型；</li>
+<li>刚柔耦合与气动推进耦合模型。</li>
+</ul>
+<p>纵向刚体模型保留俯仰平面的动力学，适合训练速度环、高度环、攻角环、俯仰姿态环、配平与纵向线化。它仍然忽略侧滑、滚转、偏航和多轴控制分配，因此不能直接替代三维机动或完整六自由度验证。</p>
+<h2 id="状态输入和派生量">20.3 状态、输入和派生量</h2>
+<p>一个常见的纵向状态向量写为：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>x</mi><mo>=</mo><msup><mrow><mo stretchy="true" form="prefix">[</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><mi>V</mi></mtd><mtd columnalign="center" style="text-align: center"><mi>γ</mi></mtd><mtd columnalign="center" style="text-align: center"><mi>h</mi></mtd><mtd columnalign="center" style="text-align: center"><mi>α</mi></mtd><mtd columnalign="center" style="text-align: center"><mi>θ</mi></mtd><mtd columnalign="center" style="text-align: center"><mi>q</mi></mtd></mtr></mtable><mo stretchy="true" form="postfix">]</mo></mrow><mi>⊤</mi></msup></mrow><annotation encoding="application/x-tex">
+x=\begin{bmatrix}V &amp; \gamma &amp; h &amp; \alpha &amp; \theta &amp; q\end{bmatrix}^\top
+</annotation></semantics></math></p>
+<p>这里的
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>x</mi><annotation encoding="application/x-tex">x</annotation></semantics></math>
+是纵向刚体状态向量，包含速度、航迹角、高度、攻角、俯仰角和俯仰角速度。</p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>V</mi><annotation encoding="application/x-tex">V</annotation></semantics></math>
+是速度，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>γ</mi><annotation encoding="application/x-tex">\gamma</annotation></semantics></math>
+是航迹角，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>h</mi><annotation encoding="application/x-tex">h</annotation></semantics></math>
+是高度，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>α</mi><annotation encoding="application/x-tex">\alpha</annotation></semantics></math>
+是攻角，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>θ</mi><annotation encoding="application/x-tex">\theta</annotation></semantics></math>
+是俯仰角，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>q</mi><annotation encoding="application/x-tex">q</annotation></semantics></math>
+是俯仰角速度。</p>
+<p>若显式考虑执行机构，教学模型常增广为：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>x</mi><mi>a</mi></msub><mo>=</mo><msup><mrow><mo stretchy="true" form="prefix">[</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><mi>V</mi></mtd><mtd columnalign="center" style="text-align: center"><mi>γ</mi></mtd><mtd columnalign="center" style="text-align: center"><mi>h</mi></mtd><mtd columnalign="center" style="text-align: center"><mi>α</mi></mtd><mtd columnalign="center" style="text-align: center"><mi>θ</mi></mtd><mtd columnalign="center" style="text-align: center"><mi>q</mi></mtd><mtd columnalign="center" style="text-align: center"><msub><mi>δ</mi><mi>e</mi></msub></mtd><mtd columnalign="center" style="text-align: center"><msub><mover><mi>δ</mi><mo accent="true">̇</mo></mover><mi>e</mi></msub></mtd></mtr></mtable><mo stretchy="true" form="postfix">]</mo></mrow><mi>⊤</mi></msup></mrow><annotation encoding="application/x-tex">
+x_a=\begin{bmatrix}V &amp; \gamma &amp; h &amp; \alpha &amp; \theta &amp; q &amp; \delta_e &amp; \dot{\delta}_e\end{bmatrix}^\top
+</annotation></semantics></math></p>
+<p>这里的
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>x</mi><mi>a</mi></msub><annotation encoding="application/x-tex">x_a</annotation></semantics></math>
+是带执行机构的增广状态向量，额外加入了实际升降舵角及其变化率。</p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>δ</mi><mi>e</mi></msub><annotation encoding="application/x-tex">\delta_e</annotation></semantics></math>
+是实际升降舵偏角，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mover><mi>δ</mi><mo accent="true">̇</mo></mover><mi>e</mi></msub><annotation encoding="application/x-tex">\dot{\delta}_e</annotation></semantics></math>
+是升降舵角速度。</p>
+<p>控制输入可以写为：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>u</mi><mo>=</mo><msup><mrow><mo stretchy="true" form="prefix">[</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><msub><mi>δ</mi><mrow><mi>e</mi><mo>,</mo><mi>c</mi></mrow></msub></mtd><mtd columnalign="center" style="text-align: center"><msub><mi>ϕ</mi><mrow><mi>T</mi><mo>,</mo><mi>c</mi></mrow></msub></mtd></mtr></mtable><mo stretchy="true" form="postfix">]</mo></mrow><mi>⊤</mi></msup></mrow><annotation encoding="application/x-tex">
+u=\begin{bmatrix}\delta_{e,c} &amp; \phi_{T,c}\end{bmatrix}^\top
+</annotation></semantics></math></p>
+<p>这里的
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>u</mi><annotation encoding="application/x-tex">u</annotation></semantics></math>
+是纵向控制输入向量，包含升降舵命令和推力命令。</p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>δ</mi><mrow><mi>e</mi><mo>,</mo><mi>c</mi></mrow></msub><annotation encoding="application/x-tex">\delta_{e,c}</annotation></semantics></math>
+是升降舵命令，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ϕ</mi><mrow><mi>T</mi><mo>,</mo><mi>c</mi></mrow></msub><annotation encoding="application/x-tex">\phi_{T,c}</annotation></semantics></math>
+是油门或等效推力命令。</p>
+<p>常用派生量包括动压：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>q</mi><mo accent="true">‾</mo></mover><mo>=</mo><mfrac><mn>1</mn><mn>2</mn></mfrac><mi>ρ</mi><mo stretchy="false" form="prefix">(</mo><mi>h</mi><mo stretchy="false" form="postfix">)</mo><msup><mi>V</mi><mn>2</mn></msup></mrow><annotation encoding="application/x-tex">
+\bar q=\frac{1}{2}\rho(h)V^2
+</annotation></semantics></math></p>
+<p>这里的
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mover><mi>q</mi><mo accent="true">‾</mo></mover><annotation encoding="application/x-tex">\bar q</annotation></semantics></math>
+是动压，它是路径和控制效能的重要派生量。</p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mover><mi>q</mi><mo accent="true">‾</mo></mover><annotation encoding="application/x-tex">\bar q</annotation></semantics></math>
+是动压，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ρ</mi><mo stretchy="false" form="prefix">(</mo><mi>h</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\rho(h)</annotation></semantics></math>
+是高度
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>h</mi><annotation encoding="application/x-tex">h</annotation></semantics></math>
+处的大气密度。</p>
+<p>纵向几何关系为：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>θ</mi><mo>=</mo><mi>α</mi><mo>+</mo><mi>γ</mi></mrow><annotation encoding="application/x-tex">
+\theta=\alpha+\gamma
+</annotation></semantics></math></p>
+<p>这里的
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>θ</mi><annotation encoding="application/x-tex">\theta</annotation></semantics></math>
+等于攻角和航迹角之和，这是纵向几何关系的核心式子。</p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>θ</mi><annotation encoding="application/x-tex">\theta</annotation></semantics></math>
+是俯仰角，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>α</mi><annotation encoding="application/x-tex">\alpha</annotation></semantics></math>
+是攻角，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>γ</mi><annotation encoding="application/x-tex">\gamma</annotation></semantics></math>
+是航迹角。</p>
+<h2 id="纵向基本方程">20.4 纵向基本方程</h2>
+<p>一个教学级纵向刚体模型可以写为：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtable><mtr><mtd columnalign="right" style="text-align: right; padding-right: 0"><mover><mi>V</mi><mo accent="true">̇</mo></mover></mtd><mtd columnalign="left" style="text-align: left; padding-left: 0"><mo>=</mo><mfrac><mrow><mi>T</mi><mi>cos</mi><mo>&#8289;</mo><mi>α</mi><mo>−</mo><mi>D</mi></mrow><mi>m</mi></mfrac><mo>−</mo><mi>g</mi><mi>sin</mi><mo>&#8289;</mo><mi>γ</mi><mo>,</mo></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right; padding-right: 0"><mover><mi>γ</mi><mo accent="true">̇</mo></mover></mtd><mtd columnalign="left" style="text-align: left; padding-left: 0"><mo>=</mo><mfrac><mrow><mi>L</mi><mo>+</mo><mi>T</mi><mi>sin</mi><mo>&#8289;</mo><mi>α</mi></mrow><mrow><mi>m</mi><mi>V</mi></mrow></mfrac><mo>−</mo><mfrac><mi>g</mi><mi>V</mi></mfrac><mi>cos</mi><mo>&#8289;</mo><mi>γ</mi><mo>,</mo></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right; padding-right: 0"><mover><mi>h</mi><mo accent="true">̇</mo></mover></mtd><mtd columnalign="left" style="text-align: left; padding-left: 0"><mo>=</mo><mi>V</mi><mi>sin</mi><mo>&#8289;</mo><mi>γ</mi><mo>,</mo></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right; padding-right: 0"><mover><mi>α</mi><mo accent="true">̇</mo></mover></mtd><mtd columnalign="left" style="text-align: left; padding-left: 0"><mo>=</mo><mi>q</mi><mo>−</mo><mover><mi>γ</mi><mo accent="true">̇</mo></mover><mo>,</mo></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right; padding-right: 0"><mover><mi>θ</mi><mo accent="true">̇</mo></mover></mtd><mtd columnalign="left" style="text-align: left; padding-left: 0"><mo>=</mo><mi>q</mi><mo>,</mo></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right; padding-right: 0"><mover><mi>q</mi><mo accent="true">̇</mo></mover></mtd><mtd columnalign="left" style="text-align: left; padding-left: 0"><mo>=</mo><mfrac><msub><mi>M</mi><mi>y</mi></msub><msub><mi>I</mi><mi>y</mi></msub></mfrac><mi>.</mi></mtd></mtr></mtable><annotation encoding="application/x-tex">
+\begin{aligned}
+\dot{V} &amp;= \frac{T\cos\alpha-D}{m}-g\sin\gamma,\\
+\dot{\gamma} &amp;= \frac{L+T\sin\alpha}{mV}-\frac{g}{V}\cos\gamma,\\
+\dot{h} &amp;= V\sin\gamma,\\
+\dot{\alpha} &amp;= q-\dot{\gamma},\\
+\dot{\theta} &amp;= q,\\
+\dot{q} &amp;= \frac{M_y}{I_y}.
+\end{aligned}
+</annotation></semantics></math></p>
+<p>这里的六条方程分别描述速度、航迹角、高度、攻角、俯仰角和俯仰角速度的耦合演化。</p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>T</mi><annotation encoding="application/x-tex">T</annotation></semantics></math>
+是推力，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>D</mi><annotation encoding="application/x-tex">D</annotation></semantics></math>
+是阻力，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>L</mi><annotation encoding="application/x-tex">L</annotation></semantics></math>
+是升力，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>M</mi><mi>y</mi></msub><annotation encoding="application/x-tex">M_y</annotation></semantics></math>
+是俯仰力矩，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>m</mi><annotation encoding="application/x-tex">m</annotation></semantics></math>
+是质量，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>g</mi><annotation encoding="application/x-tex">g</annotation></semantics></math>
+是重力加速度，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>I</mi><mi>y</mi></msub><annotation encoding="application/x-tex">I_y</annotation></semantics></math>
+是俯仰转动惯量。</p>
+<p>这组方程说明，速度、高度、攻角和俯仰角并不是互相独立的。推力影响速度，也会通过攻角进入航迹角；升力影响航迹角，也会反馈到攻角；俯仰力矩首先影响角速度，再通过角速度影响姿态和轨迹。</p>
+<h2 id="气动力和俯仰力矩">20.5 气动力和俯仰力矩</h2>
+<p>纵向气动力常写成：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtable><mtr><mtd columnalign="right" style="text-align: right; padding-right: 0"><mi>L</mi></mtd><mtd columnalign="left" style="text-align: left; padding-left: 0"><mo>=</mo><mover><mi>q</mi><mo accent="true">‾</mo></mover><mi>S</mi><msub><mi>C</mi><mi>L</mi></msub><mo>,</mo></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right; padding-right: 0"><mi>D</mi></mtd><mtd columnalign="left" style="text-align: left; padding-left: 0"><mo>=</mo><mover><mi>q</mi><mo accent="true">‾</mo></mover><mi>S</mi><msub><mi>C</mi><mi>D</mi></msub><mo>,</mo></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right; padding-right: 0"><msub><mi>M</mi><mi>y</mi></msub></mtd><mtd columnalign="left" style="text-align: left; padding-left: 0"><mo>=</mo><mover><mi>q</mi><mo accent="true">‾</mo></mover><mi>S</mi><mover><mi>c</mi><mo accent="true">‾</mo></mover><msub><mi>C</mi><mi>m</mi></msub><mi>.</mi></mtd></mtr></mtable><annotation encoding="application/x-tex">
+\begin{aligned}
+L &amp;= \bar q S C_L,\\
+D &amp;= \bar q S C_D,\\
+M_y &amp;= \bar q S \bar c C_m.
+\end{aligned}
+</annotation></semantics></math></p>
+<p>这里的
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>L</mi><annotation encoding="application/x-tex">L</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>D</mi><annotation encoding="application/x-tex">D</annotation></semantics></math>
+和
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>M</mi><mi>y</mi></msub><annotation encoding="application/x-tex">M_y</annotation></semantics></math>
+分别是升力、阻力和俯仰力矩。</p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>S</mi><annotation encoding="application/x-tex">S</annotation></semantics></math>
+是参考面积，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mover><mi>c</mi><mo accent="true">‾</mo></mover><annotation encoding="application/x-tex">\bar c</annotation></semantics></math>
+是参考弦长，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>C</mi><mi>L</mi></msub><annotation encoding="application/x-tex">C_L</annotation></semantics></math>
+是升力系数，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>C</mi><mi>D</mi></msub><annotation encoding="application/x-tex">C_D</annotation></semantics></math>
+是阻力系数，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>C</mi><mi>m</mi></msub><annotation encoding="application/x-tex">C_m</annotation></semantics></math>
+是俯仰力矩系数。</p>
+<p>如果采用局部线化，还会写成：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Δ</mi><msub><mi>C</mi><mi>m</mi></msub><mo>=</mo><msub><mi>C</mi><mrow><mi>m</mi><mi>α</mi></mrow></msub><mi mathvariant="normal">Δ</mi><mi>α</mi><mo>+</mo><msub><mi>C</mi><mrow><mi>m</mi><mi>q</mi></mrow></msub><mi mathvariant="normal">Δ</mi><mover><mi>q</mi><mo accent="true">̂</mo></mover><mo>+</mo><msub><mi>C</mi><mrow><mi>m</mi><msub><mi>δ</mi><mi>e</mi></msub></mrow></msub><mi mathvariant="normal">Δ</mi><msub><mi>δ</mi><mi>e</mi></msub></mrow><annotation encoding="application/x-tex">
+\Delta C_m=C_{m\alpha}\Delta\alpha+C_{mq}\Delta\hat q+C_{m\delta_e}\Delta\delta_e
+</annotation></semantics></math></p>
+<p>这里的
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Δ</mi><msub><mi>C</mi><mi>m</mi></msub></mrow><annotation encoding="application/x-tex">\Delta C_m</annotation></semantics></math>
+是俯仰力矩系数增量，三项分别对应攻角、阻尼和升降舵导数。</p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>C</mi><mrow><mi>m</mi><mi>α</mi></mrow></msub><annotation encoding="application/x-tex">C_{m\alpha}</annotation></semantics></math>
+是攻角导数，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>C</mi><mrow><mi>m</mi><mi>q</mi></mrow></msub><annotation encoding="application/x-tex">C_{mq}</annotation></semantics></math>
+是俯仰阻尼导数，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>C</mi><mrow><mi>m</mi><msub><mi>δ</mi><mi>e</mi></msub></mrow></msub><annotation encoding="application/x-tex">C_{m\delta_e}</annotation></semantics></math>
+是升降舵控制导数，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Δ</mi><mover><mi>q</mi><mo accent="true">̂</mo></mover></mrow><annotation encoding="application/x-tex">\Delta\hat q</annotation></semantics></math>
+是无量纲俯仰角速度增量。</p>
+<p>这一节的重点不是某个特定气动数据库，而是控制意义：攻角决定升力和阻力，俯仰阻尼决定短周期特性，升降舵导数决定控制效能，动压决定同样的舵偏在不同高度和速度下会产生多大的力矩。</p>
+<h2 id="执行机构动态">20.6 执行机构动态</h2>
+<p>真实舵面不是理想代数输入。一个常用的二阶执行机构模型为：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mover><mi>δ</mi><mo accent="true">̈</mo></mover><mi>e</mi></msub><mo>+</mo><mn>2</mn><msub><mi>ζ</mi><mi>a</mi></msub><msub><mi>ω</mi><mi>a</mi></msub><msub><mover><mi>δ</mi><mo accent="true">̇</mo></mover><mi>e</mi></msub><mo>+</mo><msubsup><mi>ω</mi><mi>a</mi><mn>2</mn></msubsup><msub><mi>δ</mi><mi>e</mi></msub><mo>=</mo><msubsup><mi>ω</mi><mi>a</mi><mn>2</mn></msubsup><msub><mi>δ</mi><mrow><mi>e</mi><mo>,</mo><mi>c</mi></mrow></msub></mrow><annotation encoding="application/x-tex">
+\ddot{\delta}_e+2\zeta_a\omega_a\dot{\delta}_e+\omega_a^2\delta_e=\omega_a^2\delta_{e,c}
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ζ</mi><mi>a</mi></msub><annotation encoding="application/x-tex">\zeta_a</annotation></semantics></math>
+是阻尼比，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ω</mi><mi>a</mi></msub><annotation encoding="application/x-tex">\omega_a</annotation></semantics></math>
+是自然频率，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>δ</mi><mi>e</mi></msub><annotation encoding="application/x-tex">\delta_e</annotation></semantics></math>
+是实际舵面角，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>δ</mi><mrow><mi>e</mi><mo>,</mo><mi>c</mi></mrow></msub><annotation encoding="application/x-tex">\delta_{e,c}</annotation></semantics></math>
+是舵面命令。</p>
+<p>这个模型说明，控制器算出来的命令和对象实际接收到的输入不是同一个量。若命令饱和或速率受限，积分项可能累积，参数自适应可能漂移，安全滤波器的可行域也会变窄。因此，纵向模型一旦引入执行机构，就必须同步记录命令、实际舵面、角速度和饱和持续时间。</p>
+<h2 id="速度控制">20.7 速度控制</h2>
+<p>速度通道主要受推力、阻力和航迹角影响：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>V</mi><mo accent="true">̇</mo></mover><mo>=</mo><mfrac><mrow><mi>T</mi><mi>cos</mi><mo>&#8289;</mo><mi>α</mi><mo>−</mo><mi>D</mi></mrow><mi>m</mi></mfrac><mo>−</mo><mi>g</mi><mi>sin</mi><mo>&#8289;</mo><mi>γ</mi></mrow><annotation encoding="application/x-tex">
+\dot{V}=\frac{T\cos\alpha-D}{m}-g\sin\gamma
+</annotation></semantics></math></p>
+<p>这里的
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mover><mi>V</mi><mo accent="true">̇</mo></mover><annotation encoding="application/x-tex">\dot V</annotation></semantics></math>
+是速度变化率，它直接受推力、阻力和航迹角影响。</p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mover><mi>V</mi><mo accent="true">̇</mo></mover><annotation encoding="application/x-tex">\dot V</annotation></semantics></math>
+是速度变化率。</p>
+<p>一个简单的速度外环可以写成：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ϕ</mi><mrow><mi>T</mi><mo>,</mo><mi>c</mi></mrow></msub><mo>=</mo><msub><mi>ϕ</mi><mrow><mi>T</mi><mo>,</mo><mn>0</mn></mrow></msub><mo>+</mo><msub><mi>K</mi><mi>V</mi></msub><mo stretchy="false" form="prefix">(</mo><msub><mi>V</mi><mi>c</mi></msub><mo>−</mo><mi>V</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
+\phi_{T,c}=\phi_{T,0}+K_V(V_c-V)
+</annotation></semantics></math></p>
+<p>这里的
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ϕ</mi><mrow><mi>T</mi><mo>,</mo><mi>c</mi></mrow></msub><annotation encoding="application/x-tex">\phi_{T,c}</annotation></semantics></math>
+是速度外环给出的推力命令，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>K</mi><mi>V</mi></msub><annotation encoding="application/x-tex">K_V</annotation></semantics></math>
+是速度增益。</p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ϕ</mi><mrow><mi>T</mi><mo>,</mo><mn>0</mn></mrow></msub><annotation encoding="application/x-tex">\phi_{T,0}</annotation></semantics></math>
+是推力偏置，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>K</mi><mi>V</mi></msub><annotation encoding="application/x-tex">K_V</annotation></semantics></math>
+是速度增益，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>V</mi><mi>c</mi></msub><annotation encoding="application/x-tex">V_c</annotation></semantics></math>
+是速度参考，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>V</mi><annotation encoding="application/x-tex">V</annotation></semantics></math>
+是实际速度。</p>
+<p>这个外环只是在教学层面给出参考关系。真正实现时还要检查推力响应滞后、推进耦合、发动机工作包线和控制输入限幅。</p>
+<h2 id="高度与航迹角控制">20.8 高度与航迹角控制</h2>
+<p>高度变化由航迹角决定：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>h</mi><mo accent="true">̇</mo></mover><mo>=</mo><mi>V</mi><mi>sin</mi><mo>&#8289;</mo><mi>γ</mi></mrow><annotation encoding="application/x-tex">
+\dot h=V\sin\gamma
+</annotation></semantics></math></p>
+<p>这里的
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mover><mi>h</mi><mo accent="true">̇</mo></mover><annotation encoding="application/x-tex">\dot h</annotation></semantics></math>
+是高度变化率，它由速度和航迹角共同决定。</p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mover><mi>h</mi><mo accent="true">̇</mo></mover><annotation encoding="application/x-tex">\dot h</annotation></semantics></math>
+是高度变化率。</p>
+<p>因此，高度外环往往先生成航迹角命令：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>γ</mi><mi>c</mi></msub><mo>=</mo><mfrac><mn>1</mn><mi>V</mi></mfrac><mrow><mo stretchy="true" form="prefix">(</mo><msub><mover><mi>h</mi><mo accent="true">̇</mo></mover><mi>c</mi></msub><mo>−</mo><msub><mi>k</mi><mi>h</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>h</mi><mo>−</mo><msub><mi>h</mi><mi>c</mi></msub><mo stretchy="false" form="postfix">)</mo><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">
+\gamma_c=\frac{1}{V}\left(\dot h_c-k_h(h-h_c)\right)
+</annotation></semantics></math></p>
+<p>这里的
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>γ</mi><mi>c</mi></msub><annotation encoding="application/x-tex">\gamma_c</annotation></semantics></math>
+是航迹角命令，它由高度误差和参考高度变化率生成。</p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>γ</mi><mi>c</mi></msub><annotation encoding="application/x-tex">\gamma_c</annotation></semantics></math>
+是航迹角命令，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mover><mi>h</mi><mo accent="true">̇</mo></mover><mi>c</mi></msub><annotation encoding="application/x-tex">\dot h_c</annotation></semantics></math>
+是参考高度变化率，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>k</mi><mi>h</mi></msub><annotation encoding="application/x-tex">k_h</annotation></semantics></math>
+是高度收敛增益，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>h</mi><mi>c</mi></msub><annotation encoding="application/x-tex">h_c</annotation></semantics></math>
+是高度参考。</p>
+<p>若期望的升力为：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>L</mi><mi>c</mi></msub><mo>=</mo><mi>m</mi><mrow><mo stretchy="true" form="prefix">(</mo><msub><mover><mi>γ</mi><mo accent="true">̇</mo></mover><mi>c</mi></msub><mo>+</mo><mfrac><mi>g</mi><mi>V</mi></mfrac><mi>cos</mi><msub><mi>γ</mi><mi>c</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo>−</mo><mi>T</mi><mi>sin</mi><mo>&#8289;</mo><mi>α</mi></mrow><annotation encoding="application/x-tex">
+L_c=m\left(\dot{\gamma}_c+\frac{g}{V}\cos\gamma_c\right)-T\sin\alpha
+</annotation></semantics></math></p>
+<p>这里的
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>L</mi><mi>c</mi></msub><annotation encoding="application/x-tex">L_c</annotation></semantics></math>
+是所需升力，它对应实现航迹角命令所需的升力水平。</p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>L</mi><mi>c</mi></msub><annotation encoding="application/x-tex">L_c</annotation></semantics></math>
+是所需升力，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mover><mi>γ</mi><mo accent="true">̇</mo></mover><mi>c</mi></msub><annotation encoding="application/x-tex">\dot\gamma_c</annotation></semantics></math>
+是期望航迹角变化率。</p>
+<p>那么相应的攻角命令必须满足气动效能和约束条件：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>α</mi><mi>min</mi><mo>&#8289;</mo></msub><mo>≤</mo><msub><mi>α</mi><mi>c</mi></msub><mo>≤</mo><msub><mi>α</mi><mi>max</mi><mo>&#8289;</mo></msub></mrow><annotation encoding="application/x-tex">
+\alpha_{\min}\le \alpha_c \le \alpha_{\max}
+</annotation></semantics></math></p>
+<p>这里的
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>α</mi><mi>c</mi></msub><annotation encoding="application/x-tex">\alpha_c</annotation></semantics></math>
+是攻角命令，它必须落在可实现范围内。</p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>α</mi><mi>c</mi></msub><annotation encoding="application/x-tex">\alpha_c</annotation></semantics></math>
+是攻角命令。</p>
+<p>如果允许攻角范围内无法产生所需升力，说明参考本身不可行，应该修改参考或降低外环带宽，而不是继续加大舵面命令。</p>
+<h2 id="攻角和俯仰控制">20.9 攻角和俯仰控制</h2>
+<p>攻角是纵向安全和控制效能的核心量。由几何关系可得：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>α</mi><mo>=</mo><mi>θ</mi><mo>−</mo><mi>γ</mi></mrow><annotation encoding="application/x-tex">
+\alpha=\theta-\gamma
+</annotation></semantics></math></p>
+<p>这里的
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>α</mi><annotation encoding="application/x-tex">\alpha</annotation></semantics></math>
+表示攻角，它等于俯仰角减去航迹角。</p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>α</mi><annotation encoding="application/x-tex">\alpha</annotation></semantics></math>
+是攻角，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>θ</mi><annotation encoding="application/x-tex">\theta</annotation></semantics></math>
+是俯仰角，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>γ</mi><annotation encoding="application/x-tex">\gamma</annotation></semantics></math>
+是航迹角。</p>
+<p>对上式求导得到：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>α</mi><mo accent="true">̇</mo></mover><mo>=</mo><mi>q</mi><mo>−</mo><mover><mi>γ</mi><mo accent="true">̇</mo></mover></mrow><annotation encoding="application/x-tex">
+\dot{\alpha}=q-\dot{\gamma}
+</annotation></semantics></math></p>
+<p>这里的
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mover><mi>α</mi><mo accent="true">̇</mo></mover><annotation encoding="application/x-tex">\dot\alpha</annotation></semantics></math>
+是攻角变化率，它由俯仰角速度和航迹角变化共同决定。</p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mover><mi>α</mi><mo accent="true">̇</mo></mover><annotation encoding="application/x-tex">\dot\alpha</annotation></semantics></math>
+是攻角变化率。</p>
+<p>这意味着攻角不是单纯的姿态状态，它同时受俯仰角速度和轨迹旋转影响。高度环、姿态环和执行机构如果不同步，攻角就会先于终端误差暴露出问题。</p>
+<h2 id="分层控制结构">20.10 分层控制结构</h2>
+<p>纵向控制通常采用分层结构：</p>
+<ul>
+<li>速度和高度外环，输出航迹角或攻角参考；</li>
+<li>俯仰姿态内环，输出力矩或舵面命令；</li>
+<li>执行机构与气动对象，完成实际响应。</li>
+</ul>
+<p>工程上至少要检查三类量：</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>检查</th>
+<th>关注点</th>
+<th>记录量</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>时间尺度</td>
+<td>内环是否足够快</td>
+<td>带宽、阶跃响应、滞后</td>
+</tr>
+<tr>
+<td>命令可行性</td>
+<td>外环是否给出不可实现命令</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>α</mi><mi>c</mi></msub><annotation encoding="application/x-tex">\alpha_c</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>θ</mi><mi>c</mi></msub><annotation encoding="application/x-tex">\theta_c</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>δ</mi><mrow><mi>e</mi><mo>,</mo><mi>c</mi></mrow></msub><annotation encoding="application/x-tex">\delta_{e,c}</annotation></semantics></math></td>
+</tr>
+<tr>
+<td>约束传播</td>
+<td>安全修正是否被内环破坏</td>
+<td>实际舵面、动压、攻角裕度</td>
+</tr>
+</tbody>
+</table>
+<p>纵向分层的关键不是把每一层单独调好，而是让上游命令和下游执行能力一致。</p>
+<h2 id="纵向验证要点">20.11 纵向验证要点</h2>
+<p>纵向模型的验证至少应包括：</p>
+<ul>
+<li>速度跟踪；</li>
+<li>高度跟踪；</li>
+<li>航迹角收敛；</li>
+<li>攻角是否越界；</li>
+<li>舵面是否饱和；</li>
+<li>动压是否进入危险区；</li>
+<li>执行机构滞后是否明显；</li>
+<li>外环命令是否可实现。</li>
+</ul>
+<p>若某个控制律只在理想输入下成立，而在执行机构加入后立刻失效，那么问题不在“仿真太严格”，而在控制设计本身没有把对象边界写对。</p>
+<h2 id="本章小结">20.12 本章小结</h2>
+<p>纵向刚体动力学模型把速度、高度、攻角、俯仰和推力放入同一个闭环系统中。它是从质点层进入姿态层的关键过渡，也是后续横侧向、六自由度、控制分配和约束控制的基础。对高超声速飞行器控制而言，这一层真正重要的不是方程数量，而是它第一次把“可实现性”变成了必须被检验的对象。</p>
+<h2 id="练习">20.13 练习</h2>
+<ol type="1">
+<li>写出纵向刚体模型的状态、输入和主要派生量。</li>
+<li>说明为什么
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>α</mi><mo>=</mo><mi>θ</mi><mo>−</mo><mi>γ</mi></mrow><annotation encoding="application/x-tex">\alpha=\theta-\gamma</annotation></semantics></math>
+对纵向控制很重要。</li>
+<li>给出一个二阶执行机构模型，并解释其物理意义。</li>
+<li>写出速度外环和高度外环的基本命令关系。</li>
+<li>说明动压为什么会同时影响控制效能和结构风险。</li>
+<li>解释为什么纵向模型不能代替三维机动验证。</li>
+<li>设计一个纵向模型的验证清单，并说明每项检查对应的证据。</li>
+</ol>
+
+      </article>
+      
+      <nav class="book-bottom-nav" aria-label="章节导航">
+        <a href="./19-point-mass-dynamics.html">上一章：第19章 质点动力学模型</a>
+        <a href="./index.html">卷首页</a>
+        <a href="./21-lateral-directional-dynamics.html">下一章：第21章 横侧向动力学模型</a>
+      </nav>
+    </main>
+  </div>
+</body>
+</html>

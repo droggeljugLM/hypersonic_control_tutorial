@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>第34章 增量非线性动态逆控制</title>
+  <style>
+    :root {
+      --paper: #f7f3eb;
+      --ink: #1f2937;
+      --muted: #5b6472;
+      --line: color-mix(in srgb, #f6ecd1 68%, #cbd5e1 32%);
+      --accent: #9a6d1c;
+      --accent-soft: #f6ecd1;
+      --accent-deep: #5d4010;
+      color-scheme: light;
+    }
+    html {
+      -webkit-text-size-adjust: 100%;
+      background:
+        radial-gradient(circle at top left, #f6ecd1 0, rgba(255,255,255,0) 32%),
+        linear-gradient(180deg, #fbfaf6 0%, var(--paper) 18%, #f7f1e6 100%);
+    }
+    body {
+      margin: 0;
+      font-family: "Source Han Serif SC", "Songti SC", "Noto Serif CJK SC", "Microsoft YaHei", serif;
+      color: var(--ink);
+      line-height: 1.78;
+      letter-spacing: 0;
+    }
+    a { color: var(--accent-deep); }
+    .book-app {
+      display: grid;
+      grid-template-columns: 280px minmax(0, 1fr);
+      min-height: 100vh;
+    }
+    .book-sidebar {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow: auto;
+      padding: 1.2rem 1rem 1.2rem 1.15rem;
+      border-right: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(255,255,255,0.86), rgba(255,255,255,0.72));
+      backdrop-filter: blur(10px);
+    }
+    .sidebar-shell { position: sticky; top: 0; display: flex; flex-direction: column; gap: 1rem; }
+    .sidebar-brand {
+      padding: 0.95rem 0.95rem 1rem;
+      border-radius: 18px;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.95), rgba(255,255,255,0.84)),
+        linear-gradient(135deg, var(--accent-soft), rgba(255,255,255,0));
+      border: 1px solid var(--line);
+      box-shadow: 0 12px 28px rgba(31, 41, 55, 0.06);
+    }
+    .sidebar-brand .kicker { margin: 0; color: var(--accent); font-size: 0.82rem; font-weight: 700; }
+    .sidebar-brand h2 { margin: 0.45rem 0 0.25rem; font-size: 1.08rem; line-height: 1.3; color: var(--ink); }
+    .sidebar-brand p { margin: 0.35rem 0 0; color: var(--muted); font-size: 0.9rem; }
+    .sidebar-links { display: grid; gap: 0.45rem; }
+    .sidebar-link {
+      display: grid;
+      grid-template-columns: 2.2rem minmax(0, 1fr);
+      gap: 0.6rem;
+      align-items: start;
+      padding: 0.7rem 0.75rem;
+      border-radius: 14px;
+      text-decoration: none;
+      background: rgba(255,255,255,0.72);
+      border: 1px solid rgba(31,41,55,0.07);
+      color: var(--ink);
+    }
+    .sidebar-link:hover { background: rgba(255,255,255,0.95); border-color: var(--line); }
+    .sidebar-link.active {
+      background: linear-gradient(135deg, rgba(255,255,255,0.98), rgba(255,255,255,0.9));
+      border-color: var(--accent-soft);
+      box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent-soft) 68%, #ffffff 32%);
+    }
+    .sidebar-index {
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      min-width: 2rem;
+      height: 2rem;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent-deep);
+      font-size: 0.78rem;
+      font-weight: 800;
+    }
+    .sidebar-title { font-size: 0.94rem; line-height: 1.35; }
+    .book-main { min-width: 0; padding: 1.25rem 1.45rem 1.8rem; }
+    .book-page-header {
+      padding: 0.85rem 0 1rem;
+      margin-bottom: 1rem;
+      border-bottom: 1px solid var(--line);
+    }
+    .page-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.28rem 0.72rem;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.82);
+      border: 1px solid var(--line);
+      color: var(--accent-deep);
+      font-size: 0.8rem;
+      font-weight: 700;
+    }
+    .book-page-header h1 {
+      margin: 0.7rem 0 0;
+      font-size: 1.85rem;
+      line-height: 1.22;
+      color: var(--accent-deep);
+      border: 0;
+      padding: 0;
+    }
+    .book-page-header p { margin: 0.45rem 0 0; color: var(--muted); max-width: 62rem; }
+    .book-article { max-width: 900px; margin: 0; padding: 0 0 1.2rem; }
+    .book-article h1, .book-article h2, .book-article h3, .book-article h4, .book-article h5, .book-article h6 {
+      line-height: 1.28;
+      margin-top: 1.45em;
+      margin-bottom: 0.55em;
+      color: var(--accent-deep);
+    }
+    .book-article h1 { font-size: 2rem; border-bottom: 2px solid var(--line); padding-bottom: 0.42rem; }
+    .book-article h1:first-of-type { margin-top: 0; }
+    .book-article h2 { font-size: 1.42rem; }
+    .book-article h3 { font-size: 1.12rem; }
+    .book-article p, .book-article li, .book-article dd, .book-article td, .book-article th { text-align: justify; text-justify: inter-ideograph; }
+    .book-article p { margin: 0.85rem 0; }
+    .book-article code, .book-article pre { font-family: "Cascadia Mono", "Source Code Pro", Consolas, monospace; font-size: 0.94em; }
+    .book-article code {
+      padding: 0.02rem 0.24rem;
+      background: color-mix(in srgb, var(--accent-soft) 34%, #ffffff 66%);
+      border: 0;
+      border-bottom: 1px solid color-mix(in srgb, var(--accent-soft) 74%, #d1d5db 26%);
+      border-radius: 4px;
+      color: #253244;
+      box-decoration-break: clone;
+      -webkit-box-decoration-break: clone;
+    }
+    .book-article pre {
+      padding: 1rem 1.1rem;
+      overflow: auto;
+      background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,253,248,0.98));
+      border: 1px solid color-mix(in srgb, var(--accent-soft) 54%, #d1d5db 46%);
+      border-left: 5px solid var(--accent);
+      border-radius: 14px;
+      box-shadow: 0 8px 22px rgba(31, 41, 55, 0.05);
+    }
+    .book-article pre code { padding: 0; border: 0; background: transparent; color: inherit; }
+    .book-article table {
+      border-collapse: collapse;
+      width: 100%;
+      margin: 1rem 0 1.25rem;
+      background: rgba(255,255,255,0.82);
+      overflow: hidden;
+      border-radius: 12px;
+    }
+    .book-article th, .book-article td { border: 1px solid var(--line); padding: 0.5rem 0.7rem; vertical-align: top; }
+    .book-article th { background: color-mix(in srgb, var(--accent-soft) 42%, #ffffff 58%); }
+    .book-article blockquote {
+      margin: 1rem 0;
+      padding: 0.25rem 0 0.25rem 1rem;
+      border-left: 4px solid var(--accent);
+      color: #374151;
+      background: linear-gradient(90deg, rgba(255,255,255,0.72), rgba(255,255,255,0.48));
+      border-radius: 0 12px 12px 0;
+    }
+    .book-bottom-nav {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-top: 2.2rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--line);
+    }
+    .book-bottom-nav a {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.6rem 0.9rem;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.84);
+      text-decoration: none;
+      font-weight: 700;
+    }
+    .book-bottom-nav span {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.6rem 0.9rem;
+      border-radius: 999px;
+      border: 1px solid rgba(31,41,55,0.08);
+      background: rgba(255,255,255,0.54);
+      color: rgba(31,41,55,0.42);
+      font-weight: 700;
+    }
+    .book-bottom-nav a:hover { background: rgba(255,255,255,0.98); }
+    .book-volume-intro {
+      margin: 0 0 1.25rem;
+      padding: 1.2rem 1.25rem 1.1rem;
+      border-radius: 18px;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.96), rgba(255,255,255,0.78)),
+        linear-gradient(135deg, var(--accent-soft), rgba(255,255,255,0));
+      border: 1px solid var(--line);
+      box-shadow: 0 14px 34px rgba(31, 41, 55, 0.06);
+    }
+    .volume-intro-kicker {
+      margin: 0;
+      color: var(--accent);
+      font-size: 0.84rem;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    .book-volume-intro h2 {
+      margin: 0.55rem 0 0.55rem;
+      font-size: 1.28rem;
+      line-height: 1.35;
+      color: var(--accent-deep);
+    }
+    .volume-intro-summary {
+      margin: 0;
+      color: var(--muted);
+      max-width: 68rem;
+    }
+    .volume-intro-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.8rem;
+      margin-top: 1rem;
+    }
+    .volume-intro-box {
+      padding: 0.85rem 0.9rem;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.72);
+      border: 1px solid rgba(31,41,55,0.08);
+    }
+    .volume-intro-box span {
+      display: block;
+      color: var(--accent);
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+    }
+    .volume-intro-box strong {
+      display: block;
+      margin-top: 0.35rem;
+      color: var(--ink);
+      font-size: 0.95rem;
+      line-height: 1.45;
+    }
+    .volume-intro-note {
+      margin-top: 0.9rem;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+    @media (max-width: 1180px) {
+      .book-app { grid-template-columns: 1fr; }
+      .book-sidebar {
+        position: relative;
+        height: auto;
+        border-right: 0;
+        border-bottom: 1px solid var(--line);
+      }
+      .sidebar-shell { position: static; }
+    }
+    @media (max-width: 900px) {
+      .book-main { padding: 1rem 1rem 1.5rem; }
+      .book-bottom-nav { flex-direction: column; }
+      .volume-intro-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="book-app">
+    <aside class="book-sidebar">
+      <div class="sidebar-shell">
+        <div class="sidebar-brand">
+          <p class="kicker">高超声速飞行器控制教程</p>
+          <h2>第三卷 经典与现代飞行控制方法</h2>
+          <p>控制方法体系</p>
+        </div>
+        <nav class="sidebar-links" aria-label="本卷目录">
+          <a class="sidebar-link" href="./index.html"><span class="sidebar-index">0</span><span class="sidebar-title">卷首页</span></a>
+<a class="sidebar-link" href="./26-flight-control-system-architecture.html"><span class="sidebar-index">01</span><span class="sidebar-title">第26章 飞行控制系统架构</span></a>
+<a class="sidebar-link" href="./27-pid-classical-autopilot.html"><span class="sidebar-index">02</span><span class="sidebar-title">第27章 PID 与经典自动驾驶仪</span></a>
+<a class="sidebar-link" href="./28-root-locus-frequency-domain-margins.html"><span class="sidebar-index">03</span><span class="sidebar-title">第28章 根轨迹、频域设计与稳定裕度</span></a>
+<a class="sidebar-link" href="./29-state-feedback-observer-pole-placement.html"><span class="sidebar-index">04</span><span class="sidebar-title">第29章 状态反馈、观测器与极点配置</span></a>
+<a class="sidebar-link" href="./30-lqr-lqg-linear-optimal-control.html"><span class="sidebar-index">05</span><span class="sidebar-title">第30章 LQR、LQG 与线性最优控制</span></a>
+<a class="sidebar-link" href="./31-h2-hinf-robust-flight-control.html"><span class="sidebar-index">06</span><span class="sidebar-title">第31章 $H_2$、$H_\infty$ 与鲁棒飞行控制</span></a>
+<a class="sidebar-link" href="./32-gain-scheduling-lpv-control.html"><span class="sidebar-index">07</span><span class="sidebar-title">第32章 增益调度与 LPV 控制</span></a>
+<a class="sidebar-link" href="./33-feedback-linearization-dynamic-inversion.html"><span class="sidebar-index">08</span><span class="sidebar-title">第33章 反馈线性化与动态逆控制</span></a>
+<a class="sidebar-link active" href="./34-incremental-nonlinear-dynamic-inversion.html"><span class="sidebar-index">09</span><span class="sidebar-title">第34章 增量非线性动态逆控制</span></a>
+<a class="sidebar-link" href="./35-backstepping-dynamic-surface-control.html"><span class="sidebar-index">10</span><span class="sidebar-title">第35章 反步控制与动态面控制</span></a>
+<a class="sidebar-link" href="./36-sliding-mode-high-order-sliding-control.html"><span class="sidebar-index">11</span><span class="sidebar-title">第36章 滑模控制与高阶滑模控制</span></a>
+<a class="sidebar-link" href="./37-adaptive-flight-control.html"><span class="sidebar-index">12</span><span class="sidebar-title">第37章 自适应飞行控制</span></a>
+<a class="sidebar-link" href="./38-intelligent-approximation-control.html"><span class="sidebar-index">13</span><span class="sidebar-title">第38章 智能逼近控制</span></a>
+<a class="sidebar-link" href="./39-disturbance-observer-eso-adrc.html"><span class="sidebar-index">14</span><span class="sidebar-title">第39章 扰动观测器、扩张状态观测器与 ADRC</span></a>
+        </nav>
+      </div>
+    </aside>
+    <main class="book-main">
+      <header class="book-page-header">
+        <div class="page-eyebrow">第3册·章节页09</div>
+        <h1 id="volume3--34-incremental-nonlinear-dynamic-inversion">第34章 增量非线性动态逆控制</h1>
+        <p>本页是章节正文页。左侧目录用于回到本卷其他章节，底部导航用于前后章跳转。</p>
+      </header>
+      <article class="book-article">
+        <h2 id="问题背景">34.1 问题背景</h2>
+<p>第33章的 NDI
+依赖完整标称模型。高超声速飞行中，气动和推进模型误差可能较大，完整动态逆会对模型误差敏感。增量非线性动态逆，INDI，试图利用当前测得的加速度或角加速度，把控制设计改写成局部增量问题，从而降低对完整模型的依赖。</p>
+<p>INDI
+的核心不是完全不要模型，而是减少对漂移项的依赖，更强调当前测量量和当前执行量之间的增量关系。</p>
+<h2 id="从-ndi-到-indi">34.2 从 NDI 到 INDI</h2>
+<p>NDI 常写为：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>u</mi><mo>=</mo><mi>B</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><msup><mo stretchy="false" form="postfix">)</mo><mrow><mi>−</mi><mn>1</mn></mrow></msup><mrow><mo stretchy="true" form="prefix">(</mo><mi>v</mi><mo>−</mo><mi>a</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">
+u=B(x)^{-1}\left(v-a(x)\right)
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>a</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">a(x)</annotation></semantics></math>
+是非线性漂移项，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>B</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">B(x)</annotation></semantics></math>
+是输入分布矩阵，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>v</mi><annotation encoding="application/x-tex">v</annotation></semantics></math>
+是虚拟控制量。</p>
+<p>INDI 从该时刻附近的增量关系出发。设上一时刻输出导数为
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msubsup><mi>y</mi><mn>0</mn><mrow><mo stretchy="false" form="prefix">(</mo><mi>r</mi><mo stretchy="false" form="postfix">)</mo></mrow></msubsup><annotation encoding="application/x-tex">y_0^{(r)}</annotation></semantics></math>，输入为
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>u</mi><mn>0</mn></msub><annotation encoding="application/x-tex">u_0</annotation></semantics></math>，则：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Δ</mi><msup><mi>y</mi><mrow><mo stretchy="false" form="prefix">(</mo><mi>r</mi><mo stretchy="false" form="postfix">)</mo></mrow></msup><mo>≈</mo><msub><mi>B</mi><mi mathvariant="normal">Δ</mi></msub><mi mathvariant="normal">Δ</mi><mi>u</mi></mrow><annotation encoding="application/x-tex">
+\Delta y^{(r)} \approx B_\Delta \Delta u
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Δ</mi><msup><mi>y</mi><mrow><mo stretchy="false" form="prefix">(</mo><mi>r</mi><mo stretchy="false" form="postfix">)</mo></mrow></msup></mrow><annotation encoding="application/x-tex">\Delta y^{(r)}</annotation></semantics></math>
+是输出导数增量，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Δ</mi><mi>u</mi><mo>=</mo><mi>u</mi><mo>−</mo><msub><mi>u</mi><mn>0</mn></msub></mrow><annotation encoding="application/x-tex">\Delta u=u-u_0</annotation></semantics></math>
+是输入增量，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>B</mi><mi mathvariant="normal">Δ</mi></msub><annotation encoding="application/x-tex">B_\Delta</annotation></semantics></math>
+是局部控制效能矩阵。
+其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msubsup><mi>y</mi><mn>0</mn><mrow><mo stretchy="false" form="prefix">(</mo><mi>r</mi><mo stretchy="false" form="postfix">)</mo></mrow></msubsup><annotation encoding="application/x-tex">y_0^{(r)}</annotation></semantics></math>
+是上一时刻输出的第
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>r</mi><annotation encoding="application/x-tex">r</annotation></semantics></math>
+阶导数，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>u</mi><mn>0</mn></msub><annotation encoding="application/x-tex">u_0</annotation></semantics></math>
+是上一时刻输入。</p>
+<p>于是可令：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Δ</mi><mi>u</mi><mo>=</mo><msubsup><mi>B</mi><mi mathvariant="normal">Δ</mi><mo>†</mo></msubsup><mi mathvariant="normal">Δ</mi><mi>v</mi></mrow><annotation encoding="application/x-tex">
+\Delta u=B_\Delta^\dagger \Delta v
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msubsup><mi>B</mi><mi mathvariant="normal">Δ</mi><mo>†</mo></msubsup><annotation encoding="application/x-tex">B_\Delta^\dagger</annotation></semantics></math>
+是广义逆，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Δ</mi><mi>v</mi></mrow><annotation encoding="application/x-tex">\Delta v</annotation></semantics></math>
+是期望输出导数增量。
+其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msubsup><mi>B</mi><mi mathvariant="normal">Δ</mi><mo>†</mo></msubsup><annotation encoding="application/x-tex">B_\Delta^\dagger</annotation></semantics></math>
+用于把期望输出导数增量映射成输入增量，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Δ</mi><mi>v</mi></mrow><annotation encoding="application/x-tex">\Delta v</annotation></semantics></math>
+是期望输出导数增量。</p>
+<h2 id="增量模型的含义">34.3 增量模型的含义</h2>
+<p>INDI 的核心不是完全不要模型，而是减少对
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>a</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">a(x)</annotation></semantics></math>
+的依赖。它仍然需要控制效能矩阵：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>B</mi><mi mathvariant="normal">Δ</mi></msub><mo>=</mo><mfrac><mrow><mi>∂</mi><msup><mover><mi>y</mi><mo accent="true">̇</mo></mover><mrow><mo stretchy="false" form="prefix">(</mo><mi>r</mi><mo stretchy="false" form="postfix">)</mo></mrow></msup></mrow><mrow><mi>∂</mi><mi>u</mi></mrow></mfrac></mrow><annotation encoding="application/x-tex">
+B_\Delta=\frac{\partial \dot y^{(r)}}{\partial u}
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>B</mi><mi mathvariant="normal">Δ</mi></msub><annotation encoding="application/x-tex">B_\Delta</annotation></semantics></math>
+描述输入增量对输出导数增量的局部影响。</p>
+<p>因此，INDI 更像“局部控制增量补偿”，而不是“完全无模型控制”。</p>
+<h2 id="加速度和角加速度测量">34.4 加速度和角加速度测量</h2>
+<p>INDI
+之所以有效，是因为角加速度或过载可以直接反映控制效能。若角速度测量为
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>q</mi><annotation encoding="application/x-tex">q</annotation></semantics></math>，则可由差分或传感器给出：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>q</mi><mo accent="true">̇</mo></mover><mo>≈</mo><mfrac><mrow><mi>q</mi><mo stretchy="false" form="prefix">[</mo><mi>k</mi><mo stretchy="false" form="postfix">]</mo><mo>−</mo><mi>q</mi><mo stretchy="false" form="prefix">[</mo><mi>k</mi><mo>−</mo><mn>1</mn><mo stretchy="false" form="postfix">]</mo></mrow><msub><mi>T</mi><mi>s</mi></msub></mfrac></mrow><annotation encoding="application/x-tex">
+\dot q \approx \frac{q[k]-q[k-1]}{T_s}
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>T</mi><mi>s</mi></msub><annotation encoding="application/x-tex">T_s</annotation></semantics></math>
+是采样周期。</p>
+<p>这也意味着噪声会被放大。通常需要低通滤波，但滤波会引入相位滞后。INDI
+设计必须把滤波器参数和延迟写入验证。</p>
+<h2 id="执行机构实际位置">34.5 执行机构实际位置</h2>
+<p>INDI
+的增量输入应基于实际执行机构位置，而不是控制器命令。若舵机动态为：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mover><mi>δ</mi><mo accent="true">̇</mo></mover><mi>e</mi></msub><mo>=</mo><mfrac><mrow><msub><mi>δ</mi><mrow><mi>e</mi><mo>,</mo><mi>c</mi></mrow></msub><mo>−</mo><msub><mi>δ</mi><mi>e</mi></msub></mrow><msub><mi>τ</mi><mi>a</mi></msub></mfrac></mrow><annotation encoding="application/x-tex">
+\dot{\delta}_e=\frac{\delta_{e,c}-\delta_e}{\tau_a}
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>δ</mi><mi>e</mi></msub><annotation encoding="application/x-tex">\delta_e</annotation></semantics></math>
+是实际舵面角，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>δ</mi><mrow><mi>e</mi><mo>,</mo><mi>c</mi></mrow></msub><annotation encoding="application/x-tex">\delta_{e,c}</annotation></semantics></math>
+是舵面命令，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>τ</mi><mi>a</mi></msub><annotation encoding="application/x-tex">\tau_a</annotation></semantics></math>
+是执行机构时间常数。</p>
+<p>如果只用命令增量，执行机构延迟、饱和和速率限制会破坏 INDI
+的增量关系。</p>
+<h2 id="时间同步">34.6 时间同步</h2>
+<p>INDI
+要求测量、执行机构位置和控制计算在同一时间基准下对齐。若角加速度来自时刻
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>k</mi><annotation encoding="application/x-tex">k</annotation></semantics></math>，舵面实际变化来自时刻
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>k</mi><mo>−</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">k-1</annotation></semantics></math>，则估计出的控制效能会错位。</p>
+<p>应记录传感器采样周期、控制器采样周期、执行机构反馈采样周期、滤波器延迟、时间戳同步误差和计算延迟。</p>
+<h2 id="控制效能矩阵">34.7 控制效能矩阵</h2>
+<p>多输入 INDI 可写为：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Δ</mi><mi>ν</mi><mo>=</mo><msub><mi>B</mi><mi mathvariant="normal">Δ</mi></msub><mi mathvariant="normal">Δ</mi><mi>u</mi></mrow><annotation encoding="application/x-tex">
+\Delta \nu = B_\Delta \Delta u
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Δ</mi><mi>ν</mi></mrow><annotation encoding="application/x-tex">\Delta \nu</annotation></semantics></math>
+可为角加速度、过载或广义力矩增量。
+其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Δ</mi><mi>ν</mi></mrow><annotation encoding="application/x-tex">\Delta \nu</annotation></semantics></math>
+是期望的输出增量，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Δ</mi><mi>u</mi></mrow><annotation encoding="application/x-tex">\Delta u</annotation></semantics></math>
+是对应的输入增量，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>B</mi><mi mathvariant="normal">Δ</mi></msub><annotation encoding="application/x-tex">B_\Delta</annotation></semantics></math>
+是控制效能矩阵。</p>
+<p>若执行机构多于控制目标，可求广义逆：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Δ</mi><mi>u</mi><mo>=</mo><msubsup><mi>B</mi><mi mathvariant="normal">Δ</mi><mo>†</mo></msubsup><mi mathvariant="normal">Δ</mi><mi>ν</mi></mrow><annotation encoding="application/x-tex">
+\Delta u=B_\Delta^\dagger \Delta \nu
+</annotation></semantics></math></p>
+<p>这说明 INDI 与控制分配天然相连。</p>
+<h2 id="与控制分配的连接">34.8 与控制分配的连接</h2>
+<p>INDI 可以分成两层：</p>
+<ul>
+<li>期望角加速度或过载增量；</li>
+<li>期望广义力矩增量，再经控制分配得到执行机构增量。</li>
+</ul>
+<p>控制分配层负责处理舵偏限制、舵速限制、执行机构优先级、故障后重构、分配残差和多执行机构耦合。</p>
+<h2 id="稳定性线索">34.9 稳定性线索</h2>
+<p>设输出误差满足期望动态：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mover><mi>e</mi><mo accent="true">̇</mo></mover><mi>y</mi></msub><mo>=</mo><mi>−</mi><msub><mi>K</mi><mi>e</mi></msub><msub><mi>e</mi><mi>y</mi></msub><mo>+</mo><mi mathvariant="normal">Δ</mi><mi>d</mi></mrow><annotation encoding="application/x-tex">
+\dot e_y=-K_e e_y+\Delta d
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>e</mi><mi>y</mi></msub><annotation encoding="application/x-tex">e_y</annotation></semantics></math>
+是输出误差，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>K</mi><mi>e</mi></msub><annotation encoding="application/x-tex">K_e</annotation></semantics></math>
+是误差反馈增益，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Δ</mi><mi>d</mi></mrow><annotation encoding="application/x-tex">\Delta d</annotation></semantics></math>
+是模型增量误差。</p>
+<p>因此，INDI
+稳定性通常要证明模型增量误差、滤波误差和执行机构误差有界，并使误差系统
+ISS 或 UUB。不能只写“INDI 不依赖模型，所以鲁棒”。</p>
+<h2 id="噪声和滤波">34.10 噪声和滤波</h2>
+<p>INDI
+对噪声敏感，原因包括角加速度常由角速度差分得到、加速度计包含结构振动和安装误差、低通滤波引入延迟、高带宽控制会放大高频测量误差、增量输入可能频繁振荡，增加舵速负担。</p>
+<p>滤波器设计必须和带宽、执行机构和柔性模态一起检查。过重滤波会让 INDI
+失去快速补偿能力；过轻滤波会让噪声进入舵面。</p>
+<h2 id="高超声速应用边界">34.11 高超声速应用边界</h2>
+<p>INDI
+适合姿态内环、角加速度或过载可可靠测量的场景、气动模型误差较大但控制效能矩阵大致可信的场景、多执行机构控制分配前的增量命令生成、故障后重新估计控制效能的场景。</p>
+<p>INDI
+不适合或需谨慎的场景包括传感器噪声大、执行机构位置不可测、延迟不可忽略、控制效能矩阵秩不足、柔性模态强烈污染加速度信号、约束频繁活跃但没有安全层。</p>
+<h2 id="与-ndi-的对比">34.12 与 NDI 的对比</h2>
+<table>
+<thead>
+<tr>
+<th>项目</th>
+<th>NDI</th>
+<th>INDI</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>依赖模型</td>
+<td>完整
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>a</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo>,</mo><mi>B</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">a(x),B(x)</annotation></semantics></math></td>
+<td>当前输出导数和控制效能</td>
+</tr>
+<tr>
+<td>关键测量</td>
+<td>状态和参数</td>
+<td>加速度/角加速度、执行机构位置</td>
+</tr>
+<tr>
+<td>优点</td>
+<td>结构清晰，标称误差动态明确</td>
+<td>对完整模型误差更不敏感</td>
+</tr>
+<tr>
+<td>风险</td>
+<td>模型误差和奇异性</td>
+<td>噪声、滤波、延迟、同步</td>
+</tr>
+<tr>
+<td>适合场景</td>
+<td>标称模型较可信</td>
+<td>测量质量高、执行反馈可靠</td>
+</tr>
+<tr>
+<td>高超声速边界</td>
+<td>气动表和执行约束</td>
+<td>热/结构环境下传感器和柔性污染</td>
+</tr>
+</tbody>
+</table>
+<h2 id="低阶问题卡单轴俯仰-indi-的测量链执行反馈与时间对齐">34.13
+低阶问题卡：单轴俯仰 INDI 的测量链、执行反馈与时间对齐</h2>
+<p>考虑俯仰通道输出为角速度
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>q</mi><annotation encoding="application/x-tex">q</annotation></semantics></math>，实际舵面为
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>δ</mi><mrow><mi>e</mi><mo>,</mo><mrow><mi mathvariant="normal">a</mi><mi mathvariant="normal">c</mi><mi mathvariant="normal">t</mi></mrow></mrow></msub><annotation encoding="application/x-tex">\delta_{e,\mathrm{act}}</annotation></semantics></math>。在离散时刻
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>k</mi><annotation encoding="application/x-tex">k</annotation></semantics></math>，可把局部增量关系写成：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Δ</mi><mover><mi>q</mi><mo accent="true">̇</mo></mover><mo stretchy="false" form="prefix">[</mo><mi>k</mi><mo stretchy="false" form="postfix">]</mo><mo>≈</mo><msub><mi>b</mi><mrow><mi>q</mi><mo>,</mo><mi mathvariant="normal">Δ</mi></mrow></msub><mo stretchy="false" form="prefix">[</mo><mi>k</mi><mo stretchy="false" form="postfix">]</mo><mi mathvariant="normal">Δ</mi><msub><mi>δ</mi><mi>e</mi></msub><mo stretchy="false" form="prefix">[</mo><mi>k</mi><mo stretchy="false" form="postfix">]</mo></mrow><annotation encoding="application/x-tex">
+\Delta \dot q[k]\approx b_{q,\Delta}[k]\Delta \delta_e[k]
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>b</mi><mrow><mi>q</mi><mo>,</mo><mi mathvariant="normal">Δ</mi></mrow></msub><mo stretchy="false" form="prefix">[</mo><mi>k</mi><mo stretchy="false" form="postfix">]</mo></mrow><annotation encoding="application/x-tex">b_{q,\Delta}[k]</annotation></semantics></math>
+是局部增量效能，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Δ</mi><msub><mi>δ</mi><mi>e</mi></msub><mo stretchy="false" form="prefix">[</mo><mi>k</mi><mo stretchy="false" form="postfix">]</mo></mrow><annotation encoding="application/x-tex">\Delta \delta_e[k]</annotation></semantics></math>
+是实际舵面增量。
+其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>δ</mi><mrow><mi>e</mi><mo>,</mo><mrow><mi mathvariant="normal">a</mi><mi mathvariant="normal">c</mi><mi mathvariant="normal">t</mi></mrow></mrow></msub><annotation encoding="application/x-tex">\delta_{e,\mathrm{act}}</annotation></semantics></math>
+是实际舵面角，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Δ</mi><msub><mi>δ</mi><mi>e</mi></msub><mo stretchy="false" form="prefix">[</mo><mi>k</mi><mo stretchy="false" form="postfix">]</mo></mrow><annotation encoding="application/x-tex">\Delta \delta_e[k]</annotation></semantics></math>
+是实际舵面在离散时刻
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>k</mi><annotation encoding="application/x-tex">k</annotation></semantics></math>
+的增量。</p>
+<p>这一节最关键的训练价值有四点：</p>
+<ol type="1">
+<li>飞行点、效能矩阵和测量链必须在同一个工况下解释；</li>
+<li>调度变量和测量滤波会影响增量效能估计；</li>
+<li>执行机构反馈必须用实际舵面而不是命令舵面；</li>
+<li>第34章里的 INDI
+不是“少依赖模型就天然更简单”，而是把难点转移到了测量链和执行链。</li>
+</ol>
+<h2 id="本章小结">34.14 本章小结</h2>
+<p>增量非线性动态逆把复杂非线性补偿问题转成局部增量问题，能在模型误差较大时提供更好的工程可用性。但它依然依赖测量质量、执行机构反馈、时间同步和控制分配，并不能自动解决约束和安全问题。</p>
+<h2 id="练习">34.15 练习</h2>
+<ol type="1">
+<li>写出 NDI 和 INDI 的基本形式。</li>
+<li>说明为什么 INDI 需要实际舵面位置反馈。</li>
+<li>解释角加速度测量为什么容易受噪声影响。</li>
+<li>写出一个单轴俯仰 INDI 的最小增量关系。</li>
+<li>说明 INDI 和控制分配为什么天然相关。</li>
+</ol>
+
+      </article>
+      
+      <nav class="book-bottom-nav" aria-label="章节导航">
+        <a href="./33-feedback-linearization-dynamic-inversion.html">上一章：第33章 反馈线性化与动态逆控制</a>
+        <a href="./index.html">卷首页</a>
+        <a href="./35-backstepping-dynamic-surface-control.html">下一章：第35章 反步控制与动态面控制</a>
+      </nav>
+    </main>
+  </div>
+</body>
+</html>

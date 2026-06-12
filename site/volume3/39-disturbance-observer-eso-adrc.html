@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>第39章 扰动观测器、扩张状态观测器与 ADRC</title>
+  <style>
+    :root {
+      --paper: #f7f3eb;
+      --ink: #1f2937;
+      --muted: #5b6472;
+      --line: color-mix(in srgb, #f6ecd1 68%, #cbd5e1 32%);
+      --accent: #9a6d1c;
+      --accent-soft: #f6ecd1;
+      --accent-deep: #5d4010;
+      color-scheme: light;
+    }
+    html {
+      -webkit-text-size-adjust: 100%;
+      background:
+        radial-gradient(circle at top left, #f6ecd1 0, rgba(255,255,255,0) 32%),
+        linear-gradient(180deg, #fbfaf6 0%, var(--paper) 18%, #f7f1e6 100%);
+    }
+    body {
+      margin: 0;
+      font-family: "Source Han Serif SC", "Songti SC", "Noto Serif CJK SC", "Microsoft YaHei", serif;
+      color: var(--ink);
+      line-height: 1.78;
+      letter-spacing: 0;
+    }
+    a { color: var(--accent-deep); }
+    .book-app {
+      display: grid;
+      grid-template-columns: 280px minmax(0, 1fr);
+      min-height: 100vh;
+    }
+    .book-sidebar {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow: auto;
+      padding: 1.2rem 1rem 1.2rem 1.15rem;
+      border-right: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(255,255,255,0.86), rgba(255,255,255,0.72));
+      backdrop-filter: blur(10px);
+    }
+    .sidebar-shell { position: sticky; top: 0; display: flex; flex-direction: column; gap: 1rem; }
+    .sidebar-brand {
+      padding: 0.95rem 0.95rem 1rem;
+      border-radius: 18px;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.95), rgba(255,255,255,0.84)),
+        linear-gradient(135deg, var(--accent-soft), rgba(255,255,255,0));
+      border: 1px solid var(--line);
+      box-shadow: 0 12px 28px rgba(31, 41, 55, 0.06);
+    }
+    .sidebar-brand .kicker { margin: 0; color: var(--accent); font-size: 0.82rem; font-weight: 700; }
+    .sidebar-brand h2 { margin: 0.45rem 0 0.25rem; font-size: 1.08rem; line-height: 1.3; color: var(--ink); }
+    .sidebar-brand p { margin: 0.35rem 0 0; color: var(--muted); font-size: 0.9rem; }
+    .sidebar-links { display: grid; gap: 0.45rem; }
+    .sidebar-link {
+      display: grid;
+      grid-template-columns: 2.2rem minmax(0, 1fr);
+      gap: 0.6rem;
+      align-items: start;
+      padding: 0.7rem 0.75rem;
+      border-radius: 14px;
+      text-decoration: none;
+      background: rgba(255,255,255,0.72);
+      border: 1px solid rgba(31,41,55,0.07);
+      color: var(--ink);
+    }
+    .sidebar-link:hover { background: rgba(255,255,255,0.95); border-color: var(--line); }
+    .sidebar-link.active {
+      background: linear-gradient(135deg, rgba(255,255,255,0.98), rgba(255,255,255,0.9));
+      border-color: var(--accent-soft);
+      box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent-soft) 68%, #ffffff 32%);
+    }
+    .sidebar-index {
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      min-width: 2rem;
+      height: 2rem;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent-deep);
+      font-size: 0.78rem;
+      font-weight: 800;
+    }
+    .sidebar-title { font-size: 0.94rem; line-height: 1.35; }
+    .book-main { min-width: 0; padding: 1.25rem 1.45rem 1.8rem; }
+    .book-page-header {
+      padding: 0.85rem 0 1rem;
+      margin-bottom: 1rem;
+      border-bottom: 1px solid var(--line);
+    }
+    .page-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.28rem 0.72rem;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.82);
+      border: 1px solid var(--line);
+      color: var(--accent-deep);
+      font-size: 0.8rem;
+      font-weight: 700;
+    }
+    .book-page-header h1 {
+      margin: 0.7rem 0 0;
+      font-size: 1.85rem;
+      line-height: 1.22;
+      color: var(--accent-deep);
+      border: 0;
+      padding: 0;
+    }
+    .book-page-header p { margin: 0.45rem 0 0; color: var(--muted); max-width: 62rem; }
+    .book-article { max-width: 900px; margin: 0; padding: 0 0 1.2rem; }
+    .book-article h1, .book-article h2, .book-article h3, .book-article h4, .book-article h5, .book-article h6 {
+      line-height: 1.28;
+      margin-top: 1.45em;
+      margin-bottom: 0.55em;
+      color: var(--accent-deep);
+    }
+    .book-article h1 { font-size: 2rem; border-bottom: 2px solid var(--line); padding-bottom: 0.42rem; }
+    .book-article h1:first-of-type { margin-top: 0; }
+    .book-article h2 { font-size: 1.42rem; }
+    .book-article h3 { font-size: 1.12rem; }
+    .book-article p, .book-article li, .book-article dd, .book-article td, .book-article th { text-align: justify; text-justify: inter-ideograph; }
+    .book-article p { margin: 0.85rem 0; }
+    .book-article code, .book-article pre { font-family: "Cascadia Mono", "Source Code Pro", Consolas, monospace; font-size: 0.94em; }
+    .book-article code {
+      padding: 0.02rem 0.24rem;
+      background: color-mix(in srgb, var(--accent-soft) 34%, #ffffff 66%);
+      border: 0;
+      border-bottom: 1px solid color-mix(in srgb, var(--accent-soft) 74%, #d1d5db 26%);
+      border-radius: 4px;
+      color: #253244;
+      box-decoration-break: clone;
+      -webkit-box-decoration-break: clone;
+    }
+    .book-article pre {
+      padding: 1rem 1.1rem;
+      overflow: auto;
+      background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,253,248,0.98));
+      border: 1px solid color-mix(in srgb, var(--accent-soft) 54%, #d1d5db 46%);
+      border-left: 5px solid var(--accent);
+      border-radius: 14px;
+      box-shadow: 0 8px 22px rgba(31, 41, 55, 0.05);
+    }
+    .book-article pre code { padding: 0; border: 0; background: transparent; color: inherit; }
+    .book-article table {
+      border-collapse: collapse;
+      width: 100%;
+      margin: 1rem 0 1.25rem;
+      background: rgba(255,255,255,0.82);
+      overflow: hidden;
+      border-radius: 12px;
+    }
+    .book-article th, .book-article td { border: 1px solid var(--line); padding: 0.5rem 0.7rem; vertical-align: top; }
+    .book-article th { background: color-mix(in srgb, var(--accent-soft) 42%, #ffffff 58%); }
+    .book-article blockquote {
+      margin: 1rem 0;
+      padding: 0.25rem 0 0.25rem 1rem;
+      border-left: 4px solid var(--accent);
+      color: #374151;
+      background: linear-gradient(90deg, rgba(255,255,255,0.72), rgba(255,255,255,0.48));
+      border-radius: 0 12px 12px 0;
+    }
+    .book-bottom-nav {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-top: 2.2rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--line);
+    }
+    .book-bottom-nav a {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.6rem 0.9rem;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.84);
+      text-decoration: none;
+      font-weight: 700;
+    }
+    .book-bottom-nav span {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.6rem 0.9rem;
+      border-radius: 999px;
+      border: 1px solid rgba(31,41,55,0.08);
+      background: rgba(255,255,255,0.54);
+      color: rgba(31,41,55,0.42);
+      font-weight: 700;
+    }
+    .book-bottom-nav a:hover { background: rgba(255,255,255,0.98); }
+    .book-volume-intro {
+      margin: 0 0 1.25rem;
+      padding: 1.2rem 1.25rem 1.1rem;
+      border-radius: 18px;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.96), rgba(255,255,255,0.78)),
+        linear-gradient(135deg, var(--accent-soft), rgba(255,255,255,0));
+      border: 1px solid var(--line);
+      box-shadow: 0 14px 34px rgba(31, 41, 55, 0.06);
+    }
+    .volume-intro-kicker {
+      margin: 0;
+      color: var(--accent);
+      font-size: 0.84rem;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    .book-volume-intro h2 {
+      margin: 0.55rem 0 0.55rem;
+      font-size: 1.28rem;
+      line-height: 1.35;
+      color: var(--accent-deep);
+    }
+    .volume-intro-summary {
+      margin: 0;
+      color: var(--muted);
+      max-width: 68rem;
+    }
+    .volume-intro-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.8rem;
+      margin-top: 1rem;
+    }
+    .volume-intro-box {
+      padding: 0.85rem 0.9rem;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.72);
+      border: 1px solid rgba(31,41,55,0.08);
+    }
+    .volume-intro-box span {
+      display: block;
+      color: var(--accent);
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+    }
+    .volume-intro-box strong {
+      display: block;
+      margin-top: 0.35rem;
+      color: var(--ink);
+      font-size: 0.95rem;
+      line-height: 1.45;
+    }
+    .volume-intro-note {
+      margin-top: 0.9rem;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+    @media (max-width: 1180px) {
+      .book-app { grid-template-columns: 1fr; }
+      .book-sidebar {
+        position: relative;
+        height: auto;
+        border-right: 0;
+        border-bottom: 1px solid var(--line);
+      }
+      .sidebar-shell { position: static; }
+    }
+    @media (max-width: 900px) {
+      .book-main { padding: 1rem 1rem 1.5rem; }
+      .book-bottom-nav { flex-direction: column; }
+      .volume-intro-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="book-app">
+    <aside class="book-sidebar">
+      <div class="sidebar-shell">
+        <div class="sidebar-brand">
+          <p class="kicker">高超声速飞行器控制教程</p>
+          <h2>第三卷 经典与现代飞行控制方法</h2>
+          <p>控制方法体系</p>
+        </div>
+        <nav class="sidebar-links" aria-label="本卷目录">
+          <a class="sidebar-link" href="./index.html"><span class="sidebar-index">0</span><span class="sidebar-title">卷首页</span></a>
+<a class="sidebar-link" href="./26-flight-control-system-architecture.html"><span class="sidebar-index">01</span><span class="sidebar-title">第26章 飞行控制系统架构</span></a>
+<a class="sidebar-link" href="./27-pid-classical-autopilot.html"><span class="sidebar-index">02</span><span class="sidebar-title">第27章 PID 与经典自动驾驶仪</span></a>
+<a class="sidebar-link" href="./28-root-locus-frequency-domain-margins.html"><span class="sidebar-index">03</span><span class="sidebar-title">第28章 根轨迹、频域设计与稳定裕度</span></a>
+<a class="sidebar-link" href="./29-state-feedback-observer-pole-placement.html"><span class="sidebar-index">04</span><span class="sidebar-title">第29章 状态反馈、观测器与极点配置</span></a>
+<a class="sidebar-link" href="./30-lqr-lqg-linear-optimal-control.html"><span class="sidebar-index">05</span><span class="sidebar-title">第30章 LQR、LQG 与线性最优控制</span></a>
+<a class="sidebar-link" href="./31-h2-hinf-robust-flight-control.html"><span class="sidebar-index">06</span><span class="sidebar-title">第31章 $H_2$、$H_\infty$ 与鲁棒飞行控制</span></a>
+<a class="sidebar-link" href="./32-gain-scheduling-lpv-control.html"><span class="sidebar-index">07</span><span class="sidebar-title">第32章 增益调度与 LPV 控制</span></a>
+<a class="sidebar-link" href="./33-feedback-linearization-dynamic-inversion.html"><span class="sidebar-index">08</span><span class="sidebar-title">第33章 反馈线性化与动态逆控制</span></a>
+<a class="sidebar-link" href="./34-incremental-nonlinear-dynamic-inversion.html"><span class="sidebar-index">09</span><span class="sidebar-title">第34章 增量非线性动态逆控制</span></a>
+<a class="sidebar-link" href="./35-backstepping-dynamic-surface-control.html"><span class="sidebar-index">10</span><span class="sidebar-title">第35章 反步控制与动态面控制</span></a>
+<a class="sidebar-link" href="./36-sliding-mode-high-order-sliding-control.html"><span class="sidebar-index">11</span><span class="sidebar-title">第36章 滑模控制与高阶滑模控制</span></a>
+<a class="sidebar-link" href="./37-adaptive-flight-control.html"><span class="sidebar-index">12</span><span class="sidebar-title">第37章 自适应飞行控制</span></a>
+<a class="sidebar-link" href="./38-intelligent-approximation-control.html"><span class="sidebar-index">13</span><span class="sidebar-title">第38章 智能逼近控制</span></a>
+<a class="sidebar-link active" href="./39-disturbance-observer-eso-adrc.html"><span class="sidebar-index">14</span><span class="sidebar-title">第39章 扰动观测器、扩张状态观测器与 ADRC</span></a>
+        </nav>
+      </div>
+    </aside>
+    <main class="book-main">
+      <header class="book-page-header">
+        <div class="page-eyebrow">第3册·章节页14</div>
+        <h1 id="volume3--39-disturbance-observer-eso-adrc">第39章 扰动观测器、扩张状态观测器与 ADRC</h1>
+        <p>本页是章节正文页。左侧目录用于回到本卷其他章节，底部导航用于前后章跳转。</p>
+      </header>
+      <article class="book-article">
+        <h2 id="问题背景">39.1 问题背景</h2>
+<p>前几章讨论了鲁棒、自适应和智能逼近。本章讲另一类工程上常见的方法：扰动观测器，DOB，扩张状态观测器，ESO，以及自抗扰控制，ADRC。它们的共同思想是把模型误差、外扰、气动偏差和未建模项合并成总扰动，在线估计后补偿。</p>
+<p>扰动观测和自抗扰控制的直觉非常直接：把难以建模的影响先估计出来，再在闭环里补偿掉。</p>
+<h2 id="总扰动思想">39.2 总扰动思想</h2>
+<p>考虑一阶通道</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>y</mi><mo>=</mo><mi>b</mi><mi>u</mi><mo>+</mo><mi>d</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
+y = b u + d(t)
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>y</mi><annotation encoding="application/x-tex">y</annotation></semantics></math>
+是输出，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>b</mi><annotation encoding="application/x-tex">b</annotation></semantics></math>
+是名义输入增益，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>d</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">d(t)</annotation></semantics></math>
+是总扰动。</p>
+<p>若能估计</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>d</mi><mo accent="true">̂</mo></mover><mo>≈</mo><mi>d</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
+\hat d \approx d(t)
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mover><mi>d</mi><mo accent="true">̂</mo></mover><annotation encoding="application/x-tex">\hat d</annotation></semantics></math>
+是总扰动估计值。</p>
+<p>则可令补偿输入为</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>u</mi><mo>=</mo><mfrac><mrow><msub><mi>u</mi><mn>0</mn></msub><mo>−</mo><mover><mi>d</mi><mo accent="true">̂</mo></mover></mrow><mi>b</mi></mfrac></mrow><annotation encoding="application/x-tex">
+u = \frac{u_0-\hat d}{b}
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>u</mi><mn>0</mn></msub><annotation encoding="application/x-tex">u_0</annotation></semantics></math>
+是基线控制输入。</p>
+<h2 id="匹配性相对阶与可补偿边界">39.3 匹配性、相对阶与可补偿边界</h2>
+<p>能估计扰动不等于能直接补偿扰动。至少应区分：</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>情形</th>
+<th>能做什么</th>
+<th>还不能直接说明什么</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>匹配扰动</td>
+<td>可直接进入补偿通道设计</td>
+<td>所有约束和安全边界都自动满足</td>
+</tr>
+<tr>
+<td>非匹配扰动</td>
+<td>可作为上层残差、前馈修正或鲁棒分析对象</td>
+<td>可直接通过
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>u</mi><mo>−</mo><mover><mi>d</mi><mo accent="true">̂</mo></mover></mrow><annotation encoding="application/x-tex">u-\hat d</annotation></semantics></math>
+消除</td>
+</tr>
+<tr>
+<td>相对阶明确的单通道</td>
+<td>可整理为 ESO/DOB 常见形式</td>
+<td>多通道耦合下仍同样有效</td>
+</tr>
+</tbody>
+</table>
+<h2 id="扰动观测器">39.4 扰动观测器</h2>
+<p>在标称模型</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>x</mi><mo accent="true">̇</mo></mover><mo>=</mo><mi>A</mi><mi>x</mi><mo>+</mo><mi>E</mi><mi>d</mi></mrow><annotation encoding="application/x-tex">
+\dot x = A x + E d
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>x</mi><annotation encoding="application/x-tex">x</annotation></semantics></math>
+是状态，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>A</mi><annotation encoding="application/x-tex">A</annotation></semantics></math>
+是系统矩阵，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>E</mi><annotation encoding="application/x-tex">E</annotation></semantics></math>
+表示扰动通道。</p>
+<p>若扰动可以近似看成慢变量，则可构造扩展状态</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>z</mi><mo accent="true">̇</mo></mover><mo>=</mo><mrow><mo stretchy="true" form="prefix">[</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><mover><mi>x</mi><mo accent="true">̇</mo></mover></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><mover><mi>d</mi><mo accent="true">̇</mo></mover></mtd></mtr></mtable><mo stretchy="true" form="postfix">]</mo></mrow></mrow><annotation encoding="application/x-tex">
+\dot z = \begin{bmatrix}\dot x\\ \dot d\end{bmatrix}
+</annotation></semantics></math></p>
+<p>并设计观测器</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mover><mi>z</mi><mo accent="true">̂</mo></mover><mo accent="true">̇</mo></mover><mo>=</mo><msub><mi>A</mi><mi>o</mi></msub><mover><mi>z</mi><mo accent="true">̂</mo></mover><mo>+</mo><mi>L</mi><mo stretchy="false" form="prefix">(</mo><mi>y</mi><mo>−</mo><mover><mi>y</mi><mo accent="true">̂</mo></mover><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
+\dot{\hat z} = A_o \hat z + L(y-\hat y)
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mover><mi>x</mi><mo accent="true">̂</mo></mover><annotation encoding="application/x-tex">\hat x</annotation></semantics></math>
+是状态估计，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mover><mi>d</mi><mo accent="true">̂</mo></mover><annotation encoding="application/x-tex">\hat d</annotation></semantics></math>
+是扰动估计，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>L</mi><mi>x</mi></msub><mo>,</mo><msub><mi>L</mi><mi>d</mi></msub></mrow><annotation encoding="application/x-tex">L_x,L_d</annotation></semantics></math>
+是观测器增益。
+其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>A</mi><mi>o</mi></msub><annotation encoding="application/x-tex">A_o</annotation></semantics></math>
+是观测器矩阵，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mover><mi>y</mi><mo accent="true">̂</mo></mover><annotation encoding="application/x-tex">\hat y</annotation></semantics></math>
+是估计输出，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>L</mi><mi>x</mi></msub><annotation encoding="application/x-tex">L_x</annotation></semantics></math>
+和
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>L</mi><mi>d</mi></msub><annotation encoding="application/x-tex">L_d</annotation></semantics></math>
+分别对应状态与扰动的观测增益。</p>
+<h2 id="扩张状态观测器">39.5 扩张状态观测器</h2>
+<p>ESO 的核心是把总扰动当成一个扩展状态一起估计。若：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>z</mi><mn>1</mn></msub><mo>=</mo><mi>y</mi><mo>,</mo><mspace width="2.0em"></mspace><msub><mi>z</mi><mn>2</mn></msub><mo>=</mo><msub><mi>d</mi><mrow><mi mathvariant="normal">t</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">t</mi></mrow></msub></mrow><annotation encoding="application/x-tex">
+z_1=y,\qquad z_2=d_{\mathrm{tot}}
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>z</mi><mn>1</mn></msub><annotation encoding="application/x-tex">z_1</annotation></semantics></math>
+是输出扩展状态，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>z</mi><mn>2</mn></msub><annotation encoding="application/x-tex">z_2</annotation></semantics></math>
+是总扰动扩展状态，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>w</mi><annotation encoding="application/x-tex">w</annotation></semantics></math>
+是未知变化率。
+其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>z</mi><mn>1</mn></msub><annotation encoding="application/x-tex">z_1</annotation></semantics></math>
+表示输出本身，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>z</mi><mn>2</mn></msub><annotation encoding="application/x-tex">z_2</annotation></semantics></math>
+表示把总扰动并入后的扩展状态。</p>
+<p>则观测器可以写成：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mover><mover><mi>z</mi><mo accent="true">̂</mo></mover><mo accent="true">̇</mo></mover><mn>1</mn></msub><mo>=</mo><msub><mover><mi>z</mi><mo accent="true">̂</mo></mover><mn>2</mn></msub><mo>+</mo><msub><mi>β</mi><mn>1</mn></msub><mo stretchy="false" form="prefix">(</mo><msub><mi>z</mi><mn>1</mn></msub><mo>−</mo><msub><mover><mi>z</mi><mo accent="true">̂</mo></mover><mn>1</mn></msub><mo stretchy="false" form="postfix">)</mo><mo>,</mo><mspace width="2.0em"></mspace><msub><mover><mover><mi>z</mi><mo accent="true">̂</mo></mover><mo accent="true">̇</mo></mover><mn>2</mn></msub><mo>=</mo><msub><mi>β</mi><mn>2</mn></msub><mo stretchy="false" form="prefix">(</mo><msub><mi>z</mi><mn>1</mn></msub><mo>−</mo><msub><mover><mi>z</mi><mo accent="true">̂</mo></mover><mn>1</mn></msub><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
+\dot{\hat z}_1=\hat z_2+\beta_1(z_1-\hat z_1),\qquad \dot{\hat z}_2=\beta_2(z_1-\hat z_1)
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>β</mi><mn>1</mn></msub><mo>,</mo><msub><mi>β</mi><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">\beta_1,\beta_2</annotation></semantics></math>
+是观测器增益。
+其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>β</mi><mn>1</mn></msub><annotation encoding="application/x-tex">\beta_1</annotation></semantics></math>
+和
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>β</mi><mn>2</mn></msub><annotation encoding="application/x-tex">\beta_2</annotation></semantics></math>
+是 ESO 的校正增益，用于调节估计收敛速度。</p>
+<h2 id="adrc-的三部分">39.6 ADRC 的三部分</h2>
+<p>ADRC 通常包含跟踪微分器、ESO 和非线性状态误差反馈。若参考为
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>r</mi><annotation encoding="application/x-tex">r</annotation></semantics></math>，跟踪微分器可生成平滑参考：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>r</mi><mn>1</mn></msub><mo>=</mo><mrow><mi mathvariant="normal">T</mi><mi mathvariant="normal">D</mi></mrow><mo stretchy="false" form="prefix">(</mo><mi>r</mi><mo stretchy="false" form="postfix">)</mo><mo>,</mo><mspace width="2.0em"></mspace><msub><mover><mi>r</mi><mo accent="true">̇</mo></mover><mn>2</mn></msub><mo>=</mo><msub><mi>β</mi><mi>t</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>r</mi><mo>−</mo><msub><mi>r</mi><mn>1</mn></msub><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
+r_1=\mathrm{TD}(r),\qquad \dot r_2=\beta_t(r-r_1)
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>r</mi><mn>1</mn></msub><annotation encoding="application/x-tex">r_1</annotation></semantics></math>
+是平滑参考，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>r</mi><mn>2</mn></msub><annotation encoding="application/x-tex">r_2</annotation></semantics></math>
+是其导数估计。
+其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>r</mi><annotation encoding="application/x-tex">r</annotation></semantics></math>
+是原始参考，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>β</mi><mi>t</mi></msub><annotation encoding="application/x-tex">\beta_t</annotation></semantics></math>
+是跟踪微分器参数。</p>
+<p>ESO 估计总扰动后，非线性状态误差反馈生成控制量：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>u</mi><mo>=</mo><mfrac><mrow><mi>v</mi><mo>−</mo><mover><mi>d</mi><mo accent="true">̂</mo></mover></mrow><msub><mi>b</mi><mn>0</mn></msub></mfrac></mrow><annotation encoding="application/x-tex">
+u = \frac{v-\hat d}{b_0}
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>0</mn></msub><annotation encoding="application/x-tex">b_0</annotation></semantics></math>
+是名义控制增益，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>v</mi><annotation encoding="application/x-tex">v</annotation></semantics></math>
+是虚拟控制。
+其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>0</mn></msub><annotation encoding="application/x-tex">b_0</annotation></semantics></math>
+是名义控制增益，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>v</mi><annotation encoding="application/x-tex">v</annotation></semantics></math>
+是非线性状态误差反馈生成的虚拟控制量，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mover><mi>d</mi><mo accent="true">̂</mo></mover><annotation encoding="application/x-tex">\hat d</annotation></semantics></math>
+是 ESO 估计的总扰动。</p>
+<h2 id="带宽">39.7 带宽</h2>
+<p>ESO 或 DOB
+带宽越高，扰动估计越快。但高带宽会放大测量噪声、激发执行机构高频动作、与未建模柔性模态耦合、对采样周期更敏感，并导致估计相位误差影响控制。</p>
+<p>带宽选择应满足：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ω</mi><mi>o</mi></msub><mo>≫</mo><msub><mi>ω</mi><mi>d</mi></msub><mo>,</mo><mspace width="2.0em"></mspace><msub><mi>ω</mi><mi>o</mi></msub><mo>≪</mo><msub><mi>ω</mi><mi>n</mi></msub></mrow><annotation encoding="application/x-tex">
+\omega_o \gg \omega_d,\qquad \omega_o \ll \omega_n
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ω</mi><mi>d</mi></msub><annotation encoding="application/x-tex">\omega_d</annotation></semantics></math>
+是扰动变化频率，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ω</mi><mi>o</mi></msub><annotation encoding="application/x-tex">\omega_o</annotation></semantics></math>
+是观测器带宽，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ω</mi><mi>n</mi></msub><annotation encoding="application/x-tex">\omega_n</annotation></semantics></math>
+是噪声或柔性模态危险频率。
+其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ω</mi><mi>o</mi></msub><annotation encoding="application/x-tex">\omega_o</annotation></semantics></math>
+应足够高以跟踪扰动，但不能高到显著放大噪声或激发柔性模态。</p>
+<h2 id="带宽噪声柔性模态与执行机构边界">39.8
+带宽、噪声、柔性模态与执行机构边界</h2>
+<p>观测器带宽至少要和以下量一起报告：</p>
+<ul>
+<li>传感器噪声水平；</li>
+<li>柔性模态或结构危险频段；</li>
+<li>执行机构速率限制；</li>
+<li>采样周期和离散化方式；</li>
+<li>控制分配或内环带宽。</li>
+</ul>
+<h2 id="与-ndi反步和滑模的组合">39.9 与 NDI、反步和滑模的组合</h2>
+<p>DOB 和 ESO 常作为补偿模块加入其他控制器：</p>
+<ul>
+<li>NDI + DOB</li>
+<li>反步 + ESO</li>
+<li>滑模 + DOB</li>
+<li>LQR + 扰动估计前馈</li>
+<li>INDI + 扰动或效能估计</li>
+</ul>
+<p>组合时要避免重复补偿。例如滑模切换项已经按扰动上界设计，DOB
+又估计同一扰动，若参数不协调，可能导致控制输入过大或振荡。</p>
+<h2 id="总扰动分解与物理可解释性">39.10 总扰动分解与物理可解释性</h2>
+<p>把所有残差都堆到
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>d</mi><mrow><mi mathvariant="normal">t</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">t</mi></mrow></msub><annotation encoding="application/x-tex">d_{\mathrm{tot}}</annotation></semantics></math>
+里虽然方便，但会损失物理解释。至少应区分：</p>
+<table>
+<thead>
+<tr>
+<th>扰动来源</th>
+<th>更适合的解释</th>
+<th>是否应单独建模</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>气动参数失配</td>
+<td>模型残差或查表误差</td>
+<td>通常应</td>
+</tr>
+<tr>
+<td>大气偏差</td>
+<td>环境不确定性</td>
+<td>通常应</td>
+</tr>
+<tr>
+<td>推力偏差</td>
+<td>推进通道残差</td>
+<td>通常应</td>
+</tr>
+<tr>
+<td>执行机构效率变化</td>
+<td>效能误差或潜在故障</td>
+<td>更应单独建模</td>
+</tr>
+<tr>
+<td>传感器偏置</td>
+<td>估计或诊断问题</td>
+<td>更应单独建模</td>
+</tr>
+<tr>
+<td>柔性模态高频项</td>
+<td>结构动态污染</td>
+<td>通常不应粗暴并入单一慢扰动</td>
+</tr>
+</tbody>
+</table>
+<h2 id="与基线控制器组合的补偿边界">39.11
+与基线控制器组合的补偿边界</h2>
+<p>DOB/ESO/ADRC
+与其他控制器组合时，最常见的问题不是能不能接上，而是谁在对同一残差负责。至少应说明：</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>组合方式</th>
+<th>更合理的角色分工</th>
+<th>主要风险</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>LQR + DOB</td>
+<td>基线极点配置，DOB 做低频残差补偿</td>
+<td>频域裕度被补偿环破坏</td>
+</tr>
+<tr>
+<td>NDI/INDI + ESO</td>
+<td>逆模型处理标称项，ESO 补总残差</td>
+<td>对控制效能误差重复补偿</td>
+</tr>
+<tr>
+<td>反步 + ESO</td>
+<td>反步保结构，ESO 补未建模项</td>
+<td>虚拟控制和观测器带宽耦合</td>
+</tr>
+<tr>
+<td>滑模 + DOB</td>
+<td>切换项保最坏边界，DOB 降保守</td>
+<td>切换项与观测补偿叠加过强</td>
+</tr>
+</tbody>
+</table>
+<h2 id="高超声速扰动来源">39.12 高超声速扰动来源</h2>
+<p>可观测或可估计的总扰动可能包括：</p>
+<table>
+<thead>
+<tr>
+<th>来源</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>气动导数误差</td>
+<td>升力、阻力、力矩导数偏差</td>
+</tr>
+<tr>
+<td>大气密度偏差</td>
+<td>影响动压、气动力和热流</td>
+</tr>
+<tr>
+<td>推力误差</td>
+<td>速度和姿态耦合偏差</td>
+</tr>
+<tr>
+<td>风扰</td>
+<td>速度和攻角估计变化</td>
+</tr>
+<tr>
+<td>柔性模态</td>
+<td>测量和力矩通道高频扰动</td>
+</tr>
+<tr>
+<td>执行机构效率变化</td>
+<td>控制效能误差</td>
+</tr>
+<tr>
+<td>传感器偏置</td>
+<td>观测残差中表现为慢变化项</td>
+</tr>
+</tbody>
+</table>
+<h2 id="物理可解释性和总扰动边界">39.13 物理可解释性和总扰动边界</h2>
+<p>把所有残差粗暴合并成一个总扰动虽然方便，但会损失诊断能力。更稳妥的写法是把扰动分为三类：</p>
+<ol type="1">
+<li>可直接补偿的匹配扰动；</li>
+<li>适合进入鲁棒项或前馈修正的慢变项；</li>
+<li>需要故障诊断、结构模型或安全层单独处理的扰动。</li>
+</ol>
+<p>这样做的好处是，补偿失效时更容易定位问题来自数据、结构还是控制通道。</p>
+<h2 id="最小验证协议">39.14 最小验证协议</h2>
+<p>DOB、ESO 和 ADRC 至少应报告：</p>
+<table>
+<thead>
+<tr>
+<th>类别</th>
+<th>指标</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>扰动</td>
+<td>估计误差、收敛时间、偏置残差</td>
+</tr>
+<tr>
+<td>带宽</td>
+<td>观测器带宽、噪声放大、柔性模态风险</td>
+</tr>
+<tr>
+<td>控制</td>
+<td>跟踪误差、舵偏、舵速、控制能量</td>
+</tr>
+<tr>
+<td>组合</td>
+<td>与基线控制器的分工、是否重复补偿</td>
+</tr>
+<tr>
+<td>鲁棒</td>
+<td>参数变化、外扰扫描、最差样本</td>
+</tr>
+<tr>
+<td>实现</td>
+<td>采样周期、延迟、滤波和离散化</td>
+</tr>
+</tbody>
+</table>
+<h2 id="本章小结">39.15 本章小结</h2>
+<p>DOB、ESO 和 ADRC
+的核心思想，是把未知项估计成“总扰动”并在线补偿。它们适合做低频残差补偿和工程增强，但带宽、噪声、柔性模态和执行机构边界决定了它们不能被写成无条件通用方法。</p>
+<h2 id="练习">39.16 练习</h2>
+<ol type="1">
+<li>写出总扰动和补偿输入的基本形式。</li>
+<li>说明匹配扰动和非匹配扰动的区别。</li>
+<li>写出 ESO 的基本状态扩展思想。</li>
+<li>解释为什么观测器带宽不能无限提高。</li>
+<li>说明 DOB/ESO/ADRC 与其他控制器组合时最容易出什么问题。</li>
+</ol>
+
+      </article>
+      
+      <nav class="book-bottom-nav" aria-label="章节导航">
+        <a href="./38-intelligent-approximation-control.html">上一章：第38章 智能逼近控制</a>
+        <a href="./index.html">卷首页</a>
+        <span aria-disabled="true">下一章：无</span>
+      </nav>
+    </main>
+  </div>
+</body>
+</html>

@@ -1,0 +1,1729 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>第6章 输入输出稳定性与小增益理论</title>
+  <style>
+    :root {
+      --paper: #f7f3eb;
+      --ink: #1f2937;
+      --muted: #5b6472;
+      --line: color-mix(in srgb, #e7eef7 68%, #cbd5e1 32%);
+      --accent: #335c81;
+      --accent-soft: #e7eef7;
+      --accent-deep: #1e3d57;
+      color-scheme: light;
+    }
+    html {
+      -webkit-text-size-adjust: 100%;
+      background:
+        radial-gradient(circle at top left, #e7eef7 0, rgba(255,255,255,0) 32%),
+        linear-gradient(180deg, #fbfaf6 0%, var(--paper) 18%, #f7f1e6 100%);
+    }
+    body {
+      margin: 0;
+      font-family: "Source Han Serif SC", "Songti SC", "Noto Serif CJK SC", "Microsoft YaHei", serif;
+      color: var(--ink);
+      line-height: 1.78;
+      letter-spacing: 0;
+    }
+    a { color: var(--accent-deep); }
+    .book-app {
+      display: grid;
+      grid-template-columns: 280px minmax(0, 1fr);
+      min-height: 100vh;
+    }
+    .book-sidebar {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow: auto;
+      padding: 1.2rem 1rem 1.2rem 1.15rem;
+      border-right: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(255,255,255,0.86), rgba(255,255,255,0.72));
+      backdrop-filter: blur(10px);
+    }
+    .sidebar-shell { position: sticky; top: 0; display: flex; flex-direction: column; gap: 1rem; }
+    .sidebar-brand {
+      padding: 0.95rem 0.95rem 1rem;
+      border-radius: 18px;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.95), rgba(255,255,255,0.84)),
+        linear-gradient(135deg, var(--accent-soft), rgba(255,255,255,0));
+      border: 1px solid var(--line);
+      box-shadow: 0 12px 28px rgba(31, 41, 55, 0.06);
+    }
+    .sidebar-brand .kicker { margin: 0; color: var(--accent); font-size: 0.82rem; font-weight: 700; }
+    .sidebar-brand h2 { margin: 0.45rem 0 0.25rem; font-size: 1.08rem; line-height: 1.3; color: var(--ink); }
+    .sidebar-brand p { margin: 0.35rem 0 0; color: var(--muted); font-size: 0.9rem; }
+    .sidebar-links { display: grid; gap: 0.45rem; }
+    .sidebar-link {
+      display: grid;
+      grid-template-columns: 2.2rem minmax(0, 1fr);
+      gap: 0.6rem;
+      align-items: start;
+      padding: 0.7rem 0.75rem;
+      border-radius: 14px;
+      text-decoration: none;
+      background: rgba(255,255,255,0.72);
+      border: 1px solid rgba(31,41,55,0.07);
+      color: var(--ink);
+    }
+    .sidebar-link:hover { background: rgba(255,255,255,0.95); border-color: var(--line); }
+    .sidebar-link.active {
+      background: linear-gradient(135deg, rgba(255,255,255,0.98), rgba(255,255,255,0.9));
+      border-color: var(--accent-soft);
+      box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent-soft) 68%, #ffffff 32%);
+    }
+    .sidebar-index {
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      min-width: 2rem;
+      height: 2rem;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent-deep);
+      font-size: 0.78rem;
+      font-weight: 800;
+    }
+    .sidebar-title { font-size: 0.94rem; line-height: 1.35; }
+    .book-main { min-width: 0; padding: 1.25rem 1.45rem 1.8rem; }
+    .book-page-header {
+      padding: 0.85rem 0 1rem;
+      margin-bottom: 1rem;
+      border-bottom: 1px solid var(--line);
+    }
+    .page-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.28rem 0.72rem;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.82);
+      border: 1px solid var(--line);
+      color: var(--accent-deep);
+      font-size: 0.8rem;
+      font-weight: 700;
+    }
+    .book-page-header h1 {
+      margin: 0.7rem 0 0;
+      font-size: 1.85rem;
+      line-height: 1.22;
+      color: var(--accent-deep);
+      border: 0;
+      padding: 0;
+    }
+    .book-page-header p { margin: 0.45rem 0 0; color: var(--muted); max-width: 62rem; }
+    .book-article { max-width: 900px; margin: 0; padding: 0 0 1.2rem; }
+    .book-article h1, .book-article h2, .book-article h3, .book-article h4, .book-article h5, .book-article h6 {
+      line-height: 1.28;
+      margin-top: 1.45em;
+      margin-bottom: 0.55em;
+      color: var(--accent-deep);
+    }
+    .book-article h1 { font-size: 2rem; border-bottom: 2px solid var(--line); padding-bottom: 0.42rem; }
+    .book-article h1:first-of-type { margin-top: 0; }
+    .book-article h2 { font-size: 1.42rem; }
+    .book-article h3 { font-size: 1.12rem; }
+    .book-article p, .book-article li, .book-article dd, .book-article td, .book-article th { text-align: justify; text-justify: inter-ideograph; }
+    .book-article p { margin: 0.85rem 0; }
+    .book-article code, .book-article pre { font-family: "Cascadia Mono", "Source Code Pro", Consolas, monospace; font-size: 0.94em; }
+    .book-article code {
+      padding: 0.02rem 0.24rem;
+      background: color-mix(in srgb, var(--accent-soft) 34%, #ffffff 66%);
+      border: 0;
+      border-bottom: 1px solid color-mix(in srgb, var(--accent-soft) 74%, #d1d5db 26%);
+      border-radius: 4px;
+      color: #253244;
+      box-decoration-break: clone;
+      -webkit-box-decoration-break: clone;
+    }
+    .book-article pre {
+      padding: 1rem 1.1rem;
+      overflow: auto;
+      background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,253,248,0.98));
+      border: 1px solid color-mix(in srgb, var(--accent-soft) 54%, #d1d5db 46%);
+      border-left: 5px solid var(--accent);
+      border-radius: 14px;
+      box-shadow: 0 8px 22px rgba(31, 41, 55, 0.05);
+    }
+    .book-article pre code { padding: 0; border: 0; background: transparent; color: inherit; }
+    .book-article table {
+      border-collapse: collapse;
+      width: 100%;
+      margin: 1rem 0 1.25rem;
+      background: rgba(255,255,255,0.82);
+      overflow: hidden;
+      border-radius: 12px;
+    }
+    .book-article th, .book-article td { border: 1px solid var(--line); padding: 0.5rem 0.7rem; vertical-align: top; }
+    .book-article th { background: color-mix(in srgb, var(--accent-soft) 42%, #ffffff 58%); }
+    .book-article blockquote {
+      margin: 1rem 0;
+      padding: 0.25rem 0 0.25rem 1rem;
+      border-left: 4px solid var(--accent);
+      color: #374151;
+      background: linear-gradient(90deg, rgba(255,255,255,0.72), rgba(255,255,255,0.48));
+      border-radius: 0 12px 12px 0;
+    }
+    .book-bottom-nav {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-top: 2.2rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--line);
+    }
+    .book-bottom-nav a {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.6rem 0.9rem;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.84);
+      text-decoration: none;
+      font-weight: 700;
+    }
+    .book-bottom-nav span {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.6rem 0.9rem;
+      border-radius: 999px;
+      border: 1px solid rgba(31,41,55,0.08);
+      background: rgba(255,255,255,0.54);
+      color: rgba(31,41,55,0.42);
+      font-weight: 700;
+    }
+    .book-bottom-nav a:hover { background: rgba(255,255,255,0.98); }
+    .book-volume-intro {
+      margin: 0 0 1.25rem;
+      padding: 1.2rem 1.25rem 1.1rem;
+      border-radius: 18px;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.96), rgba(255,255,255,0.78)),
+        linear-gradient(135deg, var(--accent-soft), rgba(255,255,255,0));
+      border: 1px solid var(--line);
+      box-shadow: 0 14px 34px rgba(31, 41, 55, 0.06);
+    }
+    .volume-intro-kicker {
+      margin: 0;
+      color: var(--accent);
+      font-size: 0.84rem;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    .book-volume-intro h2 {
+      margin: 0.55rem 0 0.55rem;
+      font-size: 1.28rem;
+      line-height: 1.35;
+      color: var(--accent-deep);
+    }
+    .volume-intro-summary {
+      margin: 0;
+      color: var(--muted);
+      max-width: 68rem;
+    }
+    .volume-intro-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.8rem;
+      margin-top: 1rem;
+    }
+    .volume-intro-box {
+      padding: 0.85rem 0.9rem;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.72);
+      border: 1px solid rgba(31,41,55,0.08);
+    }
+    .volume-intro-box span {
+      display: block;
+      color: var(--accent);
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+    }
+    .volume-intro-box strong {
+      display: block;
+      margin-top: 0.35rem;
+      color: var(--ink);
+      font-size: 0.95rem;
+      line-height: 1.45;
+    }
+    .volume-intro-note {
+      margin-top: 0.9rem;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+    @media (max-width: 1180px) {
+      .book-app { grid-template-columns: 1fr; }
+      .book-sidebar {
+        position: relative;
+        height: auto;
+        border-right: 0;
+        border-bottom: 1px solid var(--line);
+      }
+      .sidebar-shell { position: static; }
+    }
+    @media (max-width: 900px) {
+      .book-main { padding: 1rem 1rem 1.5rem; }
+      .book-bottom-nav { flex-direction: column; }
+      .volume-intro-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="book-app">
+    <aside class="book-sidebar">
+      <div class="sidebar-shell">
+        <div class="sidebar-brand">
+          <p class="kicker">高超声速飞行器控制教程</p>
+          <h2>第一卷 数学基础与控制理论基础</h2>
+          <p>控制理论地基</p>
+        </div>
+        <nav class="sidebar-links" aria-label="本卷目录">
+          <a class="sidebar-link" href="./index.html"><span class="sidebar-index">0</span><span class="sidebar-title">卷首页</span></a>
+<a class="sidebar-link" href="./01-hypersonic-control-problem-intro.html"><span class="sidebar-index">01</span><span class="sidebar-title">第1章 高超声速飞行器控制问题导论</span></a>
+<a class="sidebar-link" href="./02-dynamical-systems-state-space.html"><span class="sidebar-index">02</span><span class="sidebar-title">第2章 动力系统与状态空间方法</span></a>
+<a class="sidebar-link" href="./03-linear-systems-theory.html"><span class="sidebar-index">03</span><span class="sidebar-title">第3章 线性系统理论</span></a>
+<a class="sidebar-link" href="./04-nonlinear-systems-theory.html"><span class="sidebar-index">04</span><span class="sidebar-title">第4章 非线性系统理论</span></a>
+<a class="sidebar-link" href="./05-lyapunov-stability-theory.html"><span class="sidebar-index">05</span><span class="sidebar-title">第5章 Lyapunov 稳定性理论</span></a>
+<a class="sidebar-link active" href="./06-input-output-small-gain.html"><span class="sidebar-index">06</span><span class="sidebar-title">第6章 输入输出稳定性与小增益理论</span></a>
+<a class="sidebar-link" href="./07-singular-perturbation-multitime-scale.html"><span class="sidebar-index">07</span><span class="sidebar-title">第7章 奇异摄动与多时间尺度系统</span></a>
+<a class="sidebar-link" href="./08-optimal-control-theory.html"><span class="sidebar-index">08</span><span class="sidebar-title">第8章 最优控制理论</span></a>
+<a class="sidebar-link" href="./09-robust-control-theory.html"><span class="sidebar-index">09</span><span class="sidebar-title">第9章 鲁棒控制理论</span></a>
+<a class="sidebar-link" href="./10-adaptive-control-theory.html"><span class="sidebar-index">10</span><span class="sidebar-title">第10章 自适应控制理论</span></a>
+<a class="sidebar-link" href="./11-stochastic-filtering-estimation.html"><span class="sidebar-index">11</span><span class="sidebar-title">第11章 随机系统、滤波与状态估计</span></a>
+<a class="sidebar-link" href="./12-constrained-safety-control-foundations.html"><span class="sidebar-index">12</span><span class="sidebar-title">第12章 约束系统与安全控制基础</span></a>
+<a class="sidebar-link" href="./13-numerical-convex-optimization.html"><span class="sidebar-index">13</span><span class="sidebar-title">第13章 数值优化与凸优化基础</span></a>
+<a class="sidebar-link" href="./13-hybrid-sampled-control.html"><span class="sidebar-index">14</span><span class="sidebar-title">混杂系统与采样控制专题</span></a>
+        </nav>
+      </div>
+    </aside>
+    <main class="book-main">
+      <header class="book-page-header">
+        <div class="page-eyebrow">第1册·章节页06</div>
+        <h1 id="volume1--06-input-output-small-gain">第6章 输入输出稳定性与小增益理论</h1>
+        <p>本页是章节正文页。左侧目录用于回到本卷其他章节，底部导航用于前后章跳转。</p>
+      </header>
+      <article class="book-article">
+        <h2 id="问题背景">6.1 问题背景</h2>
+<p>高超声速飞行器控制系统通常由多个子系统互联，典型地包括姿态控制器、控制分配、执行机构、飞行器动力学以及传感器和估计器。</p>
+<p>即使每个子系统单独看起来稳定，互联后也可能出现振荡、延迟放大、饱和和噪声放大。这里讨论输入输出稳定性、小增益理论和被动性，用来分析多环系统和不确定互联。</p>
+<h2 id="信号空间范数和截断信号">6.2 信号空间、范数和截断信号</h2>
+<p>输入输出理论首先把系统看成一个算子：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>y</mi><mo>=</mo><mi>𝒢</mi><mo stretchy="false" form="prefix">(</mo><mi>u</mi><mo stretchy="false" form="postfix">)</mo><mo>,</mo></mrow><annotation encoding="application/x-tex">
+y=\mathcal{G}(u),
+</annotation></semantics></math></p>
+<p>先把系统当成一个输入输出映射来理解，便于讨论放大倍数。这里的稳定性不直接问状态是否收敛，而是问输入信号有多大、输出信号会被放大多少。<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝒢</mi><annotation encoding="application/x-tex">\mathcal{G}</annotation></semantics></math>
+只是把输入信号映射到输出信号的系统算子，并不要求先写出状态方程；这一视角更接近“输入-输出接口”的分析方式，而不是逐个分析状态分量。</p>
+<p>常用
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>L</mi><mi>p</mi></msub><annotation encoding="application/x-tex">L_p</annotation></semantics></math>
+范数为：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="postfix">∥</mo><mi>u</mi><msub><mo stretchy="false" form="postfix">∥</mo><mi>p</mi></msub><mo>=</mo><msup><mrow><mo stretchy="true" form="prefix">(</mo><msubsup><mo>∫</mo><mn>0</mn><mi>∞</mi></msubsup><mo stretchy="false" form="postfix">∥</mo><mi>u</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><msup><mo stretchy="false" form="postfix">∥</mo><mi>p</mi></msup><mi>d</mi><mi>t</mi><mo stretchy="true" form="postfix">)</mo></mrow><mrow><mn>1</mn><mi>/</mi><mi>p</mi></mrow></msup><mo>,</mo><mspace width="2.0em"></mspace><mn>1</mn><mo>≤</mo><mi>p</mi><mo>&lt;</mo><mi>∞</mi><mo>,</mo></mrow><annotation encoding="application/x-tex">
+\|u\|_p=\left(\int_0^\infty \|u(t)\|^p dt\right)^{1/p},
+\qquad 1\le p&lt;\infty,
+</annotation></semantics></math></p>
+<p>这个范数衡量的是信号在整个时间轴上的累积大小。其中每一时刻的幅值都被积累进总能量里，所以它关注的是整体强度而不是瞬时峰值。
+以及：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="postfix">∥</mo><mi>u</mi><msub><mo stretchy="false" form="postfix">∥</mo><mi>∞</mi></msub><mo>=</mo><munder><mi>ess sup</mi><mo>&#8289;</mo><mrow><mi>t</mi><mo>≥</mo><mn>0</mn></mrow></munder><mo stretchy="false" form="postfix">∥</mo><mi>u</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">∥</mo><mi>.</mi></mrow><annotation encoding="application/x-tex">
+\|u\|_\infty=\operatorname*{ess\,sup}_{t\ge 0}\|u(t)\|.
+</annotation></semantics></math></p>
+<p>这个范数衡量的是信号的最坏瞬时幅值，其中“最坏”指的是整个时间轴上的上确界，因此它适合描述峰值约束和最大发电量；<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="postfix">∥</mo><mi>u</mi><msub><mo stretchy="false" form="postfix">∥</mo><mi>∞</mi></msub></mrow><annotation encoding="application/x-tex">\|u\|_\infty</annotation></semantics></math>
+就是峰值范数。 对工程系统，常需要使用截断信号：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>u</mi><mi>T</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mrow><mo stretchy="true" form="prefix">{</mo><mtable><mtr><mtd columnalign="left" style="text-align: left"><mi>u</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo>,</mo></mtd><mtd columnalign="left" style="text-align: left"><mn>0</mn><mo>≤</mo><mi>t</mi><mo>≤</mo><mi>T</mi><mo>,</mo></mtd></mtr><mtr><mtd columnalign="left" style="text-align: left"><mn>0</mn><mo>,</mo></mtd><mtd columnalign="left" style="text-align: left"><mi>t</mi><mo>&gt;</mo><mi>T</mi><mi>.</mi></mtd></mtr></mtable></mrow></mrow><annotation encoding="application/x-tex">
+u_T(t)=
+\begin{cases}
+u(t), &amp; 0\le t\le T,\\
+0, &amp; t&gt;T.
+\end{cases}
+</annotation></semantics></math></p>
+<p>这个截断信号只保留有限时间窗内的输入，其中
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>T</mi><annotation encoding="application/x-tex">T</annotation></semantics></math>
+是截断时刻，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>u</mi><mi>T</mi></msub><annotation encoding="application/x-tex">u_T</annotation></semantics></math>
+在
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>T</mi><annotation encoding="application/x-tex">T</annotation></semantics></math>
+之后被置零，便于把有限任务时间内的信号拉回到
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>L</mi><mi>p</mi></msub><annotation encoding="application/x-tex">L_p</annotation></semantics></math>
+框架。这样做的目的，是把可能不属于严格
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>L</mi><mi>p</mi></msub><annotation encoding="application/x-tex">L_p</annotation></semantics></math>
+的信号转换成在有限区间上可计算范数的对象；这里的有限时间窗只是分析区间，而不是系统永久运行的时间轴。
+若对任意有限
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>T</mi><annotation encoding="application/x-tex">T</annotation></semantics></math>
+都有
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>u</mi><mi>T</mi></msub><mo>∈</mo><msub><mi>L</mi><mi>p</mi></msub></mrow><annotation encoding="application/x-tex">u_T\in L_p</annotation></semantics></math>，则
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>u</mi><annotation encoding="application/x-tex">u</annotation></semantics></math>
+属于扩展空间
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>L</mi><mrow><mi>p</mi><mi>e</mi></mrow></msub><annotation encoding="application/x-tex">L_{pe}</annotation></semantics></math>。这能处理阶跃命令、常值偏置和有限时间任务中的信号。高超声速飞行控制中，制导命令、密度偏差、传感器偏置和执行机构残差未必属于严格
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>L</mi><mn>2</mn></msub><annotation encoding="application/x-tex">L_2</annotation></semantics></math>，但在有限任务时间内仍可用截断范数分析放大关系。
+这里的
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>u</mi><mi>T</mi></msub><annotation encoding="application/x-tex">u_T</annotation></semantics></math>
+就是把原输入截成一个有限区间上的版本，方便计算有限任务的信号大小。</p>
+<h2 id="输入输出稳定性和有限增益">6.3 输入输出稳定性和有限增益</h2>
+<p>若存在常数
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>γ</mi><mo>≥</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\gamma\ge 0</annotation></semantics></math>
+和
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>β</mi><mo>≥</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\beta\ge 0</annotation></semantics></math>，使对所有输入都有：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="postfix">∥</mo><mi>y</mi><msub><mo stretchy="false" form="postfix">∥</mo><mi>p</mi></msub><mo>≤</mo><mi>γ</mi><mo stretchy="false" form="postfix">∥</mo><mi>u</mi><msub><mo stretchy="false" form="postfix">∥</mo><mi>p</mi></msub><mo>+</mo><mi>β</mi><mo>,</mo></mrow><annotation encoding="application/x-tex">
+\|y\|_{p}\le \gamma\|u\|_{p}+\beta,
+</annotation></semantics></math></p>
+<p>这里先把输入到输出的放大上界写出来，其中
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>γ</mi><annotation encoding="application/x-tex">\gamma</annotation></semantics></math>
+是增益常数，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>β</mi><annotation encoding="application/x-tex">\beta</annotation></semantics></math>
+是与初值、偏置或非零静态误差相关的残差上界；有限增益并不意味着输出必然收敛到零，它只说明输出不会超过输入放大后的界。
+则系统从输入
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>u</mi><annotation encoding="application/x-tex">u</annotation></semantics></math>
+到输出
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>y</mi><annotation encoding="application/x-tex">y</annotation></semantics></math>
+具有有限
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>L</mi><mi>p</mi></msub><annotation encoding="application/x-tex">L_p</annotation></semantics></math>
+增益。若
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>β</mi><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\beta=0</annotation></semantics></math>，则称零状态有限增益稳定。常见的是
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>L</mi><mn>2</mn></msub><annotation encoding="application/x-tex">L_2</annotation></semantics></math>
+增益：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="postfix">∥</mo><mi>y</mi><msub><mo stretchy="false" form="postfix">∥</mo><mn>2</mn></msub><mo>≤</mo><mi>γ</mi><mo stretchy="false" form="postfix">∥</mo><mi>u</mi><msub><mo stretchy="false" form="postfix">∥</mo><mn>2</mn></msub><mi>.</mi></mrow><annotation encoding="application/x-tex">
+\|y\|_{2}\le \gamma\|u\|_{2}.
+</annotation></semantics></math></p>
+<p>这里的
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>γ</mi><annotation encoding="application/x-tex">\gamma</annotation></semantics></math>
+就是输入输出放大倍数的量化指标，高超声速控制中，输入可以是：</p>
+<p>这些输入量都可能沿闭环回路进入放大链，因此需要和输出一起分析。</p>
+<ul>
+<li>风扰和大气密度偏差；</li>
+<li>制导命令和参考轨迹变化；</li>
+<li>姿态内环残差；</li>
+<li>控制分配残差；</li>
+<li>执行机构幅值/速率限制误差；</li>
+<li>传感器噪声和估计误差；</li>
+<li>安全滤波或参考治理带来的命令修正。</li>
+</ul>
+<p>输出可以是：</p>
+<ul>
+<li>高度、速度、航迹角和姿态误差；</li>
+<li>攻角、侧滑角、过载和热流；</li>
+<li>动压裕度或约束违反量；</li>
+<li>舵偏、舵速和控制分配残差；</li>
+<li>终端位置和终端角度误差。</li>
+</ul>
+<p>输入输出稳定性的优势是能把多环系统中的误差传播说清楚。它不要求所有内部状态都作为性能输出，但这也是风险：若没有把攻角、热流、动压裕度和执行机构残差放入输出集合，输入输出指标可能掩盖内部不安全状态。
+这段列表的作用，是把“哪些量需要纳入性能评价”说清楚，而不是单纯罗列物理量。</p>
+<h2 id="l_2-增益耗散不等式和鲁棒性能">6.4
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>L</mi><mn>2</mn></msub><annotation encoding="application/x-tex">L_2</annotation></semantics></math>
+增益、耗散不等式和鲁棒性能</h2>
+<p>若闭环从扰动
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>d</mi><annotation encoding="application/x-tex">d</annotation></semantics></math>
+到性能输出
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>z</mi><annotation encoding="application/x-tex">z</annotation></semantics></math>
+的传递满足：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="postfix">∥</mo><mi>z</mi><msub><mo stretchy="false" form="postfix">∥</mo><mn>2</mn></msub><mo>≤</mo><mi>γ</mi><mo stretchy="false" form="postfix">∥</mo><mi>d</mi><msub><mo stretchy="false" form="postfix">∥</mo><mn>2</mn></msub><mo>,</mo></mrow><annotation encoding="application/x-tex">
+\|z\|_2\le \gamma\|d\|_2,
+</annotation></semantics></math></p>
+<p>这里先把扰动到性能输出的最坏放大关系固定下来，其中
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>z</mi><annotation encoding="application/x-tex">z</annotation></semantics></math>
+是性能输出、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>d</mi><annotation encoding="application/x-tex">d</annotation></semantics></math>
+是外部扰动，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>γ</mi><annotation encoding="application/x-tex">\gamma</annotation></semantics></math>
+描述最坏情况下的放大倍数。若把
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>z</mi><annotation encoding="application/x-tex">z</annotation></semantics></math>
+选成跟踪误差、控制能量和安全裕度的组合，那么
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>L</mi><mn>2</mn></msub><annotation encoding="application/x-tex">L_2</annotation></semantics></math>
+增益就同时反映性能和安全两方面的放大；<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>γ</mi><annotation encoding="application/x-tex">\gamma</annotation></semantics></math>
+越小，系统越不容易把扰动传成大的性能代价。</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>V</mi><mo accent="true">̇</mo></mover><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo>≤</mo><msup><mi>γ</mi><mn>2</mn></msup><msup><mi>d</mi><mi>𝖳</mi></msup><mi>d</mi><mo>−</mo><msup><mi>z</mi><mi>𝖳</mi></msup><mi>z</mi><mo>,</mo></mrow><annotation encoding="application/x-tex">
+\dot{V}(x)\le \gamma^2 d^\mathsf{T}d-z^\mathsf{T}z,
+</annotation></semantics></math></p>
+<p>这个耗散不等式表示系统在消耗性能输出能量，其中
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>V</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">V(x)</annotation></semantics></math>
+是存储函数，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>d</mi><mi>𝖳</mi></msup><mi>d</mi></mrow><annotation encoding="application/x-tex">d^\mathsf{T}d</annotation></semantics></math>
+是扰动输入功率，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>z</mi><mi>𝖳</mi></msup><mi>z</mi></mrow><annotation encoding="application/x-tex">z^\mathsf{T}z</annotation></semantics></math>
+是被消耗的性能输出能量；存储函数可以理解成系统暂存的“能量账本”，它越大，通常表示系统偏离目标或暂存能量越多。
+两边积分得到：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mo>∫</mo><mn>0</mn><mi>T</mi></msubsup><msup><mi>z</mi><mi>𝖳</mi></msup><mi>z</mi><mspace width="0.167em"></mspace><mi>d</mi><mi>t</mi><mo>≤</mo><mi>V</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="prefix">(</mo><mn>0</mn><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">)</mo><mo>+</mo><msup><mi>γ</mi><mn>2</mn></msup><msubsup><mo>∫</mo><mn>0</mn><mi>T</mi></msubsup><msup><mi>d</mi><mi>𝖳</mi></msup><mi>d</mi><mspace width="0.167em"></mspace><mi>d</mi><mi>t</mi><mi>.</mi></mrow><annotation encoding="application/x-tex">
+\int_0^T z^\mathsf{T}z\,dt
+\le V(x(0))+\gamma^2\int_0^T d^\mathsf{T}d\,dt.
+</annotation></semantics></math></p>
+<p>这个积分式把初始储能和扰动能量一起纳入上界，其中左边是性能输出的累计能量，右边第一项来自初始状态，第二项来自扰动输入。
+若
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>x</mi><mo stretchy="false" form="prefix">(</mo><mn>0</mn><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">x(0)=0</annotation></semantics></math>
+且
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>V</mi><mo stretchy="false" form="prefix">(</mo><mn>0</mn><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">V(0)=0</annotation></semantics></math>，就得到有限
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>L</mi><mn>2</mn></msub><annotation encoding="application/x-tex">L_2</annotation></semantics></math>
+增益界：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="postfix">∥</mo><mi>z</mi><msub><mo stretchy="false" form="postfix">∥</mo><mrow><mn>2</mn><mo>,</mo><mi>T</mi></mrow></msub><mo>≤</mo><mi>γ</mi><mo stretchy="false" form="postfix">∥</mo><mi>d</mi><msub><mo stretchy="false" form="postfix">∥</mo><mrow><mn>2</mn><mo>,</mo><mi>T</mi></mrow></msub><mi>.</mi></mrow><annotation encoding="application/x-tex">
+\|z\|_{2,T}\le \gamma\|d\|_{2,T}.
+</annotation></semantics></math></p>
+<p>这说明在有限时间窗内，性能输出不会超过扰动的放大界。
+在鲁棒飞控中，性能输出可选为：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>z</mi><mo>=</mo><mrow><mo stretchy="true" form="prefix">[</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><msub><mi>W</mi><mi>e</mi></msub><mi>e</mi></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><msub><mi>W</mi><mi>u</mi></msub><mi>u</mi></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><msub><mi>W</mi><mi>a</mi></msub><msub><mi>a</mi><mi>n</mi></msub></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><msub><mi>W</mi><mi>m</mi></msub><msub><mi>m</mi><mi>q</mi></msub></mtd></mtr></mtable><mo stretchy="true" form="postfix">]</mo></mrow><mo>,</mo></mrow><annotation encoding="application/x-tex">
+z=
+\begin{bmatrix}
+W_e e\\
+W_u u\\
+W_a a_n\\
+W_m m_q
+\end{bmatrix},
+</annotation></semantics></math></p>
+<p>这个向量把误差、控制量和安全裕度一起当作性能输出，其中
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>W</mi><mi>e</mi></msub><annotation encoding="application/x-tex">W_e</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>W</mi><mi>u</mi></msub><annotation encoding="application/x-tex">W_u</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>W</mi><mi>a</mi></msub><annotation encoding="application/x-tex">W_a</annotation></semantics></math>
+和
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>W</mi><mi>m</mi></msub><annotation encoding="application/x-tex">W_m</annotation></semantics></math>
+是权重矩阵或权重标量，用来统一不同物理量的尺度。注意：安全裕度不能被随意取倒数后塞入加权指标，因为接近边界时会出现奇异和单位混乱。更稳妥的做法是同时报告：</p>
+<ul>
+<li>加权
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>L</mi><mn>2</mn></msub><annotation encoding="application/x-tex">L_2</annotation></semantics></math>
+性能；</li>
+<li>最大约束值；</li>
+<li>约束违反时间；</li>
+<li>约束违反积分；</li>
+<li>最小安全裕度；</li>
+<li>执行机构饱和持续时间。</li>
+</ul>
+<p>这里说明，性能输出和安全约束要一起纳入评价，而不能只看一个指标，这样输入输出性能和安全约束不会互相掩盖。</p>
+<h2 id="issios-和状态稳定性的连接">6.5 ISS、IOS 和状态稳定性的连接</h2>
+<p>输入输出稳定性只看输入和输出。若还要描述状态对输入的响应，可使用输入到状态稳定性
+ISS。系统：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>x</mi><mo accent="true">̇</mo></mover><mo>=</mo><mi>f</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>u</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
+\dot{x}=f(x,u)
+</annotation></semantics></math></p>
+<p>这里先把状态上界的模板单独提出。这个模型直接把状态和输入的闭环关系写成统一形式，其中
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>u</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">f(x,u)</annotation></semantics></math>
+是闭环向量场，状态和输入被放在同一个动态方程里。若存在
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>𝒦</mi><mi>ℒ</mi></mrow><annotation encoding="application/x-tex">\mathcal{KL}</annotation></semantics></math>
+函数
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>β</mi><annotation encoding="application/x-tex">\beta</annotation></semantics></math>
+和
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝒦</mi><annotation encoding="application/x-tex">\mathcal{K}</annotation></semantics></math>
+函数
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>γ</mi><annotation encoding="application/x-tex">\gamma</annotation></semantics></math>，使：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="postfix">∥</mo><mi>x</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">∥</mo><mo>≤</mo><mi>β</mi><mo stretchy="false" form="prefix">(</mo><mo stretchy="false" form="postfix">∥</mo><mi>x</mi><mo stretchy="false" form="prefix">(</mo><mn>0</mn><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">∥</mo><mo>,</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo>+</mo><mi>γ</mi><mo stretchy="false" form="prefix">(</mo><mo stretchy="false" form="postfix">∥</mo><mi>u</mi><msub><mo stretchy="false" form="postfix">∥</mo><mi>∞</mi></msub><mo stretchy="false" form="postfix">)</mo><mo>,</mo></mrow><annotation encoding="application/x-tex">
+\|x(t)\|\le \beta(\|x(0)\|,t)+\gamma(\|u\|_\infty),
+</annotation></semantics></math></p>
+<p>这里先把状态初值影响和输入上界影响分开。 其中
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>β</mi><annotation encoding="application/x-tex">\beta</annotation></semantics></math>
+负责描述初始状态的衰减，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>γ</mi><annotation encoding="application/x-tex">\gamma</annotation></semantics></math>
+负责描述外部输入上界如何转化为状态最终界。 这里的
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="postfix">∥</mo><mi>u</mi><msub><mo stretchy="false" form="postfix">∥</mo><mi>∞</mi></msub></mrow><annotation encoding="application/x-tex">\|u\|_\infty</annotation></semantics></math>
+是输入的最坏瞬时幅值，因此 ISS
+结论说的是“只要输入有界，状态就被拉进一个有界邻域”。
+这里的“有界邻域”是最终状态可能停留的范围，而不是瞬间的峰值。 这里的
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>β</mi><mo>∈</mo><mrow><mi>𝒦</mi><mi>ℒ</mi></mrow></mrow><annotation encoding="application/x-tex">\beta\in\mathcal{KL}</annotation></semantics></math>
+和
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>γ</mi><mo>∈</mo><mi>𝒦</mi></mrow><annotation encoding="application/x-tex">\gamma\in\mathcal{K}</annotation></semantics></math>
+是函数类标记，不是普通常数。 这里的
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="postfix">∥</mo><mi>x</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">∥</mo></mrow><annotation encoding="application/x-tex">\|x(t)\|</annotation></semantics></math>
+是状态范数，所以这条式子实际上是在给状态轨迹写一个“初值衰减 +
+输入残留”的总上界。 这条界说明，ISS
+把状态变化拆成了初值衰减和输入残留两部分。
+这一定义说明，状态稳定性结论本质上是在看输入能否把状态压进一个有界邻域。
+则系统对输入
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>u</mi><annotation encoding="application/x-tex">u</annotation></semantics></math>
+是 ISS。若输出
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>y</mi><mo>=</mo><mi>h</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">y=h(x)</annotation></semantics></math>
+满足：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="postfix">∥</mo><mi>y</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">∥</mo><mo>≤</mo><mi>β</mi><mo stretchy="false" form="prefix">(</mo><mo stretchy="false" form="postfix">∥</mo><mi>x</mi><mo stretchy="false" form="prefix">(</mo><mn>0</mn><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">∥</mo><mo>,</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo>+</mo><mi>γ</mi><mo stretchy="false" form="prefix">(</mo><mo stretchy="false" form="postfix">∥</mo><mi>u</mi><msub><mo stretchy="false" form="postfix">∥</mo><mi>∞</mi></msub><mo stretchy="false" form="postfix">)</mo><mo>,</mo></mrow><annotation encoding="application/x-tex">
+\|y(t)\|\le \beta(\|x(0)\|,t)+\gamma(\|u\|_\infty),
+</annotation></semantics></math></p>
+<p>这里说明，输出界和状态界结构相同，只是对象从状态换成了输出。
+这里的输出界和状态界结构完全一致，只是把作用对象从状态换成了输出。
+这条界说明，IOS 只是把 ISS 的状态界换成了输出界。 这里的 IOS 只是把 ISS
+的界对象从状态换成了输出，所以它关注的是输出能否被输入和初值共同控制住。
+则称为输入到输出稳定 IOS。</p>
+<p>ISS 是连接 Lyapunov 稳定性和小增益理论的桥梁。若每个子系统都是
+ISS，并且互联增益满足小增益条件，则整体系统可以得到有界性或稳定性结论。</p>
+<p>高超声速控制中的典型解释是：</p>
+<ul>
+<li>姿态内环残差越小，制导外环误差越小；</li>
+<li>外环命令越平滑，内环误差越小；</li>
+<li>估计误差越小，控制输入误差越小；</li>
+<li>执行机构残差越小，飞行器状态误差越小。</li>
+</ul>
+<p>如果这些增益相乘后大于 1，误差会在互联中被反复放大。</p>
+<h2 id="小增益定理">6.6 小增益定理</h2>
+<p>考虑两个互联系统：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>y</mi><mn>1</mn></msub><mo>=</mo><msub><mi>G</mi><mn>1</mn></msub><msub><mi>u</mi><mn>1</mn></msub><mo>,</mo><mspace width="2.0em"></mspace><msub><mi>y</mi><mn>2</mn></msub><mo>=</mo><msub><mi>G</mi><mn>2</mn></msub><msub><mi>u</mi><mn>2</mn></msub><mo>,</mo></mrow><annotation encoding="application/x-tex">
+y_1=G_1u_1,\qquad y_2=G_2u_2,
+</annotation></semantics></math></p>
+<p>这里先把每个子系统单独的输入输出关系写出来。 互联关系为：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>u</mi><mn>1</mn></msub><mo>=</mo><msub><mi>y</mi><mn>2</mn></msub><mo>+</mo><msub><mi>r</mi><mn>1</mn></msub><mo>,</mo><mspace width="2.0em"></mspace><msub><mi>u</mi><mn>2</mn></msub><mo>=</mo><msub><mi>y</mi><mn>1</mn></msub><mo>+</mo><msub><mi>r</mi><mn>2</mn></msub><mi>.</mi></mrow><annotation encoding="application/x-tex">
+u_1=y_2+r_1,\qquad u_2=y_1+r_2.
+</annotation></semantics></math></p>
+<p>这组互联式说明每个子系统都会把另一个子系统的输出当成自己的输入。
+这里的
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>u</mi><mn>1</mn></msub><annotation encoding="application/x-tex">u_1</annotation></semantics></math>
+和
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>u</mi><mn>2</mn></msub><annotation encoding="application/x-tex">u_2</annotation></semantics></math>
+是回路内部信号，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>r</mi><mn>1</mn></msub><annotation encoding="application/x-tex">r_1</annotation></semantics></math>
+和
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>r</mi><mn>2</mn></msub><annotation encoding="application/x-tex">r_2</annotation></semantics></math>
+才是外部扰动或参考，所以互联系统的关键不是单模块性能，而是回路是否会自我放大。
+若它们的增益分别为
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>γ</mi><mn>1</mn></msub><mo>,</mo><msub><mi>γ</mi><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">\gamma_1,\gamma_2</annotation></semantics></math>，且：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>γ</mi><mn>1</mn></msub><msub><mi>γ</mi><mn>2</mn></msub><mo>&lt;</mo><mn>1</mn><mo>,</mo></mrow><annotation encoding="application/x-tex">
+\gamma_1\gamma_2&lt;1,
+</annotation></semantics></math></p>
+<p>这里先写出最基本的小增益判据。 其中
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>γ</mi><mn>1</mn></msub><annotation encoding="application/x-tex">\gamma_1</annotation></semantics></math>
+和
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>γ</mi><mn>2</mn></msub><annotation encoding="application/x-tex">\gamma_2</annotation></semantics></math>
+是两个子系统沿互联回路传播的增益上界。
+这里的意思是，误差绕一圈后不能比起点更大，否则互联会越来越放大而不是收缩。
+这里的
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>u</mi><mn>1</mn></msub><mo>,</mo><msub><mi>u</mi><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">u_1,u_2</annotation></semantics></math>
+是互联系统中彼此交换的输入通道，而不是外部独立命令。 这里的
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>r</mi><mn>1</mn></msub><mo>,</mo><msub><mi>r</mi><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">r_1,r_2</annotation></semantics></math>
+是外部注入到互联系统的输入，用来表示参考或扰动。 则互联系统从外部输入
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>r</mi><mo>=</mo><mo stretchy="false" form="prefix">[</mo><msub><mi>r</mi><mn>1</mn></msub><mo>,</mo><msub><mi>r</mi><mn>2</mn></msub><msup><mo stretchy="false" form="postfix">]</mo><mi>⊤</mi></msup></mrow><annotation encoding="application/x-tex">r=[r_1,r_2]^\top</annotation></semantics></math>
+到内部信号具有有限增益。直观地说，误差绕一圈回到原处后必须变小。</p>
+<p>对多个子系统，可用增益矩阵描述：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Γ</mi><mo>=</mo><mrow><mo stretchy="true" form="prefix">[</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><mn>0</mn></mtd><mtd columnalign="center" style="text-align: center"><msub><mi>γ</mi><mn>12</mn></msub></mtd><mtd columnalign="center" style="text-align: center"><mi>⋯</mi></mtd><mtd columnalign="center" style="text-align: center"><msub><mi>γ</mi><mrow><mn>1</mn><mi>N</mi></mrow></msub></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><msub><mi>γ</mi><mn>21</mn></msub></mtd><mtd columnalign="center" style="text-align: center"><mn>0</mn></mtd><mtd columnalign="center" style="text-align: center"><mi>⋯</mi></mtd><mtd columnalign="center" style="text-align: center"><msub><mi>γ</mi><mrow><mn>2</mn><mi>N</mi></mrow></msub></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><mi>⋮</mi></mtd><mtd columnalign="center" style="text-align: center"><mi>⋮</mi></mtd><mtd columnalign="center" style="text-align: center"><mo>⋱</mo></mtd><mtd columnalign="center" style="text-align: center"><mi>⋮</mi></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><msub><mi>γ</mi><mrow><mi>N</mi><mn>1</mn></mrow></msub></mtd><mtd columnalign="center" style="text-align: center"><msub><mi>γ</mi><mrow><mi>N</mi><mn>2</mn></mrow></msub></mtd><mtd columnalign="center" style="text-align: center"><mi>⋯</mi></mtd><mtd columnalign="center" style="text-align: center"><mn>0</mn></mtd></mtr></mtable><mo stretchy="true" form="postfix">]</mo></mrow><mi>.</mi></mrow><annotation encoding="application/x-tex">
+\Gamma=
+\begin{bmatrix}
+0 &amp; \gamma_{12} &amp; \cdots &amp; \gamma_{1N}\\
+\gamma_{21} &amp; 0 &amp; \cdots &amp; \gamma_{2N}\\
+\vdots &amp; \vdots &amp; \ddots &amp; \vdots\\
+\gamma_{N1} &amp; \gamma_{N2} &amp; \cdots &amp; 0
+\end{bmatrix}.
+</annotation></semantics></math></p>
+<p>这个矩阵把多个子系统之间的耦合增益集中表示出来。 若其谱半径满足：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ρ</mi><mo stretchy="false" form="prefix">(</mo><mi mathvariant="normal">Γ</mi><mo stretchy="false" form="postfix">)</mo><mo>&lt;</mo><mn>1</mn><mo>,</mo></mrow><annotation encoding="application/x-tex">
+\rho(\Gamma)&lt;1,
+</annotation></semantics></math></p>
+<p>这里先给出多子系统版本的小增益判据。 其中
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ρ</mi><mo stretchy="false" form="prefix">(</mo><mi mathvariant="normal">Γ</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\rho(\Gamma)</annotation></semantics></math>
+表示增益矩阵的最大特征放大趋势，若它小于 1，则误差绕环后总体收缩。
+这里的
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi mathvariant="normal">Γ</mi><annotation encoding="application/x-tex">\Gamma</annotation></semantics></math>
+不是动力学矩阵，而是互联增益矩阵，所以它表达的是“误差如何沿回路传播”，不是“状态如何演化”。
+则多子系统互联满足小增益条件。这对制导、姿态、估计、执行机构、控制分配和安全滤波共同存在的闭环很有用。</p>
+<p>小增益结论的工程含义是：单个模块”稳定”不够，还要控制模块之间的误差放大路径。外环过快、内环带宽不足、执行机构饱和、观测器噪声放大、安全滤波频繁修正，都可能使互联增益变大。</p>
+<h2 id="级联系统和三角互联">6.7 级联系统和三角互联</h2>
+<p>级联系统可写为：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mover><mi>x</mi><mo accent="true">̇</mo></mover><mn>1</mn></msub><mo>=</mo><msub><mi>f</mi><mn>1</mn></msub><mo stretchy="false" form="prefix">(</mo><msub><mi>x</mi><mn>1</mn></msub><mo>,</mo><msub><mi>x</mi><mn>2</mn></msub><mo stretchy="false" form="postfix">)</mo><mo>,</mo></mrow><annotation encoding="application/x-tex">
+\dot{x}_1=f_1(x_1,x_2),
+</annotation></semantics></math></p>
+<p>这个式子说明上游状态会受到下游状态影响。
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mover><mi>x</mi><mo accent="true">̇</mo></mover><mn>2</mn></msub><mo>=</mo><msub><mi>f</mi><mn>2</mn></msub><mo stretchy="false" form="prefix">(</mo><msub><mi>x</mi><mn>2</mn></msub><mo>,</mo><mi>u</mi><mo stretchy="false" form="postfix">)</mo><mi>.</mi></mrow><annotation encoding="application/x-tex">
+\dot{x}_2=f_2(x_2,u).
+</annotation></semantics></math></p>
+<p>这个式子说明下游状态再受到外部输入驱动。若下游系统
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>x</mi><mn>2</mn></msub><annotation encoding="application/x-tex">x_2</annotation></semantics></math>
+稳定，并且上游系统对
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>x</mi><mn>2</mn></msub><annotation encoding="application/x-tex">x_2</annotation></semantics></math>
+输入具有 ISS 性质，则级联系统可稳定。更一般地，如果：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="postfix">∥</mo><msub><mi>x</mi><mn>1</mn></msub><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">∥</mo><mo>≤</mo><msub><mi>β</mi><mn>1</mn></msub><mo stretchy="false" form="prefix">(</mo><mo stretchy="false" form="postfix">∥</mo><msub><mi>x</mi><mn>1</mn></msub><mo stretchy="false" form="prefix">(</mo><mn>0</mn><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">∥</mo><mo>,</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo>+</mo><msub><mi>γ</mi><mn>1</mn></msub><mo stretchy="false" form="prefix">(</mo><mo stretchy="false" form="postfix">∥</mo><msub><mi>x</mi><mn>2</mn></msub><msub><mo stretchy="false" form="postfix">∥</mo><mi>∞</mi></msub><mo stretchy="false" form="postfix">)</mo><mo>,</mo></mrow><annotation encoding="application/x-tex">
+\|x_1(t)\|\le \beta_1(\|x_1(0)\|,t)+\gamma_1(\|x_2\|_\infty),
+</annotation></semantics></math></p>
+<p>这个界说明上游状态除了初值衰减，还会受下游状态放大。
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="postfix">∥</mo><msub><mi>x</mi><mn>2</mn></msub><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">∥</mo><mo>≤</mo><msub><mi>β</mi><mn>2</mn></msub><mo stretchy="false" form="prefix">(</mo><mo stretchy="false" form="postfix">∥</mo><msub><mi>x</mi><mn>2</mn></msub><mo stretchy="false" form="prefix">(</mo><mn>0</mn><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">∥</mo><mo>,</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo>+</mo><msub><mi>γ</mi><mn>2</mn></msub><mo stretchy="false" form="prefix">(</mo><mo stretchy="false" form="postfix">∥</mo><mi>u</mi><msub><mo stretchy="false" form="postfix">∥</mo><mi>∞</mi></msub><mo stretchy="false" form="postfix">)</mo><mo>,</mo></mrow><annotation encoding="application/x-tex">
+\|x_2(t)\|\le \beta_2(\|x_2(0)\|,t)+\gamma_2(\|u\|_\infty),
+</annotation></semantics></math></p>
+<p>这个界说明下游状态又受外部输入上界控制。 则：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="postfix">∥</mo><msub><mi>x</mi><mn>1</mn></msub><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">∥</mo><mo>≤</mo><mi>β</mi><mo stretchy="false" form="prefix">(</mo><mo stretchy="false" form="postfix">∥</mo><mi>x</mi><mo stretchy="false" form="prefix">(</mo><mn>0</mn><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">∥</mo><mo>,</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo>+</mo><mi>γ</mi><mo stretchy="false" form="prefix">(</mo><mo stretchy="false" form="postfix">∥</mo><mi>u</mi><msub><mo stretchy="false" form="postfix">∥</mo><mi>∞</mi></msub><mo stretchy="false" form="postfix">)</mo><mi>.</mi></mrow><annotation encoding="application/x-tex">
+\|x_1(t)\|\le \beta(\|x(0)\|,t)+\gamma(\|u\|_\infty).
+</annotation></semantics></math></p>
+<p>这表示级联后的整体状态也能被统一的初值-输入界控制住。
+飞行控制中的典型级联为：</p>
+<ul>
+<li>高度环 -&gt; 航迹角环 -&gt; 姿态环 -&gt; 角速度环 -&gt;
+执行机构</li>
+</ul>
+<p>级联设计的关键不是”环越多越好”，而是每层都要满足：</p>
+<ul>
+<li>上游命令不能超过下游可跟踪能力；</li>
+<li>下游误差进入上游时必须有有界增益；</li>
+<li>执行机构不能长期饱和；</li>
+<li>采样和延迟不能破坏时间尺度分离；</li>
+<li>安全滤波不能把命令改成高频不连续信号。</li>
+</ul>
+<h2 id="被动性和能量观点">6.8 被动性和能量观点</h2>
+<p>被动性描述系统不会产生无限能量。若存在存储函数
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>V</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo>≥</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">V(x)\ge 0</annotation></semantics></math>，使：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>V</mi><mo accent="true">̇</mo></mover><mo>≤</mo><msup><mi>u</mi><mi>𝖳</mi></msup><mi>y</mi><mo>,</mo></mrow><annotation encoding="application/x-tex">
+\dot{V}\le u^\mathsf{T} y,
+</annotation></semantics></math></p>
+<p>这里把输入做功和存储能量变化联系起来，其中左边是存储能量的变化率，右边是外部输入对系统做功的上界；<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>u</mi><mi>𝖳</mi></msup><mi>y</mi></mrow><annotation encoding="application/x-tex">u^\mathsf{T}y</annotation></semantics></math>
+表示输入向系统注入的功率。若这个功率输入长期小于阻尼耗散，就不会出现无界增能，被动性强调的正是能量不会被系统自己“凭空制造”出来，而
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>V</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo>≥</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">V(x)\ge 0</annotation></semantics></math>
+说明存储函数本身也像能量一样不为负。 则系统被动。若存在
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ϵ</mi><mo>&gt;</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\epsilon&gt;0</annotation></semantics></math>，使：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>V</mi><mo accent="true">̇</mo></mover><mo>≤</mo><msup><mi>u</mi><mi>𝖳</mi></msup><mi>y</mi><mo>−</mo><mi>ϵ</mi><msup><mi>y</mi><mi>𝖳</mi></msup><mi>y</mi><mo>,</mo></mrow><annotation encoding="application/x-tex">
+\dot{V}\le u^\mathsf{T} y-\epsilon y^\mathsf{T}y,
+</annotation></semantics></math></p>
+<p>这个额外负项表示输出严格被阻尼掉一部分能量；<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ϵ</mi><msup><mi>y</mi><mi>𝖳</mi></msup><mi>y</mi></mrow><annotation encoding="application/x-tex">\epsilon y^\mathsf{T}y</annotation></semantics></math>
+是严格耗散项，说明系统不仅不产能，还会额外消掉一部分输出能量，因此系统输出严格被动。被动系统的负反馈互联通常有较好的稳定性性质。</p>
+<p>在飞行控制中，被动性可用于分析：</p>
+<ul>
+<li>执行机构和控制器互联；</li>
+<li>柔性结构和姿态控制器互联；</li>
+<li>推进系统能量输入和速度控制；</li>
+<li>控制分配对弹性模态的激励；</li>
+<li>滤波器、观测器和高频噪声通道。</li>
+</ul>
+<p>高超声速飞行器的刚柔耦合和弹性模态使能量观点很重要，因为控制器可能无意中向弹性模态注入能量。频域上看，这常表现为控制带宽靠近柔性模态，或者相位裕度被执行机构延迟消耗。</p>
+<h2 id="内外环互联">6.9 内外环互联</h2>
+<p>设制导外环误差为
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>e</mi><mi>g</mi></msub><annotation encoding="application/x-tex">e_g</annotation></semantics></math>，姿态内环误差为
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>e</mi><mi>c</mi></msub><annotation encoding="application/x-tex">e_c</annotation></semantics></math>。若外环满足：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="postfix">∥</mo><msub><mi>e</mi><mi>g</mi></msub><msub><mo stretchy="false" form="postfix">∥</mo><mi>∞</mi></msub><mo>≤</mo><msub><mi>β</mi><mi>g</mi></msub><mo stretchy="false" form="prefix">(</mo><mo stretchy="false" form="postfix">∥</mo><msub><mi>e</mi><mi>g</mi></msub><mo stretchy="false" form="prefix">(</mo><mn>0</mn><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">∥</mo><mo>,</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo>+</mo><msub><mi>γ</mi><mi>g</mi></msub><mo stretchy="false" form="postfix">∥</mo><msub><mi>e</mi><mi>c</mi></msub><msub><mo stretchy="false" form="postfix">∥</mo><mi>∞</mi></msub><mo>+</mo><msub><mi>σ</mi><mi>g</mi></msub><mo>,</mo></mrow><annotation encoding="application/x-tex">
+\|e_g\|_\infty
+\le \beta_g(\|e_g(0)\|,t)+\gamma_g\|e_c\|_\infty+\sigma_g,
+</annotation></semantics></math></p>
+<p>这个式子说明外环误差同时受初值、内环误差和残差影响。 内环满足：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="postfix">∥</mo><msub><mi>e</mi><mi>c</mi></msub><msub><mo stretchy="false" form="postfix">∥</mo><mi>∞</mi></msub><mo>≤</mo><msub><mi>β</mi><mi>c</mi></msub><mo stretchy="false" form="prefix">(</mo><mo stretchy="false" form="postfix">∥</mo><msub><mi>e</mi><mi>c</mi></msub><mo stretchy="false" form="prefix">(</mo><mn>0</mn><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">∥</mo><mo>,</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo>+</mo><msub><mi>γ</mi><mi>c</mi></msub><mo stretchy="false" form="postfix">∥</mo><msub><mi>e</mi><mi>g</mi></msub><msub><mo stretchy="false" form="postfix">∥</mo><mi>∞</mi></msub><mo>+</mo><msub><mi>σ</mi><mi>c</mi></msub><mo>,</mo></mrow><annotation encoding="application/x-tex">
+\|e_c\|_\infty
+\le \beta_c(\|e_c(0)\|,t)+\gamma_c\|e_g\|_\infty+\sigma_c,
+</annotation></semantics></math></p>
+<p>这个式子说明姿态内环误差又会反过来受外环误差影响。 则当：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>γ</mi><mi>g</mi></msub><msub><mi>γ</mi><mi>c</mi></msub><mo>&lt;</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">
+\gamma_g\gamma_c&lt;1
+</annotation></semantics></math></p>
+<p>这个条件要求内外环的误差放大乘积小于 1，其中
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>γ</mi><mi>g</mi></msub><annotation encoding="application/x-tex">\gamma_g</annotation></semantics></math>
+和
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>γ</mi><mi>c</mi></msub><annotation encoding="application/x-tex">\gamma_c</annotation></semantics></math>
+分别是外环和内环的互联增益上界；当
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>γ</mi><mi>g</mi></msub><msub><mi>γ</mi><mi>c</mi></msub><mo>&lt;</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">\gamma_g\gamma_c&lt;1</annotation></semantics></math>
+时，误差绕一圈后总体会收缩。互联误差可控时，最终界会与
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>σ</mi><mi>g</mi></msub><mo>,</mo><msub><mi>σ</mi><mi>c</mi></msub></mrow><annotation encoding="application/x-tex">\sigma_g,\sigma_c</annotation></semantics></math>
+有关，这些残差可以表示建模误差、估计误差、执行机构残差和离散实现误差。这比简单说“内环快，外环慢”更清楚，因为它要求量化内外环误差相互影响的增益。</p>
+<h2 id="执行机构饱和和控制器互联">6.10 执行机构、饱和和控制器互联</h2>
+<p>控制器给出命令
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>u</mi><mi>c</mi></msub><annotation encoding="application/x-tex">u_c</annotation></semantics></math>，执行机构输出实际输入
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>u</mi><annotation encoding="application/x-tex">u</annotation></semantics></math>。执行机构误差为：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>e</mi><mi>a</mi></msub><mo>=</mo><mi>u</mi><mo>−</mo><msub><mi>u</mi><mi>c</mi></msub><mi>.</mi></mrow><annotation encoding="application/x-tex">
+e_a=u-u_c.
+</annotation></semantics></math></p>
+<p>这个误差就是执行机构实际输入和控制命令之间的差。若控制器对
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>e</mi><mi>a</mi></msub><annotation encoding="application/x-tex">e_a</annotation></semantics></math>
+非鲁棒，执行机构饱和会破坏闭环。典型执行机构模型为：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>τ</mi><mi>a</mi></msub><mover><mi>u</mi><mo accent="true">̇</mo></mover><mo>=</mo><mi>−</mi><mi>u</mi><mo>+</mo><mi>sat</mi><mo>&#8289;</mo><mo stretchy="false" form="prefix">(</mo><msub><mi>u</mi><mi>c</mi></msub><mo stretchy="false" form="postfix">)</mo><mo>,</mo></mrow><annotation encoding="application/x-tex">
+\tau_a\dot{u}=-u+\operatorname{sat}(u_c),
+</annotation></semantics></math></p>
+<p>这里把执行机构一阶惯性和饱和非线性同时写进来，并且可能有速率限制：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">|</mo><mover><mi>u</mi><mo accent="true">̇</mo></mover><mo stretchy="false" form="prefix">|</mo><mo>≤</mo><msub><mover><mi>u</mi><mo accent="true">̇</mo></mover><mi>max</mi><mo>&#8289;</mo></msub><mi>.</mi></mrow><annotation encoding="application/x-tex">
+|\dot{u}|\le \dot{u}_{\max}.
+</annotation></semantics></math></p>
+<p>这个不等式说明实际输入变化速度也有上界。 小增益视角要求检查：</p>
+<ul>
+<li>控制器命令对执行机构误差的敏感度；</li>
+<li>执行机构动态对命令变化的放大；</li>
+<li>舵速限制导致的残差；</li>
+<li>饱和持续时间；</li>
+<li>饱和后控制律是否继续积分或放大命令；</li>
+<li>控制分配是否把不可实现力矩反复送回姿态环。</li>
+</ul>
+<p>因此，执行机构不是仿真框图末端的小模块，而是闭环稳定性的一部分。高超声速飞行中，动压、舵面效率和执行机构健康状态改变输入能力，等价于改变互联增益和可用控制集合。</p>
+<h2 id="观测器和控制器互联">6.11 观测器和控制器互联</h2>
+<p>估计器误差
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>e</mi><mi>o</mi></msub><mo>=</mo><mi>x</mi><mo>−</mo><mover><mi>x</mi><mo accent="true">̂</mo></mover></mrow><annotation encoding="application/x-tex">e_o=x-\hat{x}</annotation></semantics></math>
+进入控制律：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>u</mi><mo>=</mo><mi>π</mi><mo stretchy="false" form="prefix">(</mo><mover><mi>x</mi><mo accent="true">̂</mo></mover><mo stretchy="false" form="postfix">)</mo><mi>.</mi></mrow><annotation encoding="application/x-tex">
+u=\pi(\hat{x}).
+</annotation></semantics></math></p>
+<p>这里先说明控制器实际用的是估计状态而不是精确状态。 若控制律对状态是
+Lipschitz 的：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="postfix">∥</mo><mi>π</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo>−</mo><mi>π</mi><mo stretchy="false" form="prefix">(</mo><mover><mi>x</mi><mo accent="true">̂</mo></mover><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">∥</mo><mo>≤</mo><msub><mi>L</mi><mi>π</mi></msub><mo stretchy="false" form="postfix">∥</mo><msub><mi>e</mi><mi>o</mi></msub><mo stretchy="false" form="postfix">∥</mo><mo>,</mo></mrow><annotation encoding="application/x-tex">
+\|\pi(x)-\pi(\hat{x})\|\le L_\pi\|e_o\|,
+</annotation></semantics></math></p>
+<p>这里说明，控制输入误差会按估计误差的幅值被放大，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>L</mi><mi>π</mi></msub><annotation encoding="application/x-tex">L_\pi</annotation></semantics></math>
+直接刻画了控制律对估计误差的敏感度。这条关系说明，控制器并不是直接看真实状态，而是看估计误差的传播后果，因此观测误差到控制输入误差的增益不超过
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>L</mi><mi>π</mi></msub><annotation encoding="application/x-tex">L_\pi</annotation></semantics></math>；如果控制器增益很大，传感器噪声会被放大为控制输入，而估计器响应太慢则会让控制器基于过时状态工作。</p>
+<p>小增益理论提示我们同时检查：</p>
+<ul>
+<li>观测误差到控制输入的增益；</li>
+<li>控制输入到观测误差动态的影响；</li>
+<li>测量噪声到估计状态的放大；</li>
+<li>延迟对互联闭环的影响；</li>
+<li>滤波器相位滞后对姿态环裕度的影响；</li>
+<li>状态估计误差对约束裕度计算的影响。</li>
+</ul>
+<p>如果动压、攻角或热流裕度由估计量计算，那么估计误差还会进入安全滤波器和参考治理器。安全层不能只用标称状态，应保留估计误差裕度。</p>
+<h2 id="安全滤波参考治理和约束互联">6.12
+安全滤波、参考治理和约束互联</h2>
+<p>约束处理模块也会改变输入输出互联。设名义控制器给出
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>u</mi><mi>n</mi></msub><mi>o</mi><mi>m</mi></mrow><annotation encoding="application/x-tex">u_nom</annotation></semantics></math>，安全滤波器输出：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>u</mi><mo>=</mo><msub><mi>u</mi><mi>n</mi></msub><mi>o</mi><mi>m</mi><mo>+</mo><mi mathvariant="normal">Δ</mi><msub><mi>u</mi><mi>s</mi></msub><mo>,</mo></mrow><annotation encoding="application/x-tex">
+u=u_nom+\Delta u_s,
+</annotation></semantics></math></p>
+<p>这个式子说明安全滤波是在名义命令上叠加修正量，其中
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Δ</mi><msub><mi>u</mi><mi>s</mi></msub></mrow><annotation encoding="application/x-tex">\Delta u_s</annotation></semantics></math>
+是为了满足动压、热流、攻角、过载或舵偏约束而加入的修正；若
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Δ</mi><msub><mi>u</mi><mi>s</mi></msub></mrow><annotation encoding="application/x-tex">\Delta u_s</annotation></semantics></math>
+很大或变化很快，内环会把它看成额外命令或扰动。</p>
+<p>参考治理器也类似。设原始参考为
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>r</mi><annotation encoding="application/x-tex">r</annotation></semantics></math>，治理后参考为：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>r</mi><mi>g</mi></msub><mo>=</mo><mi>r</mi><mo>+</mo><mi mathvariant="normal">Δ</mi><msub><mi>r</mi><mi>g</mi></msub><mi>.</mi></mrow><annotation encoding="application/x-tex">
+r_g=r+\Delta r_g.
+</annotation></semantics></math></p>
+<p>这个式子说明参考治理器直接改写了原始参考。若参考治理频繁截断命令，外环跟踪误差可能短期变大；但这是为了保持状态在安全可行域内。评价这类系统时，必须同时报告：</p>
+<ul>
+<li>跟踪误差；</li>
+<li>参考修正幅值；</li>
+<li>安全裕度；</li>
+<li>约束违反积分；</li>
+<li>安全层激活次数和持续时间；</li>
+<li>执行机构残差。</li>
+</ul>
+<p>动压约束在这里应理解为闭环可行域的一部分。它可以通过参考限制、安全滤波或输入效能下降改变闭环响应，而不是仿真结束后单独计算的一条曲线。</p>
+<h2 id="低阶例子制导-姿态-执行机构-动压安全层">6.13
+低阶例子：制导-姿态-执行机构-动压安全层</h2>
+<p>考虑一个教学级互联：</p>
+<ul>
+<li><strong>制导外环
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>r</mi><mi>h</mi></msub><annotation encoding="application/x-tex">r_h</annotation></semantics></math>
+-&gt; 姿态参考
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>θ</mi><mi>c</mi></msub><annotation encoding="application/x-tex">\theta_c</annotation></semantics></math>
+-&gt; 姿态内环
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>δ</mi><mi>c</mi></msub><annotation encoding="application/x-tex">\delta_c</annotation></semantics></math></strong>：执行机构
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>δ</mi><annotation encoding="application/x-tex">\delta</annotation></semantics></math>
+-&gt; 纵向动力学 -&gt;
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>h</mi><mo>,</mo><mi>V</mi><mo>,</mo><mover><mi>q</mi><mo accent="true">‾</mo></mover></mrow><annotation encoding="application/x-tex">h,V,\bar{q}</annotation></semantics></math>；动压安全层修正
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>r</mi><mi>h</mi></msub><annotation encoding="application/x-tex">r_h</annotation></semantics></math>
+或
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>δ</mi><mi>c</mi></msub><annotation encoding="application/x-tex">\delta_c</annotation></semantics></math></li>
+</ul>
+<p>令外环跟踪误差为
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>e</mi><mi>h</mi></msub><annotation encoding="application/x-tex">e_h</annotation></semantics></math>，姿态内环误差为
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>e</mi><mi>θ</mi></msub><annotation encoding="application/x-tex">e_\theta</annotation></semantics></math>，执行机构误差为
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>e</mi><mi>a</mi></msub><annotation encoding="application/x-tex">e_a</annotation></semantics></math>，动压安全层修正为
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>s</mi><mi>q</mi></msub><annotation encoding="application/x-tex">s_q</annotation></semantics></math>。可以写出近似增益关系：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="postfix">∥</mo><msub><mi>e</mi><mi>h</mi></msub><mo stretchy="false" form="postfix">∥</mo><mo>≤</mo><msub><mi>β</mi><mi>h</mi></msub><mo>+</mo><msub><mi>γ</mi><mrow><mi>h</mi><mi>θ</mi></mrow></msub><mo stretchy="false" form="postfix">∥</mo><msub><mi>e</mi><mi>θ</mi></msub><mo stretchy="false" form="postfix">∥</mo><mo>+</mo><msub><mi>γ</mi><mrow><mi>h</mi><mi>q</mi></mrow></msub><mo stretchy="false" form="postfix">∥</mo><msub><mi>s</mi><mi>q</mi></msub><mo stretchy="false" form="postfix">∥</mo><mo>,</mo></mrow><annotation encoding="application/x-tex">
+\|e_h\| \le \beta_h+\gamma_{h\theta}\|e_\theta\|+\gamma_{hq}\|s_q\|,
+</annotation></semantics></math> 这里写出外环误差的放大关系，其中
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>e</mi><mi>h</mi></msub><annotation encoding="application/x-tex">e_h</annotation></semantics></math>
+是外环跟踪误差，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>β</mi><mi>h</mi></msub><annotation encoding="application/x-tex">\beta_h</annotation></semantics></math>
+是外环自身残留，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>γ</mi><mrow><mi>h</mi><mi>θ</mi></mrow></msub><annotation encoding="application/x-tex">\gamma_{h\theta}</annotation></semantics></math>
+和
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>γ</mi><mrow><mi>h</mi><mi>q</mi></mrow></msub><annotation encoding="application/x-tex">\gamma_{hq}</annotation></semantics></math>
+分别是姿态误差和安全层修正对外环的放大系数。</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="postfix">∥</mo><msub><mi>e</mi><mi>θ</mi></msub><mo stretchy="false" form="postfix">∥</mo><mo>≤</mo><msub><mi>β</mi><mi>θ</mi></msub><mo>+</mo><msub><mi>γ</mi><mrow><mi>θ</mi><mi>h</mi></mrow></msub><mo stretchy="false" form="postfix">∥</mo><msub><mi>e</mi><mi>h</mi></msub><mo stretchy="false" form="postfix">∥</mo><mo>+</mo><msub><mi>γ</mi><mrow><mi>θ</mi><mi>a</mi></mrow></msub><mo stretchy="false" form="postfix">∥</mo><msub><mi>e</mi><mi>a</mi></msub><mo stretchy="false" form="postfix">∥</mo><mo>,</mo></mrow><annotation encoding="application/x-tex">
+\|e_\theta\| \le \beta_\theta+\gamma_{\theta h}\|e_h\|+\gamma_{\theta a}\|e_a\|,
+</annotation></semantics></math> 这里写出姿态内环误差的放大关系，其中
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>e</mi><mi>θ</mi></msub><annotation encoding="application/x-tex">e_\theta</annotation></semantics></math>
+是姿态内环误差，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>β</mi><mi>θ</mi></msub><annotation encoding="application/x-tex">\beta_\theta</annotation></semantics></math>
+是姿态环自身残留，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>γ</mi><mrow><mi>θ</mi><mi>h</mi></mrow></msub><annotation encoding="application/x-tex">\gamma_{\theta h}</annotation></semantics></math>
+和
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>γ</mi><mrow><mi>θ</mi><mi>a</mi></mrow></msub><annotation encoding="application/x-tex">\gamma_{\theta a}</annotation></semantics></math>
+分别是外环误差和执行机构误差对姿态环的传播增益。</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="postfix">∥</mo><msub><mi>e</mi><mi>a</mi></msub><mo stretchy="false" form="postfix">∥</mo><mo>≤</mo><msub><mi>β</mi><mi>a</mi></msub><mo>+</mo><msub><mi>γ</mi><mrow><mi>a</mi><mi>θ</mi></mrow></msub><mo stretchy="false" form="postfix">∥</mo><msub><mi>δ</mi><mi>c</mi></msub><mo stretchy="false" form="postfix">∥</mo><mo>,</mo></mrow><annotation encoding="application/x-tex">
+\|e_a\| \le \beta_a+\gamma_{a\theta}\|\delta_c\|,
+</annotation></semantics></math> 这里写出执行机构误差的放大关系，其中
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>e</mi><mi>a</mi></msub><annotation encoding="application/x-tex">e_a</annotation></semantics></math>
+是执行机构误差，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>β</mi><mi>a</mi></msub><annotation encoding="application/x-tex">\beta_a</annotation></semantics></math>
+是执行机构本征残差，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>γ</mi><mrow><mi>a</mi><mi>θ</mi></mrow></msub><annotation encoding="application/x-tex">\gamma_{a\theta}</annotation></semantics></math>
+表示姿态命令变化对执行机构误差的放大程度。</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="postfix">∥</mo><msub><mi>s</mi><mi>q</mi></msub><mo stretchy="false" form="postfix">∥</mo><mo>≤</mo><msub><mi>β</mi><mi>q</mi></msub><mo>+</mo><msub><mi>γ</mi><mrow><mi>q</mi><mi>h</mi></mrow></msub><mo stretchy="false" form="postfix">∥</mo><msub><mi>e</mi><mi>h</mi></msub><mo stretchy="false" form="postfix">∥</mo><mo>+</mo><msub><mi>γ</mi><mrow><mi>q</mi><mi>V</mi></mrow></msub><mo stretchy="false" form="postfix">∥</mo><msub><mi>e</mi><mi>V</mi></msub><mo stretchy="false" form="postfix">∥</mo><mi>.</mi></mrow><annotation encoding="application/x-tex">
+\|s_q\| \le \beta_q+\gamma_{qh}\|e_h\|+\gamma_{qV}\|e_V\|.
+</annotation></semantics></math> 这里写出安全层修正的放大关系，其中
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>s</mi><mi>q</mi></msub><annotation encoding="application/x-tex">s_q</annotation></semantics></math>
+是动压安全层修正量，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>β</mi><mi>q</mi></msub><annotation encoding="application/x-tex">\beta_q</annotation></semantics></math>
+是安全层自身的基线修正，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>γ</mi><mrow><mi>q</mi><mi>h</mi></mrow></msub><annotation encoding="application/x-tex">\gamma_{qh}</annotation></semantics></math>
+和
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>γ</mi><mrow><mi>q</mi><mi>V</mi></mrow></msub><annotation encoding="application/x-tex">\gamma_{qV}</annotation></semantics></math>
+分别是外环误差和速度误差对安全修正的影响。</p>
+<p>这不是要求读者在每个项目中都精确计算所有
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>γ</mi><annotation encoding="application/x-tex">\gamma</annotation></semantics></math>，而是要求形成互联证据意识：安全层、执行机构和内外环不是互不影响的模块。若动压逼近边界，安全层可能减小参考或降低可用输入效能；姿态内环必须能消化这种修正，否则跟踪误差、舵偏峰值和动压违反会互相放大。
+这四条不等式里的
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>β</mi><mo>⋅</mo></msub><annotation encoding="application/x-tex">\beta_\cdot</annotation></semantics></math>
+都是残留项，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>γ</mi><mrow><mi>⋅</mi><mo>⋅</mo></mrow></msub><annotation encoding="application/x-tex">\gamma_{\cdot\cdot}</annotation></semantics></math>
+则是各个互联通道的经验放大系数。</p>
+<p>实验上可以用以下量近似评估互联风险：</p>
+<table>
+<thead>
+<tr>
+<th>指标</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>max_abs_e_h</td>
+<td>外环跟踪误差峰值</td>
+</tr>
+<tr>
+<td>max_abs_e_theta</td>
+<td>姿态内环误差峰值</td>
+</tr>
+<tr>
+<td>actuator_saturation_time</td>
+<td>执行机构饱和持续时间</td>
+</tr>
+<tr>
+<td>allocation_residual_rms</td>
+<td>控制分配残差均方根</td>
+</tr>
+<tr>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>m</mi><mi>q</mi></msub><annotation encoding="application/x-tex">m_q</annotation></semantics></math></td>
+<td>最小动压安全裕度</td>
+</tr>
+<tr>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>I</mi><mi>q</mi></msub><annotation encoding="application/x-tex">I_q</annotation></semantics></math></td>
+<td>动压违反积分</td>
+</tr>
+<tr>
+<td>safety_filter_active_time</td>
+<td>安全层激活持续时间</td>
+</tr>
+</tbody>
+</table>
+<p>这些指标比只报告终端高度误差更接近小增益理论关心的误差传播。</p>
+<h2 id="与-h_infty-控制的关系">6.14 与
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>H</mi><mi>∞</mi></msub><annotation encoding="application/x-tex">H_\infty</annotation></semantics></math>
+控制的关系</h2>
+<p><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>H</mi><mi>∞</mi></msub><annotation encoding="application/x-tex">H_\infty</annotation></semantics></math>
+控制本质上也是输入输出增益设计。若闭环传递函数
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>T</mi><mrow><mi>z</mi><mi>w</mi></mrow></msub><annotation encoding="application/x-tex">T_{zw}</annotation></semantics></math>
+从外部输入
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>w</mi><annotation encoding="application/x-tex">w</annotation></semantics></math>
+到性能输出
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>z</mi><annotation encoding="application/x-tex">z</annotation></semantics></math>，目标是：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="postfix">∥</mo><msub><mi>T</mi><mrow><mi>z</mi><mi>w</mi></mrow></msub><msub><mo stretchy="false" form="postfix">∥</mo><mi>∞</mi></msub><mo>&lt;</mo><mi>γ</mi><mi>.</mi></mrow><annotation encoding="application/x-tex">
+\|T_{zw}\|_\infty&lt;\gamma.
+</annotation></semantics></math></p>
+<p>这里先表示所有频率下扰动到性能输出的放大都受限。
+这条约束说明，所有频率上的扰动放大都要被统一压住。 对 LTI 系统：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="postfix">∥</mo><mi>T</mi><msub><mo stretchy="false" form="postfix">∥</mo><mi>∞</mi></msub><mo>=</mo><munder><mi>sup</mi><mo>&#8289;</mo><mi>ω</mi></munder><mover><mi>σ</mi><mo accent="true">‾</mo></mover><mo stretchy="false" form="prefix">(</mo><mi>T</mi><mo stretchy="false" form="prefix">(</mo><mi>j</mi><mi>ω</mi><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">)</mo><mi>.</mi></mrow><annotation encoding="application/x-tex">
+\|T\|_\infty=\sup_{\omega}\bar{\sigma}(T(j\omega)).
+</annotation></semantics></math></p>
+<p>这里说明，这个范数衡量的是最坏频率点上的放大峰值。 这里的
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>γ</mi><annotation encoding="application/x-tex">\gamma</annotation></semantics></math>
+是允许的最坏放大上界，而不是某个固定频率上的局部指标。</p>
+<p>非线性小增益理论和线性
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>H</mi><mi>∞</mi></msub><annotation encoding="application/x-tex">H_\infty</annotation></semantics></math>
+控制的共同思想是限制放大。差别在于，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>H</mi><mi>∞</mi></msub><annotation encoding="application/x-tex">H_\infty</annotation></semantics></math>
+通常在频域和线性模型上设计，而非线性输入输出理论更强调信号范数、ISS、互联结构和大范围非线性效应。后续鲁棒控制章节会进一步展开。</p>
+<h2 id="验证指标和实验设计">6.15 验证指标和实验设计</h2>
+<p>输入输出稳定性不能只靠一句”系统稳定”验证。建议至少设计以下实验：</p>
+<ol type="1">
+<li>命令幅值扫描：逐步增大高度、速度或航迹角命令，观察内环误差和执行机构残差。</li>
+<li>命令频率扫描：提高参考变化频率，观察姿态环是否还能跟踪。</li>
+<li>扰动注入：加入风扰、密度偏差、传感器噪声和执行机构效率下降。</li>
+<li>安全层激活实验：让动压或热流逼近边界，观察参考修正和控制残差。</li>
+<li>延迟扫描：改变传感器、估计器和执行机构延迟，观察裕度变化。</li>
+<li>多初值实验：检查有限吸引域和饱和触发区域。</li>
+</ol>
+<p>对应指标包括：</p>
+<ul>
+<li>输入信号范数；</li>
+<li>输出误差信号范数；</li>
+<li>峰值误差；</li>
+<li>峰值控制输入和舵速；</li>
+<li>扰动到误差的经验增益；</li>
+<li>残差到误差的经验增益；</li>
+<li>约束违反时间和积分；</li>
+<li>安全层激活次数；</li>
+</ul>
+<h2 id="一个更完整的高超声速互联例子">6.16
+一个更完整的高超声速互联例子</h2>
+<p>为了让小增益思想更接近真实飞行控制，可以把闭环粗略拆成四个部分：制导外环、姿态/速度内环、执行机构和安全层。设它们的误差分别为
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>e</mi><mi>g</mi></msub><annotation encoding="application/x-tex">e_g</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>e</mi><mi>c</mi></msub><annotation encoding="application/x-tex">e_c</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>e</mi><mi>a</mi></msub><annotation encoding="application/x-tex">e_a</annotation></semantics></math>
+和
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>e</mi><mi>s</mi></msub><annotation encoding="application/x-tex">e_s</annotation></semantics></math>。一个典型的互联关系可以写成：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtable><mtr><mtd columnalign="right" style="text-align: right; padding-right: 0"><mo stretchy="false" form="postfix">∥</mo><msub><mi>e</mi><mi>g</mi></msub><msub><mo stretchy="false" form="postfix">∥</mo><mi>∞</mi></msub></mtd><mtd columnalign="left" style="text-align: left; padding-left: 0"><mo>≤</mo><msub><mi>β</mi><mi>g</mi></msub><mo>+</mo><msub><mi>γ</mi><mrow><mi>g</mi><mi>c</mi></mrow></msub><mo stretchy="false" form="postfix">∥</mo><msub><mi>e</mi><mi>c</mi></msub><msub><mo stretchy="false" form="postfix">∥</mo><mi>∞</mi></msub><mo>+</mo><msub><mi>γ</mi><mrow><mi>g</mi><mi>s</mi></mrow></msub><mo stretchy="false" form="postfix">∥</mo><msub><mi>e</mi><mi>s</mi></msub><msub><mo stretchy="false" form="postfix">∥</mo><mi>∞</mi></msub><mo>,</mo></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right; padding-right: 0"><mo stretchy="false" form="postfix">∥</mo><msub><mi>e</mi><mi>c</mi></msub><msub><mo stretchy="false" form="postfix">∥</mo><mi>∞</mi></msub></mtd><mtd columnalign="left" style="text-align: left; padding-left: 0"><mo>≤</mo><msub><mi>β</mi><mi>c</mi></msub><mo>+</mo><msub><mi>γ</mi><mrow><mi>c</mi><mi>g</mi></mrow></msub><mo stretchy="false" form="postfix">∥</mo><msub><mi>e</mi><mi>g</mi></msub><msub><mo stretchy="false" form="postfix">∥</mo><mi>∞</mi></msub><mo>+</mo><msub><mi>γ</mi><mrow><mi>c</mi><mi>a</mi></mrow></msub><mo stretchy="false" form="postfix">∥</mo><msub><mi>e</mi><mi>a</mi></msub><msub><mo stretchy="false" form="postfix">∥</mo><mi>∞</mi></msub><mo>,</mo></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right; padding-right: 0"><mo stretchy="false" form="postfix">∥</mo><msub><mi>e</mi><mi>a</mi></msub><msub><mo stretchy="false" form="postfix">∥</mo><mi>∞</mi></msub></mtd><mtd columnalign="left" style="text-align: left; padding-left: 0"><mo>≤</mo><msub><mi>β</mi><mi>a</mi></msub><mo>+</mo><msub><mi>γ</mi><mrow><mi>a</mi><mi>c</mi></mrow></msub><mo stretchy="false" form="postfix">∥</mo><msub><mi>e</mi><mi>c</mi></msub><msub><mo stretchy="false" form="postfix">∥</mo><mi>∞</mi></msub><mo>,</mo></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right; padding-right: 0"><mo stretchy="false" form="postfix">∥</mo><msub><mi>e</mi><mi>s</mi></msub><msub><mo stretchy="false" form="postfix">∥</mo><mi>∞</mi></msub></mtd><mtd columnalign="left" style="text-align: left; padding-left: 0"><mo>≤</mo><msub><mi>β</mi><mi>s</mi></msub><mo>+</mo><msub><mi>γ</mi><mrow><mi>s</mi><mi>g</mi></mrow></msub><mo stretchy="false" form="postfix">∥</mo><msub><mi>e</mi><mi>g</mi></msub><msub><mo stretchy="false" form="postfix">∥</mo><mi>∞</mi></msub><mi>.</mi></mtd></mtr></mtable><annotation encoding="application/x-tex">
+\begin{aligned}
+\|e_g\|_\infty &amp;\le \beta_g+\gamma_{gc}\|e_c\|_\infty+\gamma_{gs}\|e_s\|_\infty,\\
+\|e_c\|_\infty &amp;\le \beta_c+\gamma_{cg}\|e_g\|_\infty+\gamma_{ca}\|e_a\|_\infty,\\
+\|e_a\|_\infty &amp;\le \beta_a+\gamma_{ac}\|e_c\|_\infty,\\
+\|e_s\|_\infty &amp;\le \beta_s+\gamma_{sg}\|e_g\|_\infty.
+\end{aligned}
+</annotation></semantics></math></p>
+<p>这里的四个误差分别对应：</p>
+<ul>
+<li><strong>制导外环</strong>：决定任务是否朝正确方向走；</li>
+<li><strong>姿态/速度内环</strong>：决定命令能否被飞行器实现；</li>
+<li><strong>执行机构</strong>：决定控制输入是否真的落到舵面或推力上；</li>
+<li><strong>安全层</strong>：决定动压、热流、攻角和过载是否被约束住。</li>
+</ul>
+<p>如果这些通道之间的乘积增益太大，系统就可能出现”外环越修正，内环越吃力；内环越吃力，执行机构越饱和；执行机构越饱和，安全层越频繁介入；安全层越频繁介入，外环又要重新改命令”的放大链。</p>
+<p>这就是小增益理论在高超声速控制中的核心作用：它不是单纯给出一个数学条件，而是帮你识别闭环里谁在放大谁。对于写书来说，这一点很重要，因为它能把”制导、控制、估计、执行和约束”从口号变成可分析的互联结构。</p>
+<h2 id="安全层不应被当成补丁">6.17 安全层不应被当成补丁</h2>
+<p>很多工程实现里，安全层会被写成一个最后加上的补丁，好像它只是”当控制器不工作时兜底”。从小增益视角看，这种写法并不完整。安全层本身也是一个动态子系统，它会：</p>
+<ol type="1">
+<li>改变外环命令的幅值和频率；</li>
+<li>改变内环和执行机构看到的输入；</li>
+<li>改变闭环增益矩阵中的某些条目；</li>
+<li>改变最终误差界和约束违反积分。</li>
+</ol>
+<p>因此，安全层不能只在仿真里单独画一条”安全修正曲线”就算结束，还需要分析它对整个互联系统的影响。若安全层把参考修正得太激进，可能导致内环误差上升；若安全层太保守，又可能让任务误差无法满足。真正合理的设计，是在保持安全集合前向不变的同时，把互联增益压在可接受范围内。</p>
+<h2 id="一个最小的互联验证口径">6.18 一个最小的互联验证口径</h2>
+<p>如果要把小增益分析落到教程中的实验验证，至少应记录以下几类信息：</p>
+<table>
+<thead>
+<tr>
+<th>互联对象</th>
+<th>应记录的量</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>制导外环</td>
+<td>参考修正幅值、制导误差、命令变化率</td>
+</tr>
+<tr>
+<td>姿态/速度内环</td>
+<td>跟踪误差、阻尼、带宽、角速度峰值</td>
+</tr>
+<tr>
+<td>执行机构</td>
+<td>舵偏、舵速、饱和时间、残差</td>
+</tr>
+<tr>
+<td>安全层</td>
+<td>激活次数、激活持续时间、约束违反积分、最小裕度</td>
+</tr>
+<tr>
+<td>估计器</td>
+<td>观测误差、噪声放大、延迟影响</td>
+</tr>
+</tbody>
+</table>
+<p>如果这些量不同时检查，读者很容易把”某个局部环节稳定”误认为”整个互联系统稳定”。对于高超声速飞行器控制，这种误读尤其危险，因为任务命令、约束保护和执行机构限制经常同时起作用。为了避免这种误读，评价时不应只看终端误差，还要看全过程中的最大风险、约束违反积分和安全层激活代价。</p>
+<p>经验增益可用：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mover><mi>γ</mi><mo accent="true">̂</mo></mover><mrow><mi>d</mi><mo>→</mo><mi>z</mi></mrow></msub><mo>=</mo><mfrac><mrow><mo stretchy="false" form="postfix">∥</mo><mi>z</mi><msub><mo stretchy="false" form="postfix">∥</mo><mrow><mn>2</mn><mo>,</mo><mi>T</mi></mrow></msub></mrow><mrow><mo stretchy="false" form="postfix">∥</mo><mi>d</mi><msub><mo stretchy="false" form="postfix">∥</mo><mrow><mn>2</mn><mo>,</mo><mi>T</mi></mrow></msub><mo>+</mo><mi>ϵ</mi></mrow></mfrac><mo>,</mo></mrow><annotation encoding="application/x-tex">
+\hat{\gamma}_{d\to z}=
+\frac{\|z\|_{2,T}}{\|d\|_{2,T}+\epsilon},
+</annotation></semantics></math></p>
+<p>这里先把经验增益定义成一个可计算的比值。 其中
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ϵ</mi><annotation encoding="application/x-tex">\epsilon</annotation></semantics></math>
+防止分母为零。它不能替代理论证明，但可以作为仿真证据链的一部分。</p>
+<h2 id="章内例题三模块小增益检查">6.19 章内例题：三模块小增益检查</h2>
+<p>考虑一个简化的三模块闭环：</p>
+<ul>
+<li>制导外环 -&gt; 姿态内环 -&gt; 执行机构/分配层 -&gt; 飞行器输出</li>
+</ul>
+<p>令：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>x</mi><mn>1</mn></msub><mo>=</mo><msub><mi>e</mi><mi>g</mi></msub><mo>,</mo><mspace width="2.0em"></mspace><msub><mi>x</mi><mn>2</mn></msub><mo>=</mo><msub><mi>e</mi><mi>a</mi></msub><mo>,</mo><mspace width="2.0em"></mspace><msub><mi>x</mi><mn>3</mn></msub><mo>=</mo><msub><mi>e</mi><mi>u</mi></msub><mo>,</mo></mrow><annotation encoding="application/x-tex">
+x_1=e_g,\qquad x_2=e_a,\qquad x_3=e_u,
+</annotation></semantics></math></p>
+<p>分别表示制导误差、姿态误差和执行机构/分配残差。假设通过仿真扫描或局部分析得到如下经验增益：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="postfix">∥</mo><msub><mi>x</mi><mn>1</mn></msub><mo stretchy="false" form="postfix">∥</mo><mo>≤</mo><msub><mi>β</mi><mn>1</mn></msub><mo>+</mo><mn>0.35</mn><mo stretchy="false" form="postfix">∥</mo><msub><mi>x</mi><mn>2</mn></msub><mo stretchy="false" form="postfix">∥</mo><mo>+</mo><mn>0.10</mn><mo stretchy="false" form="postfix">∥</mo><msub><mi>x</mi><mn>3</mn></msub><mo stretchy="false" form="postfix">∥</mo><mo>,</mo></mrow><annotation encoding="application/x-tex">
+\|x_1\|\le \beta_1+0.35\|x_2\|+0.10\|x_3\|,
+</annotation></semantics></math> 这里先写出制导误差的经验放大关系。</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="postfix">∥</mo><msub><mi>x</mi><mn>2</mn></msub><mo stretchy="false" form="postfix">∥</mo><mo>≤</mo><msub><mi>β</mi><mn>2</mn></msub><mo>+</mo><mn>0.40</mn><mo stretchy="false" form="postfix">∥</mo><msub><mi>x</mi><mn>1</mn></msub><mo stretchy="false" form="postfix">∥</mo><mo>+</mo><mn>0.45</mn><mo stretchy="false" form="postfix">∥</mo><msub><mi>x</mi><mn>3</mn></msub><mo stretchy="false" form="postfix">∥</mo><mo>,</mo></mrow><annotation encoding="application/x-tex">
+\|x_2\|\le \beta_2+0.40\|x_1\|+0.45\|x_3\|,
+</annotation></semantics></math> 这里先写出姿态误差的经验放大关系。</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="postfix">∥</mo><msub><mi>x</mi><mn>3</mn></msub><mo stretchy="false" form="postfix">∥</mo><mo>≤</mo><msub><mi>β</mi><mn>3</mn></msub><mo>+</mo><mn>0.20</mn><mo stretchy="false" form="postfix">∥</mo><msub><mi>x</mi><mn>2</mn></msub><mo stretchy="false" form="postfix">∥</mo><mi>.</mi></mrow><annotation encoding="application/x-tex">
+\|x_3\|\le \beta_3+0.20\|x_2\|.
+</annotation></semantics></math>
+这里先写出执行机构残差的经验放大关系。</p>
+<p>对应增益矩阵为：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Γ</mi><mo>=</mo><mrow><mo stretchy="true" form="prefix">[</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><mn>0</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>0.35</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>0.10</mn></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><mn>0.40</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>0</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>0.45</mn></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><mn>0</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>0.20</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>0</mn></mtd></mtr></mtable><mo stretchy="true" form="postfix">]</mo></mrow><mi>.</mi></mrow><annotation encoding="application/x-tex">
+\Gamma=
+\begin{bmatrix}
+0 &amp; 0.35 &amp; 0.10\\
+0.40 &amp; 0 &amp; 0.45\\
+0 &amp; 0.20 &amp; 0
+\end{bmatrix}.
+</annotation></semantics></math></p>
+<p>这里先把每个通道的增益整理成矩阵，再检查它能不能把误差整体压住。
+小增益检查不是看每个元素是否小于 1，而是看环路放大是否整体小于
+1。一个简单保守检查是行和范数：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="postfix">∥</mo><mi mathvariant="normal">Γ</mi><msub><mo stretchy="false" form="postfix">∥</mo><mi>∞</mi></msub><mo>=</mo><munder><mi>max</mi><mo>&#8289;</mo><mi>i</mi></munder><munder><mo>∑</mo><mi>j</mi></munder><mo stretchy="false" form="prefix">|</mo><msub><mi>γ</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><mo stretchy="false" form="prefix">|</mo><mi>.</mi></mrow><annotation encoding="application/x-tex">
+\|\Gamma\|_\infty=\max_i\sum_j|\gamma_{ij}|.
+</annotation></semantics></math></p>
+<p>这一定义说明，行和范数用每一行的增益总和来给整个互联系统做保守判别。
+若
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="postfix">∥</mo><mi mathvariant="normal">Γ</mi><msub><mo stretchy="false" form="postfix">∥</mo><mi>∞</mi></msub><mo>&lt;</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">\|\Gamma\|_\infty&lt;1</annotation></semantics></math>，则有
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ρ</mi><mo stretchy="false" form="prefix">(</mo><mi mathvariant="normal">Γ</mi><mo stretchy="false" form="postfix">)</mo><mo>&lt;</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">\rho(\Gamma)&lt;1</annotation></semantics></math>。上例的最大行和为
+0.85，因此满足这个保守小增益检查。其工程含义是：外环、内环和执行层之间的误差绕环传播后会衰减，而不是一圈一圈放大。</p>
+<p>若由于制导命令过快或执行机构饱和，姿态误差对外环误差的增益从 0.40
+增大到 0.85，则第二行行和变为：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0.85</mn><mo>+</mo><mn>0.45</mn><mo>=</mo><mn>1.30</mn><mi>.</mi></mrow><annotation encoding="application/x-tex">
+0.85+0.45=1.30.
+</annotation></semantics></math></p>
+<p>此时保守条件失败。它不必然说明闭环一定失稳，但说明需要进一步检查：</p>
+<ul>
+<li>降低外环命令带宽；</li>
+<li>增加姿态内环阻尼或限速；</li>
+<li>减少安全滤波器的高频修正；</li>
+<li>增加执行机构余量；</li>
+<li>把失败样本作为案例分析，而不是只报告成功曲线。</li>
+</ul>
+<p>这个例题和高超声速控制的关系很直接。动压、热流、过载或攻角安全层若频繁修正参考，可能增大外环到内环的命令增益；执行机构效率下降会增大内环到执行层残差的增益；估计噪声会增大观测器到控制器的增益。小增益理论的作用，就是把这些”看起来是实现细节”的因素放进闭环互联证据链中。</p>
+<h2 id="低阶问题卡外环-姿态内环-执行机构-安全层互联链">6.20
+低阶问题卡：外环-姿态内环-执行机构-安全层互联链</h2>
+<p>为了让第6章不只停留在”算一个增益矩阵”，下面把一个典型高超声速闭环整理成低阶问题卡。它的目的不是替代高保真模型，而是训练读者把”上游命令、内环误差、执行残差、安全修正和约束输出”放进同一条输入输出链里。</p>
+<p>考虑一个最小互联：</p>
+<ul>
+<li><strong>高度或航迹角参考
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>r</mi><annotation encoding="application/x-tex">r</annotation></semantics></math></strong>：外环参考生成；姿态命令
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>α</mi><mi>c</mi></msub><annotation encoding="application/x-tex">\alpha_c</annotation></semantics></math>
+或
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>θ</mi><mi>c</mi></msub><annotation encoding="application/x-tex">\theta_c</annotation></semantics></math>；姿态内环；执行机构；飞行器对象；动压、攻角、过载等约束输出；安全层；返回参考修正或输入修正</li>
+</ul>
+<p>令外环误差为
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>e</mi><mi>g</mi></msub><annotation encoding="application/x-tex">e_g</annotation></semantics></math>，姿态内环误差为
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>e</mi><mi>c</mi></msub><annotation encoding="application/x-tex">e_c</annotation></semantics></math>，执行机构残差为
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>e</mi><mi>a</mi></msub><annotation encoding="application/x-tex">e_a</annotation></semantics></math>，安全修正为
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>e</mi><mi>s</mi></msub><annotation encoding="application/x-tex">e_s</annotation></semantics></math>。一个教学级最小互联关系可写成：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="postfix">∥</mo><msub><mi>e</mi><mi>g</mi></msub><mo stretchy="false" form="postfix">∥</mo><mo>≤</mo><msub><mi>β</mi><mi>g</mi></msub><mo>+</mo><msub><mi>γ</mi><mrow><mi>g</mi><mi>c</mi></mrow></msub><mo stretchy="false" form="postfix">∥</mo><msub><mi>e</mi><mi>c</mi></msub><mo stretchy="false" form="postfix">∥</mo><mo>+</mo><msub><mi>γ</mi><mrow><mi>g</mi><mi>s</mi></mrow></msub><mo stretchy="false" form="postfix">∥</mo><msub><mi>e</mi><mi>s</mi></msub><mo stretchy="false" form="postfix">∥</mo><mo>+</mo><msub><mi>γ</mi><mrow><mi>g</mi><mi>d</mi></mrow></msub><mo stretchy="false" form="postfix">∥</mo><mi>d</mi><mo stretchy="false" form="postfix">∥</mo><mo>,</mo></mrow><annotation encoding="application/x-tex">
+\|e_g\|
+\le \beta_g+\gamma_{gc}\|e_c\|+\gamma_{gs}\|e_s\|+\gamma_{gd}\|d\|,
+</annotation></semantics></math> 这里先写出外环误差的总放大关系。</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="postfix">∥</mo><msub><mi>e</mi><mi>c</mi></msub><mo stretchy="false" form="postfix">∥</mo><mo>≤</mo><msub><mi>β</mi><mi>c</mi></msub><mo>+</mo><msub><mi>γ</mi><mrow><mi>c</mi><mi>g</mi></mrow></msub><mo stretchy="false" form="postfix">∥</mo><msub><mi>e</mi><mi>g</mi></msub><mo stretchy="false" form="postfix">∥</mo><mo>+</mo><msub><mi>γ</mi><mrow><mi>c</mi><mi>a</mi></mrow></msub><mo stretchy="false" form="postfix">∥</mo><msub><mi>e</mi><mi>a</mi></msub><mo stretchy="false" form="postfix">∥</mo><mo>+</mo><msub><mi>γ</mi><mrow><mi>c</mi><mi>o</mi></mrow></msub><mo stretchy="false" form="postfix">∥</mo><msub><mi>e</mi><mi>o</mi></msub><mo stretchy="false" form="postfix">∥</mo><mo>,</mo></mrow><annotation encoding="application/x-tex">
+\|e_c\|
+\le \beta_c+\gamma_{cg}\|e_g\|+\gamma_{ca}\|e_a\|+\gamma_{co}\|e_o\|,
+</annotation></semantics></math>
+这里先写出姿态内环误差的总放大关系。</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="postfix">∥</mo><msub><mi>e</mi><mi>a</mi></msub><mo stretchy="false" form="postfix">∥</mo><mo>≤</mo><msub><mi>β</mi><mi>a</mi></msub><mo>+</mo><msub><mi>γ</mi><mrow><mi>a</mi><mi>c</mi></mrow></msub><mo stretchy="false" form="postfix">∥</mo><msub><mi>u</mi><mi>c</mi></msub><mo stretchy="false" form="postfix">∥</mo><mo>,</mo></mrow><annotation encoding="application/x-tex">
+\|e_a\|
+\le \beta_a+\gamma_{ac}\|u_c\|,
+</annotation></semantics></math>
+这里先写出执行机构残差的总放大关系。</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="postfix">∥</mo><msub><mi>e</mi><mi>s</mi></msub><mo stretchy="false" form="postfix">∥</mo><mo>≤</mo><msub><mi>β</mi><mi>s</mi></msub><mo>+</mo><msub><mi>γ</mi><mrow><mi>s</mi><mi>g</mi></mrow></msub><mo stretchy="false" form="postfix">∥</mo><msub><mi>e</mi><mi>g</mi></msub><mo stretchy="false" form="postfix">∥</mo><mo>+</mo><msub><mi>γ</mi><mrow><mi>s</mi><mi>q</mi></mrow></msub><mo stretchy="false" form="postfix">∥</mo><msub><mi>m</mi><mi>q</mi></msub><mo stretchy="false" form="postfix">∥</mo><mo>+</mo><msub><mi>γ</mi><mrow><mi>s</mi><mi>α</mi></mrow></msub><mo stretchy="false" form="postfix">∥</mo><msub><mi>m</mi><mi>α</mi></msub><mo stretchy="false" form="postfix">∥</mo><mo>,</mo></mrow><annotation encoding="application/x-tex">
+\|e_s\|
+\le \beta_s+\gamma_{sg}\|e_g\|+\gamma_{sq}\|m_q\|+\gamma_{s\alpha}\|m_\alpha\|,
+</annotation></semantics></math> 这里先写出安全修正的总放大关系。</p>
+<p>其中
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>d</mi><annotation encoding="application/x-tex">d</annotation></semantics></math>
+表示外扰，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>e</mi><mi>o</mi></msub><annotation encoding="application/x-tex">e_o</annotation></semantics></math>
+表示估计误差，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>m</mi><mi>q</mi></msub><mo>,</mo><msub><mi>m</mi><mi>α</mi></msub></mrow><annotation encoding="application/x-tex">m_q,m_\alpha</annotation></semantics></math>
+表示动压和攻角裕度的归一化输出。这里最重要的不是把每个
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>γ</mi><annotation encoding="application/x-tex">\gamma</annotation></semantics></math>
+精确算到小数点后几位，而是明确谁影响谁，哪些通道构成了误差回路。</p>
+<p>这个问题卡至少应交代下面几项：</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>项目</th>
+<th>最小写法</th>
+<th>控制含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>上游参考</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>r</mi><annotation encoding="application/x-tex">r</annotation></semantics></math>
+的物理量、单位、变化率限制</td>
+<td>决定外环命令是否天然可实现</td>
+</tr>
+<tr>
+<td>外环输出</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>α</mi><mi>c</mi></msub><annotation encoding="application/x-tex">\alpha_c</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>θ</mi><mi>c</mi></msub><annotation encoding="application/x-tex">\theta_c</annotation></semantics></math>
+或等效姿态命令</td>
+<td>明确互联从哪一层进入姿态闭环</td>
+</tr>
+<tr>
+<td>内环误差</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>e</mi><mi>c</mi></msub><annotation encoding="application/x-tex">e_c</annotation></semantics></math>
+的定义、峰值和带宽</td>
+<td>决定外环误差会不会被姿态环放大</td>
+</tr>
+<tr>
+<td>执行残差</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>e</mi><mi>a</mi></msub><mo>=</mo><msub><mi>u</mi><mrow><mi mathvariant="normal">a</mi><mi mathvariant="normal">c</mi><mi mathvariant="normal">t</mi></mrow></msub><mo>−</mo><msub><mi>u</mi><mi>c</mi></msub></mrow><annotation encoding="application/x-tex">e_a=u_{\mathrm{act}}-u_c</annotation></semantics></math>
+或分配残差</td>
+<td>让执行机构和分配层进入互联分析</td>
+</tr>
+<tr>
+<td>安全修正</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>e</mi><mi>s</mi></msub><mo>=</mo><msub><mi>r</mi><mrow><mi mathvariant="normal">s</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">f</mi><mi mathvariant="normal">e</mi></mrow></msub><mo>−</mo><mi>r</mi></mrow><annotation encoding="application/x-tex">e_s=r_{\mathrm{safe}}-r</annotation></semantics></math>
+或
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>u</mi><mrow><mi mathvariant="normal">s</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">f</mi><mi mathvariant="normal">e</mi></mrow></msub><mo>−</mo><msub><mi>u</mi><mrow><mi mathvariant="normal">n</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">m</mi></mrow></msub></mrow><annotation encoding="application/x-tex">u_{\mathrm{safe}}-u_{\mathrm{nom}}</annotation></semantics></math></td>
+<td>明确安全层改变的是参考还是输入</td>
+</tr>
+<tr>
+<td>约束输出</td>
+<td>动压、攻角、过载、热流、舵偏/舵速裕度</td>
+<td>防止只把跟踪误差当成输出</td>
+</tr>
+<tr>
+<td>失效触发</td>
+<td>命令过快、低动压、舵面饱和、估计延迟、安全层高频激活</td>
+<td>指向后续失败样本设计</td>
+</tr>
+</tbody>
+</table>
+<p>这个低阶问题卡最关键的训练价值有四点：</p>
+<ol type="1">
+<li>外环、姿态内环、执行机构和安全层不能被写成互不影响的串行模块；</li>
+<li>安全层不是”附加功能”，它本身会形成新的命令通道和放大路径；</li>
+<li>执行机构残差和估计误差必须进入互联链，否则小增益分析会过于乐观；</li>
+<li>约束输出必须和跟踪输出一起记录，否则容易出现”误差小但路径不安全”的假象。</li>
+</ol>
+<p>若把这个问题卡整理成可交付的互联对象，建议至少记录下表内容：</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>字段</th>
+<th>建议记录内容</th>
+<th>控制作用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>问题标识</td>
+<td>例如“外环-内环-执行机构-安全层互联对象”</td>
+<td>区分不同互联场景</td>
+</tr>
+<tr>
+<td>任务描述</td>
+<td>高度或航迹角跟踪，并带安全层修正</td>
+<td>明确互联分析服务什么任务</td>
+</tr>
+<tr>
+<td>参考命令</td>
+<td>命令信号及其变化率限制</td>
+<td>判断上游命令是否超出下游能力</td>
+</tr>
+<tr>
+<td>模块输出</td>
+<td>制导层输出姿态命令与制导误差；姿态层输出力矩命令与姿态误差；分配/执行机构输出真实输入与残差；植物输出跟踪量和安全裕度；安全层输出参考修正或输入修正及激活标志</td>
+<td>把互联模块边界一次写清</td>
+</tr>
+<tr>
+<td>监测通道</td>
+<td>扰动、估计误差、分配残差等</td>
+<td>说明哪些信号会放大或绕环</td>
+</tr>
+<tr>
+<td>失效触发</td>
+<td>命令过快、执行机构饱和、输入效能过低、安全层高频激活等</td>
+<td>便于设计失败样本</td>
+</tr>
+</tbody>
+</table>
+<p>这种写法的重点，是让后续第 7、11、31、43、45、48、55
+章都能直接接住这里的互联对象，而不是重新把问题拆散。</p>
+<h2 id="输入输出小增益最小验证协议与失败诊断">6.21
+输入输出/小增益最小验证协议与失败诊断</h2>
+<p>第6章如果只给一组”系统稳定”的仿真曲线，通常还不够。更稳妥的最低验证协议至少应回答下面五个问题：</p>
+<ol type="1">
+<li>子系统边界、输入输出方向和增益来源是否已经写清；</li>
+<li>命令频率、扰动、噪声、延迟和约束激活是否都做过独立扫描；</li>
+<li>安全层修正和执行机构残差是否作为互联信号被记录；</li>
+<li>小增益结论来自解析界、线性分析还是经验扫描，强度是否写明；</li>
+<li>条件不满足时，是否保留了失败样本和失效原因。</li>
+</ol>
+<p>一个最小验证表可整理为：</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>类别</th>
+<th>最低应记录字段</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>子系统定义</td>
+<td>模块边界、输入输出单位、采样率、延迟</td>
+<td>回答”分析对象到底是什么”</td>
+</tr>
+<tr>
+<td>命令扫描</td>
+<td>幅值、频率、变化率、命令带宽通过区间</td>
+<td>回答”上游命令是否超出下游能力”</td>
+</tr>
+<tr>
+<td>扰动与噪声</td>
+<td>风扰、密度偏差、测量噪声、估计误差、输入效能下降</td>
+<td>回答”互联增益在非标称下是否恶化”</td>
+</tr>
+<tr>
+<td>执行残差</td>
+<td>饱和时间、舵速受限时间、分配残差 RMS、峰值
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">|</mo><msub><mi>u</mi><mrow><mi mathvariant="normal">a</mi><mi mathvariant="normal">c</mi><mi mathvariant="normal">t</mi></mrow></msub><mo>−</mo><msub><mi>u</mi><mi>c</mi></msub><mo stretchy="false" form="prefix">|</mo></mrow><annotation encoding="application/x-tex">|u_{\mathrm{act}}-u_c|</annotation></semantics></math></td>
+<td>回答”控制命令是否真正落地”</td>
+</tr>
+<tr>
+<td>安全层代价</td>
+<td>修正幅值、修正速率、激活时间、激活次数</td>
+<td>回答”安全层是否形成高频放大通道”</td>
+</tr>
+<tr>
+<td>约束输出</td>
+<td>最小安全裕度、违反持续时间、违反积分</td>
+<td>回答”互联分析是否兼顾安全边界”</td>
+</tr>
+<tr>
+<td>经验增益</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mover><mi>γ</mi><mo accent="true">̂</mo></mover><mrow><mi>d</mi><mo>→</mo><mi>z</mi></mrow></msub><annotation encoding="application/x-tex">\hat{\gamma}_{d\to z}</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mover><mi>γ</mi><mo accent="true">̂</mo></mover><mrow><mi>r</mi><mo>→</mo><mi>z</mi></mrow></msub><annotation encoding="application/x-tex">\hat{\gamma}_{r\to z}</annotation></semantics></math>、残差到误差增益</td>
+<td>回答”误差绕环是否在变大”</td>
+</tr>
+<tr>
+<td>失败样本</td>
+<td>失效触发、失效阶段、首个恶化信号、降级动作</td>
+<td>回答”哪里先坏掉”</td>
+</tr>
+</tbody>
+</table>
+<p>常见失败症状可按下表排查：</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>症状</th>
+<th>常见原因</th>
+<th>应优先检查的位置</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>标称工况稳定，一提高命令频率就振荡</td>
+<td>外环带宽过高，姿态内环或执行机构跟不上</td>
+<td>命令频率扫描、内环带宽、执行机构时间常数</td>
+</tr>
+<tr>
+<td>跟踪误差不大，但动压或攻角裕度频繁贴边</td>
+<td>输出集合里没有把约束量当成正式性能输出</td>
+<td>约束输出定义、安全层接口、最小安全裕度记录</td>
+</tr>
+<tr>
+<td>小扰动下稳定，加入估计误差后控制输入抖动明显</td>
+<td>观测误差经高增益控制律被放大</td>
+<td>估计器带宽、噪声谱、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>e</mi><mi>o</mi></msub><mo>→</mo><mi>u</mi></mrow><annotation encoding="application/x-tex">e_o \to u</annotation></semantics></math>
+通道</td>
+</tr>
+<tr>
+<td>上层安全滤波成功，但执行后仍越界</td>
+<td>忽略舵速、饱和或控制分配残差</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>u</mi><mrow><mi mathvariant="normal">s</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">f</mi><mi mathvariant="normal">e</mi></mrow></msub><mo>→</mo><msub><mi>u</mi><mrow><mi mathvariant="normal">a</mi><mi mathvariant="normal">c</mi><mi mathvariant="normal">t</mi></mrow></msub></mrow><annotation encoding="application/x-tex">u_{\mathrm{safe}} \to u_{\mathrm{act}}</annotation></semantics></math>
+接口、执行残差日志</td>
+</tr>
+<tr>
+<td>行和或谱半径条件在少数场景失败</td>
+<td>输入效能下降、安全层高频激活或命令超带宽</td>
+<td>增益矩阵来源、低效能飞行点、安全激活区</td>
+</tr>
+<tr>
+<td>只保留成功案例，分析结论过于乐观</td>
+<td>失败样本被当成异常删除</td>
+<td>失败样本表、失效触发分类、降级动作记录</td>
+</tr>
+</tbody>
+</table>
+<p>这张诊断表的重点是提醒读者：互联分析失败时，很多时候不是“小增益理论没用”，而是模块边界、带宽关系、约束输出和执行残差没有一起被纳入证据链。</p>
+<h2 id="互联稳定检查清单">6.22 互联稳定检查清单</h2>
+<p>设计高超声速多环控制器时，可按下面清单检查互联稳定性。</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>检查项</th>
+<th>应回答的问题</th>
+<th>常见证据</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>子系统边界</td>
+<td>外环、内环、分配、执行机构、估计器和安全层分别是什么输入输出</td>
+<td>框图和接口变量表</td>
+</tr>
+<tr>
+<td>增益方向</td>
+<td>哪个误差影响哪个子系统</td>
+<td>增益矩阵或误差传播表</td>
+</tr>
+<tr>
+<td>命令带宽</td>
+<td>上游命令是否超过下游可跟踪能力</td>
+<td>命令频率扫描</td>
+</tr>
+<tr>
+<td>残差通道</td>
+<td>饱和、舵速、分配残差和估计误差如何进入闭环</td>
+<td>残差到误差经验增益</td>
+</tr>
+<tr>
+<td>安全层代价</td>
+<td>参考治理或安全滤波是否引入大幅或高频修正</td>
+<td>激活时间、修正幅值、修正速率</td>
+</tr>
+<tr>
+<td>噪声放大</td>
+<td>观测器和控制律是否放大测量噪声</td>
+<td>噪声注入和控制输入谱</td>
+</tr>
+<tr>
+<td>延迟裕度</td>
+<td>采样、计算和执行机构延迟是否破坏相位裕度</td>
+<td>延迟扫描</td>
+</tr>
+<tr>
+<td>约束输出</td>
+<td>互联分析是否把动压、热流、过载、攻角和舵偏作为输出</td>
+<td>最大值、最小裕度、违反积分</td>
+</tr>
+<tr>
+<td>失败样本</td>
+<td>条件不满足时是否保留失败案例</td>
+<td>失败样本表和原因分类</td>
+</tr>
+</tbody>
+</table>
+<p>这张清单能防止一个常见问题：每个模块单独调试都“正常”，但组合后因为命令、残差、延迟和安全修正相互放大而表现差。参考书写法应把这种风险明确写出来。</p>
+<h2 id="互联增益写法">6.23 互联增益写法</h2>
+<p>小增益分析不应只停留在”满足小增益条件”这句话。为了让后续制导、姿态控制、执行机构、观测器、安全滤波和仿真验证都能复查，本书建议把多环闭环整理成互联增益包。它的目的不是要求每个增益都有严格解析表达，而是要求作者明确：哪些信号互相影响，增益来自理论界、线性分析、仿真扫描还是工程保守估计，哪些场景会使小增益条件失效。</p>
+<p>一个互联增益包至少应包含：</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>字段</th>
+<th>应记录内容</th>
+<th>控制含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>子系统划分</td>
+<td>制导、姿态、分配、执行机构、估计器、安全层和对象模型的边界</td>
+<td>防止把同一个误差重复算入多个模块</td>
+</tr>
+<tr>
+<td>输入输出端口</td>
+<td>每个模块接收什么信号、输出什么信号、单位和采样率</td>
+<td>支撑多速率和延迟分析</td>
+</tr>
+<tr>
+<td>外部输入</td>
+<td>参考命令、风扰、密度偏差、噪声、故障和约束修正</td>
+<td>明确扰动源，不把所有问题混成一个输入</td>
+</tr>
+<tr>
+<td>性能输出</td>
+<td>跟踪误差、姿态误差、执行机构残差、动压裕度、热流裕度和终端误差</td>
+<td>避免只看一个输出通道</td>
+</tr>
+<tr>
+<td>增益矩阵</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi mathvariant="normal">Γ</mi><annotation encoding="application/x-tex">\Gamma</annotation></semantics></math>
+的元素、方向和计算方法</td>
+<td>判断误差绕环是否放大</td>
+</tr>
+<tr>
+<td>增益来源</td>
+<td>解析推导、线性频域、仿真经验、局部扫描或保守估计</td>
+<td>区分理论证明和工程证据</td>
+</tr>
+<tr>
+<td>小增益判据</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ρ</mi><mo stretchy="false" form="prefix">(</mo><mi mathvariant="normal">Γ</mi><mo stretchy="false" form="postfix">)</mo><mo>&lt;</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">\rho(\Gamma)&lt;1</annotation></semantics></math>、行和范数、列和范数或分块判据</td>
+<td>给出可复查的互联结论</td>
+</tr>
+<tr>
+<td>余量</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn><mo>−</mo><mi>ρ</mi><mo stretchy="false" form="prefix">(</mo><mi mathvariant="normal">Γ</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">1-\rho(\Gamma)</annotation></semantics></math>
+或保守范数余量</td>
+<td>判断离失效还有多远</td>
+</tr>
+<tr>
+<td>失效触发</td>
+<td>命令过快、舵面饱和、估计延迟、安全层频繁激活、输入效能下降</td>
+<td>指导失败样本设计</td>
+</tr>
+<tr>
+<td>约束输出</td>
+<td>动压、热流、过载、攻角、侧滑、舵偏和舵速的峰值/裕度</td>
+<td>把安全边界纳入互联分析</td>
+</tr>
+<tr>
+<td>降级动作</td>
+<td>降低外环带宽、限制参考变化、切换控制分配、放宽跟踪或增强安全裕度</td>
+<td>从分析结果走向工程处理</td>
+</tr>
+</tbody>
+</table>
+<h2 id="从小增益分析到后续章节的衔接表">6.24
+从小增益分析到后续章节的衔接表</h2>
+<p>小增益章节服务多个后续模块。下表给出衔接关系：</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>后续章节</th>
+<th>从本章接收什么</th>
+<th>还需补充什么</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>第7章多时间尺度</td>
+<td>内外环互联增益、命令带宽和残差路径</td>
+<td>带宽比、慢快变量和初始层分析</td>
+</tr>
+<tr>
+<td>第11章滤波估计</td>
+<td>估计误差到控制输入、安全裕度和噪声放大的增益</td>
+<td>NIS/NEES、一致性检查和估计误差上界</td>
+</tr>
+<tr>
+<td>第31章鲁棒飞控</td>
+<td>扰动到性能输出的增益、权重选择和裕度</td>
+<td>线性不确定模型、频域鲁棒稳定和性能界</td>
+</tr>
+<tr>
+<td>第34章 INDI</td>
+<td>增量测量、执行机构延迟和实际力矩反馈路径</td>
+<td>滤波相位、角加速度估计和输入速率限制</td>
+</tr>
+<tr>
+<td>第45章控制分配</td>
+<td>分配残差到姿态误差、执行机构饱和和剩余能力</td>
+<td>分配约束、故障后可达力矩集合和残差代价</td>
+</tr>
+<tr>
+<td>第43到第44章安全滤波/MPC</td>
+<td>安全修正到跟踪误差和执行机构残差的增益</td>
+<td>QP/NMPC 可行性、回退和采样间安全</td>
+</tr>
+<tr>
+<td>第52到第58章仿真验证</td>
+<td>命令扫描、扰动扫描、延迟扫描和失败样本指标</td>
+<td>批量实验、统计表、图表追溯和案例库证据</td>
+</tr>
+</tbody>
+</table>
+<p>交接时要特别注意结论强度。若互联增益来自单场景仿真，只能作为经验证据；若来自线性模型，只能覆盖对应飞行点附近；若包含饱和、切换和安全层激活，则必须保留失败样本。参考书写法应鼓励读者报告“何时不满足小增益条件”，因为这往往比单个成功曲线更能说明控制系统边界。</p>
+<h2 id="常见错误">6.25 常见错误</h2>
+<ol type="1">
+<li>分别证明内环和外环稳定，就直接声称总闭环稳定。</li>
+<li>不估计子系统之间的增益。</li>
+<li>忽略执行机构饱和残差。</li>
+<li>观测器带宽设计不考虑噪声放大。</li>
+<li>制导命令过快，导致姿态环和分配层残差增大。</li>
+<li>只看终端误差，不看互联过程中的过载和舵偏峰值。</li>
+<li>把安全滤波器当成无代价模块，不报告参考修正和激活时间。</li>
+<li>把所有扰动都看成一个输入，不区分风扰、估计误差和执行机构误差。</li>
+<li>只报告
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>L</mi><mn>2</mn></msub><annotation encoding="application/x-tex">L_2</annotation></semantics></math>
+指标，不报告最大约束值和违反积分。</li>
+<li>用线性模型小增益结论覆盖明显非线性、饱和或切换场景。</li>
+<li>增益矩阵没有说明信号方向和单位，导致不同模块的指标无法比较。</li>
+<li>只给出满足小增益条件的成功工况，不报告命令过快、输入效能下降或安全层高频激活时的失效边界。</li>
+</ol>
+<h2 id="本章小结">6.26 本章小结</h2>
+<p>输入输出稳定性和小增益理论为高超声速多环控制提供互联分析工具。它不替代
+Lyapunov
+状态稳定性，而是补充说明扰动、误差、噪声、残差和安全层修正在子系统之间如何传播。</p>
+<p>本章的核心观点是：高超声速控制系统不是一个孤立控制律，而是由制导、姿态、控制分配、执行机构、估计器、安全滤波和飞行器动力学组成的互联系统。每个模块单独稳定不够；互联增益、饱和、延迟、噪声和约束可行性决定整体闭环是否可靠。后续
+IGC、鲁棒控制、观测器、执行机构、控制分配和安全控制章节都应使用这一章的思想。把互联增益整理成交付包，可以让理论结论、实现限制和仿真证据真正接上。</p>
+<h2 id="练习">6.27 练习</h2>
+<ol type="1">
+<li>给出
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>L</mi><mn>2</mn></msub><annotation encoding="application/x-tex">L_2</annotation></semantics></math>
+增益的定义，并解释
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>γ</mi><annotation encoding="application/x-tex">\gamma</annotation></semantics></math>
+的工程含义。</li>
+<li>说明小增益条件
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>γ</mi><mn>1</mn></msub><msub><mi>γ</mi><mn>2</mn></msub><mo>&lt;</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">\gamma_1\gamma_2&lt;1</annotation></semantics></math>
+为什么可以防止误差绕环放大。</li>
+<li>解释为什么内环稳定和外环稳定不一定推出总闭环稳定。</li>
+<li>举例说明执行机构饱和如何作为互联扰动进入闭环。</li>
+<li>设计一组指标检查制导-姿态内环互联是否满足时间尺度和小增益直觉。</li>
+<li>写出一个 ISS 不等式，并说明它和输入输出稳定性的区别。</li>
+<li>对一个安全滤波器，列出应报告的参考修正、安全裕度和执行机构指标。</li>
+<li>解释为什么观测器带宽过高会通过控制律放大测量噪声。</li>
+<li>用经验增益
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mover><mi>γ</mi><mo accent="true">̂</mo></mover><mrow><mi>d</mi><mo>→</mo><mi>z</mi></mrow></msub><annotation encoding="application/x-tex">\hat{\gamma}_{d\to z}</annotation></semantics></math>
+比较两个控制器的扰动抑制能力。</li>
+<li>针对动压安全层，画出外环、内环、执行机构和安全修正之间的互联图。</li>
+<li>为”制导-姿态-执行机构-估计器-安全层”闭环写一个互联增益包，至少列出模块、端口、增益矩阵、约束输出和失效触发。</li>
+<li>构造一个安全层高频激活导致姿态内环残差增大的场景，并说明小增益分析会如何暴露这个问题。</li>
+<li>说明为什么经验增益来自单个仿真场景时，不能直接宣称全飞行包线互联稳定。</li>
+</ol>
+<h2 id="输入输出互联对象包的最小交付格式">6.28
+输入输出互联对象包的最小交付格式</h2>
+<p>输入输出稳定性和小增益理论如果只写成几个模块图和一个
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>γ</mi><mn>1</mn></msub><msub><mi>γ</mi><mn>2</mn></msub><mo>&lt;</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">\gamma_1\gamma_2&lt;1</annotation></semantics></math>
+条件，还不够参考书级。更合适的做法，是把互联系统整理成对象包，明确每个模块的输入输出边界、互联方向、误差通道和约束输出。</p>
+<p>一个最小互联对象包建议至少包含：</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>字段</th>
+<th>建议记录内容</th>
+<th>控制作用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>对象名称</td>
+<td>例如“制导-姿态-执行机构-安全层互联对象”</td>
+<td>区分不同互联系统</td>
+</tr>
+<tr>
+<td>模块边界</td>
+<td>制导、姿态、分配、执行机构、估计器、安全层和对象模型</td>
+<td>防止模块边界写混</td>
+</tr>
+<tr>
+<td>输入输出端口</td>
+<td>每个模块的输入、输出、采样率和延迟</td>
+<td>说明信号如何流动</td>
+</tr>
+<tr>
+<td>误差通道</td>
+<td>跟踪误差、残差、噪声、修正量、约束偏差</td>
+<td>说明小增益链条中的主要放大路径</td>
+</tr>
+<tr>
+<td>增益信息</td>
+<td>理论增益、经验增益、局部线性增益或保守上界</td>
+<td>判断互联是否会放大误差</td>
+</tr>
+<tr>
+<td>安全输出</td>
+<td>动压、热流、过载、攻角、舵偏和舵速</td>
+<td>把安全边界写进互联分析</td>
+</tr>
+<tr>
+<td>失效触发</td>
+<td>饱和、延迟、噪声放大、命令过快、安全层高频激活</td>
+<td>指出条件不满足时怎么坏</td>
+</tr>
+<tr>
+<td>降级动作</td>
+<td>降带宽、限参考、切换控制分配、提高安全裕度</td>
+<td>说明互联分析能导向什么工程处理</td>
+</tr>
+<tr>
+<td>验证接口</td>
+<td>扫描场景、失败样本、峰值、违反积分和统计结果</td>
+<td>让互联结论可复核</td>
+</tr>
+<tr>
+<td>后续用途</td>
+<td>多时间尺度、鲁棒、估计、控制分配、安全滤波和仿真验证</td>
+<td>说明后面章节如何继续接</td>
+</tr>
+</tbody>
+</table>
+<p>这个对象包最重要的不是表格本身，而是把互联系统说清楚：哪个误差绕环传播，哪个模块会放大噪声，哪个安全层会改变参考，哪个执行机构饱和会让小增益条件失效。没有这些信息，小增益条件就只是一句抽象口号。</p>
+<h2 id="本章证据层次及其与后续章节的关系">6.29
+本章证据层次及其与后续章节的关系</h2>
+<p>输入输出互联的证据层次，最好从单模块稳定走到多模块可复核互联，而不是只停在“某个增益满足条件”。推荐写成如下层次：</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>层次</th>
+<th>应给出的内容</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>模块证据</td>
+<td>各子系统的输入输出定义、增益和边界</td>
+<td>说明每个模块自身是什么</td>
+</tr>
+<tr>
+<td>互联证据</td>
+<td>增益矩阵、绕环路径、小增益条件和余量</td>
+<td>说明互联是否会放大误差</td>
+</tr>
+<tr>
+<td>残差证据</td>
+<td>饱和、延迟、分配残差、估计误差和安全修正</td>
+<td>说明工程实现如何偏离理想模型</td>
+</tr>
+<tr>
+<td>场景证据</td>
+<td>标称、扰动、限幅、安全层激活和失败样本</td>
+<td>说明结论是否经得起场景变化</td>
+</tr>
+<tr>
+<td>边界证据</td>
+<td>适用飞行段、带宽范围、命令变化率和禁止外推范围</td>
+<td>说明互联结论能走多远</td>
+</tr>
+</tbody>
+</table>
+<p>这套证据会直接服务后续章节：第7章会把带宽和快慢尺度并入互联分析，第9章会把鲁棒增益和不确定性加入对象包，第11章会把估计误差和滤波延迟写进通道增益，第12章和第13章会把安全修正和实时求解可行性一起纳入互联闭环。换句话说，第6章不是单纯的信号稳定性说明，而是把多环闭环写成一个能继续往后接的互联对象。</p>
+<p>如果某个调参方案让姿态误差更小，却使执行机构残差和安全层激活显著上升，那么从小增益视角看，这个方案未必更好。它可能只是把误差从主通道转移到了另一个更脆弱的通道。对高超声速飞行器而言，这种“误差转移”尤其危险，因为动压、热流和舵速约束不允许系统长期依赖某一个补救环节。</p>
+<p>因此，本章给出的结论不是“互联系统满足小增益条件就万事大吉”，而是：当你把制导、控制、执行机构、估计器和安全层都纳入同一套互联对象后，控制器整定必须同时优化性能、带宽、约束裕度和失效边界。后续章节中的鲁棒、约束和
+IGC 设计，实际都在做同一件事，只是把互联关系写得更具体而已。</p>
+<h2 id="练习提示">6.30 练习提示</h2>
+<ol type="1">
+<li><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>L</mi><mn>2</mn></msub><annotation encoding="application/x-tex">L_2</annotation></semantics></math>
+增益可写为
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="postfix">∥</mo><mi>y</mi><msub><mo stretchy="false" form="postfix">∥</mo><mn>2</mn></msub><mo>≤</mo><mi>γ</mi><mo stretchy="false" form="postfix">∥</mo><mi>u</mi><msub><mo stretchy="false" form="postfix">∥</mo><mn>2</mn></msub><mo>+</mo><mi>β</mi></mrow><annotation encoding="application/x-tex">\|y\|_2\le\gamma\|u\|_2+\beta</annotation></semantics></math>；<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>γ</mi><annotation encoding="application/x-tex">\gamma</annotation></semantics></math>
+越大，输入扰动越容易被放大。</li>
+<li>两个子系统互联后，误差绕一圈的放大约为
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>γ</mi><mn>1</mn></msub><msub><mi>γ</mi><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">\gamma_1\gamma_2</annotation></semantics></math>；小于
+1 表示绕环后收缩。</li>
+<li>内环和外环之间有命令、残差和延迟互相作用，单独稳定不保证互联增益满足小增益条件。</li>
+<li>饱和后实际输入
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>u</mi><annotation encoding="application/x-tex">u</annotation></semantics></math>
+不等于命令
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>u</mi><mi>c</mi></msub><annotation encoding="application/x-tex">u_c</annotation></semantics></math>，误差
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>u</mi><mo>−</mo><msub><mi>u</mi><mi>c</mi></msub></mrow><annotation encoding="application/x-tex">u-u_c</annotation></semantics></math>
+会作为扰动进入飞行器和控制器。</li>
+<li>至少检查外环误差、姿态误差、舵偏/舵速、分配残差、命令频率、延迟和安全层激活时间。</li>
+<li>ISS
+关心状态对输入的有界响应，输入输出稳定性关心输出信号对输入信号的放大。</li>
+<li>应报告参考修正幅值、修正速率、最小安全裕度、违反积分、执行机构饱和和跟踪代价。</li>
+<li>观测器带宽过高会让测量噪声进入估计状态，再经高增益控制律变成舵面抖动。</li>
+<li>保持相同扰动和任务场景，用同一时间窗计算
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="postfix">∥</mo><mi>z</mi><msub><mo stretchy="false" form="postfix">∥</mo><mrow><mn>2</mn><mo>,</mo><mi>T</mi></mrow></msub><mi>/</mi><mo stretchy="false" form="prefix">(</mo><mo stretchy="false" form="postfix">∥</mo><mi>d</mi><msub><mo stretchy="false" form="postfix">∥</mo><mrow><mn>2</mn><mo>,</mo><mi>T</mi></mrow></msub><mo>+</mo><mi>ϵ</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\|z\|_{2,T}/(\|d\|_{2,T}+\epsilon)</annotation></semantics></math>。</li>
+<li>图中应包含
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>r</mi><mo>→</mo><msub><mi>r</mi><mi>g</mi></msub><mo>→</mo></mrow><annotation encoding="application/x-tex">r \rightarrow r_g \rightarrow</annotation></semantics></math>
+控制器
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mo>→</mo><annotation encoding="application/x-tex">\rightarrow</annotation></semantics></math>
+执行机构
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mo>→</mo><annotation encoding="application/x-tex">\rightarrow</annotation></semantics></math>
+飞行器
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>→</mo><mover><mi>q</mi><mo accent="true">‾</mo></mover><mo>→</mo></mrow><annotation encoding="application/x-tex">\rightarrow \bar{q} \rightarrow</annotation></semantics></math>
+安全层，并标出安全层回到参考或输入通道的路径。</li>
+<li>增益包应明确每个模块的输入输出单位、采样率、增益来源和适用飞行区域。</li>
+<li>安全层若频繁改变参考或输入，会把低频跟踪问题变成内环高频命令问题，表现为姿态误差、舵速和分配残差上升。</li>
+<li>单场景经验增益只说明该场景下的放大关系；全包线结论需要多飞行点、多初值、扰动和约束激活扫描。</li>
+</ol>
+
+      </article>
+      
+      <nav class="book-bottom-nav" aria-label="章节导航">
+        <a href="./05-lyapunov-stability-theory.html">上一章：第5章 Lyapunov 稳定性理论</a>
+        <a href="./index.html">卷首页</a>
+        <a href="./07-singular-perturbation-multitime-scale.html">下一章：第7章 奇异摄动与多时间尺度系统</a>
+      </nav>
+    </main>
+  </div>
+</body>
+</html>

@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>第29章 状态反馈、观测器与极点配置</title>
+  <style>
+    :root {
+      --paper: #f7f3eb;
+      --ink: #1f2937;
+      --muted: #5b6472;
+      --line: color-mix(in srgb, #f6ecd1 68%, #cbd5e1 32%);
+      --accent: #9a6d1c;
+      --accent-soft: #f6ecd1;
+      --accent-deep: #5d4010;
+      color-scheme: light;
+    }
+    html {
+      -webkit-text-size-adjust: 100%;
+      background:
+        radial-gradient(circle at top left, #f6ecd1 0, rgba(255,255,255,0) 32%),
+        linear-gradient(180deg, #fbfaf6 0%, var(--paper) 18%, #f7f1e6 100%);
+    }
+    body {
+      margin: 0;
+      font-family: "Source Han Serif SC", "Songti SC", "Noto Serif CJK SC", "Microsoft YaHei", serif;
+      color: var(--ink);
+      line-height: 1.78;
+      letter-spacing: 0;
+    }
+    a { color: var(--accent-deep); }
+    .book-app {
+      display: grid;
+      grid-template-columns: 280px minmax(0, 1fr);
+      min-height: 100vh;
+    }
+    .book-sidebar {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow: auto;
+      padding: 1.2rem 1rem 1.2rem 1.15rem;
+      border-right: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(255,255,255,0.86), rgba(255,255,255,0.72));
+      backdrop-filter: blur(10px);
+    }
+    .sidebar-shell { position: sticky; top: 0; display: flex; flex-direction: column; gap: 1rem; }
+    .sidebar-brand {
+      padding: 0.95rem 0.95rem 1rem;
+      border-radius: 18px;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.95), rgba(255,255,255,0.84)),
+        linear-gradient(135deg, var(--accent-soft), rgba(255,255,255,0));
+      border: 1px solid var(--line);
+      box-shadow: 0 12px 28px rgba(31, 41, 55, 0.06);
+    }
+    .sidebar-brand .kicker { margin: 0; color: var(--accent); font-size: 0.82rem; font-weight: 700; }
+    .sidebar-brand h2 { margin: 0.45rem 0 0.25rem; font-size: 1.08rem; line-height: 1.3; color: var(--ink); }
+    .sidebar-brand p { margin: 0.35rem 0 0; color: var(--muted); font-size: 0.9rem; }
+    .sidebar-links { display: grid; gap: 0.45rem; }
+    .sidebar-link {
+      display: grid;
+      grid-template-columns: 2.2rem minmax(0, 1fr);
+      gap: 0.6rem;
+      align-items: start;
+      padding: 0.7rem 0.75rem;
+      border-radius: 14px;
+      text-decoration: none;
+      background: rgba(255,255,255,0.72);
+      border: 1px solid rgba(31,41,55,0.07);
+      color: var(--ink);
+    }
+    .sidebar-link:hover { background: rgba(255,255,255,0.95); border-color: var(--line); }
+    .sidebar-link.active {
+      background: linear-gradient(135deg, rgba(255,255,255,0.98), rgba(255,255,255,0.9));
+      border-color: var(--accent-soft);
+      box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent-soft) 68%, #ffffff 32%);
+    }
+    .sidebar-index {
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      min-width: 2rem;
+      height: 2rem;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent-deep);
+      font-size: 0.78rem;
+      font-weight: 800;
+    }
+    .sidebar-title { font-size: 0.94rem; line-height: 1.35; }
+    .book-main { min-width: 0; padding: 1.25rem 1.45rem 1.8rem; }
+    .book-page-header {
+      padding: 0.85rem 0 1rem;
+      margin-bottom: 1rem;
+      border-bottom: 1px solid var(--line);
+    }
+    .page-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.28rem 0.72rem;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.82);
+      border: 1px solid var(--line);
+      color: var(--accent-deep);
+      font-size: 0.8rem;
+      font-weight: 700;
+    }
+    .book-page-header h1 {
+      margin: 0.7rem 0 0;
+      font-size: 1.85rem;
+      line-height: 1.22;
+      color: var(--accent-deep);
+      border: 0;
+      padding: 0;
+    }
+    .book-page-header p { margin: 0.45rem 0 0; color: var(--muted); max-width: 62rem; }
+    .book-article { max-width: 900px; margin: 0; padding: 0 0 1.2rem; }
+    .book-article h1, .book-article h2, .book-article h3, .book-article h4, .book-article h5, .book-article h6 {
+      line-height: 1.28;
+      margin-top: 1.45em;
+      margin-bottom: 0.55em;
+      color: var(--accent-deep);
+    }
+    .book-article h1 { font-size: 2rem; border-bottom: 2px solid var(--line); padding-bottom: 0.42rem; }
+    .book-article h1:first-of-type { margin-top: 0; }
+    .book-article h2 { font-size: 1.42rem; }
+    .book-article h3 { font-size: 1.12rem; }
+    .book-article p, .book-article li, .book-article dd, .book-article td, .book-article th { text-align: justify; text-justify: inter-ideograph; }
+    .book-article p { margin: 0.85rem 0; }
+    .book-article code, .book-article pre { font-family: "Cascadia Mono", "Source Code Pro", Consolas, monospace; font-size: 0.94em; }
+    .book-article code {
+      padding: 0.02rem 0.24rem;
+      background: color-mix(in srgb, var(--accent-soft) 34%, #ffffff 66%);
+      border: 0;
+      border-bottom: 1px solid color-mix(in srgb, var(--accent-soft) 74%, #d1d5db 26%);
+      border-radius: 4px;
+      color: #253244;
+      box-decoration-break: clone;
+      -webkit-box-decoration-break: clone;
+    }
+    .book-article pre {
+      padding: 1rem 1.1rem;
+      overflow: auto;
+      background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,253,248,0.98));
+      border: 1px solid color-mix(in srgb, var(--accent-soft) 54%, #d1d5db 46%);
+      border-left: 5px solid var(--accent);
+      border-radius: 14px;
+      box-shadow: 0 8px 22px rgba(31, 41, 55, 0.05);
+    }
+    .book-article pre code { padding: 0; border: 0; background: transparent; color: inherit; }
+    .book-article table {
+      border-collapse: collapse;
+      width: 100%;
+      margin: 1rem 0 1.25rem;
+      background: rgba(255,255,255,0.82);
+      overflow: hidden;
+      border-radius: 12px;
+    }
+    .book-article th, .book-article td { border: 1px solid var(--line); padding: 0.5rem 0.7rem; vertical-align: top; }
+    .book-article th { background: color-mix(in srgb, var(--accent-soft) 42%, #ffffff 58%); }
+    .book-article blockquote {
+      margin: 1rem 0;
+      padding: 0.25rem 0 0.25rem 1rem;
+      border-left: 4px solid var(--accent);
+      color: #374151;
+      background: linear-gradient(90deg, rgba(255,255,255,0.72), rgba(255,255,255,0.48));
+      border-radius: 0 12px 12px 0;
+    }
+    .book-bottom-nav {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-top: 2.2rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--line);
+    }
+    .book-bottom-nav a {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.6rem 0.9rem;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.84);
+      text-decoration: none;
+      font-weight: 700;
+    }
+    .book-bottom-nav span {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.6rem 0.9rem;
+      border-radius: 999px;
+      border: 1px solid rgba(31,41,55,0.08);
+      background: rgba(255,255,255,0.54);
+      color: rgba(31,41,55,0.42);
+      font-weight: 700;
+    }
+    .book-bottom-nav a:hover { background: rgba(255,255,255,0.98); }
+    .book-volume-intro {
+      margin: 0 0 1.25rem;
+      padding: 1.2rem 1.25rem 1.1rem;
+      border-radius: 18px;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.96), rgba(255,255,255,0.78)),
+        linear-gradient(135deg, var(--accent-soft), rgba(255,255,255,0));
+      border: 1px solid var(--line);
+      box-shadow: 0 14px 34px rgba(31, 41, 55, 0.06);
+    }
+    .volume-intro-kicker {
+      margin: 0;
+      color: var(--accent);
+      font-size: 0.84rem;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    .book-volume-intro h2 {
+      margin: 0.55rem 0 0.55rem;
+      font-size: 1.28rem;
+      line-height: 1.35;
+      color: var(--accent-deep);
+    }
+    .volume-intro-summary {
+      margin: 0;
+      color: var(--muted);
+      max-width: 68rem;
+    }
+    .volume-intro-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.8rem;
+      margin-top: 1rem;
+    }
+    .volume-intro-box {
+      padding: 0.85rem 0.9rem;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.72);
+      border: 1px solid rgba(31,41,55,0.08);
+    }
+    .volume-intro-box span {
+      display: block;
+      color: var(--accent);
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+    }
+    .volume-intro-box strong {
+      display: block;
+      margin-top: 0.35rem;
+      color: var(--ink);
+      font-size: 0.95rem;
+      line-height: 1.45;
+    }
+    .volume-intro-note {
+      margin-top: 0.9rem;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+    @media (max-width: 1180px) {
+      .book-app { grid-template-columns: 1fr; }
+      .book-sidebar {
+        position: relative;
+        height: auto;
+        border-right: 0;
+        border-bottom: 1px solid var(--line);
+      }
+      .sidebar-shell { position: static; }
+    }
+    @media (max-width: 900px) {
+      .book-main { padding: 1rem 1rem 1.5rem; }
+      .book-bottom-nav { flex-direction: column; }
+      .volume-intro-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="book-app">
+    <aside class="book-sidebar">
+      <div class="sidebar-shell">
+        <div class="sidebar-brand">
+          <p class="kicker">高超声速飞行器控制教程</p>
+          <h2>第三卷 经典与现代飞行控制方法</h2>
+          <p>控制方法体系</p>
+        </div>
+        <nav class="sidebar-links" aria-label="本卷目录">
+          <a class="sidebar-link" href="./index.html"><span class="sidebar-index">0</span><span class="sidebar-title">卷首页</span></a>
+<a class="sidebar-link" href="./26-flight-control-system-architecture.html"><span class="sidebar-index">01</span><span class="sidebar-title">第26章 飞行控制系统架构</span></a>
+<a class="sidebar-link" href="./27-pid-classical-autopilot.html"><span class="sidebar-index">02</span><span class="sidebar-title">第27章 PID 与经典自动驾驶仪</span></a>
+<a class="sidebar-link" href="./28-root-locus-frequency-domain-margins.html"><span class="sidebar-index">03</span><span class="sidebar-title">第28章 根轨迹、频域设计与稳定裕度</span></a>
+<a class="sidebar-link active" href="./29-state-feedback-observer-pole-placement.html"><span class="sidebar-index">04</span><span class="sidebar-title">第29章 状态反馈、观测器与极点配置</span></a>
+<a class="sidebar-link" href="./30-lqr-lqg-linear-optimal-control.html"><span class="sidebar-index">05</span><span class="sidebar-title">第30章 LQR、LQG 与线性最优控制</span></a>
+<a class="sidebar-link" href="./31-h2-hinf-robust-flight-control.html"><span class="sidebar-index">06</span><span class="sidebar-title">第31章 $H_2$、$H_\infty$ 与鲁棒飞行控制</span></a>
+<a class="sidebar-link" href="./32-gain-scheduling-lpv-control.html"><span class="sidebar-index">07</span><span class="sidebar-title">第32章 增益调度与 LPV 控制</span></a>
+<a class="sidebar-link" href="./33-feedback-linearization-dynamic-inversion.html"><span class="sidebar-index">08</span><span class="sidebar-title">第33章 反馈线性化与动态逆控制</span></a>
+<a class="sidebar-link" href="./34-incremental-nonlinear-dynamic-inversion.html"><span class="sidebar-index">09</span><span class="sidebar-title">第34章 增量非线性动态逆控制</span></a>
+<a class="sidebar-link" href="./35-backstepping-dynamic-surface-control.html"><span class="sidebar-index">10</span><span class="sidebar-title">第35章 反步控制与动态面控制</span></a>
+<a class="sidebar-link" href="./36-sliding-mode-high-order-sliding-control.html"><span class="sidebar-index">11</span><span class="sidebar-title">第36章 滑模控制与高阶滑模控制</span></a>
+<a class="sidebar-link" href="./37-adaptive-flight-control.html"><span class="sidebar-index">12</span><span class="sidebar-title">第37章 自适应飞行控制</span></a>
+<a class="sidebar-link" href="./38-intelligent-approximation-control.html"><span class="sidebar-index">13</span><span class="sidebar-title">第38章 智能逼近控制</span></a>
+<a class="sidebar-link" href="./39-disturbance-observer-eso-adrc.html"><span class="sidebar-index">14</span><span class="sidebar-title">第39章 扰动观测器、扩张状态观测器与 ADRC</span></a>
+        </nav>
+      </div>
+    </aside>
+    <main class="book-main">
+      <header class="book-page-header">
+        <div class="page-eyebrow">第3册·章节页04</div>
+        <h1 id="volume3--29-state-feedback-observer-pole-placement">第29章 状态反馈、观测器与极点配置</h1>
+        <p>本页是章节正文页。左侧目录用于回到本卷其他章节，底部导航用于前后章跳转。</p>
+      </header>
+      <article class="book-article">
+        <h2 id="问题背景">29.1 问题背景</h2>
+<p>第28章用传递函数和频域裕度分析单输入单输出通道。本章转入状态空间视角，讨论如何直接利用线性化模型的状态、输入和输出设计闭环极点。</p>
+<p>状态反馈和观测器之所以重要，是因为飞行控制常常面对“状态不可全测，但闭环必须可设计”的现实。围绕这个现实，本章把状态反馈、极点配置、模态整形和观测器放在同一条线上讨论。</p>
+<h2 id="局部线性模型">29.2 局部线性模型</h2>
+<p>在某个配平点附近，非线性模型线性化为：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Δ</mi><mover><mi>x</mi><mo accent="true">̇</mo></mover><mo>=</mo><mi>A</mi><mi mathvariant="normal">Δ</mi><mi>x</mi><mo>+</mo><mi>B</mi><mi mathvariant="normal">Δ</mi><mi>u</mi></mrow><annotation encoding="application/x-tex">
+\Delta \dot x=A\Delta x+B\Delta u
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Δ</mi><mi>x</mi></mrow><annotation encoding="application/x-tex">\Delta x</annotation></semantics></math>
+是状态增量，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Δ</mi><mi>u</mi></mrow><annotation encoding="application/x-tex">\Delta u</annotation></semantics></math>
+是输入增量，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>A</mi><annotation encoding="application/x-tex">A</annotation></semantics></math>
+和
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>B</mi><annotation encoding="application/x-tex">B</annotation></semantics></math>
+是线化矩阵。</p>
+<p>若输出满足：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Δ</mi><mi>y</mi><mo>=</mo><mi>C</mi><mi mathvariant="normal">Δ</mi><mi>x</mi><mo>+</mo><mi>D</mi><mi mathvariant="normal">Δ</mi><mi>u</mi></mrow><annotation encoding="application/x-tex">
+\Delta y=C\Delta x+D\Delta u
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Δ</mi><mi>y</mi></mrow><annotation encoding="application/x-tex">\Delta y</annotation></semantics></math>
+是输出增量，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>C</mi><annotation encoding="application/x-tex">C</annotation></semantics></math>
+是输出矩阵，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>D</mi><annotation encoding="application/x-tex">D</annotation></semantics></math>
+是直接传递矩阵。</p>
+<p>设计状态反馈前，必须先说明配平点、状态变量和单位、输入变量和执行机构限制、输出变量和传感器来源、线性化方法和适用扰动范围。</p>
+<h2 id="状态反馈">29.3 状态反馈</h2>
+<p>状态反馈控制律写为：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Δ</mi><mi>u</mi><mo>=</mo><mi>−</mi><mi>K</mi><mi mathvariant="normal">Δ</mi><mi>x</mi></mrow><annotation encoding="application/x-tex">
+\Delta u=-K\Delta x
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>K</mi><annotation encoding="application/x-tex">K</annotation></semantics></math>
+是状态反馈增益矩阵。</p>
+<p>代入系统后，闭环矩阵变为：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>A</mi><mrow><mi mathvariant="normal">c</mi><mi mathvariant="normal">l</mi></mrow></msub><mo>=</mo><mi>A</mi><mo>−</mo><mi>B</mi><mi>K</mi></mrow><annotation encoding="application/x-tex">
+A_{\mathrm{cl}}=A-BK
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>A</mi><mrow><mi mathvariant="normal">c</mi><mi mathvariant="normal">l</mi></mrow></msub><annotation encoding="application/x-tex">A_{\mathrm{cl}}</annotation></semantics></math>
+是闭环状态矩阵。</p>
+<p>设计目标是选择
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>K</mi><annotation encoding="application/x-tex">K</annotation></semantics></math>，使
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>A</mi><mo>−</mo><mi>B</mi><mi>K</mi></mrow><annotation encoding="application/x-tex">A-BK</annotation></semantics></math>
+的特征值满足期望的稳定性、阻尼和带宽要求。</p>
+<h2 id="可控性检查">29.4 可控性检查</h2>
+<p>设计前必须检查可控性。可控性矩阵可写为：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>𝒞</mi><mo>=</mo><mrow><mo stretchy="true" form="prefix">[</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><mi>B</mi></mtd><mtd columnalign="center" style="text-align: center"><mi>A</mi><mi>B</mi></mtd><mtd columnalign="center" style="text-align: center"><msup><mi>A</mi><mn>2</mn></msup></mtd><mtd columnalign="center" style="text-align: center"><mi>⋯</mi></mtd><mtd columnalign="center" style="text-align: center"><msup><mi>A</mi><mrow><mi>n</mi><mo>−</mo><mn>1</mn></mrow></msup><mi>B</mi></mtd></mtr></mtable><mo stretchy="true" form="postfix">]</mo></mrow></mrow><annotation encoding="application/x-tex">
+\mathcal C=\begin{bmatrix}B &amp; AB &amp; A^2 &amp; \cdots &amp; A^{n-1}B\end{bmatrix}
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>n</mi><annotation encoding="application/x-tex">n</annotation></semantics></math>
+是状态维数，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>B</mi><annotation encoding="application/x-tex">B</annotation></semantics></math>
+是输入矩阵。</p>
+<p>若
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>rank</mi><mo>&#8289;</mo><mo stretchy="false" form="prefix">(</mo><mi>𝒞</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mi>n</mi></mrow><annotation encoding="application/x-tex">\operatorname{rank}(\mathcal C)=n</annotation></semantics></math>，则系统在理论上可控。若秩不足，就不能对所有模态任意配置极点。</p>
+<h2 id="极点配置">29.5 极点配置</h2>
+<p>状态反馈设计的核心，是把闭环极点放到期望位置。对于二阶模态，常希望闭环特征值满足：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>s</mi><mrow><mn>1</mn><mo>,</mo><mn>2</mn></mrow></msub><mo>=</mo><mi>−</mi><mi>ζ</mi><msub><mi>ω</mi><mi>n</mi></msub><mo>±</mo><mi>j</mi><msub><mi>ω</mi><mi>n</mi></msub><msqrt><mrow><mn>1</mn><mo>−</mo><msup><mi>ζ</mi><mn>2</mn></msup></mrow></msqrt></mrow><annotation encoding="application/x-tex">
+s_{1,2}=-\zeta\omega_n\pm j\omega_n\sqrt{1-\zeta^2}
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ζ</mi><annotation encoding="application/x-tex">\zeta</annotation></semantics></math>
+是阻尼比，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ω</mi><mi>n</mi></msub><annotation encoding="application/x-tex">\omega_n</annotation></semantics></math>
+是自然频率。</p>
+<p>实际设计中，极点配置不能只看数学可行性，还要看输入峰值、执行机构速率、噪声敏感性和多飞行点鲁棒性。</p>
+<h2 id="观测器">29.6 观测器</h2>
+<p>状态不可全测时，可采用 Luenberger 观测器：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mover><mi>x</mi><mo accent="true">̂</mo></mover><mo accent="true">̇</mo></mover><mo>=</mo><mi>A</mi><mover><mi>x</mi><mo accent="true">̂</mo></mover><mo>+</mo><mi>B</mi><mi mathvariant="normal">Δ</mi><mi>u</mi><mo>+</mo><mi>L</mi><mo stretchy="false" form="prefix">(</mo><mi mathvariant="normal">Δ</mi><mi>y</mi><mo>−</mo><mover><mi>y</mi><mo accent="true">̂</mo></mover><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
+\dot{\hat x}=A\hat x+B\Delta u+L(\Delta y-\hat y)
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mover><mi>x</mi><mo accent="true">̂</mo></mover><annotation encoding="application/x-tex">\hat x</annotation></semantics></math>
+是状态估计，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>y</mi><mo accent="true">̂</mo></mover><mo>=</mo><mi>C</mi><mover><mi>x</mi><mo accent="true">̂</mo></mover><mo>+</mo><mi>D</mi><mi mathvariant="normal">Δ</mi><mi>u</mi></mrow><annotation encoding="application/x-tex">\hat y=C\hat x+D\Delta u</annotation></semantics></math>
+是估计输出，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>L</mi><annotation encoding="application/x-tex">L</annotation></semantics></math>
+是观测器增益。</p>
+<p>这样，估计误差
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>e</mi><mi>o</mi></msub><mo>=</mo><mi>x</mi><mo>−</mo><mover><mi>x</mi><mo accent="true">̂</mo></mover></mrow><annotation encoding="application/x-tex">e_o=x-\hat x</annotation></semantics></math>
+的动力学为：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mover><mi>e</mi><mo accent="true">̇</mo></mover><mi>o</mi></msub><mo>=</mo><mo stretchy="false" form="prefix">(</mo><mi>A</mi><mo>−</mo><mi>L</mi><mi>C</mi><mo stretchy="false" form="postfix">)</mo><msub><mi>e</mi><mi>o</mi></msub></mrow><annotation encoding="application/x-tex">
+\dot e_o=(A-LC)e_o
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>e</mi><mi>o</mi></msub><annotation encoding="application/x-tex">e_o</annotation></semantics></math>
+是观测误差。</p>
+<p>可通过选择
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>L</mi><annotation encoding="application/x-tex">L</annotation></semantics></math>
+配置观测器误差动态。观测器极点通常比控制器极点快，但不能快得无限大。过快观测器会放大测量噪声和离散采样误差。</p>
+<h2 id="可观性检查">29.7 可观性检查</h2>
+<p>观测器设计前必须检查可观性。可观性矩阵可写为：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>𝒪</mi><mo>=</mo><msup><mrow><mo stretchy="true" form="prefix">[</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><msup><mi>C</mi><mi>⊤</mi></msup></mtd><mtd columnalign="center" style="text-align: center"><mo stretchy="false" form="prefix">(</mo><mi>C</mi><mi>A</mi><msup><mo stretchy="false" form="postfix">)</mo><mi>⊤</mi></msup></mtd><mtd columnalign="center" style="text-align: center"><mo stretchy="false" form="prefix">(</mo><mi>C</mi><msup><mi>A</mi><mn>2</mn></msup><msup><mo stretchy="false" form="postfix">)</mo><mi>⊤</mi></msup></mtd><mtd columnalign="center" style="text-align: center"><mi>⋯</mi></mtd><mtd columnalign="center" style="text-align: center"><mo stretchy="false" form="prefix">(</mo><mi>C</mi><msup><mi>A</mi><mrow><mi>n</mi><mo>−</mo><mn>1</mn></mrow></msup><msup><mo stretchy="false" form="postfix">)</mo><mi>⊤</mi></msup></mtd></mtr></mtable><mo stretchy="true" form="postfix">]</mo></mrow><mi>⊤</mi></msup></mrow><annotation encoding="application/x-tex">
+\mathcal O=\begin{bmatrix}C^\top &amp; (CA)^\top &amp; (CA^2)^\top &amp; \cdots &amp; (CA^{n-1})^\top\end{bmatrix}^\top
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>C</mi><annotation encoding="application/x-tex">C</annotation></semantics></math>
+是输出矩阵，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝒪</mi><annotation encoding="application/x-tex">\mathcal O</annotation></semantics></math>
+是可观性矩阵。</p>
+<p>若
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>rank</mi><mo>&#8289;</mo><mo stretchy="false" form="prefix">(</mo><mi>𝒪</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mi>n</mi></mrow><annotation encoding="application/x-tex">\operatorname{rank}(\mathcal O)=n</annotation></semantics></math>，则系统在理论上可观。</p>
+<h2 id="分离原则">29.8 分离原则</h2>
+<p>在线性、无饱和、模型准确的条件下，控制器极点和观测器极点可以分开设计。这就是分离原则。</p>
+<p>但分离原则不能无条件外推到高超声速完整闭环。实际系统存在非线性、输入饱和、状态和路径约束、模式切换、传感器故障、执行机构延迟、增益调度和安全滤波。这些因素会破坏简单线性分离结构。</p>
+<h2 id="积分扩展和参考跟踪">29.9 积分扩展和参考跟踪</h2>
+<p>状态反馈本身是调节器。若需要跟踪高度、速度或姿态参考，可加入积分状态：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>z</mi><mo accent="true">̇</mo></mover><mo>=</mo><mi>r</mi><mo>−</mo><mi>y</mi></mrow><annotation encoding="application/x-tex">
+\dot z = r-y
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>z</mi><annotation encoding="application/x-tex">z</annotation></semantics></math>
+是积分状态，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>r</mi><annotation encoding="application/x-tex">r</annotation></semantics></math>
+是参考，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>y</mi><annotation encoding="application/x-tex">y</annotation></semantics></math>
+是输出。</p>
+<p>再对扩展系统做极点配置或 LQI
+设计。积分能减少稳态误差，但会引入积分饱和风险。只要存在舵偏、舵速或推力饱和，就必须加入抗饱和逻辑。</p>
+<h2 id="高超声速设计流程">29.10 高超声速设计流程</h2>
+<p>推荐流程如下：</p>
+<ol type="1">
+<li>选择飞行点并求配平；</li>
+<li>线性化得到
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>A</mi><mo>,</mo><mi>B</mi><mo>,</mo><mi>C</mi><mo>,</mo><mi>D</mi></mrow><annotation encoding="application/x-tex">A,B,C,D</annotation></semantics></math>；</li>
+<li>检查可控性、可观性和模态；</li>
+<li>选择期望闭环模态和带宽；</li>
+<li>设计状态反馈
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>K</mi><annotation encoding="application/x-tex">K</annotation></semantics></math>；</li>
+<li>选择测量输出并设计观测器
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>L</mi><annotation encoding="application/x-tex">L</annotation></semantics></math>；</li>
+<li>检查闭环极点、输入幅值、频域裕度和估计误差动态；</li>
+<li>加入执行机构、限幅、采样和滤波；</li>
+<li>在非线性模型中验证；</li>
+<li>在多个飞行点或轨迹上重复检查。</li>
+</ol>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>A</mi><mo>,</mo><mi>B</mi><mo>,</mo><mi>C</mi><mo>,</mo><mi>D</mi></mrow><annotation encoding="application/x-tex">A,B,C,D</annotation></semantics></math>
+是线性化模型矩阵，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>K</mi><annotation encoding="application/x-tex">K</annotation></semantics></math>
+是状态反馈增益矩阵，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>L</mi><annotation encoding="application/x-tex">L</annotation></semantics></math>
+是观测器增益矩阵。</p>
+<h2 id="低阶问题卡俯仰短周期两状态的极点配置与观测器带宽">29.11
+低阶问题卡：俯仰短周期两状态的极点配置与观测器带宽</h2>
+<p>为了让第29章不只停留在“检查秩然后放极点”，下面把一个最常见的纵向短周期对象整理成低阶问题卡。它的目的不是替代完整飞行动力学，而是训练读者把局部模型、测量输出、期望极点、观测器带宽和执行约束写成同一个可核查对象。</p>
+<p>考虑俯仰短周期局部状态：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>x</mi><mrow><mi>s</mi><mi>p</mi></mrow></msub><mo>=</mo><msup><mrow><mo stretchy="true" form="prefix">[</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><mi mathvariant="normal">Δ</mi><mi>α</mi></mtd><mtd columnalign="center" style="text-align: center"><mi mathvariant="normal">Δ</mi><mi>q</mi></mtd></mtr></mtable><mo stretchy="true" form="postfix">]</mo></mrow><mi>⊤</mi></msup></mrow><annotation encoding="application/x-tex">
+x_{sp}=\begin{bmatrix}\Delta \alpha &amp; \Delta q\end{bmatrix}^\top
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Δ</mi><mi>α</mi></mrow><annotation encoding="application/x-tex">\Delta \alpha</annotation></semantics></math>
+是攻角扰动，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Δ</mi><mi>q</mi></mrow><annotation encoding="application/x-tex">\Delta q</annotation></semantics></math>
+是俯仰角速度扰动。</p>
+<p>一个典型教学级局部模型可写成：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mo stretchy="true" form="prefix">[</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><mi mathvariant="normal">Δ</mi><mover><mi>α</mi><mo accent="true">̇</mo></mover></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><mi mathvariant="normal">Δ</mi><mover><mi>q</mi><mo accent="true">̇</mo></mover></mtd></mtr></mtable><mo stretchy="true" form="postfix">]</mo></mrow><mo>=</mo><mrow><mo stretchy="true" form="prefix">[</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><msub><mi>a</mi><mrow><mi>α</mi><mi>α</mi></mrow></msub></mtd><mtd columnalign="center" style="text-align: center"><msub><mi>a</mi><mrow><mi>α</mi><mi>q</mi></mrow></msub></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><msub><mi>a</mi><mrow><mi>q</mi><mi>α</mi></mrow></msub></mtd><mtd columnalign="center" style="text-align: center"><msub><mi>a</mi><mrow><mi>q</mi><mi>q</mi></mrow></msub></mtd></mtr></mtable><mo stretchy="true" form="postfix">]</mo></mrow><mrow><mo stretchy="true" form="prefix">[</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><mi mathvariant="normal">Δ</mi><mi>α</mi></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><mi mathvariant="normal">Δ</mi><mi>q</mi></mtd></mtr></mtable><mo stretchy="true" form="postfix">]</mo></mrow><mo>+</mo><mrow><mo stretchy="true" form="prefix">[</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><msub><mi>b</mi><mi>α</mi></msub></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><msub><mi>b</mi><mi>q</mi></msub></mtd></mtr></mtable><mo stretchy="true" form="postfix">]</mo></mrow><mi mathvariant="normal">Δ</mi><msub><mi>δ</mi><mi>e</mi></msub></mrow><annotation encoding="application/x-tex">
+\begin{bmatrix}\Delta \dot\alpha\\ \Delta \dot q\end{bmatrix}
+=
+\begin{bmatrix}
+a_{\alpha\alpha} &amp; a_{\alpha q}\\
+a_{q\alpha} &amp; a_{qq}
+\end{bmatrix}
+\begin{bmatrix}\Delta\alpha\\ \Delta q\end{bmatrix}
++
+\begin{bmatrix}
+b_{\alpha}\\
+b_{q}
+\end{bmatrix}\Delta\delta_e
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>a</mi><mrow><mi>α</mi><mi>α</mi></mrow></msub><mo>,</mo><msub><mi>a</mi><mrow><mi>α</mi><mi>q</mi></mrow></msub><mo>,</mo><msub><mi>a</mi><mrow><mi>q</mi><mi>α</mi></mrow></msub><mo>,</mo><msub><mi>a</mi><mrow><mi>q</mi><mi>q</mi></mrow></msub></mrow><annotation encoding="application/x-tex">a_{\alpha\alpha},a_{\alpha q},a_{q\alpha},a_{qq}</annotation></semantics></math>
+是局部状态导数，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>b</mi><mi>α</mi></msub><mo>,</mo><msub><mi>b</mi><mi>q</mi></msub></mrow><annotation encoding="application/x-tex">b_\alpha,b_q</annotation></semantics></math>
+是舵面输入导数，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Δ</mi><msub><mi>δ</mi><mi>e</mi></msub></mrow><annotation encoding="application/x-tex">\Delta\delta_e</annotation></semantics></math>
+是升降舵扰动。</p>
+<p>如果希望把短周期模态整形成阻尼比
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ζ</mi><mrow><mi>s</mi><mi>p</mi></mrow></msub><annotation encoding="application/x-tex">\zeta_{sp}</annotation></semantics></math>、自然频率
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ω</mi><mrow><mi>s</mi><mi>p</mi></mrow></msub><annotation encoding="application/x-tex">\omega_{sp}</annotation></semantics></math>
+的二阶形态，则期望闭环特征多项式可写为：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>s</mi><mn>2</mn></msup><mo>+</mo><mn>2</mn><msub><mi>ζ</mi><mrow><mi>s</mi><mi>p</mi></mrow></msub><msub><mi>ω</mi><mrow><mi>s</mi><mi>p</mi></mrow></msub><mi>s</mi><mo>+</mo><msubsup><mi>ω</mi><mrow><mi>s</mi><mi>p</mi></mrow><mn>2</mn></msubsup></mrow><annotation encoding="application/x-tex">
+s^2+2\zeta_{sp}\omega_{sp}s+\omega_{sp}^2
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ζ</mi><mrow><mi>s</mi><mi>p</mi></mrow></msub><annotation encoding="application/x-tex">\zeta_{sp}</annotation></semantics></math>
+是短周期目标阻尼比，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ω</mi><mrow><mi>s</mi><mi>p</mi></mrow></msub><annotation encoding="application/x-tex">\omega_{sp}</annotation></semantics></math>
+是短周期目标自然频率。</p>
+<p>这个低阶问题卡最关键的训练价值有四点：</p>
+<ol type="1">
+<li>可控性和可观性必须与具体飞行点绑定，不能离开工况空谈；</li>
+<li>只测
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>q</mi><annotation encoding="application/x-tex">q</annotation></semantics></math>
+并不自动意味着观测器足够可靠，还要看
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Δ</mi><mi>α</mi><mo>→</mo><mi mathvariant="normal">Δ</mi><mi>q</mi></mrow><annotation encoding="application/x-tex">\Delta\alpha\to\Delta q</annotation></semantics></math>
+的耦合强弱；</li>
+<li>控制极点和观测器极点不能只按“越快越好”选，还要同时看舵速、噪声和采样；</li>
+<li>第29章给出的
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>K</mi><mo>,</mo><mi>L</mi></mrow><annotation encoding="application/x-tex">K,L</annotation></semantics></math>
+只是局部状态空间基线，后续仍要由第 30、31、32、39、55 章继续接手。</li>
+</ol>
+<h2 id="最小验证协议">29.12 最小验证协议</h2>
+<p>第29章如果只报告闭环极点，通常还不够。更自然的验证写法，是把下面五个问题顺着讲清楚：</p>
+<ol type="1">
+<li>线性对象是否可信；</li>
+<li>模态设计是否实现；</li>
+<li>输入是否可执行；</li>
+<li>观测器是否可用；</li>
+<li>工程结论属于哪一层。</li>
+</ol>
+<p>一个最小验证表可整理为：</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>类别</th>
+<th>最低应记录字段</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>模型一致性</td>
+<td>配平残差、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>A</mi><mo>,</mo><mi>B</mi><mo>,</mo><mi>C</mi><mo>,</mo><mi>D</mi></mrow><annotation encoding="application/x-tex">A,B,C,D</annotation></semantics></math>
+来源、状态单位、输入单位</td>
+<td>回答“这个局部对象是不是写清楚了”</td>
+</tr>
+<tr>
+<td>结构性质</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>rank</mi><mo>&#8289;</mo><mo stretchy="false" form="prefix">(</mo><mi>𝒞</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\operatorname{rank}(\mathcal C)</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>rank</mi><mo>&#8289;</mo><mo stretchy="false" form="prefix">(</mo><mi>𝒪</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\operatorname{rank}(\mathcal O)</annotation></semantics></math>、弱可控/弱可观模态</td>
+<td>回答“能不能设计，以及哪些模态最脆弱”</td>
+</tr>
+<tr>
+<td>极点实现</td>
+<td>目标极点、实际
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>eig</mi><mo>&#8289;</mo><mo stretchy="false" form="prefix">(</mo><mi>A</mi><mo>−</mo><mi>B</mi><mi>K</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\operatorname{eig}(A-BK)</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>eig</mi><mo>&#8289;</mo><mo stretchy="false" form="prefix">(</mo><mi>A</mi><mo>−</mo><mi>L</mi><mi>C</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\operatorname{eig}(A-LC)</annotation></semantics></math>、阻尼比和带宽</td>
+<td>回答“模态设计有没有真正落地”</td>
+</tr>
+<tr>
+<td>输入实现</td>
+<td>最大舵偏、最大舵速、命令变化率、饱和时间比例</td>
+<td>回答“设计会不会依赖不可实现输入”</td>
+</tr>
+<tr>
+<td>估计质量</td>
+<td>RMS<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>e</mi><mi>o</mi></msub><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">(e_o)</annotation></semantics></math>、峰值误差、噪声放大量、估计收敛时间</td>
+<td>回答“观测器输出能不能进闭环”</td>
+</tr>
+<tr>
+<td>跨点复测</td>
+<td>多飞行点通过率、最差样本、失败飞行点编号</td>
+<td>回答“是单点基线还是可用于调度前处理”</td>
+</tr>
+</tbody>
+</table>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>e</mi><mi>o</mi></msub><annotation encoding="application/x-tex">e_o</annotation></semantics></math>
+是观测误差，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>RMS</mi><annotation encoding="application/x-tex">\operatorname{RMS}</annotation></semantics></math>
+表示均方根，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>rank</mi><annotation encoding="application/x-tex">\operatorname{rank}</annotation></semantics></math>
+表示矩阵秩，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>eig</mi><annotation encoding="application/x-tex">\operatorname{eig}</annotation></semantics></math>
+表示矩阵特征值集合。</p>
+<h2 id="本章小结">29.13 本章小结</h2>
+<p>状态反馈、观测器与极点配置把局部线性模型变成了能设计、能解释、能验证的闭环系统。对高超声速飞行器来说，它们是后续
+LQR、鲁棒控制、增益调度和 LPV
+控制的入口，也是判断某个局部设计是否真正可执行的第一道门槛。</p>
+<h2 id="练习">29.14 练习</h2>
+<ol type="1">
+<li>写出状态反馈、观测器和可控性矩阵的基本形式。</li>
+<li>解释可控性和可观性为什么必须在具体飞行点检查。</li>
+<li>说明分离原则为什么不能直接外推到完整高超声速闭环。</li>
+<li>写出一个俯仰短周期两状态问题卡的最小字段。</li>
+<li>设计一个状态反馈和观测器的最小验证表。</li>
+</ol>
+
+      </article>
+      
+      <nav class="book-bottom-nav" aria-label="章节导航">
+        <a href="./28-root-locus-frequency-domain-margins.html">上一章：第28章 根轨迹、频域设计与稳定裕度</a>
+        <a href="./index.html">卷首页</a>
+        <a href="./30-lqr-lqg-linear-optimal-control.html">下一章：第30章 LQR、LQG 与线性最优控制</a>
+      </nav>
+    </main>
+  </div>
+</body>
+</html>

@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>第15章 坐标系、运动学与姿态描述</title>
+  <style>
+    :root {
+      --paper: #f7f3eb;
+      --ink: #1f2937;
+      --muted: #5b6472;
+      --line: color-mix(in srgb, #e3f5f2 68%, #cbd5e1 32%);
+      --accent: #18786f;
+      --accent-soft: #e3f5f2;
+      --accent-deep: #0e4b45;
+      color-scheme: light;
+    }
+    html {
+      -webkit-text-size-adjust: 100%;
+      background:
+        radial-gradient(circle at top left, #e3f5f2 0, rgba(255,255,255,0) 32%),
+        linear-gradient(180deg, #fbfaf6 0%, var(--paper) 18%, #f7f1e6 100%);
+    }
+    body {
+      margin: 0;
+      font-family: "Source Han Serif SC", "Songti SC", "Noto Serif CJK SC", "Microsoft YaHei", serif;
+      color: var(--ink);
+      line-height: 1.78;
+      letter-spacing: 0;
+    }
+    a { color: var(--accent-deep); }
+    .book-app {
+      display: grid;
+      grid-template-columns: 280px minmax(0, 1fr);
+      min-height: 100vh;
+    }
+    .book-sidebar {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow: auto;
+      padding: 1.2rem 1rem 1.2rem 1.15rem;
+      border-right: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(255,255,255,0.86), rgba(255,255,255,0.72));
+      backdrop-filter: blur(10px);
+    }
+    .sidebar-shell { position: sticky; top: 0; display: flex; flex-direction: column; gap: 1rem; }
+    .sidebar-brand {
+      padding: 0.95rem 0.95rem 1rem;
+      border-radius: 18px;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.95), rgba(255,255,255,0.84)),
+        linear-gradient(135deg, var(--accent-soft), rgba(255,255,255,0));
+      border: 1px solid var(--line);
+      box-shadow: 0 12px 28px rgba(31, 41, 55, 0.06);
+    }
+    .sidebar-brand .kicker { margin: 0; color: var(--accent); font-size: 0.82rem; font-weight: 700; }
+    .sidebar-brand h2 { margin: 0.45rem 0 0.25rem; font-size: 1.08rem; line-height: 1.3; color: var(--ink); }
+    .sidebar-brand p { margin: 0.35rem 0 0; color: var(--muted); font-size: 0.9rem; }
+    .sidebar-links { display: grid; gap: 0.45rem; }
+    .sidebar-link {
+      display: grid;
+      grid-template-columns: 2.2rem minmax(0, 1fr);
+      gap: 0.6rem;
+      align-items: start;
+      padding: 0.7rem 0.75rem;
+      border-radius: 14px;
+      text-decoration: none;
+      background: rgba(255,255,255,0.72);
+      border: 1px solid rgba(31,41,55,0.07);
+      color: var(--ink);
+    }
+    .sidebar-link:hover { background: rgba(255,255,255,0.95); border-color: var(--line); }
+    .sidebar-link.active {
+      background: linear-gradient(135deg, rgba(255,255,255,0.98), rgba(255,255,255,0.9));
+      border-color: var(--accent-soft);
+      box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent-soft) 68%, #ffffff 32%);
+    }
+    .sidebar-index {
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      min-width: 2rem;
+      height: 2rem;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent-deep);
+      font-size: 0.78rem;
+      font-weight: 800;
+    }
+    .sidebar-title { font-size: 0.94rem; line-height: 1.35; }
+    .book-main { min-width: 0; padding: 1.25rem 1.45rem 1.8rem; }
+    .book-page-header {
+      padding: 0.85rem 0 1rem;
+      margin-bottom: 1rem;
+      border-bottom: 1px solid var(--line);
+    }
+    .page-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.28rem 0.72rem;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.82);
+      border: 1px solid var(--line);
+      color: var(--accent-deep);
+      font-size: 0.8rem;
+      font-weight: 700;
+    }
+    .book-page-header h1 {
+      margin: 0.7rem 0 0;
+      font-size: 1.85rem;
+      line-height: 1.22;
+      color: var(--accent-deep);
+      border: 0;
+      padding: 0;
+    }
+    .book-page-header p { margin: 0.45rem 0 0; color: var(--muted); max-width: 62rem; }
+    .book-article { max-width: 900px; margin: 0; padding: 0 0 1.2rem; }
+    .book-article h1, .book-article h2, .book-article h3, .book-article h4, .book-article h5, .book-article h6 {
+      line-height: 1.28;
+      margin-top: 1.45em;
+      margin-bottom: 0.55em;
+      color: var(--accent-deep);
+    }
+    .book-article h1 { font-size: 2rem; border-bottom: 2px solid var(--line); padding-bottom: 0.42rem; }
+    .book-article h1:first-of-type { margin-top: 0; }
+    .book-article h2 { font-size: 1.42rem; }
+    .book-article h3 { font-size: 1.12rem; }
+    .book-article p, .book-article li, .book-article dd, .book-article td, .book-article th { text-align: justify; text-justify: inter-ideograph; }
+    .book-article p { margin: 0.85rem 0; }
+    .book-article code, .book-article pre { font-family: "Cascadia Mono", "Source Code Pro", Consolas, monospace; font-size: 0.94em; }
+    .book-article code {
+      padding: 0.02rem 0.24rem;
+      background: color-mix(in srgb, var(--accent-soft) 34%, #ffffff 66%);
+      border: 0;
+      border-bottom: 1px solid color-mix(in srgb, var(--accent-soft) 74%, #d1d5db 26%);
+      border-radius: 4px;
+      color: #253244;
+      box-decoration-break: clone;
+      -webkit-box-decoration-break: clone;
+    }
+    .book-article pre {
+      padding: 1rem 1.1rem;
+      overflow: auto;
+      background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,253,248,0.98));
+      border: 1px solid color-mix(in srgb, var(--accent-soft) 54%, #d1d5db 46%);
+      border-left: 5px solid var(--accent);
+      border-radius: 14px;
+      box-shadow: 0 8px 22px rgba(31, 41, 55, 0.05);
+    }
+    .book-article pre code { padding: 0; border: 0; background: transparent; color: inherit; }
+    .book-article table {
+      border-collapse: collapse;
+      width: 100%;
+      margin: 1rem 0 1.25rem;
+      background: rgba(255,255,255,0.82);
+      overflow: hidden;
+      border-radius: 12px;
+    }
+    .book-article th, .book-article td { border: 1px solid var(--line); padding: 0.5rem 0.7rem; vertical-align: top; }
+    .book-article th { background: color-mix(in srgb, var(--accent-soft) 42%, #ffffff 58%); }
+    .book-article blockquote {
+      margin: 1rem 0;
+      padding: 0.25rem 0 0.25rem 1rem;
+      border-left: 4px solid var(--accent);
+      color: #374151;
+      background: linear-gradient(90deg, rgba(255,255,255,0.72), rgba(255,255,255,0.48));
+      border-radius: 0 12px 12px 0;
+    }
+    .book-bottom-nav {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-top: 2.2rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--line);
+    }
+    .book-bottom-nav a {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.6rem 0.9rem;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.84);
+      text-decoration: none;
+      font-weight: 700;
+    }
+    .book-bottom-nav span {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.6rem 0.9rem;
+      border-radius: 999px;
+      border: 1px solid rgba(31,41,55,0.08);
+      background: rgba(255,255,255,0.54);
+      color: rgba(31,41,55,0.42);
+      font-weight: 700;
+    }
+    .book-bottom-nav a:hover { background: rgba(255,255,255,0.98); }
+    .book-volume-intro {
+      margin: 0 0 1.25rem;
+      padding: 1.2rem 1.25rem 1.1rem;
+      border-radius: 18px;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.96), rgba(255,255,255,0.78)),
+        linear-gradient(135deg, var(--accent-soft), rgba(255,255,255,0));
+      border: 1px solid var(--line);
+      box-shadow: 0 14px 34px rgba(31, 41, 55, 0.06);
+    }
+    .volume-intro-kicker {
+      margin: 0;
+      color: var(--accent);
+      font-size: 0.84rem;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    .book-volume-intro h2 {
+      margin: 0.55rem 0 0.55rem;
+      font-size: 1.28rem;
+      line-height: 1.35;
+      color: var(--accent-deep);
+    }
+    .volume-intro-summary {
+      margin: 0;
+      color: var(--muted);
+      max-width: 68rem;
+    }
+    .volume-intro-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.8rem;
+      margin-top: 1rem;
+    }
+    .volume-intro-box {
+      padding: 0.85rem 0.9rem;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.72);
+      border: 1px solid rgba(31,41,55,0.08);
+    }
+    .volume-intro-box span {
+      display: block;
+      color: var(--accent);
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+    }
+    .volume-intro-box strong {
+      display: block;
+      margin-top: 0.35rem;
+      color: var(--ink);
+      font-size: 0.95rem;
+      line-height: 1.45;
+    }
+    .volume-intro-note {
+      margin-top: 0.9rem;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+    @media (max-width: 1180px) {
+      .book-app { grid-template-columns: 1fr; }
+      .book-sidebar {
+        position: relative;
+        height: auto;
+        border-right: 0;
+        border-bottom: 1px solid var(--line);
+      }
+      .sidebar-shell { position: static; }
+    }
+    @media (max-width: 900px) {
+      .book-main { padding: 1rem 1rem 1.5rem; }
+      .book-bottom-nav { flex-direction: column; }
+      .volume-intro-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="book-app">
+    <aside class="book-sidebar">
+      <div class="sidebar-shell">
+        <div class="sidebar-brand">
+          <p class="kicker">高超声速飞行器控制教程</p>
+          <h2>第二卷 高超声速飞行器建模与飞行动力学</h2>
+          <p>对象与模型</p>
+        </div>
+        <nav class="sidebar-links" aria-label="本卷目录">
+          <a class="sidebar-link" href="./index.html"><span class="sidebar-index">0</span><span class="sidebar-title">卷首页</span></a>
+<a class="sidebar-link" href="./14-vehicle-types-mission-profiles.html"><span class="sidebar-index">01</span><span class="sidebar-title">第14章 高超声速飞行器类型与任务剖面</span></a>
+<a class="sidebar-link active" href="./15-coordinate-kinematics-attitude.html"><span class="sidebar-index">02</span><span class="sidebar-title">第15章 坐标系、运动学与姿态描述</span></a>
+<a class="sidebar-link" href="./16-atmosphere-flight-conditions.html"><span class="sidebar-index">03</span><span class="sidebar-title">第16章 大气环境与飞行条件</span></a>
+<a class="sidebar-link" href="./17-aerodynamic-force-moment-modeling.html"><span class="sidebar-index">04</span><span class="sidebar-title">第17章 气动力与气动力矩建模</span></a>
+<a class="sidebar-link" href="./18-propulsion-aero-propulsive-coupling.html"><span class="sidebar-index">05</span><span class="sidebar-title">第18章 推进系统与气动推进耦合</span></a>
+<a class="sidebar-link" href="./19-point-mass-dynamics.html"><span class="sidebar-index">06</span><span class="sidebar-title">第19章 质点动力学模型</span></a>
+<a class="sidebar-link" href="./20-longitudinal-rigid-body-dynamics.html"><span class="sidebar-index">07</span><span class="sidebar-title">第20章 纵向刚体动力学模型</span></a>
+<a class="sidebar-link" href="./21-lateral-directional-dynamics.html"><span class="sidebar-index">08</span><span class="sidebar-title">第21章 横侧向动力学模型</span></a>
+<a class="sidebar-link" href="./22-six-dof-rigid-body-model.html"><span class="sidebar-index">09</span><span class="sidebar-title">第22章 六自由度刚体模型</span></a>
+<a class="sidebar-link" href="./23-flexible-aeroelastic-modeling.html"><span class="sidebar-index">10</span><span class="sidebar-title">第23章 刚柔耦合与气动弹性模型</span></a>
+<a class="sidebar-link" href="./24-actuator-sensor-computation-modeling.html"><span class="sidebar-index">11</span><span class="sidebar-title">第24章 执行机构、传感器与计算系统建模</span></a>
+<a class="sidebar-link" href="./25-trim-linearization-modal-analysis.html"><span class="sidebar-index">12</span><span class="sidebar-title">第25章 配平、线性化与模态分析</span></a>
+        </nav>
+      </div>
+    </aside>
+    <main class="book-main">
+      <header class="book-page-header">
+        <div class="page-eyebrow">第2册·章节页02</div>
+        <h1 id="volume2--15-coordinate-kinematics-attitude">第15章 坐标系、运动学与姿态描述</h1>
+        <p>本页是章节正文页。左侧目录用于回到本卷其他章节，底部导航用于前后章跳转。</p>
+      </header>
+      <article class="book-article">
+        <h2 id="问题背景">15.1 问题背景</h2>
+<p>高超声速飞行器建模中的很多错误不是来自控制律，而是来自坐标系和角度定义。力、力矩、速度、姿态、攻角、侧滑角、航迹角和倾侧角只要有一个定义不一致，后续的气动表、控制分配、制导命令和仿真指标都会出现方向错误。</p>
+<p>本章从控制建模角度回答：</p>
+<ul>
+<li>位置、速度、力和力矩应该在哪个坐标系中表达；</li>
+<li>姿态角、四元数和方向余弦矩阵如何联系；</li>
+<li>攻角、侧滑角、航迹角、航向角和倾侧角分别服务什么控制问题；</li>
+<li>坐标变换错误如何影响闭环稳定性和验证结论。</li>
+</ul>
+<h2 id="常用坐标系">15.2 常用坐标系</h2>
+<p>高超声速飞行控制常见坐标系包括：</p>
+<table>
+<thead>
+<tr>
+<th>坐标系</th>
+<th>典型用途</th>
+<th>控制建模关注点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>惯性系</td>
+<td>理论推导、轨道段、长程运动</td>
+<td>地球自转和曲率是否忽略</td>
+</tr>
+<tr>
+<td>地固系</td>
+<td>地理位置、经纬高、导航</td>
+<td>和本地水平系转换</td>
+</tr>
+<tr>
+<td>本地水平系</td>
+<td>近程三维制导和仿真</td>
+<td>ENU/NED 约定必须统一</td>
+</tr>
+<tr>
+<td>机体系</td>
+<td>气动力矩、执行机构、角速度</td>
+<td>力和力矩方向最容易出错</td>
+</tr>
+<tr>
+<td>风轴系</td>
+<td>升力、阻力、侧力</td>
+<td>攻角和侧滑角定义</td>
+</tr>
+<tr>
+<td>稳定轴系</td>
+<td>气动导数、小扰动模型</td>
+<td>线化点和角度约定</td>
+</tr>
+<tr>
+<td>航迹系</td>
+<td>航迹角、航向角、制导命令</td>
+<td>速度方向和升力方向</td>
+</tr>
+</tbody>
+</table>
+<p>教程和代码必须明确写出采用 ENU 还是
+NED、本体系各轴正方向、角度正方向和 DCM 的乘法约定。</p>
+<h2 id="本地水平系">15.3 本地水平系</h2>
+<p>若采用 ENU 约定，本地水平系为：</p>
+<ul>
+<li>E：east</li>
+<li>N：north</li>
+<li>U：up</li>
+</ul>
+<p>位置可写为：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>r</mi><mi>E</mi></msub><mo>=</mo><msup><mrow><mo stretchy="true" form="prefix">[</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><msub><mi>x</mi><mi>E</mi></msub></mtd><mtd columnalign="center" style="text-align: center"><msub><mi>y</mi><mi>N</mi></msub></mtd><mtd columnalign="center" style="text-align: center"><mi>h</mi></mtd></mtr></mtable><mo stretchy="true" form="postfix">]</mo></mrow><mi>⊤</mi></msup></mrow><annotation encoding="application/x-tex">
+r_E = \begin{bmatrix} x_E &amp; y_N &amp; h \end{bmatrix}^\top
+</annotation></semantics></math></p>
+<p>这里的 r_E 是本地水平系位置向量，x_E、y_N 和 h
+分别表示东、北和高度分量。</p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>x</mi><mi>E</mi></msub><annotation encoding="application/x-tex">x_E</annotation></semantics></math>
+表示东向位置，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>y</mi><mi>N</mi></msub><annotation encoding="application/x-tex">y_N</annotation></semantics></math>
+表示北向位置，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>h</mi><annotation encoding="application/x-tex">h</annotation></semantics></math>
+表示高度。</p>
+<p>速度可写为：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>v</mi><mi>E</mi></msub><mo>=</mo><msup><mrow><mo stretchy="true" form="prefix">[</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><msub><mi>v</mi><mi>E</mi></msub></mtd><mtd columnalign="center" style="text-align: center"><msub><mi>v</mi><mi>N</mi></msub></mtd><mtd columnalign="center" style="text-align: center"><msub><mi>v</mi><mi>U</mi></msub></mtd></mtr></mtable><mo stretchy="true" form="postfix">]</mo></mrow><mi>⊤</mi></msup></mrow><annotation encoding="application/x-tex">
+v_E = \begin{bmatrix} v_E &amp; v_N &amp; v_U \end{bmatrix}^\top
+</annotation></semantics></math></p>
+<p>这里的 v_E 是本地水平系速度向量，三个分量分别对应东、北、上方向。</p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>v</mi><mi>E</mi></msub><mo>,</mo><msub><mi>v</mi><mi>N</mi></msub><mo>,</mo><msub><mi>v</mi><mi>U</mi></msub></mrow><annotation encoding="application/x-tex">v_E,v_N,v_U</annotation></semantics></math>
+分别表示东、北、上方向速度分量。</p>
+<h2 id="机体系与角速度">15.4 机体系与角速度</h2>
+<p>机体系通常写成：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>r</mi><mi>B</mi></msub><mo>=</mo><msup><mrow><mo stretchy="true" form="prefix">[</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><msub><mi>x</mi><mi>B</mi></msub></mtd><mtd columnalign="center" style="text-align: center"><msub><mi>y</mi><mi>B</mi></msub></mtd><mtd columnalign="center" style="text-align: center"><msub><mi>z</mi><mi>B</mi></msub></mtd></mtr></mtable><mo stretchy="true" form="postfix">]</mo></mrow><mi>⊤</mi></msup></mrow><annotation encoding="application/x-tex">
+r_B = \begin{bmatrix} x_B &amp; y_B &amp; z_B \end{bmatrix}^\top
+</annotation></semantics></math></p>
+<p>这里的 r_B 是机体系坐标向量，x_B、y_B、z_B
+分别对应机头、右翼和机体下方。</p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>x</mi><mi>B</mi></msub><annotation encoding="application/x-tex">x_B</annotation></semantics></math>
+指向机头，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>y</mi><mi>B</mi></msub><annotation encoding="application/x-tex">y_B</annotation></semantics></math>
+指向右翼，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>z</mi><mi>B</mi></msub><annotation encoding="application/x-tex">z_B</annotation></semantics></math>
+指向机体下方。</p>
+<p>角速度写为：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ω</mi><mi>B</mi></msub><mo>=</mo><msup><mrow><mo stretchy="true" form="prefix">[</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><mi>p</mi></mtd><mtd columnalign="center" style="text-align: center"><mi>q</mi></mtd><mtd columnalign="center" style="text-align: center"><mi>r</mi></mtd></mtr></mtable><mo stretchy="true" form="postfix">]</mo></mrow><mi>⊤</mi></msup></mrow><annotation encoding="application/x-tex">
+\omega_B = \begin{bmatrix} p &amp; q &amp; r \end{bmatrix}^\top
+</annotation></semantics></math></p>
+<p>这里的 omega_B 是机体系角速度向量，p、q、r
+分别是滚转、俯仰和偏航角速度。</p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>p</mi><annotation encoding="application/x-tex">p</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>q</mi><annotation encoding="application/x-tex">q</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>r</mi><annotation encoding="application/x-tex">r</annotation></semantics></math>
+分别是滚转、俯仰和偏航角速度。刚体转动方程通常在机体系中写：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>J</mi><msub><mover><mi>ω</mi><mo accent="true">̇</mo></mover><mi>B</mi></msub><mo>+</mo><msub><mi>ω</mi><mi>B</mi></msub><mo>×</mo><mo stretchy="false" form="prefix">(</mo><mi>J</mi><msub><mi>ω</mi><mi>B</mi></msub><mo stretchy="false" form="postfix">)</mo><mo>=</mo><msub><mi>M</mi><mi>B</mi></msub></mrow><annotation encoding="application/x-tex">
+J\dot\omega_B + \omega_B \times (J\omega_B) = M_B
+</annotation></semantics></math></p>
+<p>这里的 J 是惯量矩阵，M_B 是机体系合力矩，左侧表示角动量变化。</p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>J</mi><annotation encoding="application/x-tex">J</annotation></semantics></math>
+是惯量矩阵，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>M</mi><mi>B</mi></msub><annotation encoding="application/x-tex">M_B</annotation></semantics></math>
+是机体系合力矩。</p>
+<h2 id="攻角和侧滑角">15.5 攻角和侧滑角</h2>
+<p>攻角
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>α</mi><annotation encoding="application/x-tex">\alpha</annotation></semantics></math>
+和侧滑角
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>β</mi><annotation encoding="application/x-tex">\beta</annotation></semantics></math>
+可由机体系速度分量定义。若机体系速度为：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>v</mi><mi>B</mi></msub><mo>=</mo><msup><mrow><mo stretchy="true" form="prefix">[</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><msub><mi>u</mi><mi>B</mi></msub></mtd><mtd columnalign="center" style="text-align: center"><msub><mi>v</mi><mi>B</mi></msub></mtd><mtd columnalign="center" style="text-align: center"><msub><mi>w</mi><mi>B</mi></msub></mtd></mtr></mtable><mo stretchy="true" form="postfix">]</mo></mrow><mi>⊤</mi></msup></mrow><annotation encoding="application/x-tex">
+v_B = \begin{bmatrix} u_B &amp; v_B &amp; w_B \end{bmatrix}^\top
+</annotation></semantics></math></p>
+<p>则常见定义为：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>α</mi><mo>=</mo><mi>arctan</mi><mo>&#8289;</mo><mspace width="-0.167em"></mspace><mrow><mo stretchy="true" form="prefix">(</mo><mfrac><msub><mi>w</mi><mi>B</mi></msub><msub><mi>u</mi><mi>B</mi></msub></mfrac><mo stretchy="true" form="postfix">)</mo></mrow><mo>,</mo><mspace width="2.0em"></mspace><mi>β</mi><mo>=</mo><mi>arcsin</mi><mo>&#8289;</mo><mspace width="-0.167em"></mspace><mrow><mo stretchy="true" form="prefix">(</mo><mfrac><msub><mi>v</mi><mi>B</mi></msub><mrow><mo stretchy="false" form="postfix">∥</mo><msub><mi>v</mi><mi>B</mi></msub><mo stretchy="false" form="postfix">∥</mo></mrow></mfrac><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">
+\alpha = \arctan\!\left(\frac{w_B}{u_B}\right),\qquad
+\beta = \arcsin\!\left(\frac{v_B}{\|v_B\|}\right)
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>u</mi><mi>B</mi></msub><annotation encoding="application/x-tex">u_B</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>v</mi><mi>B</mi></msub><annotation encoding="application/x-tex">v_B</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>w</mi><mi>B</mi></msub><annotation encoding="application/x-tex">w_B</annotation></semantics></math>
+是机体系速度分量，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="postfix">∥</mo><msub><mi>v</mi><mi>B</mi></msub><mo stretchy="false" form="postfix">∥</mo></mrow><annotation encoding="application/x-tex">\|v_B\|</annotation></semantics></math>
+是速度模长。</p>
+<p>这里的关键不是记住某一种公式，而是保证气动表、力变换、控制器和指标脚本使用同一组定义。</p>
+<h2 id="航迹角航向角和倾侧角">15.6 航迹角、航向角和倾侧角</h2>
+<p>制导层更关心速度方向。常用变量包括：</p>
+<ul>
+<li><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>γ</mi><annotation encoding="application/x-tex">\gamma</annotation></semantics></math>：航迹角，表示速度相对水平面的仰角；</li>
+<li><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>χ</mi><annotation encoding="application/x-tex">\chi</annotation></semantics></math>：航向角，表示水平速度方向；</li>
+<li><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>σ</mi><annotation encoding="application/x-tex">\sigma</annotation></semantics></math>：倾侧角或升力方向角，用于描述升力矢量绕速度方向旋转。</li>
+</ul>
+<p>在三维质点制导中，状态常取：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>e</mi><mi>g</mi></msub><mo>=</mo><msup><mrow><mo stretchy="true" form="prefix">[</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><msub><mi>e</mi><mi>r</mi></msub></mtd><mtd columnalign="center" style="text-align: center"><msub><mi>e</mi><mi>γ</mi></msub></mtd><mtd columnalign="center" style="text-align: center"><msub><mi>e</mi><mi>χ</mi></msub></mtd></mtr></mtable><mo stretchy="true" form="postfix">]</mo></mrow><mi>⊤</mi></msup></mrow><annotation encoding="application/x-tex">
+e_g = \begin{bmatrix} e_r &amp; e_\gamma &amp; e_\chi \end{bmatrix}^\top
+</annotation></semantics></math></p>
+<p>这里的 e_g
+是三维制导误差向量，它把位置、航迹和航向误差放在同一个接口里。</p>
+<p>这里的 e_g
+是三维制导误差向量，三个分量分别表示位置、航迹和航向误差。</p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>e</mi><mi>r</mi></msub><annotation encoding="application/x-tex">e_r</annotation></semantics></math>
+表示相对位置误差，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>e</mi><mi>γ</mi></msub><annotation encoding="application/x-tex">e_\gamma</annotation></semantics></math>
+表示航迹误差，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>e</mi><mi>χ</mi></msub><annotation encoding="application/x-tex">e_\chi</annotation></semantics></math>
+表示航向误差。</p>
+<p>制导命令可能是：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>a</mi><mi>c</mi></msub><mo>=</mo><msup><mrow><mo stretchy="true" form="prefix">[</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><msub><mi>a</mi><mi>n</mi></msub></mtd><mtd columnalign="center" style="text-align: center"><msub><mi>a</mi><mi>l</mi></msub></mtd></mtr></mtable><mo stretchy="true" form="postfix">]</mo></mrow><mi>⊤</mi></msup></mrow><annotation encoding="application/x-tex">
+a_c = \begin{bmatrix} a_n &amp; a_l \end{bmatrix}^\top
+</annotation></semantics></math></p>
+<p>这里的 a_c
+是三维制导层输出的加速度命令向量，后续控制接口要把它变成可执行姿态或舵面命令。</p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>a</mi><mi>n</mi></msub><annotation encoding="application/x-tex">a_n</annotation></semantics></math>
+和
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>a</mi><mi>l</mi></msub><annotation encoding="application/x-tex">a_l</annotation></semantics></math>
+分别表示法向和侧向加速度命令。控制接口要把这些命令转换为姿态、攻角、侧滑或倾侧角命令。若转换链没有写清，三维制导和姿态控制之间会断裂。</p>
+<h2 id="欧拉角">15.7 欧拉角</h2>
+<p>欧拉角直观，常用滚转、俯仰、偏航表示：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>η</mi><mo>=</mo><msup><mrow><mo stretchy="true" form="prefix">[</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><mi>ϕ</mi></mtd><mtd columnalign="center" style="text-align: center"><mi>θ</mi></mtd><mtd columnalign="center" style="text-align: center"><mi>ψ</mi></mtd></mtr></mtable><mo stretchy="true" form="postfix">]</mo></mrow><mi>⊤</mi></msup></mrow><annotation encoding="application/x-tex">
+\eta = \begin{bmatrix} \phi &amp; \theta &amp; \psi \end{bmatrix}^\top
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ϕ</mi><annotation encoding="application/x-tex">\phi</annotation></semantics></math>
+是滚转角，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>θ</mi><annotation encoding="application/x-tex">\theta</annotation></semantics></math>
+是俯仰角，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ψ</mi><annotation encoding="application/x-tex">\psi</annotation></semantics></math>
+是偏航角。</p>
+<p>对常见 3-2-1 欧拉角，矩阵
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>T</mi><mo stretchy="false" form="prefix">(</mo><mi>η</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">T(\eta)</annotation></semantics></math>
+在俯仰角接近
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>±</mi><msup><mn>90</mn><mo>∘</mo></msup></mrow><annotation encoding="application/x-tex">\pm 90^\circ</annotation></semantics></math>
+时会奇异。因此欧拉角适合教学解释和小姿态范围仿真，但高机动或工程级六自由度传播通常更适合四元数。</p>
+<p>控制设计中常见错误是把欧拉角误差当作任意大姿态误差直接线性相减。对大角度机动，应使用旋转矩阵或四元数误差。</p>
+<h2 id="方向余弦矩阵">15.8 方向余弦矩阵</h2>
+<p>方向余弦矩阵描述两个坐标系之间的旋转。若
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msubsup><mi>C</mi><mi>B</mi><mi>E</mi></msubsup><annotation encoding="application/x-tex">C_B^E</annotation></semantics></math>
+表示从机体系到本地 ENU 的旋转，则：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>v</mi><mi>E</mi></msub><mo>=</mo><msubsup><mi>C</mi><mi>B</mi><mi>E</mi></msubsup><msub><mi>v</mi><mi>B</mi></msub></mrow><annotation encoding="application/x-tex">
+v_E = C_B^E v_B
+</annotation></semantics></math></p>
+<p>这里的 C_B^E 是从机体系到本地 ENU 的方向余弦矩阵，v_E
+是变换后的速度向量。</p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>v</mi><mi>E</mi></msub><annotation encoding="application/x-tex">v_E</annotation></semantics></math>
+是 ENU
+系速度，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>v</mi><mi>B</mi></msub><annotation encoding="application/x-tex">v_B</annotation></semantics></math>
+是机体系速度。</p>
+<p>方向余弦矩阵应满足：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">(</mo><msubsup><mi>C</mi><mi>B</mi><mi>E</mi></msubsup><msup><mo stretchy="false" form="postfix">)</mo><mi>⊤</mi></msup><msubsup><mi>C</mi><mi>B</mi><mi>E</mi></msubsup><mo>=</mo><mi>I</mi></mrow><annotation encoding="application/x-tex">
+(C_B^E)^\top C_B^E = I
+</annotation></semantics></math></p>
+<p>这里的正交条件说明方向余弦矩阵必须保持纯旋转性质。</p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>I</mi><annotation encoding="application/x-tex">I</annotation></semantics></math>
+是单位阵。</p>
+<p>记
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>e</mi><mi>C</mi></msub><mo>=</mo><mo stretchy="false" form="postfix">∥</mo><mo stretchy="false" form="prefix">(</mo><msubsup><mi>C</mi><mi>B</mi><mi>E</mi></msubsup><msup><mo stretchy="false" form="postfix">)</mo><mi>⊤</mi></msup><msubsup><mi>C</mi><mi>B</mi><mi>E</mi></msubsup><mo>−</mo><mi>I</mi><mo stretchy="false" form="postfix">∥</mo></mrow><annotation encoding="application/x-tex">e_C = \| (C_B^E)^\top C_B^E - I \|</annotation></semantics></math>
+为方向余弦矩阵正交性误差；如果
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>e</mi><mi>C</mi></msub><annotation encoding="application/x-tex">e_C</annotation></semantics></math>
+随时间增长，说明姿态积分或归一化处理存在问题。</p>
+<h2 id="四元数">15.9 四元数</h2>
+<p>四元数可避免欧拉角奇异。设四元数为：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>q</mi><mo>=</mo><msup><mrow><mo stretchy="true" form="prefix">[</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><msub><mi>q</mi><mn>0</mn></msub></mtd><mtd columnalign="center" style="text-align: center"><msub><mi>q</mi><mn>1</mn></msub></mtd><mtd columnalign="center" style="text-align: center"><msub><mi>q</mi><mn>2</mn></msub></mtd><mtd columnalign="center" style="text-align: center"><msub><mi>q</mi><mn>3</mn></msub></mtd></mtr></mtable><mo stretchy="true" form="postfix">]</mo></mrow><mi>⊤</mi></msup></mrow><annotation encoding="application/x-tex">
+q = \begin{bmatrix} q_0 &amp; q_1 &amp; q_2 &amp; q_3 \end{bmatrix}^\top
+</annotation></semantics></math></p>
+<p>这里的 q 是四元数，q_0 为标量部，后三个分量为向量部。</p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>q</mi><mn>0</mn></msub><annotation encoding="application/x-tex">q_0</annotation></semantics></math>
+是标量部。</p>
+<p>运动学方程可写成：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>q</mi><mo accent="true">̇</mo></mover><mo>=</mo><mfrac><mn>1</mn><mn>2</mn></mfrac><mi mathvariant="normal">Ω</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>ω</mi><mi>B</mi></msub><mo stretchy="false" form="postfix">)</mo><mi>q</mi></mrow><annotation encoding="application/x-tex">
+\dot q = \frac{1}{2}\Omega(\omega_B)q
+</annotation></semantics></math></p>
+<p>这里的四元数运动学把角速度映射成姿态变化率。</p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Ω</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>ω</mi><mi>B</mi></msub><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\Omega(\omega_B)</annotation></semantics></math>
+是由角速度构造的四元数运动学矩阵。</p>
+<p>四元数满足归一化条件：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="postfix">∥</mo><mi>q</mi><mo stretchy="false" form="postfix">∥</mo><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">
+\|q\|=1
+</annotation></semantics></math></p>
+<p>这里的归一化条件保证四元数始终对应合法姿态。</p>
+<p>这不是控制律的一部分，而是姿态表示的数值卫生处理。报告六自由度仿真时，应说明四元数约定、归一化策略和姿态矩阵健康指标。</p>
+<h2 id="纵向角度关系">15.10 纵向角度关系</h2>
+<p>纵向模型中常用关系为：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>θ</mi><mo>=</mo><mi>α</mi><mo>+</mo><mi>γ</mi></mrow><annotation encoding="application/x-tex">
+\theta = \alpha + \gamma
+</annotation></semantics></math></p>
+<p>其中：</p>
+<ul>
+<li><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>θ</mi><annotation encoding="application/x-tex">\theta</annotation></semantics></math>
+是俯仰角；</li>
+<li><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>α</mi><annotation encoding="application/x-tex">\alpha</annotation></semantics></math>
+是攻角；</li>
+<li><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>γ</mi><annotation encoding="application/x-tex">\gamma</annotation></semantics></math>
+是航迹角。</li>
+</ul>
+<p>这个关系只在纵向平面和小侧滑条件下清楚成立。进入三维机动后，姿态、速度方向、攻角和侧滑角之间的关系必须通过完整坐标变换计算，不能继续简单套用这个关系。</p>
+<h2 id="坐标变换进入控制闭环">15.11 坐标变换进入控制闭环</h2>
+<p>一个三维闭环通常包含下列变换链：</p>
+<ul>
+<li>制导误差；</li>
+<li>期望升力方向；</li>
+<li>攻角/侧滑/姿态命令；</li>
+<li>机体系力矩命令；</li>
+<li>执行机构偏角；</li>
+<li>气动力和力矩；</li>
+<li>本地坐标系位置速度更新。</li>
+</ul>
+<p>每一步都有坐标变换。若气动力在风轴系中计算，而转动方程在机体系中积分，就必须先把气动力矩转换到机体系。若平动方程在
+ENU 中积分，就必须把机体系合力转换到 ENU。</p>
+<h2 id="坐标和姿态接口契约">15.12 坐标和姿态接口契约</h2>
+<p>坐标约定应写成接口契约，而不是散落在公式和代码注释里。一个最小契约可写为：</p>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>层次</th>
+<th>约定</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>位置和速度</td>
+<td>采用 ENU 坐标系；位置为
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">[</mo><msub><mi>x</mi><mi>E</mi></msub><mo>,</mo><msub><mi>y</mi><mi>N</mi></msub><mo>,</mo><mi>h</mi><msup><mo stretchy="false" form="postfix">]</mo><mi>⊤</mi></msup></mrow><annotation encoding="application/x-tex">[x_E,y_N,h]^\top</annotation></semantics></math>；速度为
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">[</mo><msub><mi>v</mi><mi>E</mi></msub><mo>,</mo><msub><mi>v</mi><mi>N</mi></msub><mo>,</mo><msub><mi>v</mi><mi>U</mi></msub><msup><mo stretchy="false" form="postfix">]</mo><mi>⊤</mi></msup></mrow><annotation encoding="application/x-tex">[v_E,v_N,v_U]^\top</annotation></semantics></math></td>
+</tr>
+<tr>
+<td>机体系</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>x</mi><mi>B</mi></msub><annotation encoding="application/x-tex">x_B</annotation></semantics></math>
+指向机头，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>y</mi><mi>B</mi></msub><annotation encoding="application/x-tex">y_B</annotation></semantics></math>
+指向右翼，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>z</mi><mi>B</mi></msub><annotation encoding="application/x-tex">z_B</annotation></semantics></math>
+指向机体下方；角速度为
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">[</mo><mi>p</mi><mo>,</mo><mi>q</mi><mo>,</mo><mi>r</mi><msup><mo stretchy="false" form="postfix">]</mo><mi>⊤</mi></msup></mrow><annotation encoding="application/x-tex">[p,q,r]^\top</annotation></semantics></math></td>
+</tr>
+<tr>
+<td>姿态</td>
+<td>四元数按标量部在前排列；方向余弦矩阵表示机体系到 ENU
+的变换；欧拉角顺序取 3-2-1</td>
+</tr>
+<tr>
+<td>气动角</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>α</mi><mo>=</mo><mi>atan2</mi><mo>&#8289;</mo><mo stretchy="false" form="prefix">(</mo><msub><mi>w</mi><mrow><mi mathvariant="normal">b</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">d</mi><mi mathvariant="normal">y</mi></mrow></msub><mo>,</mo><msub><mi>u</mi><mrow><mi mathvariant="normal">b</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">d</mi><mi mathvariant="normal">y</mi></mrow></msub><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\alpha=\operatorname{atan2}(w_{\mathrm{body}},u_{\mathrm{body}})</annotation></semantics></math>；<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>β</mi><mo>=</mo><mi>arcsin</mi><mo>&#8289;</mo><mo stretchy="false" form="prefix">(</mo><msub><mi>v</mi><mrow><mi mathvariant="normal">b</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">d</mi><mi mathvariant="normal">y</mi></mrow></msub><mi>/</mi><mi>V</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\beta=\arcsin(v_{\mathrm{body}}/V)</annotation></semantics></math></td>
+</tr>
+</tbody>
+</table>
+<p>接口契约还应包含健康字段：</p>
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ϵ</mi><mi>q</mi></msub><annotation encoding="application/x-tex">\epsilon_q</annotation></semantics></math></td>
+<td>四元数范数偏离 1 的程度</td>
+</tr>
+<tr>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ϵ</mi><mi>C</mi></msub><annotation encoding="application/x-tex">\epsilon_C</annotation></semantics></math></td>
+<td>DCM 正交性误差</td>
+</tr>
+<tr>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ϵ</mi><mrow><mi>det</mi><mo>&#8289;</mo><mi>C</mi></mrow></msub><annotation encoding="application/x-tex">\epsilon_{\det C}</annotation></semantics></math></td>
+<td>DCM 行列式偏离 1 的程度</td>
+</tr>
+<tr>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>r</mi><mi>F</mi></msub><annotation encoding="application/x-tex">r_F</annotation></semantics></math></td>
+<td>同一合力经不同路径转换后的差值</td>
+</tr>
+<tr>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi mathvariant="normal">Π</mi><mrow><mi mathvariant="normal">w</mi><mi mathvariant="normal">r</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">p</mi></mrow></msub><annotation encoding="application/x-tex">\Pi_{\mathrm{wrap}}</annotation></semantics></math></td>
+<td>姿态或航向角是否跨越
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>±</mi><mi>π</mi></mrow><annotation encoding="application/x-tex">\pm\pi</annotation></semantics></math></td>
+</tr>
+</tbody>
+</table>
+<p>这些字段不是装饰性日志。坐标变换一旦出错，控制器可能仍然给出平滑曲线，但曲线对应的是错误物理方向。</p>
+<h2 id="低阶例题升力符号反向如何污染闭环">15.13
+低阶例题：升力符号反向如何污染闭环</h2>
+<p>考虑纵向近似：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>h</mi><mo accent="true">̇</mo></mover><mo>=</mo><mi>V</mi><mi>sin</mi><mo>&#8289;</mo><mi>γ</mi><mo>,</mo><mspace width="2.0em"></mspace><mover><mi>γ</mi><mo accent="true">̇</mo></mover><mo>=</mo><mfrac><mi>L</mi><mrow><mi>m</mi><mi>V</mi></mrow></mfrac><mo>−</mo><mfrac><mrow><mi>g</mi><mi>cos</mi><mo>&#8289;</mo><mi>γ</mi></mrow><mi>V</mi></mfrac></mrow><annotation encoding="application/x-tex">
+\dot h = V\sin\gamma,\qquad \dot\gamma = \frac{L}{mV} - \frac{g\cos\gamma}{V}
+</annotation></semantics></math></p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>h</mi><annotation encoding="application/x-tex">h</annotation></semantics></math>
+是高度，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>V</mi><annotation encoding="application/x-tex">V</annotation></semantics></math>
+是速度，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>γ</mi><annotation encoding="application/x-tex">\gamma</annotation></semantics></math>
+是航迹角，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>L</mi><annotation encoding="application/x-tex">L</annotation></semantics></math>
+是升力，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>m</mi><annotation encoding="application/x-tex">m</annotation></semantics></math>
+是质量，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>g</mi><annotation encoding="application/x-tex">g</annotation></semantics></math>
+是重力加速度。</p>
+<p>如果升力方向定义反了，就会让“增大攻角产生更大升力、提高航迹角”的物理关系完全反向。外环可能不断增大攻角或姿态命令试图爬升，内环和执行机构则持续饱和，动压、攻角和过载指标也会被错误解释。</p>
+<p>这个例题的检查方法很简单：在一个小扰动飞行点上，让攻角或升力命令增加，检查：</p>
+<ul>
+<li>航迹角变化方向是否正确；</li>
+<li>高度变化趋势是否正确；</li>
+<li>机体系到 ENU 合力转换是否和速度坐标基投影一致；</li>
+<li>姿态参考变化是否和制导命令方向一致；</li>
+<li>若出现反向响应，先查坐标和符号，不要先调控制增益。</li>
+</ul>
+<h2 id="坐标变换验证矩阵">15.14 坐标变换验证矩阵</h2>
+<p>坐标和姿态章节的验证不应只检查公式是否写出。建议至少设计以下矩阵：</p>
+<table>
+<thead>
+<tr>
+<th>场景</th>
+<th>检查变量</th>
+<th>通过口径</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ENU/NED 高度方向</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>h</mi><mo>,</mo><mi>D</mi><mo>,</mo><msub><mi>v</mi><mi>U</mi></msub></mrow><annotation encoding="application/x-tex">h,D,v_U</annotation></semantics></math></td>
+<td>上升时高度增加，重力方向一致</td>
+</tr>
+<tr>
+<td>机体系单位力</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>F</mi><mi>x</mi></msub><mo>,</mo><msub><mi>F</mi><mi>y</mi></msub><mo>,</mo><msub><mi>F</mi><mi>z</mi></msub></mrow><annotation encoding="application/x-tex">F_x,F_y,F_z</annotation></semantics></math></td>
+<td>单位力转换到 ENU 后方向符合姿态</td>
+</tr>
+<tr>
+<td>四元数归一化</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="postfix">∥</mo><mi>q</mi><mo stretchy="false" form="postfix">∥</mo></mrow><annotation encoding="application/x-tex">\|q\|</annotation></semantics></math></td>
+<td>长时间积分后仍接近 1</td>
+</tr>
+<tr>
+<td>DCM 正交性</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>C</mi><mi>⊤</mi></msup><mi>C</mi><mo>−</mo><mi>I</mi></mrow><annotation encoding="application/x-tex">C^\top C-I</annotation></semantics></math></td>
+<td>数值误差保持在阈值内</td>
+</tr>
+<tr>
+<td>攻角侧滑角定义</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>α</mi><mo>,</mo><mi>β</mi></mrow><annotation encoding="application/x-tex">\alpha,\beta</annotation></semantics></math></td>
+<td>与气动表约定一致</td>
+</tr>
+</tbody>
+</table>
+<p>如果这些验证不过关，后续气动、控制分配和制导闭环都不应继续往下接。</p>
+<h2 id="本章小结">15.15 本章小结</h2>
+<p>坐标系、运动学和姿态描述是高超声速控制的基础接口。只要
+ENU/NED、机体系、风轴系、欧拉角、四元数和 DCM
+的定义统一了，后面的气动建模、制导命令、控制分配和六自由度仿真才有共同语言。反之，哪怕控制律本身正确，坐标和符号错误也足以让闭环结论失真。</p>
+<h2 id="练习">15.16 练习</h2>
+<ol type="1">
+<li>列出高超声速控制中至少五个常见坐标系，并说明各自用途。</li>
+<li>给出 ENU 约定下的位置、速度和机体系角速度定义。</li>
+<li>比较欧拉角和四元数在姿态仿真中的优缺点。</li>
+<li>用方向余弦矩阵写出机体系速度到本地水平系速度的变换。</li>
+<li>解释为什么纵向近似里常用
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>θ</mi><mo>=</mo><mi>α</mi><mo>+</mo><mi>γ</mi></mrow><annotation encoding="application/x-tex">\theta=\alpha+\gamma</annotation></semantics></math>，而三维机动中不能直接使用它。</li>
+<li>设计一个坐标变换验证矩阵，至少包含四元数归一化和 DCM
+正交性检查。</li>
+</ol>
+
+      </article>
+      
+      <nav class="book-bottom-nav" aria-label="章节导航">
+        <a href="./14-vehicle-types-mission-profiles.html">上一章：第14章 高超声速飞行器类型与任务剖面</a>
+        <a href="./index.html">卷首页</a>
+        <a href="./16-atmosphere-flight-conditions.html">下一章：第16章 大气环境与飞行条件</a>
+      </nav>
+    </main>
+  </div>
+</body>
+</html>

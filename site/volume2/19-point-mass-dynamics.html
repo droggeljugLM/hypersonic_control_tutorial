@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>第19章 质点动力学模型</title>
+  <style>
+    :root {
+      --paper: #f7f3eb;
+      --ink: #1f2937;
+      --muted: #5b6472;
+      --line: color-mix(in srgb, #e3f5f2 68%, #cbd5e1 32%);
+      --accent: #18786f;
+      --accent-soft: #e3f5f2;
+      --accent-deep: #0e4b45;
+      color-scheme: light;
+    }
+    html {
+      -webkit-text-size-adjust: 100%;
+      background:
+        radial-gradient(circle at top left, #e3f5f2 0, rgba(255,255,255,0) 32%),
+        linear-gradient(180deg, #fbfaf6 0%, var(--paper) 18%, #f7f1e6 100%);
+    }
+    body {
+      margin: 0;
+      font-family: "Source Han Serif SC", "Songti SC", "Noto Serif CJK SC", "Microsoft YaHei", serif;
+      color: var(--ink);
+      line-height: 1.78;
+      letter-spacing: 0;
+    }
+    a { color: var(--accent-deep); }
+    .book-app {
+      display: grid;
+      grid-template-columns: 280px minmax(0, 1fr);
+      min-height: 100vh;
+    }
+    .book-sidebar {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow: auto;
+      padding: 1.2rem 1rem 1.2rem 1.15rem;
+      border-right: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(255,255,255,0.86), rgba(255,255,255,0.72));
+      backdrop-filter: blur(10px);
+    }
+    .sidebar-shell { position: sticky; top: 0; display: flex; flex-direction: column; gap: 1rem; }
+    .sidebar-brand {
+      padding: 0.95rem 0.95rem 1rem;
+      border-radius: 18px;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.95), rgba(255,255,255,0.84)),
+        linear-gradient(135deg, var(--accent-soft), rgba(255,255,255,0));
+      border: 1px solid var(--line);
+      box-shadow: 0 12px 28px rgba(31, 41, 55, 0.06);
+    }
+    .sidebar-brand .kicker { margin: 0; color: var(--accent); font-size: 0.82rem; font-weight: 700; }
+    .sidebar-brand h2 { margin: 0.45rem 0 0.25rem; font-size: 1.08rem; line-height: 1.3; color: var(--ink); }
+    .sidebar-brand p { margin: 0.35rem 0 0; color: var(--muted); font-size: 0.9rem; }
+    .sidebar-links { display: grid; gap: 0.45rem; }
+    .sidebar-link {
+      display: grid;
+      grid-template-columns: 2.2rem minmax(0, 1fr);
+      gap: 0.6rem;
+      align-items: start;
+      padding: 0.7rem 0.75rem;
+      border-radius: 14px;
+      text-decoration: none;
+      background: rgba(255,255,255,0.72);
+      border: 1px solid rgba(31,41,55,0.07);
+      color: var(--ink);
+    }
+    .sidebar-link:hover { background: rgba(255,255,255,0.95); border-color: var(--line); }
+    .sidebar-link.active {
+      background: linear-gradient(135deg, rgba(255,255,255,0.98), rgba(255,255,255,0.9));
+      border-color: var(--accent-soft);
+      box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent-soft) 68%, #ffffff 32%);
+    }
+    .sidebar-index {
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      min-width: 2rem;
+      height: 2rem;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent-deep);
+      font-size: 0.78rem;
+      font-weight: 800;
+    }
+    .sidebar-title { font-size: 0.94rem; line-height: 1.35; }
+    .book-main { min-width: 0; padding: 1.25rem 1.45rem 1.8rem; }
+    .book-page-header {
+      padding: 0.85rem 0 1rem;
+      margin-bottom: 1rem;
+      border-bottom: 1px solid var(--line);
+    }
+    .page-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.28rem 0.72rem;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.82);
+      border: 1px solid var(--line);
+      color: var(--accent-deep);
+      font-size: 0.8rem;
+      font-weight: 700;
+    }
+    .book-page-header h1 {
+      margin: 0.7rem 0 0;
+      font-size: 1.85rem;
+      line-height: 1.22;
+      color: var(--accent-deep);
+      border: 0;
+      padding: 0;
+    }
+    .book-page-header p { margin: 0.45rem 0 0; color: var(--muted); max-width: 62rem; }
+    .book-article { max-width: 900px; margin: 0; padding: 0 0 1.2rem; }
+    .book-article h1, .book-article h2, .book-article h3, .book-article h4, .book-article h5, .book-article h6 {
+      line-height: 1.28;
+      margin-top: 1.45em;
+      margin-bottom: 0.55em;
+      color: var(--accent-deep);
+    }
+    .book-article h1 { font-size: 2rem; border-bottom: 2px solid var(--line); padding-bottom: 0.42rem; }
+    .book-article h1:first-of-type { margin-top: 0; }
+    .book-article h2 { font-size: 1.42rem; }
+    .book-article h3 { font-size: 1.12rem; }
+    .book-article p, .book-article li, .book-article dd, .book-article td, .book-article th { text-align: justify; text-justify: inter-ideograph; }
+    .book-article p { margin: 0.85rem 0; }
+    .book-article code, .book-article pre { font-family: "Cascadia Mono", "Source Code Pro", Consolas, monospace; font-size: 0.94em; }
+    .book-article code {
+      padding: 0.02rem 0.24rem;
+      background: color-mix(in srgb, var(--accent-soft) 34%, #ffffff 66%);
+      border: 0;
+      border-bottom: 1px solid color-mix(in srgb, var(--accent-soft) 74%, #d1d5db 26%);
+      border-radius: 4px;
+      color: #253244;
+      box-decoration-break: clone;
+      -webkit-box-decoration-break: clone;
+    }
+    .book-article pre {
+      padding: 1rem 1.1rem;
+      overflow: auto;
+      background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,253,248,0.98));
+      border: 1px solid color-mix(in srgb, var(--accent-soft) 54%, #d1d5db 46%);
+      border-left: 5px solid var(--accent);
+      border-radius: 14px;
+      box-shadow: 0 8px 22px rgba(31, 41, 55, 0.05);
+    }
+    .book-article pre code { padding: 0; border: 0; background: transparent; color: inherit; }
+    .book-article table {
+      border-collapse: collapse;
+      width: 100%;
+      margin: 1rem 0 1.25rem;
+      background: rgba(255,255,255,0.82);
+      overflow: hidden;
+      border-radius: 12px;
+    }
+    .book-article th, .book-article td { border: 1px solid var(--line); padding: 0.5rem 0.7rem; vertical-align: top; }
+    .book-article th { background: color-mix(in srgb, var(--accent-soft) 42%, #ffffff 58%); }
+    .book-article blockquote {
+      margin: 1rem 0;
+      padding: 0.25rem 0 0.25rem 1rem;
+      border-left: 4px solid var(--accent);
+      color: #374151;
+      background: linear-gradient(90deg, rgba(255,255,255,0.72), rgba(255,255,255,0.48));
+      border-radius: 0 12px 12px 0;
+    }
+    .book-bottom-nav {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-top: 2.2rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--line);
+    }
+    .book-bottom-nav a {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.6rem 0.9rem;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.84);
+      text-decoration: none;
+      font-weight: 700;
+    }
+    .book-bottom-nav span {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.6rem 0.9rem;
+      border-radius: 999px;
+      border: 1px solid rgba(31,41,55,0.08);
+      background: rgba(255,255,255,0.54);
+      color: rgba(31,41,55,0.42);
+      font-weight: 700;
+    }
+    .book-bottom-nav a:hover { background: rgba(255,255,255,0.98); }
+    .book-volume-intro {
+      margin: 0 0 1.25rem;
+      padding: 1.2rem 1.25rem 1.1rem;
+      border-radius: 18px;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.96), rgba(255,255,255,0.78)),
+        linear-gradient(135deg, var(--accent-soft), rgba(255,255,255,0));
+      border: 1px solid var(--line);
+      box-shadow: 0 14px 34px rgba(31, 41, 55, 0.06);
+    }
+    .volume-intro-kicker {
+      margin: 0;
+      color: var(--accent);
+      font-size: 0.84rem;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    .book-volume-intro h2 {
+      margin: 0.55rem 0 0.55rem;
+      font-size: 1.28rem;
+      line-height: 1.35;
+      color: var(--accent-deep);
+    }
+    .volume-intro-summary {
+      margin: 0;
+      color: var(--muted);
+      max-width: 68rem;
+    }
+    .volume-intro-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.8rem;
+      margin-top: 1rem;
+    }
+    .volume-intro-box {
+      padding: 0.85rem 0.9rem;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.72);
+      border: 1px solid rgba(31,41,55,0.08);
+    }
+    .volume-intro-box span {
+      display: block;
+      color: var(--accent);
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+    }
+    .volume-intro-box strong {
+      display: block;
+      margin-top: 0.35rem;
+      color: var(--ink);
+      font-size: 0.95rem;
+      line-height: 1.45;
+    }
+    .volume-intro-note {
+      margin-top: 0.9rem;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+    @media (max-width: 1180px) {
+      .book-app { grid-template-columns: 1fr; }
+      .book-sidebar {
+        position: relative;
+        height: auto;
+        border-right: 0;
+        border-bottom: 1px solid var(--line);
+      }
+      .sidebar-shell { position: static; }
+    }
+    @media (max-width: 900px) {
+      .book-main { padding: 1rem 1rem 1.5rem; }
+      .book-bottom-nav { flex-direction: column; }
+      .volume-intro-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="book-app">
+    <aside class="book-sidebar">
+      <div class="sidebar-shell">
+        <div class="sidebar-brand">
+          <p class="kicker">高超声速飞行器控制教程</p>
+          <h2>第二卷 高超声速飞行器建模与飞行动力学</h2>
+          <p>对象与模型</p>
+        </div>
+        <nav class="sidebar-links" aria-label="本卷目录">
+          <a class="sidebar-link" href="./index.html"><span class="sidebar-index">0</span><span class="sidebar-title">卷首页</span></a>
+<a class="sidebar-link" href="./14-vehicle-types-mission-profiles.html"><span class="sidebar-index">01</span><span class="sidebar-title">第14章 高超声速飞行器类型与任务剖面</span></a>
+<a class="sidebar-link" href="./15-coordinate-kinematics-attitude.html"><span class="sidebar-index">02</span><span class="sidebar-title">第15章 坐标系、运动学与姿态描述</span></a>
+<a class="sidebar-link" href="./16-atmosphere-flight-conditions.html"><span class="sidebar-index">03</span><span class="sidebar-title">第16章 大气环境与飞行条件</span></a>
+<a class="sidebar-link" href="./17-aerodynamic-force-moment-modeling.html"><span class="sidebar-index">04</span><span class="sidebar-title">第17章 气动力与气动力矩建模</span></a>
+<a class="sidebar-link" href="./18-propulsion-aero-propulsive-coupling.html"><span class="sidebar-index">05</span><span class="sidebar-title">第18章 推进系统与气动推进耦合</span></a>
+<a class="sidebar-link active" href="./19-point-mass-dynamics.html"><span class="sidebar-index">06</span><span class="sidebar-title">第19章 质点动力学模型</span></a>
+<a class="sidebar-link" href="./20-longitudinal-rigid-body-dynamics.html"><span class="sidebar-index">07</span><span class="sidebar-title">第20章 纵向刚体动力学模型</span></a>
+<a class="sidebar-link" href="./21-lateral-directional-dynamics.html"><span class="sidebar-index">08</span><span class="sidebar-title">第21章 横侧向动力学模型</span></a>
+<a class="sidebar-link" href="./22-six-dof-rigid-body-model.html"><span class="sidebar-index">09</span><span class="sidebar-title">第22章 六自由度刚体模型</span></a>
+<a class="sidebar-link" href="./23-flexible-aeroelastic-modeling.html"><span class="sidebar-index">10</span><span class="sidebar-title">第23章 刚柔耦合与气动弹性模型</span></a>
+<a class="sidebar-link" href="./24-actuator-sensor-computation-modeling.html"><span class="sidebar-index">11</span><span class="sidebar-title">第24章 执行机构、传感器与计算系统建模</span></a>
+<a class="sidebar-link" href="./25-trim-linearization-modal-analysis.html"><span class="sidebar-index">12</span><span class="sidebar-title">第25章 配平、线性化与模态分析</span></a>
+        </nav>
+      </div>
+    </aside>
+    <main class="book-main">
+      <header class="book-page-header">
+        <div class="page-eyebrow">第2册·章节页06</div>
+        <h1 id="volume2--19-point-mass-dynamics">第19章 质点动力学模型</h1>
+        <p>本页是章节正文页。左侧目录用于回到本卷其他章节，底部导航用于前后章跳转。</p>
+      </header>
+      <article class="book-article">
+        <h2 id="问题背景">19.1 问题背景</h2>
+<p>质点模型是高超声速飞行器控制学习中最基础的动力学模型之一。它忽略姿态角速度、舵面细节和结构柔性，只保留位置、速度、航迹角、航向角、能量和路径约束。</p>
+<p>质点模型适合回答三个问题：参考轨迹是否可行，速度和高度如何随时间变化，以及动压、热流和过载走廊是否会被违反。它不适合证明舵面控制、姿态稳定、控制分配或六自由度闭环性能。</p>
+<h2 id="模型层级中的位置">19.2 模型层级中的位置</h2>
+<p>在第二卷的层级中，质点模型处于最基础的路径层。后续的纵向刚体模型、横侧向模型、六自由度刚体模型以及刚柔耦合和气动推进耦合高保真模型，都要建立在它所提供的轨迹与约束抽象之上。</p>
+<p>质点模型把飞行器视为具有质量的运动点。控制输入通常不是舵面，而是升力、阻力、推力、倾侧角、法向加速度或等效制导命令。</p>
+<h2 id="纵向质点模型">19.3 纵向质点模型</h2>
+<p>最常用的纵向质点状态为</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>x</mi><mi>p</mi></msub><mo>=</mo><msup><mrow><mo stretchy="true" form="prefix">[</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><mi>V</mi></mtd><mtd columnalign="center" style="text-align: center"><mi>γ</mi></mtd><mtd columnalign="center" style="text-align: center"><mi>h</mi></mtd><mtd columnalign="center" style="text-align: center"><mi>s</mi></mtd></mtr></mtable><mo stretchy="true" form="postfix">]</mo></mrow><mi>⊤</mi></msup></mrow><annotation encoding="application/x-tex">
+x_p = \begin{bmatrix} V &amp; \gamma &amp; h &amp; s \end{bmatrix}^\top
+</annotation></semantics></math></p>
+<p>这里的
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>x</mi><mi>p</mi></msub><annotation encoding="application/x-tex">x_p</annotation></semantics></math>
+是纵向质点状态向量，包含速度、航迹角、高度和航程。</p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>V</mi><annotation encoding="application/x-tex">V</annotation></semantics></math>
+是速度，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>γ</mi><annotation encoding="application/x-tex">\gamma</annotation></semantics></math>
+是航迹角，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>h</mi><annotation encoding="application/x-tex">h</annotation></semantics></math>
+是高度，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>s</mi><annotation encoding="application/x-tex">s</annotation></semantics></math>
+是航程。</p>
+<p>一个常见形式为</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtable><mtr><mtd columnalign="right" style="text-align: right; padding-right: 0"><mover><mi>V</mi><mo accent="true">̇</mo></mover></mtd><mtd columnalign="left" style="text-align: left; padding-left: 0"><mo>=</mo><mfrac><mrow><mi>T</mi><mo>−</mo><mi>D</mi></mrow><mi>m</mi></mfrac><mo>−</mo><mi>g</mi><mi>sin</mi><mo>&#8289;</mo><mi>γ</mi><mo>,</mo></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right; padding-right: 0"><mover><mi>γ</mi><mo accent="true">̇</mo></mover></mtd><mtd columnalign="left" style="text-align: left; padding-left: 0"><mo>=</mo><mfrac><mi>L</mi><mrow><mi>m</mi><mi>V</mi></mrow></mfrac><mo>−</mo><mfrac><mrow><mi>g</mi><mi>cos</mi><mo>&#8289;</mo><mi>γ</mi></mrow><mi>V</mi></mfrac><mo>,</mo></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right; padding-right: 0"><mover><mi>h</mi><mo accent="true">̇</mo></mover></mtd><mtd columnalign="left" style="text-align: left; padding-left: 0"><mo>=</mo><mi>V</mi><mi>sin</mi><mo>&#8289;</mo><mi>γ</mi><mo>,</mo></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right; padding-right: 0"><mover><mi>s</mi><mo accent="true">̇</mo></mover></mtd><mtd columnalign="left" style="text-align: left; padding-left: 0"><mo>=</mo><mi>V</mi><mi>cos</mi><mo>&#8289;</mo><mi>γ</mi><mi>.</mi></mtd></mtr></mtable><annotation encoding="application/x-tex">
+\begin{aligned}
+\dot V &amp;= \frac{T - D}{m} - g \sin\gamma, \\
+\dot \gamma &amp;= \frac{L}{mV} - \frac{g\cos\gamma}{V}, \\
+\dot h &amp;= V\sin\gamma, \\
+\dot s &amp;= V\cos\gamma.
+\end{aligned}
+</annotation></semantics></math></p>
+<p>这里的四个方程分别描述速度、航迹角、高度和航程的质点演化。</p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>T</mi><annotation encoding="application/x-tex">T</annotation></semantics></math>
+是推力，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>D</mi><annotation encoding="application/x-tex">D</annotation></semantics></math>
+是阻力，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>L</mi><annotation encoding="application/x-tex">L</annotation></semantics></math>
+是升力，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>m</mi><annotation encoding="application/x-tex">m</annotation></semantics></math>
+是质量，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>g</mi><annotation encoding="application/x-tex">g</annotation></semantics></math>
+是重力加速度。这里的
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>L</mi><annotation encoding="application/x-tex">L</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>D</mi><annotation encoding="application/x-tex">D</annotation></semantics></math>
+和
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>T</mi><annotation encoding="application/x-tex">T</annotation></semantics></math>
+可来自简单气动/推进模型，也可由轨迹优化或制导律间接给出。</p>
+<h2 id="三维质点模型">19.4 三维质点模型</h2>
+<p>三维任务需要加入水平位置和航向角。一个本地 ENU 形式的状态可写为</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>x</mi><mi>p</mi></msub><mo>=</mo><msup><mrow><mo stretchy="true" form="prefix">[</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><msub><mi>x</mi><mi>E</mi></msub></mtd><mtd columnalign="center" style="text-align: center"><msub><mi>y</mi><mi>N</mi></msub></mtd><mtd columnalign="center" style="text-align: center"><mi>h</mi></mtd><mtd columnalign="center" style="text-align: center"><mi>V</mi></mtd><mtd columnalign="center" style="text-align: center"><mi>γ</mi></mtd><mtd columnalign="center" style="text-align: center"><mi>χ</mi></mtd></mtr></mtable><mo stretchy="true" form="postfix">]</mo></mrow><mi>⊤</mi></msup></mrow><annotation encoding="application/x-tex">
+x_p = \begin{bmatrix} x_E &amp; y_N &amp; h &amp; V &amp; \gamma &amp; \chi \end{bmatrix}^\top
+</annotation></semantics></math></p>
+<p>这里的
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>x</mi><mi>p</mi></msub><annotation encoding="application/x-tex">x_p</annotation></semantics></math>
+是三维质点状态向量，包含水平位置、高度、速度、航迹角和航向角。</p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>x</mi><mi>E</mi></msub><annotation encoding="application/x-tex">x_E</annotation></semantics></math>
+是东向位置，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>y</mi><mi>N</mi></msub><annotation encoding="application/x-tex">y_N</annotation></semantics></math>
+是北向位置，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>h</mi><annotation encoding="application/x-tex">h</annotation></semantics></math>
+是高度，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>V</mi><annotation encoding="application/x-tex">V</annotation></semantics></math>
+是速度，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>γ</mi><annotation encoding="application/x-tex">\gamma</annotation></semantics></math>
+是航迹角，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>χ</mi><annotation encoding="application/x-tex">\chi</annotation></semantics></math>
+是航向角。</p>
+<p>简化运动学为</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtable><mtr><mtd columnalign="right" style="text-align: right; padding-right: 0"><msub><mover><mi>x</mi><mo accent="true">̇</mo></mover><mi>E</mi></msub></mtd><mtd columnalign="left" style="text-align: left; padding-left: 0"><mo>=</mo><mi>V</mi><mi>cos</mi><mo>&#8289;</mo><mi>γ</mi><mi>sin</mi><mo>&#8289;</mo><mi>χ</mi><mo>,</mo></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right; padding-right: 0"><msub><mover><mi>y</mi><mo accent="true">̇</mo></mover><mi>N</mi></msub></mtd><mtd columnalign="left" style="text-align: left; padding-left: 0"><mo>=</mo><mi>V</mi><mi>cos</mi><mo>&#8289;</mo><mi>γ</mi><mi>cos</mi><mo>&#8289;</mo><mi>χ</mi><mo>,</mo></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right; padding-right: 0"><mover><mi>h</mi><mo accent="true">̇</mo></mover></mtd><mtd columnalign="left" style="text-align: left; padding-left: 0"><mo>=</mo><mi>V</mi><mi>sin</mi><mo>&#8289;</mo><mi>γ</mi><mi>.</mi></mtd></mtr></mtable><annotation encoding="application/x-tex">
+\begin{aligned}
+\dot x_E &amp;= V\cos\gamma\sin\chi, \\
+\dot y_N &amp;= V\cos\gamma\cos\chi, \\
+\dot h &amp;= V\sin\gamma.
+\end{aligned}
+</annotation></semantics></math></p>
+<p>这里的三条运动学方程给出水平位置和高度的变化率。</p>
+<p>在三维路径层中，制导命令常用法向和侧向加速度表示。质点模型的作用是先检查这种命令是否能在飞行包线内实现。</p>
+<h2 id="能量与可行性">19.5 能量与可行性</h2>
+<p>质点模型常配合能量变量使用</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>E</mi><mo>=</mo><mfrac><mn>1</mn><mn>2</mn></mfrac><msup><mi>V</mi><mn>2</mn></msup><mo>+</mo><mi>g</mi><mi>h</mi></mrow><annotation encoding="application/x-tex">
+E = \frac{1}{2}V^2 + gh
+</annotation></semantics></math></p>
+<p>这里的
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>E</mi><annotation encoding="application/x-tex">E</annotation></semantics></math>
+是单位质量机械能，由速度项和高度项组成。</p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>E</mi><annotation encoding="application/x-tex">E</annotation></semantics></math>
+是单位质量的机械能。</p>
+<p>若参考速度上升而高度下降，动压可能迅速增大；若速度下降过快，高度参考可能无法维持。能量视角通常比单纯高度视角更容易解释参考可行性。</p>
+<h2 id="路径约束">19.6 路径约束</h2>
+<p>质点模型最重要的价值之一，是可以把路径约束写成可计算的量</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>q</mi><mo accent="true">‾</mo></mover><mo>=</mo><mfrac><mn>1</mn><mn>2</mn></mfrac><mi>ρ</mi><mo stretchy="false" form="prefix">(</mo><mi>h</mi><mo stretchy="false" form="postfix">)</mo><msup><mi>V</mi><mn>2</mn></msup></mrow><annotation encoding="application/x-tex">
+\bar q = \frac{1}{2}\rho(h)V^2
+</annotation></semantics></math></p>
+<p>这里的
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mover><mi>q</mi><mo accent="true">‾</mo></mover><annotation encoding="application/x-tex">\bar q</annotation></semantics></math>
+是动压，它把高度处密度和速度平方联系起来。</p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mover><mi>q</mi><mo accent="true">‾</mo></mover><annotation encoding="application/x-tex">\bar q</annotation></semantics></math>
+是动压，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ρ</mi><mo stretchy="false" form="prefix">(</mo><mi>h</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\rho(h)</annotation></semantics></math>
+是高度
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>h</mi><annotation encoding="application/x-tex">h</annotation></semantics></math>
+处的大气密度，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>V</mi><annotation encoding="application/x-tex">V</annotation></semantics></math>
+是速度。</p>
+<p>控制设计中还常关心</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>n</mi><mo>=</mo><mfrac><mi>L</mi><mrow><mi>m</mi><mi>g</mi></mrow></mfrac><mo>,</mo><mspace width="2.0em"></mspace><mover><mi>Q</mi><mo accent="true">̇</mo></mover><mo>=</mo><mover><mi>Q</mi><mo accent="true">̇</mo></mover><mo stretchy="false" form="prefix">(</mo><mi>ρ</mi><mo>,</mo><mi>V</mi><mo>,</mo><mi>α</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
+n = \frac{L}{mg}, \qquad \dot Q = \dot Q(\rho,V,\alpha)
+</annotation></semantics></math></p>
+<p>这里的
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>n</mi><annotation encoding="application/x-tex">n</annotation></semantics></math>
+是过载，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mover><mi>Q</mi><mo accent="true">̇</mo></mover><annotation encoding="application/x-tex">\dot Q</annotation></semantics></math>
+是热流率，二者都是路径层必须单独检查的约束量。</p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>n</mi><annotation encoding="application/x-tex">n</annotation></semantics></math>
+是过载，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mover><mi>Q</mi><mo accent="true">̇</mo></mover><annotation encoding="application/x-tex">\dot Q</annotation></semantics></math>
+是热流率，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>α</mi><annotation encoding="application/x-tex">\alpha</annotation></semantics></math>
+是攻角。</p>
+<p>这使得路径层参考不再只是速度和高度，而是带约束的飞行走廊。</p>
+<h2 id="制导与轨迹优化">19.7 制导与轨迹优化</h2>
+<p>给定速度高度参考
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>r</mi><mi>c</mi></msub><annotation encoding="application/x-tex">r_c</annotation></semantics></math>，参考治理后的轨迹可写为</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>r</mi><mi>g</mi></msub><mo>=</mo><mi>𝒢</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>r</mi><mi>c</mi></msub><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
+r_g = \mathcal G(r_c)
+</annotation></semantics></math></p>
+<p>这里的
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>r</mi><mi>g</mi></msub><annotation encoding="application/x-tex">r_g</annotation></semantics></math>
+是可行化后的参考，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝒢</mi><annotation encoding="application/x-tex">\mathcal G</annotation></semantics></math>
+是参考治理算子。</p>
+<p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>r</mi><mi>c</mi></msub><annotation encoding="application/x-tex">r_c</annotation></semantics></math>
+是原始参考，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>r</mi><mi>g</mi></msub><annotation encoding="application/x-tex">r_g</annotation></semantics></math>
+是可行化后的参考，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>𝒢</mi><mo stretchy="false" form="prefix">(</mo><mi>⋅</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\mathcal G(\cdot)</annotation></semantics></math>
+是参考治理算子。</p>
+<p>验证时不能只比较
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>r</mi><mi>g</mi></msub><annotation encoding="application/x-tex">r_g</annotation></semantics></math>
+和实际轨迹，还要记录参考修改幅值、动压代价和约束裕度。这体现了动压可行域进入闭环，而不是仿真结束后才检查动压曲线。</p>
+<h2 id="低阶模型接口">19.8 低阶模型接口</h2>
+<p>质点模型的教学接口应至少包含：</p>
+<ul>
+<li>状态：<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>V</mi><mo>,</mo><mi>γ</mi><mo>,</mo><mi>h</mi><mo>,</mo><mi>s</mi></mrow><annotation encoding="application/x-tex">V,\gamma,h,s</annotation></semantics></math>
+或三维扩展状态；</li>
+<li>输入：<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>L</mi><mo>,</mo><mi>D</mi><mo>,</mo><mi>T</mi></mrow><annotation encoding="application/x-tex">L,D,T</annotation></semantics></math>
+或等效制导命令；</li>
+<li>派生量：<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>q</mi><mo accent="true">‾</mo></mover><mo>,</mo><mi>n</mi><mo>,</mo><mover><mi>Q</mi><mo accent="true">̇</mo></mover><mo>,</mo><mi>E</mi></mrow><annotation encoding="application/x-tex">\bar q,n,\dot Q,E</annotation></semantics></math>；</li>
+<li>约束：动压、热流、过载、终端误差；</li>
+<li>下游接口：姿态、攻角、舵偏、控制分配。</li>
+</ul>
+<p>其中，这一层的教学接口应把状态、输入、派生约束量和下游输出分开记录，避免把参考可行性、路径约束和姿态控制混在同一个字段里。</p>
+<h2 id="参考可行性检查">19.9 参考可行性检查</h2>
+<p>给定速度高度参考后，应检查：</p>
+<ul>
+<li>参考是否位于飞行包线；</li>
+<li>参考导数是否可被执行机构实现；</li>
+<li>动压是否逼近边界；</li>
+<li>热流和过载是否单独统计；</li>
+<li>参考治理修改量是否被记录；</li>
+<li>下游姿态或控制分配是否还能实现该参考。</li>
+</ul>
+<p>这体现了路径层可行性进入闭环，而不是仿真结束后才检查动压曲线。</p>
+<h2 id="质点层验证矩阵">19.10 质点层验证矩阵</h2>
+<p>质点模型验证应覆盖任务、约束和下游接口：</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>场景</th>
+<th>检查变量</th>
+<th>通过口径</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>速度高度参考</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>V</mi><mi>c</mi></msub><mo>,</mo><msub><mi>h</mi><mi>c</mi></msub></mrow><annotation encoding="application/x-tex">V_c,h_c</annotation></semantics></math></td>
+<td>参考位于飞行包线，所需航迹角合理</td>
+</tr>
+<tr>
+<td>动压走廊</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>q</mi><mo accent="true">‾</mo></mover><mo>,</mo><msub><mi>m</mi><mi>q</mi></msub></mrow><annotation encoding="application/x-tex">\bar q,m_q</annotation></semantics></math></td>
+<td>不越界或越界被参考治理记录</td>
+</tr>
+<tr>
+<td>热流走廊</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>Q</mi><mo accent="true">̇</mo></mover><mo>,</mo><mi>h</mi><mi>e</mi><mi>a</mi><mi>t</mi><mi>_</mi><mi>m</mi><mi>a</mi><mi>r</mi><mi>g</mi><mi>i</mi><mi>n</mi></mrow><annotation encoding="application/x-tex">\dot Q,heat\_margin</annotation></semantics></math></td>
+<td>热流裕度单独统计，不由动压替代</td>
+</tr>
+<tr>
+<td>过载限制</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>n</mi><mo>,</mo><msub><mi>a</mi><mi>n</mi></msub><mo>,</mo><msub><mi>a</mi><mi>y</mi></msub></mrow><annotation encoding="application/x-tex">n,a_n,a_y</annotation></semantics></math></td>
+<td>加速度命令不超过结构和姿态实现能力</td>
+</tr>
+<tr>
+<td>终端任务</td>
+<td>位置、速度、角度</td>
+<td>终端误差和路径约束同时满足</td>
+</tr>
+<tr>
+<td>能量管理</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>E</mi><mo>,</mo><mover><mi>E</mi><mo accent="true">̇</mo></mover></mrow><annotation encoding="application/x-tex">E,\dot E</annotation></semantics></math></td>
+<td>能量变化和推力/阻力趋势一致</td>
+</tr>
+<tr>
+<td>接口限速</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mover><mi>γ</mi><mo accent="true">̇</mo></mover><mi>c</mi></msub><mo>,</mo><msub><mover><mi>χ</mi><mo accent="true">̇</mo></mover><mi>c</mi></msub></mrow><annotation encoding="application/x-tex">\dot\gamma_c,\dot\chi_c</annotation></semantics></math></td>
+<td>命令变化不超过姿态层可跟踪能力</td>
+</tr>
+<tr>
+<td>升级验证</td>
+<td>姿态、攻角、舵偏</td>
+<td>进入纵向或六自由度模型后重新检查</td>
+</tr>
+</tbody>
+</table>
+<h2 id="配套示例的支撑范围">19.11 配套示例的支撑范围</h2>
+<p>教学级质点和制导示例包括：</p>
+<table>
+<thead>
+<tr>
+<th>配套示例</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>三维质点模型</td>
+<td>提供三维质点动力学对象</td>
+</tr>
+<tr>
+<td>三维质点制导示例</td>
+<td>提供质点层制导案例</td>
+</tr>
+<tr>
+<td>质点到姿态/分配接口示例</td>
+<td>展示制导命令如何传给下游姿态与分配链路</td>
+</tr>
+<tr>
+<td>MATLAB 纵向动力学示例</td>
+<td>提供纵向教学模型中的速度高度动力学</td>
+</tr>
+</tbody>
+</table>
+<p>这些示例支撑教学级路径和制导指标，但不能替代完整姿态、气动、执行机构和六自由度闭环验证。</p>
+<h2 id="常见错误">19.12 常见错误</h2>
+<ol type="1">
+<li>用质点模型证明舵面控制器稳定。</li>
+<li>只看终端误差，不看动压、热流和过载。</li>
+<li>把加速度命令当成无约束输入。</li>
+<li>质点制导命令没有传递给姿态层验证。</li>
+<li>忽略低动压导致的控制效能不足。</li>
+<li>轨迹优化输出不检查飞行包线。</li>
+<li>用高度跟踪误差代替能量管理指标。</li>
+<li>把质点模型结果写成六自由度 IGC 结论。</li>
+<li>参考治理修改了参考，却不报告修改幅值。</li>
+<li>动压走廊只在后处理中画图，没有进入路径层命令生成。</li>
+</ol>
+<h2 id="本章小结">19.13 本章小结</h2>
+<p>质点动力学模型提供的是路径、能量和参考可行性层面的控制解释。它帮助我们先判断任务是否合理，再把合理任务传递给纵向、横侧向和六自由度模型。对高超声速飞行器而言，这一层结论很重要，但它不能替代姿态、执行机构和控制分配层的闭环验证。</p>
+<h2 id="练习">19.14 练习</h2>
+<ol type="1">
+<li>写出纵向质点模型的四个状态和动力学方程。</li>
+<li>说明为什么质点模型适合能量管理。</li>
+<li>给出三维质点模型的状态向量。</li>
+<li>解释法向加速度命令为什么不是实际舵面输入。</li>
+<li>设计一个质点轨迹可行性检查表。</li>
+<li>说明质点模型结果升级到六自由度验证时需要新增哪些状态和指标。</li>
+<li>写出一个质点模型接口契约，区分状态、输入、派生约束量和下游输出。</li>
+<li>对一个速度上升、高度下降参考，说明为什么动压可能接近边界。</li>
+<li>设计一个记录参考治理代价的指标。</li>
+</ol>
+
+      </article>
+      
+      <nav class="book-bottom-nav" aria-label="章节导航">
+        <a href="./18-propulsion-aero-propulsive-coupling.html">上一章：第18章 推进系统与气动推进耦合</a>
+        <a href="./index.html">卷首页</a>
+        <a href="./20-longitudinal-rigid-body-dynamics.html">下一章：第20章 纵向刚体动力学模型</a>
+      </nav>
+    </main>
+  </div>
+</body>
+</html>
