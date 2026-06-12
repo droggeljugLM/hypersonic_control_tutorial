@@ -4,15 +4,15 @@
 
 ## 目录
 
-- `site/`：静态站点文件，直接作为 Pages 发布内容
+- `site/`：静态站点文件，GitHub Actions 从这里打包并发布
 
 ## 发布方式
 
 推荐使用 GitHub Actions 自动部署：
 
 1. 把这个目录作为独立仓库推到 GitHub；
-2. 在仓库设置里启用 GitHub Pages；
-3. 使用仓库内的 Pages workflow 自动发布 `site/` 目录。
+2. 在仓库设置里启用 GitHub Pages，并把 Source 设为 GitHub Actions；
+3. 推送后由仓库内的 Pages workflow 自动发布 `site/` 目录。
 
 ## 本地预览
 
