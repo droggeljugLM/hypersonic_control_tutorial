@@ -89,7 +89,13 @@
       font-weight: 800;
     }
     .sidebar-title { font-size: 0.94rem; line-height: 1.35; }
-    .book-main { min-width: 0; padding: 1.25rem 1.45rem 1.8rem; }
+    .book-main {
+      min-width: 0;
+      min-height: 100vh;
+      padding: 1.25rem 1.45rem 1.8rem;
+      display: flex;
+      flex-direction: column;
+    }
     .book-page-header {
       padding: 0.85rem 0 1rem;
       margin-bottom: 1rem;
@@ -104,7 +110,12 @@
       padding: 0;
     }
     .book-page-header p { margin: 0.45rem 0 0; color: var(--muted); max-width: 62rem; }
-    .book-article { max-width: 900px; margin: 0; padding: 0 0 1.2rem; }
+    .book-article {
+      max-width: 900px;
+      margin: 0;
+      padding: 0 0 1.2rem;
+      flex: 1 0 auto;
+    }
     .book-article h1, .book-article h2, .book-article h3, .book-article h4, .book-article h5, .book-article h6 {
       line-height: 1.28;
       margin-top: 1.45em;
@@ -285,7 +296,7 @@
 <a class="sidebar-link" href="./58-typical-case-library.html"><span class="sidebar-index">07</span><span class="sidebar-title">第58章 典型案例库</span></a>
 <a class="sidebar-link" href="./59-hypersonic-control-paper-reading-method.html"><span class="sidebar-index">08</span><span class="sidebar-title">第59章 高超声速控制论文阅读方法</span></a>
 <a class="sidebar-link" href="./60-frontiers-research-roadmap.html"><span class="sidebar-index">09</span><span class="sidebar-title">第60章 前沿问题与研究路线</span></a>
-<a class="sidebar-link" href="./case-library-code-mapping.html"><span class="sidebar-index">10</span><span class="sidebar-title">第五卷案例映射</span></a>
+<a class="sidebar-link" href="./case-library-mapping.html"><span class="sidebar-index">10</span><span class="sidebar-title">第五卷案例映射</span></a>
         </nav>
       </div>
     </aside>
@@ -296,7 +307,7 @@
       <article class="book-article">
         
     <section class="book-volume-intro">
-      <h2>构建仿真平台、可信性、指标、Monte Carlo、案例库、论文阅读和研究路线，让控制结果真正形成证据链。</h2>
+      <h2>这是一卷把仿真平台、可信性、指标、Monte Carlo、案例库、论文阅读和研究路线连成一体的正文，不是附属资料索引。</h2>
       <div class="volume-intro-grid">
         
       <div class="volume-intro-box">
@@ -305,7 +316,7 @@
       </div>
       <div class="volume-intro-box">
         <span>阅读目标</span>
-        <strong>让指标、统计和案例库替代空泛结论</strong>
+        <strong>让指标、统计和案例库支撑具体结论</strong>
       </div>
       <div class="volume-intro-box">
         <span>完成后应能</span>
@@ -314,9 +325,15 @@
       </div>
     </section>
       </article>
-      
-      
+      <nav class="book-bottom-nav" aria-label="章节导航">
+        <span aria-disabled="true">上一章：无</span>
+        <a href="./index.html">卷首页</a>
+        <a href="./52-hypersonic-control-simulation-platform.html">下一章：第52章 高超声速控制仿真平台设计</a>
+      </nav>
+      <div class="book-return-portal"><a href="../index.html">返回选择卷</a></div>
     </main>
   </div>
 </body>
 </html>
+
+

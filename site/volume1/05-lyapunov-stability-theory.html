@@ -89,7 +89,13 @@
       font-weight: 800;
     }
     .sidebar-title { font-size: 0.94rem; line-height: 1.35; }
-    .book-main { min-width: 0; padding: 1.25rem 1.45rem 1.8rem; }
+    .book-main {
+      min-width: 0;
+      min-height: 100vh;
+      padding: 1.25rem 1.45rem 1.8rem;
+      display: flex;
+      flex-direction: column;
+    }
     .book-page-header {
       padding: 0.85rem 0 1rem;
       margin-bottom: 1rem;
@@ -104,7 +110,12 @@
       padding: 0;
     }
     .book-page-header p { margin: 0.45rem 0 0; color: var(--muted); max-width: 62rem; }
-    .book-article { max-width: 900px; margin: 0; padding: 0 0 1.2rem; }
+    .book-article {
+      max-width: 900px;
+      margin: 0;
+      padding: 0 0 1.2rem;
+      flex: 1 0 auto;
+    }
     .book-article h1, .book-article h2, .book-article h3, .book-article h4, .book-article h5, .book-article h6 {
       line-height: 1.28;
       margin-top: 1.45em;
@@ -117,27 +128,30 @@
     .book-article h3 { font-size: 1.12rem; }
     .book-article p, .book-article li, .book-article dd, .book-article td, .book-article th { text-align: justify; text-justify: inter-ideograph; }
     .book-article p { margin: 0.85rem 0; }
-    .book-article code, .book-article pre { font-family: "Cascadia Mono", "Source Code Pro", Consolas, monospace; font-size: 0.94em; }
+    .book-article code, .book-article pre { font-family: inherit; font-size: 0.98em; letter-spacing: 0; }
     .book-article code {
-      padding: 0.02rem 0.24rem;
-      background: color-mix(in srgb, var(--accent-soft) 34%, #ffffff 66%);
+      padding: 0.04rem 0.28rem;
+      background: color-mix(in srgb, var(--accent-soft) 24%, #ffffff 76%);
       border: 0;
-      border-bottom: 1px solid color-mix(in srgb, var(--accent-soft) 74%, #d1d5db 26%);
+      border-bottom: 1px solid color-mix(in srgb, var(--accent-soft) 52%, #d1d5db 48%);
       border-radius: 4px;
-      color: #253244;
+      color: #2b3440;
       box-decoration-break: clone;
       -webkit-box-decoration-break: clone;
+      font-family: inherit;
+      font-variant-ligatures: none;
     }
     .book-article pre {
-      padding: 1rem 1.1rem;
+      padding: 0.95rem 1.05rem;
       overflow: auto;
-      background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,253,248,0.98));
-      border: 1px solid color-mix(in srgb, var(--accent-soft) 54%, #d1d5db 46%);
-      border-left: 5px solid var(--accent);
+      background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,253,248,0.96));
+      border: 1px solid color-mix(in srgb, var(--accent-soft) 44%, #d1d5db 56%);
+      border-left: 4px solid var(--accent);
       border-radius: 14px;
       box-shadow: 0 8px 22px rgba(31, 41, 55, 0.05);
+      white-space: pre-wrap;
     }
-    .book-article pre code { padding: 0; border: 0; background: transparent; color: inherit; }
+    .book-article pre code { padding: 0; border: 0; background: transparent; color: inherit; font-family: inherit; }
     .book-article table {
       border-collapse: collapse;
       width: 100%;
@@ -298,7 +312,7 @@
         <h1 id="volume1--05-lyapunov-stability-theory">第5章 Lyapunov 稳定性理论</h1>
       </header>
       <article class="book-article">
-        <h2 id="问题背景">5.1 问题背景</h2>
+        <h2 id="问题背景">1 问题背景</h2>
 <p>控制器设计最终要回答一个底线问题：闭环系统会不会失稳。</p>
 <p>对高超声速飞行器来说，这个问题不能只靠仿真曲线回答。原因有三点：第一，飞行器在大包线内工作，模型会随
 Mach
@@ -333,7 +347,7 @@ Mach
 表示状态估计，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>π</mi><mo stretchy="false" form="prefix">(</mo><mi>⋅</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\pi(\cdot)</annotation></semantics></math>
 表示控制律；这些符号不属于这里的基础模型。高超声速控制中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>x</mi><annotation encoding="application/x-tex">x</annotation></semantics></math>
 可以是姿态误差、速度高度误差、制导误差、观测误差，也可以是由多环闭环组成的增广状态。</p>
-<h2 id="稳定性的基本定义">5.2 稳定性的基本定义</h2>
+<h2 id="稳定性的基本定义">2 稳定性的基本定义</h2>
 <p>对原点平衡点，若对任意
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ϵ</mi><mo>&gt;</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\epsilon&gt;0</annotation></semantics></math>，都存在
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>δ</mi><mo>&gt;</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\delta&gt;0</annotation></semantics></math>，使得</p>
@@ -371,7 +385,7 @@ Mach
 <p>该上界说明系统最终只会停在一个由扰动决定的小邻域里，其中
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>b</mi><mo>&gt;</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">b&gt;0</annotation></semantics></math>
 是与扰动强度相关的常数，因此通常称为最终有界。这个表述说明系统不一定收敛到零，但会被限制在某个扰动相关邻域内。</p>
-<h2 id="lyapunov-函数与直接法">5.3 Lyapunov 函数与直接法</h2>
+<h2 id="lyapunov-函数与直接法">3 Lyapunov 函数与直接法</h2>
 <p>Lyapunov 直接法的核心，是先选一个候选函数
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>V</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">V(x)</annotation></semantics></math>，再研究它的正定性与导数符号。</p>
 <p>常见要求是</p>
@@ -406,8 +420,7 @@ Mach
 不是随便写的补偿项，而是一个明确的正函数下界，所以它把“下降多少”也写了出来。</p>
 <p>在高超声速控制中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>V</mi><annotation encoding="application/x-tex">V</annotation></semantics></math>
 常被设计成误差能量、角速度能量、参数偏差能量或这些量的加权和。</p>
-<h2 id="正定性径向有界性与比较函数">5.4
-正定性、径向有界性与比较函数</h2>
+<h2 id="正定性径向有界性与比较函数">4 正定性、径向有界性与比较函数</h2>
 <p>对一个好的 Lyapunov 函数，正定性与径向有界性非常关键。</p>
 <p>若</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>V</mi><mo stretchy="false" form="prefix">(</mo><mn>0</mn><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mn>0</mn><mo>,</mo><mspace width="2.0em"></mspace><mi>V</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo>&gt;</mo><mn>0</mn><mspace width="0.222em"></mspace><mtext mathvariant="normal">for</mtext><mspace width="0.222em"></mspace><mi>x</mi><mo>≠</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">
@@ -478,7 +491,7 @@ V=\frac{1}{2}e^2
 表示长期上界，因此误差最终会被压进一个由
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>d</mi><mo accent="true">‾</mo></mover><mi>/</mi><mi>k</mi></mrow><annotation encoding="application/x-tex">\bar d/k</annotation></semantics></math>
 决定的可计算残余范围。</p>
-<h2 id="二阶姿态误差例子">5.5 二阶姿态误差例子</h2>
+<h2 id="二阶姿态误差例子">5 二阶姿态误差例子</h2>
 <p>考虑一个简化俯仰姿态误差系统</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mover><mi>e</mi><mo accent="true">̇</mo></mover><mi>θ</mi></msub><mo>=</mo><msub><mi>e</mi><mi>q</mi></msub><mo>,</mo><mspace width="2.0em"></mspace><mi>J</mi><msub><mover><mi>e</mi><mo accent="true">̇</mo></mover><mi>q</mi></msub><mo>=</mo><mi>−</mi><msub><mi>k</mi><mi>θ</mi></msub><msub><mi>e</mi><mi>θ</mi></msub><mo>−</mo><msub><mi>k</mi><mi>q</mi></msub><msub><mi>e</mi><mi>q</mi></msub><mo>+</mo><mi>d</mi></mrow><annotation encoding="application/x-tex">
 \dot e_\theta=e_q,\qquad J\dot e_q=-k_\theta e_\theta-k_q e_q+d
@@ -523,7 +536,7 @@ LaSalle 不变性原理来检查导数为零时系统会停在哪个集合里。
 <p>这个不等式表明最终误差会被扰动能量抬高到一个有限邻域，其中
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mfrac><msup><mi>d</mi><mn>2</mn></msup><mrow><mn>2</mn><msub><mi>k</mi><mi>q</mi></msub></mrow></mfrac><annotation encoding="application/x-tex">\frac{d^2}{2k_q}</annotation></semantics></math>
 是扰动上界；因此只要扰动不消失，姿态误差就只能进入一个小邻域，而不会严格收敛到零。</p>
-<h2 id="比较引理与衰减率估计">5.6 比较引理与衰减率估计</h2>
+<h2 id="比较引理与衰减率估计">6 比较引理与衰减率估计</h2>
 <p>比较引理的作用，是把微分不等式转成可读的显式界。</p>
 <p>例如若</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>V</mi><mo accent="true">̇</mo></mover><mo>≤</mo><mi>−</mi><mi>a</mi><mi>V</mi><mo>+</mo><mi>b</mi></mrow><annotation encoding="application/x-tex">
@@ -541,7 +554,7 @@ V(t)\le e^{-a(t-t_0)}V(t_0)+\frac{b}{a}\bigl(1-e^{-a(t-t_0)}\bigr)
 是初始能量，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>e</mi><mrow><mi>−</mi><mi>a</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo>−</mo><msub><mi>t</mi><mn>0</mn></msub><mo stretchy="false" form="postfix">)</mo></mrow></msup><annotation encoding="application/x-tex">e^{-a(t-t_0)}</annotation></semantics></math>
 是时间衰减因子，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mfrac><mi>b</mi><mi>a</mi></mfrac><annotation encoding="application/x-tex">\frac{b}{a}</annotation></semantics></math>
 是最终残差平台；因此初始能量按指数衰减，而残差项决定最后还会剩下多少。</p>
-<h2 id="lasalle-不变性原理">5.7 LaSalle 不变性原理</h2>
+<h2 id="lasalle-不变性原理">7 LaSalle 不变性原理</h2>
 <p>很多系统只能证明</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>V</mi><mo accent="true">̇</mo></mover><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo>≤</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">
 \dot V(x)\le 0
@@ -591,7 +604,7 @@ LaSalle 往往不够，Barbalat 可以补上“导数足够平滑”这一层。
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>z</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">z(t)</annotation></semantics></math>
 代表跟踪误差，那么 Barbalat
 引理就把“误差趋零”从积分有界和平滑性条件中推出来。</p>
-<h2 id="输入到状态稳定性与最终有界性">5.8
+<h2 id="输入到状态稳定性与最终有界性">8
 输入到状态稳定性与最终有界性</h2>
 <p>对带扰动系统，输入到状态稳定性，简称
 ISS，是比“渐近稳定”更常见也更实用的结论。</p>
@@ -619,7 +632,7 @@ ISS，是比“渐近稳定”更常见也更实用的结论。</p>
 越大、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>σ</mi><annotation encoding="application/x-tex">\sigma</annotation></semantics></math>
 越小，收敛一般越快。</p>
 <p>这一定义在高超声速控制里很重要，因为动压波动、执行机构误差、气动模型偏差和估计误差都可视作输入。</p>
-<h2 id="级联系统与外内环证明">5.9 级联系统与外内环证明</h2>
+<h2 id="级联系统与外内环证明">9 级联系统与外内环证明</h2>
 <p>高超声速飞行控制常常是级联结构：外环给出姿态或轨迹命令，内环负责快速跟踪。</p>
 <p>设外环误差为
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>x</mi><mn>1</mn></msub><annotation encoding="application/x-tex">x_1</annotation></semantics></math>，内环误差为
@@ -647,7 +660,7 @@ V=V_1(x_1)+\rho V_2(x_2)
 和
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>c</mi><mn>1</mn></msub><annotation encoding="application/x-tex">c_1</annotation></semantics></math>
 分别描述外环衰减、内环衰减和耦合强度。</p>
-<h2 id="有限时间和固定时间稳定">5.10 有限时间和固定时间稳定</h2>
+<h2 id="有限时间和固定时间稳定">10 有限时间和固定时间稳定</h2>
 <p>有限时间稳定要求系统在有限时间
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>T</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>x</mi><mn>0</mn></msub><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">T(x_0)</annotation></semantics></math>
 内到达平衡点。常见的导数条件是</p>
@@ -676,7 +689,7 @@ T(x_0)\le \frac{V(x_0)^{1-\alpha}}{c_1(1-\alpha)}
 T\le \frac{1}{c_1(1-\alpha)}+\frac{1}{c_2(\beta-1)}
 </annotation></semantics></math></p>
 <p>这个上界说明，固定时间收敛只由参数决定，不再受初始状态大小影响；对高超声速飞行器而言，这类结论很诱人，但必须同时检查输入饱和、舵速限制、热流和结构载荷。</p>
-<h2 id="从证明到写作的最小模板">5.11 从证明到写作的最小模板</h2>
+<h2 id="从证明到写作的最小模板">11 从证明到写作的最小模板</h2>
 <p>一份能直接进入教材的 Lyapunov
 证明，通常至少要交代四件事：系统、候选函数、导数整理和结论口径。</p>
 <p>最小写法可以概括成</p>
@@ -688,7 +701,7 @@ T\le \frac{1}{c_1(1-\alpha)}+\frac{1}{c_2(\beta-1)}
 是闭环向量场，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>W</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">W(x)</annotation></semantics></math>
 是需要被压制的耗散项；它既可以是误差平方，也可以是残差能量，只要它是非负的并且能反映系统偏离平衡点的程度。这个模板对应“对象方程”“能量函数”和“能量下降条件”，是后面所有
 Lyapunov 证明最常见的骨架。</p>
-<h2 id="证明常数的物理意义">5.12 证明常数的物理意义</h2>
+<h2 id="证明常数的物理意义">12 证明常数的物理意义</h2>
 <p>Lyapunov 证明里出现的常数，不能只停留在数学符号层面。</p>
 <p>例如在</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>V</mi><mo accent="true">̇</mo></mover><mo>≤</mo><mi>−</mi><mi>a</mi><mi>V</mi><mo>+</mo><mi>b</mi></mrow><annotation encoding="application/x-tex">
@@ -716,14 +729,14 @@ Lyapunov 证明最常见的骨架。</p>
 变大，衰减一般会更快，但控制峰值可能上升；如果
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>b</mi><annotation encoding="application/x-tex">b</annotation></semantics></math>
 变小，最终界会收缩，但实现代价可能是更高带宽、更强观测器或更敏感的噪声放大。</p>
-<h2 id="用仿真复核证明边界">5.13 用仿真复核证明边界</h2>
+<h2 id="用仿真复核证明边界">13 用仿真复核证明边界</h2>
 <p>Lyapunov
 证明不要求每次都与数值曲线完全一致，但至少要能被仿真趋势支持。</p>
 <p>复核时通常看四类量：误差峰值、均方根误差、最终界，以及能量函数或代表性
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>V</mi><annotation encoding="application/x-tex">V</annotation></semantics></math>
 指标的衰减趋势。若证明里还有残差通道，还应检查执行机构残差、分配残差或估计误差轨迹。</p>
 <p>如果实验结果和证明给出的边界趋势明显相反，就要回头检查误差系统、残差上界和符号定义，而不是直接把仿真解释成“数值误差”。</p>
-<h2 id="典型失败模式">5.14 典型失败模式</h2>
+<h2 id="典型失败模式">14 典型失败模式</h2>
 <p>Lyapunov 章节最常见的问题，不是公式不会推，而是结论和对象对不上。</p>
 <p>第一，没先写误差系统，就直接给 Lyapunov
 函数。第二，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>V</mi><mo accent="true">̇</mo></mover><mo>≤</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\dot{V}\le 0</annotation></semantics></math>
@@ -731,12 +744,12 @@ Lyapunov 证明最常见的骨架。</p>
 Barbalat。第三，对含扰动系统声称误差严格收敛，而没有说明扰动是否趋零。第四，自适应律没有投影、死区或鲁棒修正，却忽略参数漂移。第五，把约束保持和误差稳定混为一谈。第六，忽略执行机构饱和残差对
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mover><mi>V</mi><mo accent="true">̇</mo></mover><annotation encoding="application/x-tex">\dot{V}</annotation></semantics></math>
 的影响。</p>
-<h2 id="与后续章节的接口">5.15 与后续章节的接口</h2>
+<h2 id="与后续章节的接口">15 与后续章节的接口</h2>
 <p>Lyapunov 证明不是单独的数学插曲，而是后续章节的共同底座。</p>
 <p>第6章会把稳定性放进互联系统分析，第7章会把内外环带宽和慢快变量纳入证明，第10章会将自适应项和参数漂移并入误差系统，第12章和第13章则会把稳定性结论与约束可行性和优化可实现性一起检查。</p>
 <p>所以，本章的任务不是只给一个
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>V</mi><annotation encoding="application/x-tex">V</annotation></semantics></math>，而是给出一整套能传给后续章节的证明语言。</p>
-<h2 id="证明审查清单">5.16 证明审查清单</h2>
+<h2 id="证明审查清单">16 证明审查清单</h2>
 <p>后续控制方法章节写 Lyapunov 证明时，可以按下面清单自查。</p>
 <table>
 <colgroup>
@@ -809,7 +822,7 @@ Barbalat。第三，对含扰动系统声称误差严格收敛，而没有说明
 </tbody>
 </table>
 <p>这张清单不要求每个教学例子都做到工程级完整，但要求作者明确“已经证明什么”和“还只是仿真观察什么”。</p>
-<h2 id="常见错误">5.17 常见错误</h2>
+<h2 id="常见错误">17 常见错误</h2>
 <ol type="1">
 <li>没有先写误差系统，就直接给 Lyapunov 函数。</li>
 <li><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>V</mi><mo accent="true">̇</mo></mover><mo>≤</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\dot{V}\le 0</annotation></semantics></math>
@@ -825,11 +838,11 @@ Barbalat。第三，对含扰动系统声称误差严格收敛，而没有说明
 <li>级联闭环中假设内环理想跟踪，却没有给出带宽、饱和和残差条件。</li>
 <li>只证明连续时间控制律稳定，没有检查采样、延迟和离散实现误差。</li>
 </ol>
-<h2 id="本章小结">5.18 本章小结</h2>
+<h2 id="本章小结">18 本章小结</h2>
 <p>Lyapunov
 稳定性理论是高超声速控制从“算法演示”走向“控制科学”的核心工具。本教程中，PID/LQR、鲁棒控制、反步、滑模、自适应、BLF/CBF、MPC、IGC
 和容错控制都应明确自己的稳定性或有界性结论。对工程问题，应优先采用可核查的保守表述：在什么假设下稳定，在什么扰动下最终有界，在什么约束下安全集合前向不变。</p>
-<h2 id="练习">5.19 练习</h2>
+<h2 id="练习">19 练习</h2>
 <ol type="1">
 <li>对系统
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>x</mi><mo accent="true">̇</mo></mover><mo>=</mo><mi>−</mi><mi>a</mi><mi>x</mi></mrow><annotation encoding="application/x-tex">\dot{x}=-ax</annotation></semantics></math>，取
@@ -857,7 +870,7 @@ UUB 半径。</li>
 <li>为一个姿态控制闭环填写稳定性证明写法。</li>
 <li>说明同一个证明为什么还需要交接给安全滤波、控制分配和仿真验证章节。</li>
 </ol>
-<h2 id="练习提示">5.20 练习提示</h2>
+<h2 id="练习提示">20 练习提示</h2>
 <ol type="1">
 <li>计算
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>V</mi><mo accent="true">̇</mo></mover><mo>=</mo><mi>x</mi><mover><mi>x</mi><mo accent="true">̇</mo></mover><mo>=</mo><mi>−</mi><mi>a</mi><msup><mi>x</mi><mn>2</mn></msup><mo>=</mo><mi>−</mi><mn>2</mn><mi>a</mi><mi>V</mi></mrow><annotation encoding="application/x-tex">\dot{V}=x\dot{x}=-ax^2=-2aV</annotation></semantics></math>，再用比较引理得到指数界。</li>
@@ -896,7 +909,7 @@ UUB 半径。</li>
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mover><mi>V</mi><mo accent="true">̇</mo></mover><annotation encoding="application/x-tex">\dot{V}</annotation></semantics></math>、作用区域、残差上界、安全约束、实现假设和验证映射。</li>
 <li>因为稳定性证明解决的是“能否收敛或有界”，而安全滤波、控制分配和仿真验证还要分别处理可行输入集合、残差来源和实验复核。</li>
 </ol>
-<h2 id="lyapunov-对象包的最小交付格式">5.21 Lyapunov
+<h2 id="lyapunov-对象包的最小交付格式">21 Lyapunov
 对象包的最小交付格式</h2>
 <p>Lyapunov 稳定性章节如果只留下一个
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>V</mi><annotation encoding="application/x-tex">V</annotation></semantics></math>
@@ -971,7 +984,7 @@ UUB 半径。</li>
 </table>
 <p>如果把这个对象包继续交给后续章节，最关键的是说明三件事：第一，证明针对的是哪类闭环误差，而不是只针对理想植物；第二，稳定性结论是指数、UUB、ISS
 还是安全不变，而不是笼统地说“稳定”；第三，证明里出现的残差上界、约束裕度和作用区域，是否真的和仿真场景一致。</p>
-<h2 id="本章证据层次及其与后续章节的关系">5.22
+<h2 id="本章证据层次及其与后续章节的关系">22
 本章证据层次及其与后续章节的关系</h2>
 <p>Lyapunov
 证明的证据层次，最好从“代数成立”走到“闭环可复核”，而不是停在公式变形本身。推荐写成如下层次：</p>
@@ -1019,7 +1032,6 @@ UUB 半径。</li>
 <p>这套证据会直接流向后续章节：第6章要把稳定性放进互联系统，第7章会把内外环带宽和慢快变量纳入证明，第10章会将自适应项和参数漂移并入误差系统，第12章和第13章则会把稳定性结论与约束可行性和优化可实现性一起检查。</p>
 
       </article>
-      
       <nav class="book-bottom-nav" aria-label="章节导航">
         <a href="./04-nonlinear-systems-theory.html">上一章：第4章 非线性系统理论</a>
         <a href="./index.html">卷首页</a>

@@ -89,7 +89,13 @@
       font-weight: 800;
     }
     .sidebar-title { font-size: 0.94rem; line-height: 1.35; }
-    .book-main { min-width: 0; padding: 1.25rem 1.45rem 1.8rem; }
+    .book-main {
+      min-width: 0;
+      min-height: 100vh;
+      padding: 1.25rem 1.45rem 1.8rem;
+      display: flex;
+      flex-direction: column;
+    }
     .book-page-header {
       padding: 0.85rem 0 1rem;
       margin-bottom: 1rem;
@@ -104,7 +110,12 @@
       padding: 0;
     }
     .book-page-header p { margin: 0.45rem 0 0; color: var(--muted); max-width: 62rem; }
-    .book-article { max-width: 900px; margin: 0; padding: 0 0 1.2rem; }
+    .book-article {
+      max-width: 900px;
+      margin: 0;
+      padding: 0 0 1.2rem;
+      flex: 1 0 auto;
+    }
     .book-article h1, .book-article h2, .book-article h3, .book-article h4, .book-article h5, .book-article h6 {
       line-height: 1.28;
       margin-top: 1.45em;
@@ -117,27 +128,30 @@
     .book-article h3 { font-size: 1.12rem; }
     .book-article p, .book-article li, .book-article dd, .book-article td, .book-article th { text-align: justify; text-justify: inter-ideograph; }
     .book-article p { margin: 0.85rem 0; }
-    .book-article code, .book-article pre { font-family: "Cascadia Mono", "Source Code Pro", Consolas, monospace; font-size: 0.94em; }
+    .book-article code, .book-article pre { font-family: inherit; font-size: 0.98em; letter-spacing: 0; }
     .book-article code {
-      padding: 0.02rem 0.24rem;
-      background: color-mix(in srgb, var(--accent-soft) 34%, #ffffff 66%);
+      padding: 0.04rem 0.28rem;
+      background: color-mix(in srgb, var(--accent-soft) 24%, #ffffff 76%);
       border: 0;
-      border-bottom: 1px solid color-mix(in srgb, var(--accent-soft) 74%, #d1d5db 26%);
+      border-bottom: 1px solid color-mix(in srgb, var(--accent-soft) 52%, #d1d5db 48%);
       border-radius: 4px;
-      color: #253244;
+      color: #2b3440;
       box-decoration-break: clone;
       -webkit-box-decoration-break: clone;
+      font-family: inherit;
+      font-variant-ligatures: none;
     }
     .book-article pre {
-      padding: 1rem 1.1rem;
+      padding: 0.95rem 1.05rem;
       overflow: auto;
-      background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,253,248,0.98));
-      border: 1px solid color-mix(in srgb, var(--accent-soft) 54%, #d1d5db 46%);
-      border-left: 5px solid var(--accent);
+      background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,253,248,0.96));
+      border: 1px solid color-mix(in srgb, var(--accent-soft) 44%, #d1d5db 56%);
+      border-left: 4px solid var(--accent);
       border-radius: 14px;
       box-shadow: 0 8px 22px rgba(31, 41, 55, 0.05);
+      white-space: pre-wrap;
     }
-    .book-article pre code { padding: 0; border: 0; background: transparent; color: inherit; }
+    .book-article pre code { padding: 0; border: 0; background: transparent; color: inherit; font-family: inherit; }
     .book-article table {
       border-collapse: collapse;
       width: 100%;
@@ -296,13 +310,13 @@
         <h1 id="volume4--48-integrated-guidance-control">第48章 制导控制一体化</h1>
       </header>
       <article class="book-article">
-        <h2 id="问题背景">48.1 问题背景</h2>
+        <h2 id="问题背景">1 问题背景</h2>
 <p>制导控制一体化，Integrated Guidance and
 Control，IGC，不是把制导模块和控制模块简单并排放在一起，而是要把制导误差、姿态/速度控制动态、执行机构能力和路径约束放进同一套闭环分析里。</p>
 <p>高超声速系统里，制导环和控制环的边界并不总是清楚。若只做分层设计，制导命令可能在控制层不可实现；若只做控制设计，又可能看不见任务级误差和路径约束。因此，本章要说明分层设计和一体化设计的差别，解释
 IGC
 中应如何定义状态、误差、参考和约束，并给出与控制分配、故障和实时实现的接口。</p>
-<h2 id="分层设计">48.2 分层设计</h2>
+<h2 id="分层设计">2 分层设计</h2>
 <p>分层制导控制通常写成</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>r</mi><mi>g</mi></msub><mo>→</mo><msub><mi>r</mi><mi>f</mi></msub><mo>→</mo><msub><mi>ν</mi><mi>c</mi></msub><mo>→</mo><msub><mi>u</mi><mi>a</mi></msub></mrow><annotation encoding="application/x-tex">
 r_g \rightarrow r_f \rightarrow \nu_c \rightarrow u_a
@@ -313,7 +327,7 @@ r_g \rightarrow r_f \rightarrow \nu_c \rightarrow u_a
 是期望广义控制量，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>u</mi><mi>a</mi></msub><annotation encoding="application/x-tex">u_a</annotation></semantics></math>
 是执行机构命令。</p>
 <p>若内环带宽足够、约束裕度充足且制导命令平滑，分层设计往往可靠。但在高超声速终端机动、再入走廊、动压和热流限制、故障或执行机构退化下，制导命令会变得不可实现。</p>
-<h2 id="一体化设计的定义">48.3 一体化设计的定义</h2>
+<h2 id="一体化设计的定义">3 一体化设计的定义</h2>
 <p>IGC 试图直接把制导误差和控制状态纳入同一控制输入设计。可写为</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>u</mi><mo>=</mo><mi>κ</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>x</mi><mi>g</mi></msub><mo>,</mo><msub><mi>x</mi><mi>c</mi></msub><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
 u = \kappa(x_g,x_c)
@@ -324,7 +338,7 @@ u = \kappa(x_g,x_c)
 是控制输入，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>κ</mi><mo stretchy="false" form="prefix">(</mo><mi>⋅</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\kappa(\cdot)</annotation></semantics></math>
 是一体化控制律。</p>
 <p>一体化设计的关键不是“把更多变量写进公式”，而是让不可实现性、约束和任务误差在闭环里可见。</p>
-<h2 id="igc-的对象与接口">48.4 IGC 的对象与接口</h2>
+<h2 id="igc-的对象与接口">4 IGC 的对象与接口</h2>
 <p>第48章最容易犯的错误，是先选一种方法，再回头拼对象和接口。更稳妥的顺序是先把
 IGC 到底在管什么写清楚。</p>
 <p>本节至少要明确以下接口：</p>
@@ -343,7 +357,7 @@ IGC 到底在管什么写清楚。</p>
 </ul>
 <p>如果这些接口不分开写，所谓 IGC
 往往只是“把几个模块连起来”，而不是把闭环对象真正写清楚。</p>
-<h2 id="igc-状态和误差">48.5 IGC 状态和误差</h2>
+<h2 id="igc-状态和误差">5 IGC 状态和误差</h2>
 <p>一种组合误差可写为</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>e</mi><mo>=</mo><msup><mrow><mo stretchy="true" form="prefix">[</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><msub><mi>e</mi><mi>R</mi></msub></mtd><mtd columnalign="center" style="text-align: center"><msub><mi>e</mi><mi>V</mi></msub></mtd><mtd columnalign="center" style="text-align: center"><msub><mi>e</mi><mrow><mi mathvariant="normal">L</mi><mi mathvariant="normal">O</mi><mi mathvariant="normal">S</mi></mrow></msub></mtd><mtd columnalign="center" style="text-align: center"><msub><mi>e</mi><mi>η</mi></msub></mtd><mtd columnalign="center" style="text-align: center"><msub><mi>e</mi><mi>ω</mi></msub></mtd><mtd columnalign="center" style="text-align: center"><msub><mi>e</mi><mrow><mi>g</mi><mi>r</mi></mrow></msub></mtd><mtd columnalign="center" style="text-align: center"><msub><mi>r</mi><mi>a</mi></msub></mtd></mtr></mtable><mo stretchy="true" form="postfix">]</mo></mrow><mi>⊤</mi></msup></mrow><annotation encoding="application/x-tex">
 e=\begin{bmatrix}e_R &amp; e_V &amp; e_{\mathrm{LOS}} &amp; e_\eta &amp; e_\omega &amp; e_{gr} &amp; r_a\end{bmatrix}^\top
@@ -359,7 +373,7 @@ e=\begin{bmatrix}e_R &amp; e_V &amp; e_{\mathrm{LOS}} &amp; e_\eta &amp; e_\omeg
 <p>高超声速 IGC
 还应加入约束裕度，例如动压裕度、热流裕度、过载裕度和姿态带宽裕度。这样，IGC
 的分析对象就不再是“理想参考能否收敛”，而是“在参考可行化与分配余度同时存在时，组合误差能否保持有界并满足任务约束”。</p>
-<h2 id="参考可行化与-igc-的区别">48.6 参考可行化与 IGC 的区别</h2>
+<h2 id="参考可行化与-igc-的区别">6 参考可行化与 IGC 的区别</h2>
 <p>有时工程上会先做参考可行化：</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>r</mi><mi>f</mi></msub><mo>=</mo><mi mathvariant="normal">Π</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>r</mi><mi>g</mi></msub><mo>,</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
 r_f=\Pi(r_g,x)
@@ -370,7 +384,7 @@ r_f=\Pi(r_g,x)
 <p>参考可行化关心的是“原始制导命令如何变成可执行命令”；IGC
 关心的是“可执行命令如何与控制状态、执行机构和路径约束共同闭环”。如果仿真中姿态和舵面没有反过来影响平动轨迹，只能称为接口检查或教学耦合骨架，不能声称完整三维
 IGC 已验证。</p>
-<h2 id="原始制导命令可执行参考分配残差与可分配性余量">48.7
+<h2 id="原始制导命令可执行参考分配残差与可分配性余量">7
 原始制导命令、可执行参考、分配残差与可分配性余量</h2>
 <p>第48章不能把
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>r</mi><mi>g</mi></msub><annotation encoding="application/x-tex">r_g</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>r</mi><mi>f</mi></msub><annotation encoding="application/x-tex">r_f</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>r</mi><mi>a</mi></msub><annotation encoding="application/x-tex">r_a</annotation></semantics></math>
@@ -391,7 +405,7 @@ IGC 已验证。</p>
 的阈值和触发参考收缩或任务降级的条件。</li>
 </ul>
 <p>若这些量不进入分析、优化或指标表，那么“制导控制一体化”通常只是接口图更复杂，而不是闭环对象更完整。</p>
-<h2 id="时间尺度耦合">48.8 时间尺度耦合</h2>
+<h2 id="时间尺度耦合">8 时间尺度耦合</h2>
 <p>分层设计依赖时间尺度分离：制导外环应慢于姿态或角速度内环，控制分配和执行机构动态又应以其自身带宽为约束。可写成</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mi>g</mi></msub><mo>≫</mo><msub><mi>T</mi><mi>c</mi></msub><mo>≫</mo><msub><mi>T</mi><mi>a</mi></msub></mrow><annotation encoding="application/x-tex">
 T_g \gg T_c \gg T_a
@@ -406,7 +420,7 @@ T_g \gg T_c \gg T_a
 增大或
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>d</mi><mi>a</mi></msub><annotation encoding="application/x-tex">d_a</annotation></semantics></math>
 下降。</p>
-<h2 id="组合-lyapunov-与安全约束">48.9 组合 Lyapunov 与安全约束</h2>
+<h2 id="组合-lyapunov-与安全约束">9 组合 Lyapunov 与安全约束</h2>
 <p>一体化设计常会使用组合 Lyapunov 函数</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>V</mi><mo>=</mo><msup><mi>e</mi><mi>⊤</mi></msup><mi>P</mi><mi>e</mi></mrow><annotation encoding="application/x-tex">
 V=e^\top P e
@@ -423,7 +437,7 @@ V=e^\top P e
 中，关键不是让误差单独收敛，而是让误差收敛、约束保持和控制可实现性同时成立。若高增益项持续把
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>r</mi><mi>g</mi></msub><annotation encoding="application/x-tex">r_g</annotation></semantics></math>
 推到安全集外，得到的只是更大的接口误差，而不是更好的 IGC。</p>
-<h2 id="预测控制型-igc">48.10 预测控制型 IGC</h2>
+<h2 id="预测控制型-igc">10 预测控制型 IGC</h2>
 <p>预测控制型 IGC 把制导和控制放入同一预测优化问题，可写为</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>min</mi><mo>&#8289;</mo><mspace width="0.278em"></mspace><mi>J</mi><mspace width="1.0em"></mspace><mtext mathvariant="normal">s.t.</mtext><mspace width="1.0em"></mspace><msub><mi>x</mi><mrow><mi>k</mi><mo>+</mo><mn>1</mn></mrow></msub><mo>=</mo><mi>f</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>x</mi><mi>k</mi></msub><mo>,</mo><msub><mi>u</mi><mi>k</mi></msub><mo stretchy="false" form="postfix">)</mo><mo>,</mo><mspace width="0.278em"></mspace><msub><mi>x</mi><mi>k</mi></msub><mo>∈</mo><mi>𝒮</mi><mo>,</mo><mspace width="0.278em"></mspace><msub><mi>u</mi><mi>k</mi></msub><mo>∈</mo><mi>𝒰</mi></mrow><annotation encoding="application/x-tex">
 \min \; J \quad \text{s.t.}\quad x_{k+1}=f(x_k,u_k),\; x_k\in\mathcal{S},\; u_k\in\mathcal{U}
@@ -438,7 +452,7 @@ V=e^\top P e
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>u</mi><annotation encoding="application/x-tex">u</annotation></semantics></math>。预测控制型
 IGC
 的优势是约束表达直接、接口统一；代价是求解负担更重，对实时性和模型准确性要求更高。</p>
-<h2 id="参考收缩与任务降级">48.11 参考收缩与任务降级</h2>
+<h2 id="参考收缩与任务降级">11 参考收缩与任务降级</h2>
 <p>一体化设计并不意味着“任何参考都必须硬追”。当可分配性余量不足或安全约束冲突时，应该先做参考收缩，再考虑任务降级。</p>
 <p>可用可行集合表示为</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ℛ</mi><mrow><mi mathvariant="normal">s</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">f</mi><mi mathvariant="normal">e</mi></mrow></msub><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
@@ -449,7 +463,7 @@ IGC
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>x</mi><annotation encoding="application/x-tex">x</annotation></semantics></math>
 下的安全参考集合。若
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ℛ</mi><mrow><mi mathvariant="normal">s</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">f</mi><mi mathvariant="normal">e</mi></mrow></msub><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mi>⌀</mi></mrow><annotation encoding="application/x-tex">\mathcal{R}_{\mathrm{safe}}(x)=\varnothing</annotation></semantics></math>，问题就不再是“控制器够不够强”，而是当前任务、路径和剩余能力已经互相冲突。</p>
-<h2 id="与控制分配故障和实时实现的接口">48.12
+<h2 id="与控制分配故障和实时实现的接口">12
 与控制分配、故障和实时实现的接口</h2>
 <p>IGC
 的闭环里，控制分配残差和可分配性余量不能藏起来，故障后的健康矩阵变化和参考收缩也不能省略。更具体地说：</p>
@@ -460,7 +474,7 @@ IGC
 </ul>
 <p>如果这些接口没有接好，IGC
 只能说明模块拼接得更密，不代表闭环能力真的更完整。</p>
-<h2 id="igc-证据层次">48.13 IGC 证据层次</h2>
+<h2 id="igc-证据层次">13 IGC 证据层次</h2>
 <p>为了避免把“接口串起来能跑”误写成完整 IGC
 方案，本章可把证据粗分为五级。</p>
 <ul>
@@ -474,11 +488,11 @@ IGC 的概念和信号链，没有闭环仿真。</li>
 <li><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>I</mi><mn>3</mn></mrow><annotation encoding="application/x-tex">I3</annotation></semantics></math>：有约束、故障、控制分配和实时实现共同验证，但还缺高保真气动数据库。</li>
 <li><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>I</mi><mn>4</mn></mrow><annotation encoding="application/x-tex">I4</annotation></semantics></math>：高保真六自由度、真实执行机构链和不确定性统计支撑下的工程级证据。</li>
 </ul>
-<h2 id="本章适用范围">48.14 本章适用范围</h2>
+<h2 id="本章适用范围">14 本章适用范围</h2>
 <p>本章主要适合支撑 IGC
 的对象定义、接口定义、误差定义和证据边界定义。它能说明制导误差、控制误差和分配残差为什么要放在一个闭环里，也能说明为什么“命令能下发”不等于“任务真的可行”。</p>
 <p>但本章还不能直接支撑高保真六自由度工程级验证，后者需要后续任务专题继续补齐。</p>
-<h2 id="常见错误">48.15 常见错误</h2>
+<h2 id="常见错误">15 常见错误</h2>
 <ol type="1">
 <li>把制导和控制简单并排放在一起，就声称完成 IGC。</li>
 <li>不区分
@@ -490,7 +504,7 @@ IGC 的概念和信号链，没有闭环仿真。</li>
 <li>忽略故障和实时实现对 IGC 的影响。</li>
 <li>把高增益当成更好的 IGC，而不看约束和可实现性。</li>
 </ol>
-<h2 id="练习">48.16 练习</h2>
+<h2 id="练习">16 练习</h2>
 <ol type="1">
 <li>写出一个包含
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>r</mi><mi>g</mi></msub><annotation encoding="application/x-tex">r_g</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>r</mi><mi>f</mi></msub><annotation encoding="application/x-tex">r_f</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ν</mi><mi>c</mi></msub><annotation encoding="application/x-tex">\nu_c</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>u</mi><mi>a</mi></msub><annotation encoding="application/x-tex">u_a</annotation></semantics></math>
@@ -509,7 +523,6 @@ IGC 的概念和信号链，没有闭环仿真。</li>
 </ol>
 
       </article>
-      
       <nav class="book-bottom-nav" aria-label="章节导航">
         <a href="./47-guidance-theory-foundations.html">上一章：第47章 制导理论基础</a>
         <a href="./index.html">卷首页</a>

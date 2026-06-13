@@ -89,7 +89,13 @@
       font-weight: 800;
     }
     .sidebar-title { font-size: 0.94rem; line-height: 1.35; }
-    .book-main { min-width: 0; padding: 1.25rem 1.45rem 1.8rem; }
+    .book-main {
+      min-width: 0;
+      min-height: 100vh;
+      padding: 1.25rem 1.45rem 1.8rem;
+      display: flex;
+      flex-direction: column;
+    }
     .book-page-header {
       padding: 0.85rem 0 1rem;
       margin-bottom: 1rem;
@@ -104,7 +110,12 @@
       padding: 0;
     }
     .book-page-header p { margin: 0.45rem 0 0; color: var(--muted); max-width: 62rem; }
-    .book-article { max-width: 900px; margin: 0; padding: 0 0 1.2rem; }
+    .book-article {
+      max-width: 900px;
+      margin: 0;
+      padding: 0 0 1.2rem;
+      flex: 1 0 auto;
+    }
     .book-article h1, .book-article h2, .book-article h3, .book-article h4, .book-article h5, .book-article h6 {
       line-height: 1.28;
       margin-top: 1.45em;
@@ -298,7 +309,7 @@
         <h1 id="volume1--04-nonlinear-systems-theory">第4章 非线性系统理论</h1>
       </header>
       <article class="book-article">
-        <h2 id="问题背景">4.1 问题背景</h2>
+        <h2 id="问题背景">1 问题背景</h2>
 <p>本章先讨论通用非线性系统理论，不依赖任何单一对象、特定任务背景或特定论文的写法。它的任务是把非线性控制最基本的语言先统一起来，方便后面处理各类工程系统、机械系统和动态系统。</p>
 <p>这一章刻意保持对象中立，只讲非线性系统的通用结构，不替任何具体飞行器、具体任务或具体案例预设叙事。这里的例子尽量保持低阶和通用，不以高超声速对象作为默认起点。</p>
 <p>现实中的许多控制对象都不是“线性系统加一点扰动”。只要系统同时包含强耦合、状态相关增益、约束、切换、饱和或多时间尺度，非线性就会成为主导结构。对这类系统，先讲清状态空间、相对阶、零动态、可行域和局部线性化，比急着套用某个具体控制律更重要。</p>
@@ -353,7 +364,7 @@
 把建模误差和外部扰动分开写出来，避免把不同来源的非线性混成一类。
 这一区分后面会直接影响鲁棒项、观测器和约束层的设计方式。
 换句话说，非线性系统的难点往往不是“有没有扰动”，而是“扰动从哪里进入、该怎样补偿”。</p>
-<h2 id="平衡点工作点和局部线性化">4.2 平衡点、工作点和局部线性化</h2>
+<h2 id="平衡点工作点和局部线性化">2 平衡点、工作点和局部线性化</h2>
 <p>对系统</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>x</mi><mo accent="true">̇</mo></mover><mo>=</mo><mi>f</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>u</mi><mo>,</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
 \dot{x}=f(x,u,t)
@@ -392,7 +403,7 @@ B=\left.\frac{\partial f}{\partial u}\right|_{(x^\star,u^\star,t^\star)}
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>A</mi><annotation encoding="application/x-tex">A</annotation></semantics></math>
 是状态雅可比矩阵，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>B</mi><annotation encoding="application/x-tex">B</annotation></semantics></math>
 是输入雅可比矩阵。局部线性化能帮助分析小扰动，但不能说明大范围变化。若参考轨迹跨越多个工作点、参数区间或运行工况，固定线性模型很快失效。</p>
-<h3 id="局部线性化的一个基本定理">4.2.1 局部线性化的一个基本定理</h3>
+<h3 id="局部线性化的一个基本定理">1 局部线性化的一个基本定理</h3>
 <p>考虑自治系统
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>x</mi><mo accent="true">̇</mo></mover><mo>=</mo><mi>f</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\dot{x}=f(x)</annotation></semantics></math>，并假设
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mo stretchy="false" form="prefix">(</mo><mn>0</mn><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">f(0)=0</annotation></semantics></math>
@@ -455,14 +466,14 @@ B(t)=\left.\frac{\partial f}{\partial u}\right|_{(x^\star(t),u^\star(t),t)}
 </annotation></semantics></math></p>
 <p>这里把时变雅可比矩阵明确写出来，说明每个时刻都对应一个局部模型。
 这个线化例子说明，非线性系统不能只问“系统是否稳定”，还要问“围绕哪个平衡点稳定、初始条件在哪个区域内、扰动能否把状态推出吸引域”。</p>
-<h2 id="局部半全局和全局结论">4.3 局部、半全局和全局结论</h2>
+<h2 id="局部半全局和全局结论">3 局部、半全局和全局结论</h2>
 <p>非线性控制文献中经常出现局部稳定、半全局稳定和全局稳定。三者差别很大。</p>
 <p>局部稳定表示结论只对平衡点附近某个邻域成立。许多基于线化或局部反馈线性化的控制器只能给出局部结论。</p>
 <p>半全局稳定表示对任意给定的大紧集，都可以通过参数选择使闭环在该紧集内满足稳定或有界性质。它不是全局稳定，因为控制参数可能依赖于给定集合大小。</p>
 <p>全局稳定表示对所有初始条件成立。对真实工程对象，真正全局结论很少，因为状态变量、参数表、执行机构和约束本身往往都有定义域限制。</p>
 <p>因此，教程中更可靠的表述通常是：在给定工作区域、执行机构约束、初始误差集合和扰动上界内，闭环误差有界或收敛。</p>
 <p>这比笼统声称“全局稳定”更符合工程可核查原则。</p>
-<h2 id="lie-导数相对阶和零动态">4.4 Lie 导数、相对阶和零动态</h2>
+<h2 id="lie-导数相对阶和零动态">4 Lie 导数、相对阶和零动态</h2>
 <p>对输入输出系统</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>x</mi><mo accent="true">̇</mo></mover><mo>=</mo><mi>f</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo>+</mo><mi>g</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mi>u</mi><mo>,</mo><mspace width="2.0em"></mspace><mi>y</mi><mo>=</mo><mi>h</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
 \dot{x}=f(x)+g(x)u,\qquad y=h(x)
@@ -512,7 +523,7 @@ y^{(r)}=L_f^rh(x)+L_gL_f^{r-1}h(x)u
 <p>这里把零动态定义成输出链冻结时内部状态自身的演化。
 这就是零动态。若零动态稳定，系统称为最小相位；若零动态不稳定，即使输出误差收敛，内部状态也可能发散。</p>
 <p>在任何工程系统中，这个结论都非常实用。只控制一个外层输出，常常会把内部状态推到危险范围；只控制一个表观输出，也可能牺牲输入裕度、能量裕度或约束满足性。因此反馈线性化、动态逆和分层控制都必须检查内部状态和约束，而不能只给输出误差曲线。</p>
-<h2 id="非线性耦合">4.5 非线性耦合</h2>
+<h2 id="非线性耦合">5 非线性耦合</h2>
 <p>多输入多输出系统可写为</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>x</mi><mo accent="true">̇</mo></mover><mo>=</mo><mi>f</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo>+</mo><mi>G</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mi>u</mi></mrow><annotation encoding="application/x-tex">
 \dot{x}=f(x)+G(x)u
@@ -552,7 +563,7 @@ L_{g_1}L_f^{r_p-1}h_p(x) &amp; \cdots &amp; L_{g_m}L_f^{r_p-1}h_p(x)
 是安全状态集合。若
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ℱ</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\mathcal{F}(x)</annotation></semantics></math>
 为空，任何控制律都无法同时满足所有目标。因此后续控制设计必须讨论可行性，而不是只讨论优化目标。</p>
-<h2 id="扰动匹配性和不确定性">4.6 扰动、匹配性和不确定性</h2>
+<h2 id="扰动匹配性和不确定性">6 扰动、匹配性和不确定性</h2>
 <p>考虑系统</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>x</mi><mo accent="true">̇</mo></mover><mo>=</mo><mi>f</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo>+</mo><mi>g</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mi>u</mi><mo>+</mo><msub><mi>d</mi><mi>m</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo>+</mo><msub><mi>d</mi><mi>u</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
 \dot{x}=f(x)+g(x)u+d_m(x,t)+d_u(x,t)
@@ -591,7 +602,7 @@ h_s(x)=\bar{s}-s(x)
 <p>这里把安全可行集写成对控制输入的约束集合，便于直接用于安全滤波。
 则控制输入若通过某些中间变量间接影响
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>s</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">s(x)</annotation></semantics></math>，约束的控制相对阶和可行性就取决于所选输入通道。这个低阶例子说明：约束不是孤立指标，它会通过状态约束、参考可行域和输入能力进入闭环设计。</p>
-<h2 id="非线性控制方法地图">4.7 非线性控制方法地图</h2>
+<h2 id="非线性控制方法地图">7 非线性控制方法地图</h2>
 <p>后续章节中的非线性控制方法可以按下列问题分类：</p>
 <table>
 <thead>
@@ -645,7 +656,7 @@ h_s(x)=\bar{s}-s(x)
 </tbody>
 </table>
 <p>本章的写法是先讲这些方法的控制理论基础，再讲具体对象的应用，而不是直接罗列算法公式。它属于全书的通用理论底座，只负责给后续章节提供统一语言，不承担任何单一对象的预演任务。</p>
-<h2 id="从非线性理论到控制设计">4.8 从非线性理论到控制设计</h2>
+<h2 id="从非线性理论到控制设计">8 从非线性理论到控制设计</h2>
 <p>非线性理论真正进入控制设计时，通常要回答下面几个最基本的问题：</p>
 <ol type="1">
 <li>系统能否写成输入仿射形式；</li>
@@ -670,7 +681,7 @@ h_s(x)=\bar{s}-s(x)
 <li>最后再选择反馈线性化、动态逆、反步、滑模、自适应或安全滤波等方法。</li>
 </ol>
 <p>这条流程的作用，是让“系统长什么样”先于“控制器怎么写”。</p>
-<h2 id="章内例题二阶跟踪系统">4.9 章内例题：二阶跟踪系统</h2>
+<h2 id="章内例题二阶跟踪系统">9 章内例题：二阶跟踪系统</h2>
 <p>考虑一个二阶输入仿射模型</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mover><mi>z</mi><mo accent="true">̇</mo></mover><mn>1</mn></msub><mo>=</mo><msub><mi>z</mi><mn>2</mn></msub><mo>,</mo><mspace width="2.0em"></mspace><msub><mover><mi>z</mi><mo accent="true">̇</mo></mover><mn>2</mn></msub><mo>=</mo><mi>a</mi><mo stretchy="false" form="prefix">(</mo><mi>z</mi><mo stretchy="false" form="postfix">)</mo><mo>+</mo><mi>b</mi><mo stretchy="false" form="prefix">(</mo><mi>z</mi><mo stretchy="false" form="postfix">)</mo><mi>u</mi><mo>,</mo><mspace width="2.0em"></mspace><mover><mi>η</mi><mo accent="true">̇</mo></mover><mo>=</mo><mi>q</mi><mo stretchy="false" form="prefix">(</mo><mi>z</mi><mo>,</mo><mi>η</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
 \dot{z}_1=z_2,\qquad \dot{z}_2=a(z)+b(z)u,\qquad \dot{\eta}=q(z,\eta)
@@ -701,7 +712,7 @@ h_s(x)=\bar{s}-s(x)
 <li>约束会缩小可行控制集合，而不是只改变性能指标；</li>
 <li>执行机构动态会改变实际闭环的阶次和带宽。</li>
 </ol>
-<h2 id="常见错误">4.10 常见错误</h2>
+<h2 id="常见错误">10 常见错误</h2>
 <ol type="1">
 <li>把局部线性结论当成全局结论。</li>
 <li>只看输出误差，不看内部状态和零动态。</li>
@@ -712,11 +723,11 @@ h_s(x)=\bar{s}-s(x)
 <li>以为安全约束只是在目标函数里加一项惩罚。</li>
 <li>只在一个初始条件上验证，忽略工作区间和可行域。</li>
 </ol>
-<h2 id="本章小结">4.11 本章小结</h2>
+<h2 id="本章小结">11 本章小结</h2>
 <p>非线性系统理论的重点，不是罗列很多“高级方法”，而是把非线性结构讲清楚：系统是否输入仿射，输出是否有清楚的相对阶，内部动态是否稳定，不确定性是否匹配，约束是否会让控制不可行。只要这些问题没有先弄清楚，后面的反馈线性化、动态逆、反步、滑模、自适应和安全控制都只能算是条件不完整的尝试。</p>
 <p>对工程对象来说，最重要的是把理论变成可复查的分析过程：先看结构，再看约束，再看执行机构，最后才看控制律。这样写出来的章节，才会像一本控制教材，而不是一段方法堆叠。</p>
 <p>如果把第4章放进整本教程的结构里看，它承担的是通用非线性语言的角色，而不是对象专章的角色。真正针对具体对象的讨论，会放到后续的建模卷、方法卷和约束卷里。</p>
-<h2 id="练习">4.12 练习</h2>
+<h2 id="练习">12 练习</h2>
 <ol type="1">
 <li>举出三个工程系统中的非线性来源。</li>
 <li>对
@@ -737,7 +748,6 @@ h_s(x)=\bar{s}-s(x)
 </ol>
 
       </article>
-      
       <nav class="book-bottom-nav" aria-label="章节导航">
         <a href="./03-linear-systems-theory.html">上一章：第3章 线性系统理论</a>
         <a href="./index.html">卷首页</a>

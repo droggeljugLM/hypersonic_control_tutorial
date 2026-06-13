@@ -89,7 +89,13 @@
       font-weight: 800;
     }
     .sidebar-title { font-size: 0.94rem; line-height: 1.35; }
-    .book-main { min-width: 0; padding: 1.25rem 1.45rem 1.8rem; }
+    .book-main {
+      min-width: 0;
+      min-height: 100vh;
+      padding: 1.25rem 1.45rem 1.8rem;
+      display: flex;
+      flex-direction: column;
+    }
     .book-page-header {
       padding: 0.85rem 0 1rem;
       margin-bottom: 1rem;
@@ -104,7 +110,12 @@
       padding: 0;
     }
     .book-page-header p { margin: 0.45rem 0 0; color: var(--muted); max-width: 62rem; }
-    .book-article { max-width: 900px; margin: 0; padding: 0 0 1.2rem; }
+    .book-article {
+      max-width: 900px;
+      margin: 0;
+      padding: 0 0 1.2rem;
+      flex: 1 0 auto;
+    }
     .book-article h1, .book-article h2, .book-article h3, .book-article h4, .book-article h5, .book-article h6 {
       line-height: 1.28;
       margin-top: 1.45em;
@@ -117,27 +128,30 @@
     .book-article h3 { font-size: 1.12rem; }
     .book-article p, .book-article li, .book-article dd, .book-article td, .book-article th { text-align: justify; text-justify: inter-ideograph; }
     .book-article p { margin: 0.85rem 0; }
-    .book-article code, .book-article pre { font-family: "Cascadia Mono", "Source Code Pro", Consolas, monospace; font-size: 0.94em; }
+    .book-article code, .book-article pre { font-family: inherit; font-size: 0.98em; letter-spacing: 0; }
     .book-article code {
-      padding: 0.02rem 0.24rem;
-      background: color-mix(in srgb, var(--accent-soft) 34%, #ffffff 66%);
+      padding: 0.04rem 0.28rem;
+      background: color-mix(in srgb, var(--accent-soft) 24%, #ffffff 76%);
       border: 0;
-      border-bottom: 1px solid color-mix(in srgb, var(--accent-soft) 74%, #d1d5db 26%);
+      border-bottom: 1px solid color-mix(in srgb, var(--accent-soft) 52%, #d1d5db 48%);
       border-radius: 4px;
-      color: #253244;
+      color: #2b3440;
       box-decoration-break: clone;
       -webkit-box-decoration-break: clone;
+      font-family: inherit;
+      font-variant-ligatures: none;
     }
     .book-article pre {
-      padding: 1rem 1.1rem;
+      padding: 0.95rem 1.05rem;
       overflow: auto;
-      background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,253,248,0.98));
-      border: 1px solid color-mix(in srgb, var(--accent-soft) 54%, #d1d5db 46%);
-      border-left: 5px solid var(--accent);
+      background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,253,248,0.96));
+      border: 1px solid color-mix(in srgb, var(--accent-soft) 44%, #d1d5db 56%);
+      border-left: 4px solid var(--accent);
       border-radius: 14px;
       box-shadow: 0 8px 22px rgba(31, 41, 55, 0.05);
+      white-space: pre-wrap;
     }
-    .book-article pre code { padding: 0; border: 0; background: transparent; color: inherit; }
+    .book-article pre code { padding: 0; border: 0; background: transparent; color: inherit; font-family: inherit; }
     .book-article table {
       border-collapse: collapse;
       width: 100%;
@@ -296,11 +310,11 @@
         <h1 id="volume2--16-atmosphere-flight-conditions">第16章 大气环境与飞行条件</h1>
       </header>
       <article class="book-article">
-        <h2 id="问题背景">16.1 问题背景</h2>
+        <h2 id="问题背景">1 问题背景</h2>
 <p>高超声速飞行器不是在固定环境中飞行。高度、密度、温度、声速、Mach
 数、动压、热流、雷诺数、风场和稀薄大气效应都会改变动力学和控制可行性。</p>
 <p>从控制科学角度看，大气环境不是背景参数，而是进入模型、约束、调度变量和验证场景的外部系统。控制设计必须明确哪些环境量会直接进入闭环，哪些只作为扰动或场景参数。</p>
-<h2 id="标准大气模型">16.2 标准大气模型</h2>
+<h2 id="标准大气模型">2 标准大气模型</h2>
 <p>入门仿真常使用标准大气。它给出高度
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>h</mi><annotation encoding="application/x-tex">h</annotation></semantics></math>
 下的温度
@@ -331,7 +345,7 @@ a(h)=\sqrt{\gamma_a R T(h)}
 是空气比热比，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>R</mi><annotation encoding="application/x-tex">R</annotation></semantics></math>
 是气体常数。密度影响气动力、动压、热流和雷诺数，是高超声速控制中最重要的环境变量之一。</p>
 <p>标准大气模型适合教学和初步验证，但真实任务还需要考虑季节、纬度、风场、密度偏差和高空稀薄大气。</p>
-<h2 id="mach-数">16.3 Mach 数</h2>
+<h2 id="mach-数">3 Mach 数</h2>
 <p>Mach 数定义为：</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>M</mi><mi>a</mi><mo>=</mo><mfrac><mi>V</mi><mi>a</mi></mfrac></mrow><annotation encoding="application/x-tex">
 Ma = \frac{V}{a}
@@ -345,8 +359,8 @@ Ma = \frac{V}{a}
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>M</mi><mi>a</mi><mo>=</mo><mn>6</mn></mrow><annotation encoding="application/x-tex">Ma=6</annotation></semantics></math>
 的高空再入段可能有完全不同的控制难度。</p>
 <p>Mach
-数常被直接用作气动表插值变量、推力模型输入、增益调度变量、飞行包线约束和仿真场景分类字段，因此它不是一个只用于定义高超声速的标签，而是一个会直接影响控制器和验证脚本的工作量输入。</p>
-<h2 id="动压">16.4 动压</h2>
+数常被直接用作气动表插值变量、推力模型输入、增益调度变量、飞行包线约束和仿真场景分类字段，因此它不是一个只用于定义高超声速的标签，而是一个会直接影响控制器和验证流程的工作量输入。</p>
+<h2 id="动压">4 动压</h2>
 <p>动压定义为：</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>q</mi><mo accent="true">‾</mo></mover><mo>=</mo><mfrac><mn>1</mn><mn>2</mn></mfrac><mi>ρ</mi><msup><mi>V</mi><mn>2</mn></msup></mrow><annotation encoding="application/x-tex">
 \bar q = \frac{1}{2}\rho V^2
@@ -362,7 +376,7 @@ Ma = \frac{V}{a}
 <li>动压违反积分；</li>
 <li>逼近上限时的参考修正量。</li>
 </ul>
-<h2 id="热流">16.5 热流</h2>
+<h2 id="热流">5 热流</h2>
 <p>热流常写成：</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>Q</mi><mo accent="true">̇</mo></mover><mo>=</mo><mover><mi>Q</mi><mo accent="true">̇</mo></mover><mo stretchy="false" form="prefix">(</mo><mi>ρ</mi><mo>,</mo><mi>V</mi><mo>,</mo><mi>α</mi><mo>,</mo><mtext mathvariant="normal">shape</mtext><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
 \dot Q = \dot Q(\rho,V,\alpha,\text{shape})
@@ -376,7 +390,7 @@ Ma = \frac{V}{a}
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ρ</mi><msup><mi>V</mi><mn>2</mn></msup></mrow><annotation encoding="application/x-tex">\rho V^2</annotation></semantics></math>
 成正比，而典型对流热流对速度更敏感。一个控制器即使保证动压不超限，也不一定保证热流安全。</p>
 <p>报告高超声速安全控制时，应把动压、热流和过载分开统计，不能用动压安全替代所有路径安全。</p>
-<h2 id="雷诺数和稀薄大气影响">16.6 雷诺数和稀薄大气影响</h2>
+<h2 id="雷诺数和稀薄大气影响">6 雷诺数和稀薄大气影响</h2>
 <p>雷诺数可写为：</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mi>e</mi><mo>=</mo><mfrac><mrow><mi>ρ</mi><mi>V</mi><msub><mi>L</mi><mrow><mi mathvariant="normal">r</mi><mi mathvariant="normal">e</mi><mi mathvariant="normal">f</mi></mrow></msub></mrow><mi>μ</mi></mfrac></mrow><annotation encoding="application/x-tex">
 Re = \frac{\rho V L_{\mathrm{ref}}}{\mu}
@@ -400,7 +414,7 @@ Kn = \frac{\lambda}{L_{\mathrm{ref}}}
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>K</mi><mi>n</mi></mrow><annotation encoding="application/x-tex">Kn</annotation></semantics></math>
 不再很小，连续介质假设可能失效。此时常规气动表和控制模型需要重新审查。</p>
 <p>控制教程不必展开稀薄气体动力学细节，但必须提醒读者：模型适用性依赖飞行高度和流动状态。</p>
-<h2 id="过载和载荷因子">16.7 过载和载荷因子</h2>
+<h2 id="过载和载荷因子">7 过载和载荷因子</h2>
 <p>过载常用载荷因子表示：</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>n</mi><mo>=</mo><mfrac><mi>L</mi><mrow><mi>m</mi><mi>g</mi></mrow></mfrac></mrow><annotation encoding="application/x-tex">
 n = \frac{L}{mg}
@@ -414,7 +428,7 @@ n = \frac{L}{mg}
 n \le n_{\max}
 </annotation></semantics></math></p>
 <p>过载与制导和姿态控制直接相关。终端制导命令若要求过大法向加速度，姿态层可能饱和，结构也可能超限。因此三维制导验证必须报告过载峰值和违反积分。</p>
-<h2 id="风场和大气扰动">16.8 风场和大气扰动</h2>
+<h2 id="风场和大气扰动">8 风场和大气扰动</h2>
 <p>风场会改变相对气流速度：</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>v</mi><mrow><mi mathvariant="normal">r</mi><mi mathvariant="normal">e</mi><mi mathvariant="normal">l</mi></mrow></msub><mo>=</mo><mi>v</mi><mo>−</mo><mi>w</mi></mrow><annotation encoding="application/x-tex">
 v_{\mathrm{rel}} = v - w
@@ -430,7 +444,7 @@ v_{\mathrm{rel}} = v - w
 Mach
 调度，而不记录高度、密度和动压，就可能在某些飞行点出现输入效能不足或约束裕度误判。</p>
 <p>对动压约束控制，这个例题还给出一个重要边界：动压不仅是上限约束，也影响可用控制效能。动压逼近上边界时，可通过安全滤波、参考治理或输入效能折减进入闭环；动压过低时，应检查舵面是否还有足够力矩权限。</p>
-<h2 id="飞行条件验证矩阵">16.9 飞行条件验证矩阵</h2>
+<h2 id="飞行条件验证矩阵">9 飞行条件验证矩阵</h2>
 <p>验证环境模型时，不应只在单一高度和速度下运行。一个入门验证矩阵可包含：</p>
 <table>
 <colgroup>
@@ -489,23 +503,23 @@ Mach
 </tr>
 </tbody>
 </table>
-<p>其中“动压边界逼近”不是后处理检查，而是闭环场景。控制器、参考治理器或安全滤波器应在这个场景中真正接收到动压裕度信息，指标脚本再统计跟踪代价和安全收益。</p>
-<h2 id="配套示例的支撑范围">16.10 配套示例的支撑范围</h2>
-<p>最小 MATLAB 和 Python 大气、动压相关示例包括：</p>
+<p>其中“动压边界逼近”不是后处理检查，而是闭环场景。控制器、参考治理器或安全滤波器应在这个场景中真正接收到动压裕度信息，指标流程再统计跟踪代价和安全收益。</p>
+<h2 id="材料支撑范围">10 材料支撑范围</h2>
+<p>最小大气、动压相关材料包括：</p>
 <table>
 <thead>
 <tr>
-<th>配套示例</th>
+<th>材料</th>
 <th>作用</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>MATLAB 大气环境示例</td>
+<td>大气环境材料</td>
 <td>教学级大气密度和环境计算</td>
 </tr>
 <tr>
-<td>MATLAB 动压示例</td>
+<td>动压材料</td>
 <td>动压计算</td>
 </tr>
 <tr>
@@ -513,13 +527,13 @@ Mach
 <td>展示环境和动压如何进入纵向教学模型</td>
 </tr>
 <tr>
-<td>三维质点环境指标示例</td>
+<td>三维质点环境指标材料</td>
 <td>展示动压和过载指标如何进入三维质点路径</td>
 </tr>
 </tbody>
 </table>
-<p>这些示例适合教学验证，但后续仍需要在第五卷补完整数值可信性、单位管理、气动数据管理和高保真环境接口。</p>
-<h2 id="常见错误">16.11 常见错误</h2>
+<p>这些材料适合教学验证，但后续仍需要在第五卷补完整数值可信性、单位管理、气动数据管理和高保真环境接口。</p>
+<h2 id="常见错误">11 常见错误</h2>
 <ol type="1">
 <li>用 Mach 数单独代表飞行条件，不记录高度和密度。</li>
 <li>保证动压安全后，就声称热流和过载都安全。</li>
@@ -532,11 +546,11 @@ Mach
 <li>只在单一高度速度点验证环境模型。</li>
 <li>把动压只当上限指标，不检查低动压下的控制效能。</li>
 </ol>
-<h2 id="本章小结">16.12 本章小结</h2>
+<h2 id="本章小结">12 本章小结</h2>
 <p>大气环境和飞行条件决定高超声速控制问题的尺度、约束和不确定性。Mach
 数、动压、热流、雷诺数、过载和风场都应作为建模和验证的一部分。后续气动、推进、配平、增益调度、MPC
 和安全控制章节都必须继承本章的环境变量和飞行包线边界。</p>
-<h2 id="练习">16.13 练习</h2>
+<h2 id="练习">13 练习</h2>
 <ol type="1">
 <li>写出 Mach 数、动压和雷诺数定义。</li>
 <li>解释为什么相同 Mach 数在不同高度下控制难度不同。</li>
@@ -545,12 +559,11 @@ Mach
 <li>给出一个飞行包线集合
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ℰ</mi><annotation encoding="application/x-tex">\mathcal{E}</annotation></semantics></math>。</li>
 <li>设计高超声速仿真轨迹记录中必须记录的环境字段。</li>
-<li>设计一个同 Mach 不同高度的算例，计算动压比和热流趋势比。</li>
+<li>设计一个同 Mach 不同高度的案例，计算动压比和热流趋势比。</li>
 <li>说明动压上限约束和低动压控制效能不足分别如何进入闭环验证。</li>
 </ol>
 
       </article>
-      
       <nav class="book-bottom-nav" aria-label="章节导航">
         <a href="./15-coordinate-kinematics-attitude.html">上一章：第15章 坐标系、运动学与姿态描述</a>
         <a href="./index.html">卷首页</a>
@@ -561,3 +574,4 @@ Mach
   </div>
 </body>
 </html>
+

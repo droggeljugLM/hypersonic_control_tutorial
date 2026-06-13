@@ -89,7 +89,13 @@
       font-weight: 800;
     }
     .sidebar-title { font-size: 0.94rem; line-height: 1.35; }
-    .book-main { min-width: 0; padding: 1.25rem 1.45rem 1.8rem; }
+    .book-main {
+      min-width: 0;
+      min-height: 100vh;
+      padding: 1.25rem 1.45rem 1.8rem;
+      display: flex;
+      flex-direction: column;
+    }
     .book-page-header {
       padding: 0.85rem 0 1rem;
       margin-bottom: 1rem;
@@ -104,7 +110,12 @@
       padding: 0;
     }
     .book-page-header p { margin: 0.45rem 0 0; color: var(--muted); max-width: 62rem; }
-    .book-article { max-width: 900px; margin: 0; padding: 0 0 1.2rem; }
+    .book-article {
+      max-width: 900px;
+      margin: 0;
+      padding: 0 0 1.2rem;
+      flex: 1 0 auto;
+    }
     .book-article h1, .book-article h2, .book-article h3, .book-article h4, .book-article h5, .book-article h6 {
       line-height: 1.28;
       margin-top: 1.45em;
@@ -117,27 +128,30 @@
     .book-article h3 { font-size: 1.12rem; }
     .book-article p, .book-article li, .book-article dd, .book-article td, .book-article th { text-align: justify; text-justify: inter-ideograph; }
     .book-article p { margin: 0.85rem 0; }
-    .book-article code, .book-article pre { font-family: "Cascadia Mono", "Source Code Pro", Consolas, monospace; font-size: 0.94em; }
+    .book-article code, .book-article pre { font-family: inherit; font-size: 0.98em; letter-spacing: 0; }
     .book-article code {
-      padding: 0.02rem 0.24rem;
-      background: color-mix(in srgb, var(--accent-soft) 34%, #ffffff 66%);
+      padding: 0.04rem 0.28rem;
+      background: color-mix(in srgb, var(--accent-soft) 24%, #ffffff 76%);
       border: 0;
-      border-bottom: 1px solid color-mix(in srgb, var(--accent-soft) 74%, #d1d5db 26%);
+      border-bottom: 1px solid color-mix(in srgb, var(--accent-soft) 52%, #d1d5db 48%);
       border-radius: 4px;
-      color: #253244;
+      color: #2b3440;
       box-decoration-break: clone;
       -webkit-box-decoration-break: clone;
+      font-family: inherit;
+      font-variant-ligatures: none;
     }
     .book-article pre {
-      padding: 1rem 1.1rem;
+      padding: 0.95rem 1.05rem;
       overflow: auto;
-      background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,253,248,0.98));
-      border: 1px solid color-mix(in srgb, var(--accent-soft) 54%, #d1d5db 46%);
-      border-left: 5px solid var(--accent);
+      background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,253,248,0.96));
+      border: 1px solid color-mix(in srgb, var(--accent-soft) 44%, #d1d5db 56%);
+      border-left: 4px solid var(--accent);
       border-radius: 14px;
       box-shadow: 0 8px 22px rgba(31, 41, 55, 0.05);
+      white-space: pre-wrap;
     }
-    .book-article pre code { padding: 0; border: 0; background: transparent; color: inherit; }
+    .book-article pre code { padding: 0; border: 0; background: transparent; color: inherit; font-family: inherit; }
     .book-article table {
       border-collapse: collapse;
       width: 100%;
@@ -298,7 +312,7 @@
         <h1 id="volume1--01-hypersonic-control-problem-intro">第1章 高超声速飞行器控制问题导论</h1>
       </header>
       <article class="book-article">
-        <h2 id="为什么先讲控制问题">1.1 为什么先讲控制问题</h2>
+        <h2 id="为什么先讲控制问题">1 为什么先讲控制问题</h2>
 <p>本教程的第一章不从某个具体控制律开始，而先回答这样一个总问题：高超声速飞行器控制到底是一类什么控制问题？</p>
 <p>如果不先回答这个问题，后续很容易变成算法罗列：PID 一章、LQR
 一章、滑模一章、反步一章、神经网络一章。参考书级教程必须把对象、理论、方法、约束和验证统一起来。</p>
@@ -315,7 +329,7 @@
 是路径、输入或终端约束，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mo stretchy="false" form="prefix">(</mo><mi>⋅</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">f(\cdot)</annotation></semantics></math>
 是系统动力学映射，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>t</mi><annotation encoding="application/x-tex">t</annotation></semantics></math>
 是时间。后续章节统一沿用这一组最小符号。</p>
-<h2 id="什么是高超声速飞行器控制">1.2 什么是高超声速飞行器控制</h2>
+<h2 id="什么是高超声速飞行器控制">2 什么是高超声速飞行器控制</h2>
 <p>高超声速飞行通常指 Mach 数大于 5
 的飞行状态。控制问题的困难不只是速度高，而是速度高带来一系列耦合效应：</p>
 <ul>
@@ -327,7 +341,7 @@
 <li>真实飞行试验少，仿真验证必须更严谨。</li>
 </ul>
 <p>因此，高超声速飞行器控制不是常规飞行控制的简单放大，而是受约束、不确定、强非线性、多时间尺度系统的闭环控制问题。</p>
-<h2 id="飞行器类型和任务段">1.3 飞行器类型和任务段</h2>
+<h2 id="飞行器类型和任务段">3 飞行器类型和任务段</h2>
 <p>不同高超声速对象有不同控制难点。</p>
 <table>
 <thead>
@@ -364,12 +378,12 @@
 </tbody>
 </table>
 <p>这也是参考书要求不能只围绕纵向速度高度控制展开的原因。纵向模型是入门模型，但不能代表全部高超声速控制。</p>
-<h2 id="控制科学视角">1.4 控制科学视角</h2>
+<h2 id="控制科学视角">4 控制科学视角</h2>
 <p>控制科学关心的是把任务转化为闭环问题：</p>
 <p>物理对象要先被抽象成动态系统，任务要求要被写成参考轨迹、终端条件和代价函数，飞行安全要被表达为状态约束、输入约束和路径约束，环境变化要进入不确定性和扰动模型，工程实现还必须显式考虑采样、延迟、执行机构、传感器和计算资源。</p>
 <p>高超声速控制不是只问“用哪个算法”，而是先问：</p>
 <p>状态是什么，输入是什么，输出是什么，约束是什么，哪些状态可测，哪些参数未知，闭环要证明什么，以及仿真要验证什么，这些问题必须先被回答清楚。</p>
-<h2 id="制导控制估计优化和验证">1.5 制导、控制、估计、优化和验证</h2>
+<h2 id="制导控制估计优化和验证">5 制导、控制、估计、优化和验证</h2>
 <p>完整系统至少包含五类问题。</p>
 <h3 id="制导">制导</h3>
 <p>制导决定飞行器应该往哪里飞：</p>
@@ -462,7 +476,7 @@ u=\pi(x,r,\hat{x}).
 <li>求解可行性。</li>
 </ul>
 <p>没有验证，控制律只是公式。</p>
-<h2 id="全书理论地图">1.6 全书理论地图</h2>
+<h2 id="全书理论地图">6 全书理论地图</h2>
 <p>第一卷先建立理论基础：</p>
 <ul>
 <li><strong>动力系统和状态空间</strong>：线性系统；非线性系统；Lyapunov
@@ -471,7 +485,7 @@ u=\pi(x,r,\hat{x}).
 <p>第二卷进入飞行器建模，第三卷讲控制方法，第四卷讲约束、安全、容错和
 IGC，第五卷讲仿真验证和研究训练。</p>
 <p>这个顺序体现参考书要求：理论先行，对象分类，模型分层，方法成体系，论文训练后置。</p>
-<h2 id="动压约束的位置">1.7 动压约束的位置</h2>
+<h2 id="动压约束的位置">7 动压约束的位置</h2>
 <p>动压约束是高超声速控制中的重要问题：</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>q</mi><mo accent="true">‾</mo></mover><mo>=</mo><mstyle displaystyle="false"><mfrac><mn>1</mn><mn>2</mn></mfrac></mstyle><mi>ρ</mi><mo stretchy="false" form="prefix">(</mo><mi>h</mi><mo stretchy="false" form="postfix">)</mo><msup><mi>V</mi><mn>2</mn></msup><mi>.</mi></mrow><annotation encoding="application/x-tex">
 \bar{q}=\tfrac{1}{2}\rho(h)V^2.
@@ -526,7 +540,7 @@ u_{\mathrm{eff}}=\eta(\bar{q})u.
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>η</mi><mo stretchy="false" form="prefix">(</mo><mover><mi>q</mi><mo accent="true">‾</mo></mover><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\eta(\bar{q})</annotation></semantics></math>
 说明动压越接近边界，可用控制能力可能越弱。</p>
 <p>这类低阶表达不声称建立完整结构载荷模型，而是把“接近边界后可用控制能力下降”作为控制相关机制放入闭环。这样的写法比把动压只放在仿真结束后检查更符合控制科学的思路。</p>
-<h2 id="控制问题六元组">1.8 控制问题六元组</h2>
+<h2 id="控制问题六元组">8 控制问题六元组</h2>
 <p>本书把高超声速飞行器控制问题统一写成六元组：</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>𝒫</mi><mo>=</mo><mo stretchy="false" form="prefix">(</mo><mi>ℳ</mi><mo>,</mo><mi>𝒯</mi><mo>,</mo><mi>ℐ</mi><mo>,</mo><mi>𝒞</mi><mo>,</mo><mi>𝒜</mi><mo>,</mo><mi>𝒱</mi><mo stretchy="false" form="postfix">)</mo><mi>.</mi></mrow><annotation encoding="application/x-tex">
 \mathcal{P}=(\mathcal{M},\mathcal{T},\mathcal{I},\mathcal{C},\mathcal{A},\mathcal{V}).
@@ -594,7 +608,7 @@ u_{\mathrm{eff}}=\eta(\bar{q})u.
 <li>用什么证据证明有效？</li>
 </ul>
 <p>若这些问题回答不清楚，控制律公式再复杂也不构成完整方法。</p>
-<h2 id="任务类型到控制问题的映射">1.9 任务类型到控制问题的映射</h2>
+<h2 id="任务类型到控制问题的映射">9 任务类型到控制问题的映射</h2>
 <p>不同任务段对应不同的控制问题。</p>
 <table>
 <colgroup>
@@ -652,7 +666,7 @@ u_{\mathrm{eff}}=\eta(\bar{q})u.
 </tbody>
 </table>
 <p>这个表说明：高超声速控制不是一个单一问题，而是一组随任务段变化的问题族。教程必须先建立共用理论语言，再进入具体任务和方法。</p>
-<h2 id="难点矩阵">1.10 难点矩阵</h2>
+<h2 id="难点矩阵">10 难点矩阵</h2>
 <p>高超声速控制的难点可以组织成矩阵，而不是零散罗列。</p>
 <table>
 <colgroup>
@@ -717,7 +731,7 @@ u_{\mathrm{eff}}=\eta(\bar{q})u.
 </table>
 <p>后续各章实际上都在处理这张矩阵的某一列或某几行。线性系统解决局部分析，非线性系统解决大包线现象，Lyapunov
 解决稳定证明，鲁棒和自适应处理不确定性，约束安全处理可行集，仿真验证处理证据链。</p>
-<h2 id="从控制律到证据链">1.11 从控制律到证据链</h2>
+<h2 id="从控制律到证据链">11 从控制律到证据链</h2>
 <p>本教程不把“提出一个控制律”视为终点。一个控制方案至少应给出以下证据链：</p>
 <ul>
 <li><strong>模型定义</strong>：假设和适用范围；控制目标和约束；控制律或优化问题；稳定性/有界性/安全性说明；实现细节；仿真场景；指标表；失败样本和边界说明</li>
@@ -806,7 +820,7 @@ u_{\mathrm{eff}}=\eta(\bar{q})u.
 <li>证据：跟踪误差均方根、最大动压、最小裕度、控制能量、失败样本。</li>
 </ul>
 <p>如果这张卡片填不完整，后续即使写出控制律，也很难形成可复核的章节或论文案例。</p>
-<h2 id="例题把滑翔任务写成控制问题六元组">1.12
+<h2 id="例题把滑翔任务写成控制问题六元组">12
 例题：把滑翔任务写成控制问题六元组</h2>
 <p>考虑一个简化助推滑翔任务：飞行器从给定初始高度和速度进入滑翔段，需要在满足动压、热流和过载约束的条件下到达目标区域。不要一开始就问“用什么控制律”，先写控制问题六元组。</p>
 <p>模型层可以选三维质点或六自由度模型。若作为入门问题，可先选：</p>
@@ -884,7 +898,7 @@ n(h,V,\alpha,\sigma)\le n_{\max}.
 <li>离散实现问题先看混杂系统、采样控制和第五卷；</li>
 <li>任务一体化问题先看制导控制一体化和任务专题。</li>
 </ul>
-<p>这一层的作用，是把第1章真正变成后续全书的入口，而不只是一个总述。
+<p>这一层的作用，是把第1章真正变成后续全书的起点，而不只是一个总述。
 补充要点如下：</p>
 <ul>
 <li>动压是代表性约束，但热流、过载、攻角、输入和终端约束同样决定可行性。</li>
@@ -896,8 +910,8 @@ n(h,V,\alpha,\sigma)\le n_{\max}.
 <li>实验矩阵应覆盖标称、参数偏差、扰动、输入限幅、安全层活跃和失败样本。</li>
 <li>卡片中至少写出状态、输入、可测信息、路径约束、执行机构约束、安全层接口和验证指标；若安全层会修正参考或输入，约束就不是后验检查。</li>
 </ul>
-<h2 id="任务问题包的最小交付格式">1.13 任务问题包的最小交付格式</h2>
-<p>把第1章真正写成参考书时，最好不要只留下定义和例子，还要把“高超声速飞行器控制问题”整理成一个可以继续向后传递的问题包。这个包不是为了格式好看，而是为了让后续章节、配套算例和仿真验证都站在同一组问题定义上。</p>
+<h2 id="任务问题包的最小交付格式">13 任务问题包的最小交付格式</h2>
+<p>把第1章真正写成参考书时，最好不要只留下定义和例子，还要把“高超声速飞行器控制问题”整理成一个可以继续向后传递的问题包。这个包不是为了格式好看，而是为了让后续章节、案例和仿真验证都站在同一组问题定义上。</p>
 <p>一个最小问题包建议至少包含下表字段：</p>
 <table>
 <colgroup>
@@ -962,7 +976,7 @@ n(h,V,\alpha,\sigma)\le n_{\max}.
 <li>可测量和可估计信息是否足够支撑控制律；</li>
 <li>这一问题包能否直接接到第2章的状态空间对象、第5章以后的稳定性与控制设计，以及第五卷的验证案例。</li>
 </ol>
-<h2 id="本章证据层次及其与后续章节的关系">1.14
+<h2 id="本章证据层次及其与后续章节的关系">14
 本章证据层次及其与后续章节的关系</h2>
 <p>第1章给出的证据层次，应该比普通课程讲义更严格一点，但又不必直接上升到完整论文的全部形式化证明。最稳妥的层次是：</p>
 <table>
@@ -1016,7 +1030,6 @@ n(h,V,\alpha,\sigma)\le n_{\max}.
 <p>换句话说，第1章的任务不是把所有理论都讲完，而是把“控制问题”这件事定义成一份可持续传递的对象包。后面章节如果没有沿着这个对象包展开，写出来就容易变成算法散点，而不是一本书。</p>
 
       </article>
-      
       <nav class="book-bottom-nav" aria-label="章节导航">
         <a href="./index.html">上一章：卷首页</a>
         <a href="./index.html">卷首页</a>
@@ -1027,3 +1040,4 @@ n(h,V,\alpha,\sigma)\le n_{\max}.
   </div>
 </body>
 </html>
+

@@ -89,7 +89,13 @@
       font-weight: 800;
     }
     .sidebar-title { font-size: 0.94rem; line-height: 1.35; }
-    .book-main { min-width: 0; padding: 1.25rem 1.45rem 1.8rem; }
+    .book-main {
+      min-width: 0;
+      min-height: 100vh;
+      padding: 1.25rem 1.45rem 1.8rem;
+      display: flex;
+      flex-direction: column;
+    }
     .book-page-header {
       padding: 0.85rem 0 1rem;
       margin-bottom: 1rem;
@@ -104,7 +110,12 @@
       padding: 0;
     }
     .book-page-header p { margin: 0.45rem 0 0; color: var(--muted); max-width: 62rem; }
-    .book-article { max-width: 900px; margin: 0; padding: 0 0 1.2rem; }
+    .book-article {
+      max-width: 900px;
+      margin: 0;
+      padding: 0 0 1.2rem;
+      flex: 1 0 auto;
+    }
     .book-article h1, .book-article h2, .book-article h3, .book-article h4, .book-article h5, .book-article h6 {
       line-height: 1.28;
       margin-top: 1.45em;
@@ -117,27 +128,30 @@
     .book-article h3 { font-size: 1.12rem; }
     .book-article p, .book-article li, .book-article dd, .book-article td, .book-article th { text-align: justify; text-justify: inter-ideograph; }
     .book-article p { margin: 0.85rem 0; }
-    .book-article code, .book-article pre { font-family: "Cascadia Mono", "Source Code Pro", Consolas, monospace; font-size: 0.94em; }
+    .book-article code, .book-article pre { font-family: inherit; font-size: 0.98em; letter-spacing: 0; }
     .book-article code {
-      padding: 0.02rem 0.24rem;
-      background: color-mix(in srgb, var(--accent-soft) 34%, #ffffff 66%);
+      padding: 0.04rem 0.28rem;
+      background: color-mix(in srgb, var(--accent-soft) 24%, #ffffff 76%);
       border: 0;
-      border-bottom: 1px solid color-mix(in srgb, var(--accent-soft) 74%, #d1d5db 26%);
+      border-bottom: 1px solid color-mix(in srgb, var(--accent-soft) 52%, #d1d5db 48%);
       border-radius: 4px;
-      color: #253244;
+      color: #2b3440;
       box-decoration-break: clone;
       -webkit-box-decoration-break: clone;
+      font-family: inherit;
+      font-variant-ligatures: none;
     }
     .book-article pre {
-      padding: 1rem 1.1rem;
+      padding: 0.95rem 1.05rem;
       overflow: auto;
-      background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,253,248,0.98));
-      border: 1px solid color-mix(in srgb, var(--accent-soft) 54%, #d1d5db 46%);
-      border-left: 5px solid var(--accent);
+      background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,253,248,0.96));
+      border: 1px solid color-mix(in srgb, var(--accent-soft) 44%, #d1d5db 56%);
+      border-left: 4px solid var(--accent);
       border-radius: 14px;
       box-shadow: 0 8px 22px rgba(31, 41, 55, 0.05);
+      white-space: pre-wrap;
     }
-    .book-article pre code { padding: 0; border: 0; background: transparent; color: inherit; }
+    .book-article pre code { padding: 0; border: 0; background: transparent; color: inherit; font-family: inherit; }
     .book-article table {
       border-collapse: collapse;
       width: 100%;
@@ -296,12 +310,12 @@
         <h1 id="volume2--25-trim-linearization-modal-analysis">第25章 配平、线性化与模态分析</h1>
       </header>
       <article class="book-article">
-        <h2 id="问题背景">25.1 问题背景</h2>
+        <h2 id="问题背景">1 问题背景</h2>
 <p>前面章节已经建立了对象类型、坐标、大气、气动、推进、质点、纵向、横侧向、六自由度、柔性和执行链。控制器设计之前，还需要把非线性飞行动力学转化为可分析的工作点和局部模型。</p>
 <p>本章要说明三件事：什么是配平，如何从非线性模型得到线性小扰动模型，以及模态分析如何服务
 PID、LQR、鲁棒控制、增益调度和 LPV
 控制。它是第二卷通向第三卷的接口章。</p>
-<h2 id="配平的控制意义">25.2 配平的控制意义</h2>
+<h2 id="配平的控制意义">2 配平的控制意义</h2>
 <p>配平表示在给定飞行条件下，飞行器处于某种稳态或准稳态。对巡航段，可要求：</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>x</mi><mo accent="true">̇</mo></mover><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">
 \dot x=0
@@ -311,7 +325,7 @@ PID、LQR、鲁棒控制、增益调度和 LPV
 是状态导数。</p>
 <p>如果是定常转弯、定常滑翔或定常倾侧飞行，也可以允许某些状态保持恒定，而另一些状态以常值变化。关键不是“零导数”这个形式，而是要明确工作点到底对应什么飞行任务。</p>
 <p>若配平点已经接近舵偏、油门、攻角或动压边界，即使残差很小，也不是健康的控制设计点。</p>
-<h2 id="配平变量">25.3 配平变量</h2>
+<h2 id="配平变量">3 配平变量</h2>
 <p>配平通常要求寻找状态和输入：</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>x</mi><mn>0</mn></msub><mo>,</mo><msub><mi>u</mi><mn>0</mn></msub><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
 (x_0,u_0)
@@ -332,14 +346,14 @@ g(x_0,u_0,p)\le 0
 </annotation></semantics></math></p>
 <p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>g</mi><mo stretchy="false" form="prefix">(</mo><mi>⋅</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">g(\cdot)</annotation></semantics></math>
 表示攻角、侧滑角、动压、舵偏、舵速和推力等约束。</p>
-<h2 id="纵向配平">25.4 纵向配平</h2>
+<h2 id="纵向配平">4 纵向配平</h2>
 <p>给定速度和高度后，纵向配平要解出攻角、俯仰角、舵面和推力。例如，在巡航或平飞条件下，通常希望：</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>V</mi><mo accent="true">̇</mo></mover><mo>=</mo><mover><mi>γ</mi><mo accent="true">̇</mo></mover><mo>=</mo><mover><mi>h</mi><mo accent="true">̇</mo></mover><mo>=</mo><mover><mi>α</mi><mo accent="true">̇</mo></mover><mo>=</mo><mover><mi>θ</mi><mo accent="true">̇</mo></mover><mo>=</mo><mover><mi>q</mi><mo accent="true">̇</mo></mover><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">
 \dot V=\dot \gamma=\dot h=\dot \alpha=\dot \theta=\dot q=0
 </annotation></semantics></math></p>
 <p>其中，各状态含义与第20章一致。</p>
 <p>若求得的舵面角或推力命令接近极限，就说明这个飞行点控制余度不足。配平不是“算出一个点就完了”，而是要同时报告该点离约束边界有多远。</p>
-<h2 id="横侧向配平">25.5 横侧向配平</h2>
+<h2 id="横侧向配平">5 横侧向配平</h2>
 <p>横侧向配平常用于定常直线飞行、定常倾侧滑翔或定常转弯。简单直线飞行可要求：</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>β</mi><mn>0</mn></msub><mo>=</mo><msub><mi>ϕ</mi><mn>0</mn></msub><mo>=</mo><msub><mi>ψ</mi><mn>0</mn></msub><mo>=</mo><msub><mi>p</mi><mn>0</mn></msub><mo>=</mo><msub><mi>r</mi><mn>0</mn></msub><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">
 \beta_0=\phi_0=\psi_0=p_0=r_0=0
@@ -348,7 +362,7 @@ g(x_0,u_0,p)\le 0
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mn>0</mn><annotation encoding="application/x-tex">0</annotation></semantics></math>
 表示配平值。</p>
 <p>若是定常倾侧滑翔，还应允许滚转角或倾侧角保持某一常值，而横向力矩保持平衡。对于三维任务，配平结果必须明确是直线、转弯还是滑翔，不应把不同任务混成一个“稳态点”。</p>
-<h2 id="线性化">25.6 线性化</h2>
+<h2 id="线性化">6 线性化</h2>
 <p>在配平点
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>x</mi><mn>0</mn></msub><mo>,</mo><msub><mi>u</mi><mn>0</mn></msub><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">(x_0,u_0)</annotation></semantics></math>
 附近定义小扰动：</p>
@@ -370,7 +384,7 @@ A=\left.\frac{\partial f}{\partial x}\right|_{x_0,u_0},\qquad B=\left.\frac{\par
 是状态矩阵，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>B</mi><annotation encoding="application/x-tex">B</annotation></semantics></math>
 是输入矩阵。</p>
 <p>线性化并不是把非线性问题“简化掉”，而是把“在某个工作点附近怎么响应”提取出来。这个局部模型是第三卷中经典控制和最优控制方法的基础。</p>
-<h2 id="模态分析">25.7 模态分析</h2>
+<h2 id="模态分析">7 模态分析</h2>
 <p>对线性系统，模态由矩阵
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>A</mi><annotation encoding="application/x-tex">A</annotation></semantics></math>
 的特征值决定：</p>
@@ -381,7 +395,7 @@ A=\left.\frac{\partial f}{\partial x}\right|_{x_0,u_0},\qquad B=\left.\frac{\par
 是复变量，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>I</mi><annotation encoding="application/x-tex">I</annotation></semantics></math>
 是单位矩阵。</p>
 <p>每个特征值都对应一个模态的衰减速度、振荡频率和阻尼特性。对控制设计而言，模态分析的意义在于判断哪个模态慢、哪个模态敏感、哪个模态最接近不稳定。</p>
-<h2 id="纵向典型模态">25.8 纵向典型模态</h2>
+<h2 id="纵向典型模态">8 纵向典型模态</h2>
 <p>纵向线化后常见模态包括：</p>
 <table>
 <thead>
@@ -405,7 +419,7 @@ A=\left.\frac{\partial f}{\partial x}\right|_{x_0,u_0},\qquad B=\left.\frac{\par
 </tbody>
 </table>
 <p>短周期通常由俯仰力矩导数和俯仰惯量决定，长周期则与速度、高度和升阻比耦合有关。若控制器只追求快响应而不看模态分离，就容易把短周期和执行机构动态推到危险区域。</p>
-<h2 id="横侧向典型模态">25.9 横侧向典型模态</h2>
+<h2 id="横侧向典型模态">9 横侧向典型模态</h2>
 <p>横侧向线化后常见模态包括：</p>
 <table>
 <thead>
@@ -435,11 +449,11 @@ A=\left.\frac{\partial f}{\partial x}\right|_{x_0,u_0},\qquad B=\left.\frac{\par
 </table>
 <p>这些模态会随 Mach
 数、高度、攻角和舵效变化。某个配平点稳定，不代表整个飞行包线都稳定，所以线化和模态分析必须覆盖多点，而不是只算一个标称点。</p>
-<h2 id="多飞行点线化">25.10 多飞行点线化</h2>
+<h2 id="多飞行点线化">10 多飞行点线化</h2>
 <p>高超声速飞行通常覆盖较宽的高度、速度和动压范围。控制设计应在多个工作点上重复配平、线化和模态分析，然后再做增益调度或
 LPV 建模。</p>
 <p>如果不同工作点的模态排序变化很大，说明控制器不能只用单一线性模型概括整个包线。</p>
-<h2 id="配平和线化的验证口径">25.11 配平和线化的验证口径</h2>
+<h2 id="配平和线化的验证口径">11 配平和线化的验证口径</h2>
 <p>配平、线化和模态分析至少要记录：</p>
 <ul>
 <li>飞行点参数：高度、速度、Mach、动压；</li>
@@ -453,7 +467,7 @@ LPV 建模。</p>
 <li>不同飞行点之间的变化趋势。</li>
 </ul>
 <p>如果这些结果不记录，后续的控制设计就无法复现，也无法比较不同模型、不同飞行点或不同控制律。</p>
-<h2 id="对后续章节的接口">25.12 对后续章节的接口</h2>
+<h2 id="对后续章节的接口">12 对后续章节的接口</h2>
 <p>这章的输出直接进入第三卷：</p>
 <ul>
 <li>配平点进入 PID、LQR 和鲁棒控制设计；</li>
@@ -462,9 +476,9 @@ LPV 建模。</p>
 <li>多工作点结果进入增益调度和 LPV 控制。</li>
 </ul>
 <p>因此，配平和线化不是单独的数学练习，而是把前面的非线性对象转换成后续控制方法能直接使用的局部接口。</p>
-<h2 id="本章小结">25.13 本章小结</h2>
+<h2 id="本章小结">13 本章小结</h2>
 <p>配平、线性化与模态分析把非线性飞行动力学变成了可分析、可设计、可调试的局部模型。对高超声速飞行器控制而言，它们不是附属步骤，而是控制设计能否成立的前提。</p>
-<h2 id="练习">25.14 练习</h2>
+<h2 id="练习">14 练习</h2>
 <ol type="1">
 <li>说明配平和稳态的关系。</li>
 <li>写出线性化的基本公式，并说明
@@ -478,7 +492,6 @@ LPV 建模。</p>
 </ol>
 
       </article>
-      
       <nav class="book-bottom-nav" aria-label="章节导航">
         <a href="./24-actuator-sensor-computation-modeling.html">上一章：第24章 执行机构、传感器与计算系统建模</a>
         <a href="./index.html">卷首页</a>

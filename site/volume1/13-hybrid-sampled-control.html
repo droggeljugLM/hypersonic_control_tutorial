@@ -89,7 +89,13 @@
       font-weight: 800;
     }
     .sidebar-title { font-size: 0.94rem; line-height: 1.35; }
-    .book-main { min-width: 0; padding: 1.25rem 1.45rem 1.8rem; }
+    .book-main {
+      min-width: 0;
+      min-height: 100vh;
+      padding: 1.25rem 1.45rem 1.8rem;
+      display: flex;
+      flex-direction: column;
+    }
     .book-page-header {
       padding: 0.85rem 0 1rem;
       margin-bottom: 1rem;
@@ -104,7 +110,12 @@
       padding: 0;
     }
     .book-page-header p { margin: 0.45rem 0 0; color: var(--muted); max-width: 62rem; }
-    .book-article { max-width: 900px; margin: 0; padding: 0 0 1.2rem; }
+    .book-article {
+      max-width: 900px;
+      margin: 0;
+      padding: 0 0 1.2rem;
+      flex: 1 0 auto;
+    }
     .book-article h1, .book-article h2, .book-article h3, .book-article h4, .book-article h5, .book-article h6 {
       line-height: 1.28;
       margin-top: 1.45em;
@@ -117,27 +128,30 @@
     .book-article h3 { font-size: 1.12rem; }
     .book-article p, .book-article li, .book-article dd, .book-article td, .book-article th { text-align: justify; text-justify: inter-ideograph; }
     .book-article p { margin: 0.85rem 0; }
-    .book-article code, .book-article pre { font-family: "Cascadia Mono", "Source Code Pro", Consolas, monospace; font-size: 0.94em; }
+    .book-article code, .book-article pre { font-family: inherit; font-size: 0.98em; letter-spacing: 0; }
     .book-article code {
-      padding: 0.02rem 0.24rem;
-      background: color-mix(in srgb, var(--accent-soft) 34%, #ffffff 66%);
+      padding: 0.04rem 0.28rem;
+      background: color-mix(in srgb, var(--accent-soft) 24%, #ffffff 76%);
       border: 0;
-      border-bottom: 1px solid color-mix(in srgb, var(--accent-soft) 74%, #d1d5db 26%);
+      border-bottom: 1px solid color-mix(in srgb, var(--accent-soft) 52%, #d1d5db 48%);
       border-radius: 4px;
-      color: #253244;
+      color: #2b3440;
       box-decoration-break: clone;
       -webkit-box-decoration-break: clone;
+      font-family: inherit;
+      font-variant-ligatures: none;
     }
     .book-article pre {
-      padding: 1rem 1.1rem;
+      padding: 0.95rem 1.05rem;
       overflow: auto;
-      background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,253,248,0.98));
-      border: 1px solid color-mix(in srgb, var(--accent-soft) 54%, #d1d5db 46%);
-      border-left: 5px solid var(--accent);
+      background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,253,248,0.96));
+      border: 1px solid color-mix(in srgb, var(--accent-soft) 44%, #d1d5db 56%);
+      border-left: 4px solid var(--accent);
       border-radius: 14px;
       box-shadow: 0 8px 22px rgba(31, 41, 55, 0.05);
+      white-space: pre-wrap;
     }
-    .book-article pre code { padding: 0; border: 0; background: transparent; color: inherit; }
+    .book-article pre code { padding: 0; border: 0; background: transparent; color: inherit; font-family: inherit; }
     .book-article table {
       border-collapse: collapse;
       width: 100%;
@@ -298,7 +312,7 @@
         <h1 id="volume1--13-hybrid-sampled-control">混杂系统与采样控制专题</h1>
       </header>
       <article class="book-article">
-        <h2 id="为什么高超声速控制需要混杂视角">1.1
+        <h2 id="为什么高超声速控制需要混杂视角">1
 为什么高超声速控制需要混杂视角</h2>
 <p>高超声速飞行器控制不是纯连续时间问题。飞行器动力学常写成连续微分方程，但真实闭环包含数字计算机、采样传感器、离散控制律、执行机构限幅、模式切换、故障逻辑、安全滤波启停和任务阶段切换。</p>
 <p>连续控制律推导之后，还必须回答一个工程控制问题：连续对象、离散控制器、模式逻辑和约束保护合在一起之后，闭环是否仍然稳定、安全、可实现。</p>
@@ -325,7 +339,7 @@ u_k=\kappa(x_k,q_k),
 是第
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>k</mi><annotation encoding="application/x-tex">k</annotation></semantics></math>
 个采样时刻的模式。</p>
-<h2 id="离散化零阶保持与精确离散模型">1.2
+<h2 id="离散化零阶保持与精确离散模型">2
 离散化、零阶保持与精确离散模型</h2>
 <p>若连续系统为</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>x</mi><mo accent="true">̇</mo></mover><mo>=</mo><mi>A</mi><mi>x</mi><mo>+</mo><mi>B</mi><mi>u</mi><mo>,</mo></mrow><annotation encoding="application/x-tex">
@@ -352,7 +366,7 @@ B_d=\int_0^{T_s}e^{A\tau}B\,d\tau.
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>A</mi><annotation encoding="application/x-tex">A</annotation></semantics></math>
 简单乘以
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>T</mi><mi>s</mi></msub><annotation encoding="application/x-tex">T_s</annotation></semantics></math>。当采样周期较大或系统模态很快时，粗糙离散化会改变稳定性判断。</p>
-<h2 id="离散时间稳定性">1.3 离散时间稳定性</h2>
+<h2 id="离散时间稳定性">3 离散时间稳定性</h2>
 <p>离散线性系统</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>x</mi><mrow><mi>k</mi><mo>+</mo><mn>1</mn></mrow></msub><mo>=</mo><msub><mi>A</mi><mi>d</mi></msub><msub><mi>x</mi><mi>k</mi></msub></mrow><annotation encoding="application/x-tex">
 x_{k+1}=A_d x_k
@@ -378,7 +392,7 @@ V_{k+1}-V_k&lt;0,
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>k</mi><annotation encoding="application/x-tex">k</annotation></semantics></math>
 个采样时刻的 Lyapunov 函数值。</p>
 <p>对于混杂系统，单个模式稳定不代表任意切换都稳定。必须说明切换逻辑、驻留时间和模式间兼容性。</p>
-<h2 id="模式切换与守卫条件">1.4 模式切换与守卫条件</h2>
+<h2 id="模式切换与守卫条件">4 模式切换与守卫条件</h2>
 <p>设离散模式集合为</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>𝒬</mi><mo>=</mo><mo stretchy="false" form="prefix">{</mo><msub><mi>q</mi><mn>1</mn></msub><mo>,</mo><msub><mi>q</mi><mn>2</mn></msub><mo>,</mo><mi>…</mi><mo>,</mo><msub><mi>q</mi><mi>m</mi></msub><mo stretchy="false" form="postfix">}</mo><mo>,</mo></mrow><annotation encoding="application/x-tex">
 \mathcal{Q}=\{q_1,q_2,\ldots,q_m\},
@@ -418,7 +432,7 @@ h_g(x_k)&lt;0 \Rightarrow q_{k+1}=q_{\mathrm{protect}}.
 <li>是否存在内部状态重置。</li>
 </ol>
 <p>若没有这一步，模式逻辑通常只是口头描述，不足以支撑后续验证。</p>
-<h2 id="采样间安全与收缩">1.5 采样间安全与收缩</h2>
+<h2 id="采样间安全与收缩">5 采样间安全与收缩</h2>
 <p>采样点上安全，不等于采样间安全。若安全函数为</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>h</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo>≥</mo><mn>0</mn><mo>,</mo></mrow><annotation encoding="application/x-tex">
 h(x)\ge 0,
@@ -475,7 +489,7 @@ h(x_k)\ge L_h T_s
 </tbody>
 </table>
 <p>这能防止把“离散点通过”误认为“连续飞行过程安全”。</p>
-<h2 id="多速率控制与命令保持">1.6 多速率控制与命令保持</h2>
+<h2 id="多速率控制与命令保持">6 多速率控制与命令保持</h2>
 <p>高超声速制导层、姿态层、执行机构层往往采用不同更新周期。设制导层周期为
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>T</mi><mi>g</mi></msub><annotation encoding="application/x-tex">T_g</annotation></semantics></math>，姿态层周期为
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>T</mi><mi>c</mi></msub><annotation encoding="application/x-tex">T_c</annotation></semantics></math>，则常见结构是：</p>
@@ -511,7 +525,7 @@ e_r=r_c-r_g.
 <p>其中
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>e</mi><mi>r</mi></msub><annotation encoding="application/x-tex">e_r</annotation></semantics></math>
 是多速率接口误差。</p>
-<h2 id="采样与执行机构接口">1.7 采样与执行机构接口</h2>
+<h2 id="采样与执行机构接口">7 采样与执行机构接口</h2>
 <p>设
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>u</mi><mi>c</mi></msub><annotation encoding="application/x-tex">u_c</annotation></semantics></math>
 是数字控制器给出的保持命令，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>u</mi><mi>a</mi></msub><annotation encoding="application/x-tex">u_a</annotation></semantics></math>
@@ -525,7 +539,7 @@ u_a=\mathcal{A}(u_c),
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>𝒜</mi><mo stretchy="false" form="prefix">(</mo><mi>⋅</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\mathcal{A}(\cdot)</annotation></semantics></math>
 表示执行机构映射。</p>
 <p>对高超声速控制，离散命令到真实执行之间通常存在饱和、速率限制、死区、卡滞和延迟。因此，连续稳定性证明必须和离散实现一起写。</p>
-<h2 id="采样间验证协议">1.8 采样间验证协议</h2>
+<h2 id="采样间验证协议">8 采样间验证协议</h2>
 <p>混杂与采样控制至少应报告：</p>
 <ol type="1">
 <li>采样点上的安全指标；</li>
@@ -570,7 +584,7 @@ u_a=\mathcal{A}(u_c),
 </tr>
 </tbody>
 </table>
-<h2 id="失败诊断">1.9 失败诊断</h2>
+<h2 id="失败诊断">9 失败诊断</h2>
 <table>
 <colgroup>
 <col style="width: 33%" />
@@ -617,10 +631,10 @@ u_a=\mathcal{A}(u_c),
 </tr>
 </tbody>
 </table>
-<h2 id="本专题小结">1.10 本专题小结</h2>
+<h2 id="本专题小结">10 本专题小结</h2>
 <p>混杂系统与采样控制把连续理论推向机载实现。对高超声速飞行器，采样、保持、延迟、模式切换、故障逻辑和安全保护都会改变闭环。连续稳定性证明是起点，不是结束。</p>
 <p>合格的参考书写作应同时说明连续控制律、离散实现、模式逻辑、执行机构约束、采样间安全和实时计算证据。</p>
-<h2 id="练习">1.11 练习</h2>
+<h2 id="练习">11 练习</h2>
 <ol type="1">
 <li>对一阶连续系统
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>x</mi><mo accent="true">̇</mo></mover><mo>=</mo><mi>a</mi><mi>x</mi><mo>+</mo><mi>b</mi><mi>u</mi></mrow><annotation encoding="application/x-tex">\dot{x}=ax+bu</annotation></semantics></math>，写出零阶保持下的精确离散模型。</li>
@@ -636,7 +650,6 @@ u_a=\mathcal{A}(u_c),
 </ol>
 
       </article>
-      
       <nav class="book-bottom-nav" aria-label="章节导航">
         <a href="./13-numerical-convex-optimization.html">上一章：第13章 数值优化与凸优化基础</a>
         <a href="./index.html">卷首页</a>

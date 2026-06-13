@@ -89,7 +89,13 @@
       font-weight: 800;
     }
     .sidebar-title { font-size: 0.94rem; line-height: 1.35; }
-    .book-main { min-width: 0; padding: 1.25rem 1.45rem 1.8rem; }
+    .book-main {
+      min-width: 0;
+      min-height: 100vh;
+      padding: 1.25rem 1.45rem 1.8rem;
+      display: flex;
+      flex-direction: column;
+    }
     .book-page-header {
       padding: 0.85rem 0 1rem;
       margin-bottom: 1rem;
@@ -104,7 +110,12 @@
       padding: 0;
     }
     .book-page-header p { margin: 0.45rem 0 0; color: var(--muted); max-width: 62rem; }
-    .book-article { max-width: 900px; margin: 0; padding: 0 0 1.2rem; }
+    .book-article {
+      max-width: 900px;
+      margin: 0;
+      padding: 0 0 1.2rem;
+      flex: 1 0 auto;
+    }
     .book-article h1, .book-article h2, .book-article h3, .book-article h4, .book-article h5, .book-article h6 {
       line-height: 1.28;
       margin-top: 1.45em;
@@ -117,27 +128,30 @@
     .book-article h3 { font-size: 1.12rem; }
     .book-article p, .book-article li, .book-article dd, .book-article td, .book-article th { text-align: justify; text-justify: inter-ideograph; }
     .book-article p { margin: 0.85rem 0; }
-    .book-article code, .book-article pre { font-family: "Cascadia Mono", "Source Code Pro", Consolas, monospace; font-size: 0.94em; }
+    .book-article code, .book-article pre { font-family: inherit; font-size: 0.98em; letter-spacing: 0; }
     .book-article code {
-      padding: 0.02rem 0.24rem;
-      background: color-mix(in srgb, var(--accent-soft) 34%, #ffffff 66%);
+      padding: 0.04rem 0.28rem;
+      background: color-mix(in srgb, var(--accent-soft) 24%, #ffffff 76%);
       border: 0;
-      border-bottom: 1px solid color-mix(in srgb, var(--accent-soft) 74%, #d1d5db 26%);
+      border-bottom: 1px solid color-mix(in srgb, var(--accent-soft) 52%, #d1d5db 48%);
       border-radius: 4px;
-      color: #253244;
+      color: #2b3440;
       box-decoration-break: clone;
       -webkit-box-decoration-break: clone;
+      font-family: inherit;
+      font-variant-ligatures: none;
     }
     .book-article pre {
-      padding: 1rem 1.1rem;
+      padding: 0.95rem 1.05rem;
       overflow: auto;
-      background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,253,248,0.98));
-      border: 1px solid color-mix(in srgb, var(--accent-soft) 54%, #d1d5db 46%);
-      border-left: 5px solid var(--accent);
+      background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,253,248,0.96));
+      border: 1px solid color-mix(in srgb, var(--accent-soft) 44%, #d1d5db 56%);
+      border-left: 4px solid var(--accent);
       border-radius: 14px;
       box-shadow: 0 8px 22px rgba(31, 41, 55, 0.05);
+      white-space: pre-wrap;
     }
-    .book-article pre code { padding: 0; border: 0; background: transparent; color: inherit; }
+    .book-article pre code { padding: 0; border: 0; background: transparent; color: inherit; font-family: inherit; }
     .book-article table {
       border-collapse: collapse;
       width: 100%;
@@ -300,10 +314,10 @@
         <h1 id="volume3--26-flight-control-system-architecture">第26章 飞行控制系统架构</h1>
       </header>
       <article class="book-article">
-        <h2 id="问题背景">26.1 问题背景</h2>
+        <h2 id="问题背景">1 问题背景</h2>
 <p>第二卷已经把高超声速飞行器建成了控制可用的对象模型。进入控制方法前，必须先回答一个工程问题：控制器到底放在系统的哪一层，接收什么命令，输出什么量，并由谁执行。</p>
 <p>本章关注分层架构、信号流、内外环关系、控制分配、执行机构、监控与故障接口。对高超声速飞行器来说，控制架构不是附属图示，而是控制律、约束、安全和验证能够同时成立的前提。</p>
-<h2 id="从一个控制律到一个系统">26.2 从一个控制律到一个系统</h2>
+<h2 id="从一个控制律到一个系统">2 从一个控制律到一个系统</h2>
 <p>很多入门写法会把控制器写成一个直接映射：</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>u</mi><mo>=</mo><mi>𝒦</mi><mo stretchy="false" form="prefix">(</mo><mi>r</mi><mo>,</mo><mi>y</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
 u=\mathcal K(r,y)
@@ -314,7 +328,7 @@ u=\mathcal K(r,y)
 是测量输出，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>𝒦</mi><mo stretchy="false" form="prefix">(</mo><mi>⋅</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\mathcal K(\cdot)</annotation></semantics></math>
 是控制律。</p>
 <p>这在数学上没问题，但工程上不够。真实系统里，命令还要经过估计器、制导器、控制器、分配器、执行机构和监控器。也就是说，控制系统不是一个块，而是一串有责任边界的块。</p>
-<h2 id="分层结构">26.3 分层结构</h2>
+<h2 id="分层结构">3 分层结构</h2>
 <p>高超声速飞行控制常见分层可以写成：</p>
 <ol type="1">
 <li>任务层；</li>
@@ -326,7 +340,7 @@ u=\mathcal K(r,y)
 <li>监控与安全层。</li>
 </ol>
 <p>其中，任务层决定飞什么，制导层决定往哪飞，外环决定要什么轨迹，内环决定姿态和力矩怎么实现，分配层决定多个执行机构怎么协同，执行机构层决定命令如何落地，监控层决定什么时候需要降级或修正参考。</p>
-<h2 id="典型命令链">26.4 典型命令链</h2>
+<h2 id="典型命令链">4 典型命令链</h2>
 <p>一个典型纵向命令链可以写成：</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>h</mi><mi>c</mi></msub><mo>→</mo><msub><mi>γ</mi><mi>c</mi></msub><mo>→</mo><msub><mi>α</mi><mi>c</mi></msub><mo>→</mo><msub><mi>q</mi><mi>c</mi></msub><mo>→</mo><msub><mi>δ</mi><mrow><mi>e</mi><mo>,</mo><mi>c</mi></mrow></msub></mrow><annotation encoding="application/x-tex">
 h_c \rightarrow \gamma_c \rightarrow \alpha_c \rightarrow q_c \rightarrow \delta_{e,c}
@@ -345,7 +359,7 @@ V_c \rightarrow \phi_{T,c}
 是速度参考，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ϕ</mi><mrow><mi>T</mi><mo>,</mo><mi>c</mi></mrow></msub><annotation encoding="application/x-tex">\phi_{T,c}</annotation></semantics></math>
 是推力命令。</p>
 <p>对三维任务，还会加入航向、倾侧角、横程和侧滑相关命令。</p>
-<h2 id="内环和外环">26.5 内环和外环</h2>
+<h2 id="内环和外环">5 内环和外环</h2>
 <p>内环控制快状态，外环控制慢状态。工程上常希望：</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ω</mi><mrow><mi mathvariant="normal">i</mi><mi mathvariant="normal">n</mi></mrow></msub><mo>≫</mo><msub><mi>ω</mi><mrow><mi mathvariant="normal">o</mi><mi mathvariant="normal">u</mi><mi mathvariant="normal">t</mi></mrow></msub></mrow><annotation encoding="application/x-tex">
 \omega_{\mathrm{in}} \gg \omega_{\mathrm{out}}
@@ -354,7 +368,7 @@ V_c \rightarrow \phi_{T,c}
 是内环带宽，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ω</mi><mrow><mi mathvariant="normal">o</mi><mi mathvariant="normal">u</mi><mi mathvariant="normal">t</mi></mrow></msub><annotation encoding="application/x-tex">\omega_{\mathrm{out}}</annotation></semantics></math>
 是外环带宽。</p>
 <p>这个分离不是形式要求，而是为了让外环命令在内环可实现的范围内变化。如果外环太快，就会逼迫内环和执行机构长期饱和。</p>
-<h2 id="控制分配">26.6 控制分配</h2>
+<h2 id="控制分配">6 控制分配</h2>
 <p>当一个命令要分给多个执行机构时，可写成：</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>τ</mi><mi>c</mi></msub><mo>=</mo><mi>G</mi><msub><mi>u</mi><mi>a</mi></msub></mrow><annotation encoding="application/x-tex">
 \tau_c=G u_a
@@ -370,11 +384,11 @@ u_a^\star=\arg\min_{u_a}\|W(G u_a-\tau_c)\|^2
 <p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>W</mi><annotation encoding="application/x-tex">W</annotation></semantics></math>
 是权重矩阵。</p>
 <p>控制分配的重点是把广义力矩变成可执行输入，同时保留俯仰、滚转、偏航和推进通道的余度。</p>
-<h2 id="约束与安全层">26.7 约束与安全层</h2>
+<h2 id="约束与安全层">7 约束与安全层</h2>
 <p>高超声速飞行控制要同时面对动压、热流、过载、攻角、侧滑角、舵偏、舵速和推进包线等约束。安全层可以只报警，也可以通过参考治理器、安全滤波器、CBF-QP
 或包线保护修改命令。</p>
 <p>如果安全层修改了命令，就必须记录修改量。否则，跟踪指标和安全修正会混在一起，最后无法判断到底是谁改变了轨迹。</p>
-<h2 id="架构接口表">26.8 架构接口表</h2>
+<h2 id="架构接口表">8 架构接口表</h2>
 <p>一个清晰的控制架构至少应给出下面的接口：</p>
 <table>
 <thead>
@@ -424,7 +438,7 @@ u_a^\star=\arg\min_{u_a}\|W(G u_a-\tau_c)\|^2
 </table>
 <p>后续章节讨论 PID、LQR、鲁棒、动态逆、反步、滑模、自适应和 CBF
 时，都应能嵌入这张接口表。</p>
-<h2 id="架构验证清单">26.9 架构验证清单</h2>
+<h2 id="架构验证清单">9 架构验证清单</h2>
 <p>飞行控制架构至少应验证：</p>
 <table>
 <thead>
@@ -469,9 +483,9 @@ u_a^\star=\arg\min_{u_a}\|W(G u_a-\tau_c)\|^2
 </tr>
 </tbody>
 </table>
-<h2 id="本章小结">26.10 本章小结</h2>
+<h2 id="本章小结">10 本章小结</h2>
 <p>飞行控制系统架构的作用，是把任务、制导、控制、分配、执行和监控分成有边界的层。高超声速飞行器的控制问题之所以复杂，不只是因为对象非线性强，还因为约束和实现链条长。架构清楚，后面的算法才知道自己站在哪一层。</p>
-<h2 id="练习">26.11 练习</h2>
+<h2 id="练习">11 练习</h2>
 <ol type="1">
 <li>画出一条完整的高超声速飞控命令链。</li>
 <li>说明外环和内环为什么需要带宽分离。</li>
@@ -480,7 +494,6 @@ u_a^\star=\arg\min_{u_a}\|W(G u_a-\tau_c)\|^2
 </ol>
 
       </article>
-      
       <nav class="book-bottom-nav" aria-label="章节导航">
         <a href="./index.html">上一章：卷首页</a>
         <a href="./index.html">卷首页</a>

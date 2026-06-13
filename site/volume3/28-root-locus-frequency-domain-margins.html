@@ -89,7 +89,13 @@
       font-weight: 800;
     }
     .sidebar-title { font-size: 0.94rem; line-height: 1.35; }
-    .book-main { min-width: 0; padding: 1.25rem 1.45rem 1.8rem; }
+    .book-main {
+      min-width: 0;
+      min-height: 100vh;
+      padding: 1.25rem 1.45rem 1.8rem;
+      display: flex;
+      flex-direction: column;
+    }
     .book-page-header {
       padding: 0.85rem 0 1rem;
       margin-bottom: 1rem;
@@ -104,7 +110,12 @@
       padding: 0;
     }
     .book-page-header p { margin: 0.45rem 0 0; color: var(--muted); max-width: 62rem; }
-    .book-article { max-width: 900px; margin: 0; padding: 0 0 1.2rem; }
+    .book-article {
+      max-width: 900px;
+      margin: 0;
+      padding: 0 0 1.2rem;
+      flex: 1 0 auto;
+    }
     .book-article h1, .book-article h2, .book-article h3, .book-article h4, .book-article h5, .book-article h6 {
       line-height: 1.28;
       margin-top: 1.45em;
@@ -117,27 +128,30 @@
     .book-article h3 { font-size: 1.12rem; }
     .book-article p, .book-article li, .book-article dd, .book-article td, .book-article th { text-align: justify; text-justify: inter-ideograph; }
     .book-article p { margin: 0.85rem 0; }
-    .book-article code, .book-article pre { font-family: "Cascadia Mono", "Source Code Pro", Consolas, monospace; font-size: 0.94em; }
+    .book-article code, .book-article pre { font-family: inherit; font-size: 0.98em; letter-spacing: 0; }
     .book-article code {
-      padding: 0.02rem 0.24rem;
-      background: color-mix(in srgb, var(--accent-soft) 34%, #ffffff 66%);
+      padding: 0.04rem 0.28rem;
+      background: color-mix(in srgb, var(--accent-soft) 24%, #ffffff 76%);
       border: 0;
-      border-bottom: 1px solid color-mix(in srgb, var(--accent-soft) 74%, #d1d5db 26%);
+      border-bottom: 1px solid color-mix(in srgb, var(--accent-soft) 52%, #d1d5db 48%);
       border-radius: 4px;
-      color: #253244;
+      color: #2b3440;
       box-decoration-break: clone;
       -webkit-box-decoration-break: clone;
+      font-family: inherit;
+      font-variant-ligatures: none;
     }
     .book-article pre {
-      padding: 1rem 1.1rem;
+      padding: 0.95rem 1.05rem;
       overflow: auto;
-      background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,253,248,0.98));
-      border: 1px solid color-mix(in srgb, var(--accent-soft) 54%, #d1d5db 46%);
-      border-left: 5px solid var(--accent);
+      background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,253,248,0.96));
+      border: 1px solid color-mix(in srgb, var(--accent-soft) 44%, #d1d5db 56%);
+      border-left: 4px solid var(--accent);
       border-radius: 14px;
       box-shadow: 0 8px 22px rgba(31, 41, 55, 0.05);
+      white-space: pre-wrap;
     }
-    .book-article pre code { padding: 0; border: 0; background: transparent; color: inherit; }
+    .book-article pre code { padding: 0; border: 0; background: transparent; color: inherit; font-family: inherit; }
     .book-article table {
       border-collapse: collapse;
       width: 100%;
@@ -300,12 +314,12 @@
         <h1 id="volume3--28-root-locus-frequency-domain-margins">第28章 根轨迹、频域设计与稳定裕度</h1>
       </header>
       <article class="book-article">
-        <h2 id="问题背景">28.1 问题背景</h2>
+        <h2 id="问题背景">1 问题背景</h2>
 <p>第27章讲了 PID
 和经典自动驾驶仪，但仅凭时域响应调参是不够的。飞行控制必须知道闭环离不稳定还有多远，是否会被执行机构延迟、传感器噪声、未建模柔性模态和飞行点变化击穿。根轨迹和频域分析正是用来回答这些问题。</p>
 <p>本章关注线性设计阶段如何把稳定裕度、带宽和抗扰能力说清楚。这里先从配平线化模型得到开环模型，再看根轨迹如何帮助理解增益、极点和阻尼，最后把
 Bode、Nyquist、增益裕度、相位裕度和带宽放回飞控设计语境中。</p>
-<h2 id="从线化模型到开环模型">28.2 从线化模型到开环模型</h2>
+<h2 id="从线化模型到开环模型">2 从线化模型到开环模型</h2>
 <p>第二卷第25章得到局部线性模型</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Δ</mi><mover><mi>x</mi><mo accent="true">̇</mo></mover><mo>=</mo><mi>A</mi><mi mathvariant="normal">Δ</mi><mi>x</mi><mo>+</mo><mi>B</mi><mi mathvariant="normal">Δ</mi><mi>u</mi></mrow><annotation encoding="application/x-tex">
 \Delta \dot x = A \Delta x + B \Delta u
@@ -332,7 +346,7 @@ L(s)=K G(s)
 是开环传递函数，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>K</mi><annotation encoding="application/x-tex">K</annotation></semantics></math>
 是比例增益，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>G</mi><mo stretchy="false" form="prefix">(</mo><mi>s</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">G(s)</annotation></semantics></math>
 是对象传递函数。</p>
-<h2 id="根轨迹">28.3 根轨迹</h2>
+<h2 id="根轨迹">3 根轨迹</h2>
 <p>根轨迹描述闭环极点随增益变化的轨迹。对于单位反馈系统，闭环特征方程为</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn><mo>+</mo><mi>K</mi><mi>G</mi><mo stretchy="false" form="prefix">(</mo><mi>s</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">
 1+K G(s)=0
@@ -347,7 +361,7 @@ L(s)=K G(s)
 <li>非最小相位零点是否限制性能。</li>
 </ul>
 <p>在飞行控制里，根轨迹常用于判断俯仰角速度、攻角、滚转角或高度通道的增益变化范围。</p>
-<h2 id="阻尼比和自然频率">28.4 阻尼比和自然频率</h2>
+<h2 id="阻尼比和自然频率">4 阻尼比和自然频率</h2>
 <p>若闭环极点为共轭复根</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>s</mi><mrow><mn>1</mn><mo>,</mo><mn>2</mn></mrow></msub><mo>=</mo><mi>−</mi><mi>ζ</mi><msub><mi>ω</mi><mi>n</mi></msub><mo>±</mo><mi>j</mi><msub><mi>ω</mi><mi>n</mi></msub><msqrt><mrow><mn>1</mn><mo>−</mo><msup><mi>ζ</mi><mn>2</mn></msup></mrow></msqrt></mrow><annotation encoding="application/x-tex">
 s_{1,2}=-\zeta\omega_n \pm j\omega_n\sqrt{1-\zeta^2}
@@ -360,7 +374,7 @@ s_{1,2}=-\zeta\omega_n \pm j\omega_n\sqrt{1-\zeta^2}
 和
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>α</mi><annotation encoding="application/x-tex">\alpha</annotation></semantics></math>
 改变，因此多飞行点分析比单点分析更重要。</p>
-<h2 id="bode-图和稳定裕度">28.5 Bode 图和稳定裕度</h2>
+<h2 id="bode-图和稳定裕度">5 Bode 图和稳定裕度</h2>
 <p>Bode 图显示开环
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>L</mi><mo stretchy="false" form="prefix">(</mo><mi>j</mi><mi>ω</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">L(j\omega)</annotation></semantics></math>
 的幅值和相位。两个基本裕度是：</p>
@@ -382,10 +396,10 @@ e^{-s\tau}
 是延迟时间，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>s</mi><annotation encoding="application/x-tex">s</annotation></semantics></math>
 是拉普拉斯变量。</p>
 <p>那么相位会额外滞后，裕度也会变差。高超声速控制中，裕度必须考虑执行机构延迟、采样和计算延迟、传感器滤波、气动导数误差、未建模弹性模态和飞行点变化。</p>
-<h2 id="nyquist-判据">28.6 Nyquist 判据</h2>
+<h2 id="nyquist-判据">6 Nyquist 判据</h2>
 <p>Nyquist
 判据通过开环频率响应包围临界点来判断闭环稳定。对飞行控制而言，它最重要的意义是提醒我们：开环曲线离不稳定边界越近，闭环越容易被增益误差、相位延迟和未建模动态击穿。</p>
-<h2 id="带宽">28.7 带宽</h2>
+<h2 id="带宽">7 带宽</h2>
 <p>闭环带宽表示系统能跟随或抑制多快的信号。带宽越高，响应越快，但代价是控制输入更大、噪声更容易放大、执行机构更容易饱和、柔性模态更容易被激发、相位裕度可能下降。</p>
 <p>高超声速飞控中，带宽选择应遵守一个基本原则</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ω</mi><mrow><mi mathvariant="normal">c</mi><mi mathvariant="normal">m</mi><mi mathvariant="normal">d</mi></mrow></msub><mo>≲</mo><msub><mi>ω</mi><mrow><mi mathvariant="normal">o</mi><mi mathvariant="normal">u</mi><mi mathvariant="normal">t</mi></mrow></msub><mo>≪</mo><msub><mi>ω</mi><mrow><mi mathvariant="normal">i</mi><mi mathvariant="normal">n</mi></mrow></msub><mo>≪</mo><msub><mi>ω</mi><mrow><mi mathvariant="normal">a</mi><mi mathvariant="normal">c</mi><mi mathvariant="normal">t</mi></mrow></msub><mo>≪</mo><msub><mi>ω</mi><mi>f</mi></msub></mrow><annotation encoding="application/x-tex">
@@ -398,7 +412,7 @@ e^{-s\tau}
 是执行机构有效带宽，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ω</mi><mi>f</mi></msub><annotation encoding="application/x-tex">\omega_f</annotation></semantics></math>
 是危险柔性模态频率。</p>
 <p>这不是普适定理，而是工程起点。实际设计必须结合配平点、执行机构和结构模态数据。</p>
-<h2 id="灵敏度函数">28.8 灵敏度函数</h2>
+<h2 id="灵敏度函数">8 灵敏度函数</h2>
 <p>开环
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>L</mi><mo stretchy="false" form="prefix">(</mo><mi>s</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">L(s)</annotation></semantics></math>
 对应灵敏度函数</p>
@@ -419,7 +433,7 @@ T(s)=\frac{L(s)}{1+L(s)}
 是互补灵敏度函数，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>L</mi><mo stretchy="false" form="prefix">(</mo><mi>s</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">L(s)</annotation></semantics></math>
 是本节所用的开环传递函数，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>s</mi><annotation encoding="application/x-tex">s</annotation></semantics></math>
 是拉普拉斯变量。</p>
-<h2 id="超前和滞后校正">28.9 超前和滞后校正</h2>
+<h2 id="超前和滞后校正">9 超前和滞后校正</h2>
 <p>超前校正常用于增加相位裕度、改善瞬态阻尼并扩大可用带宽；滞后校正常用于提高低频增益、减小稳态误差并尽量少损害稳定裕度。一个常见超前环节可写成：</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>G</mi><mi>c</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>s</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mfrac><mrow><mn>1</mn><mo>+</mo><msub><mi>T</mi><mi>z</mi></msub><mi>s</mi></mrow><mrow><mn>1</mn><mo>+</mo><msub><mi>T</mi><mi>p</mi></msub><mi>s</mi></mrow></mfrac></mrow><annotation encoding="application/x-tex">
 G_c(s)=\frac{1+T_z s}{1+T_p s}
@@ -429,7 +443,7 @@ G_c(s)=\frac{1+T_z s}{1+T_p s}
 是极点时间常数。若
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mi>z</mi></msub><mo>&lt;</mo><msub><mi>T</mi><mi>p</mi></msub></mrow><annotation encoding="application/x-tex">T_z &lt; T_p</annotation></semantics></math>，该环节一般表现为超前特性；若用于滞后补偿，则参数关系相反。</p>
 <p>在飞行控制中，超前和滞后不能孤立使用。它们必须和执行机构带宽、采样周期、传感器滤波、未建模柔性模态以及多飞行点裕度一起评估，否则补偿器本身可能成为新的风险源。</p>
-<h2 id="多飞行点频域分析">28.10 多飞行点频域分析</h2>
+<h2 id="多飞行点频域分析">10 多飞行点频域分析</h2>
 <p>宽包线控制需要在多个工作点上分析频域指标。至少应记录：</p>
 <ul>
 <li>配平点；</li>
@@ -441,7 +455,7 @@ G_c(s)=\frac{1+T_z s}{1+T_p s}
 <li>延迟和滤波的影响。</li>
 </ul>
 <p>如果不同飞行点上某个通道的裕度变化很大，就不能把单点结论直接推广到整个包线。</p>
-<h2 id="频域证据层次">28.11 频域证据层次</h2>
+<h2 id="频域证据层次">11 频域证据层次</h2>
 <p>为避免把一张 Bode 图误写成鲁棒性结论，本章可把证据粗分为四级：</p>
 <table>
 <colgroup>
@@ -479,7 +493,7 @@ G_c(s)=\frac{1+T_z s}{1+T_p s}
 </tr>
 </tbody>
 </table>
-<h2 id="与后续章节的关系">28.12 与后续章节的关系</h2>
+<h2 id="与后续章节的关系">12 与后续章节的关系</h2>
 <p>本章输出给后续章节的接口主要包括：</p>
 <ul>
 <li>稳定裕度和带宽，用于第 29、30 章的状态反馈和 LQR/LQG；</li>
@@ -487,9 +501,9 @@ G_c(s)=\frac{1+T_z s}{1+T_p s}
 <li>多飞行点失败样本和调度变量敏感性，用于第32章的增益调度；</li>
 <li>延迟、滤波和采样影响，用于第55章的离散实现。</li>
 </ul>
-<h2 id="本章小结">28.13 本章小结</h2>
+<h2 id="本章小结">13 本章小结</h2>
 <p>根轨迹和频域分析的作用，是把“能不能稳、稳得有多好、离不稳定还有多远”变成可以直接核查的指标。对高超声速飞行器控制来说，这一层不是过时内容，而是鲁棒飞控的入口。</p>
-<h2 id="练习">28.14 练习</h2>
+<h2 id="练习">14 练习</h2>
 <ol type="1">
 <li>写出局部线性模型到开环模型的基本关系。</li>
 <li>解释根轨迹能帮助判断哪些控制风险。</li>
@@ -499,7 +513,6 @@ G_c(s)=\frac{1+T_z s}{1+T_p s}
 </ol>
 
       </article>
-      
       <nav class="book-bottom-nav" aria-label="章节导航">
         <a href="./27-pid-classical-autopilot.html">上一章：第27章 PID 与经典自动驾驶仪</a>
         <a href="./index.html">卷首页</a>

@@ -89,7 +89,13 @@
       font-weight: 800;
     }
     .sidebar-title { font-size: 0.94rem; line-height: 1.35; }
-    .book-main { min-width: 0; padding: 1.25rem 1.45rem 1.8rem; }
+    .book-main {
+      min-width: 0;
+      min-height: 100vh;
+      padding: 1.25rem 1.45rem 1.8rem;
+      display: flex;
+      flex-direction: column;
+    }
     .book-page-header {
       padding: 0.85rem 0 1rem;
       margin-bottom: 1rem;
@@ -104,7 +110,12 @@
       padding: 0;
     }
     .book-page-header p { margin: 0.45rem 0 0; color: var(--muted); max-width: 62rem; }
-    .book-article { max-width: 900px; margin: 0; padding: 0 0 1.2rem; }
+    .book-article {
+      max-width: 900px;
+      margin: 0;
+      padding: 0 0 1.2rem;
+      flex: 1 0 auto;
+    }
     .book-article h1, .book-article h2, .book-article h3, .book-article h4, .book-article h5, .book-article h6 {
       line-height: 1.28;
       margin-top: 1.45em;
@@ -117,27 +128,30 @@
     .book-article h3 { font-size: 1.12rem; }
     .book-article p, .book-article li, .book-article dd, .book-article td, .book-article th { text-align: justify; text-justify: inter-ideograph; }
     .book-article p { margin: 0.85rem 0; }
-    .book-article code, .book-article pre { font-family: "Cascadia Mono", "Source Code Pro", Consolas, monospace; font-size: 0.94em; }
+    .book-article code, .book-article pre { font-family: inherit; font-size: 0.98em; letter-spacing: 0; }
     .book-article code {
-      padding: 0.02rem 0.24rem;
-      background: color-mix(in srgb, var(--accent-soft) 34%, #ffffff 66%);
+      padding: 0.04rem 0.28rem;
+      background: color-mix(in srgb, var(--accent-soft) 24%, #ffffff 76%);
       border: 0;
-      border-bottom: 1px solid color-mix(in srgb, var(--accent-soft) 74%, #d1d5db 26%);
+      border-bottom: 1px solid color-mix(in srgb, var(--accent-soft) 52%, #d1d5db 48%);
       border-radius: 4px;
-      color: #253244;
+      color: #2b3440;
       box-decoration-break: clone;
       -webkit-box-decoration-break: clone;
+      font-family: inherit;
+      font-variant-ligatures: none;
     }
     .book-article pre {
-      padding: 1rem 1.1rem;
+      padding: 0.95rem 1.05rem;
       overflow: auto;
-      background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,253,248,0.98));
-      border: 1px solid color-mix(in srgb, var(--accent-soft) 54%, #d1d5db 46%);
-      border-left: 5px solid var(--accent);
+      background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,253,248,0.96));
+      border: 1px solid color-mix(in srgb, var(--accent-soft) 44%, #d1d5db 56%);
+      border-left: 4px solid var(--accent);
       border-radius: 14px;
       box-shadow: 0 8px 22px rgba(31, 41, 55, 0.05);
+      white-space: pre-wrap;
     }
-    .book-article pre code { padding: 0; border: 0; background: transparent; color: inherit; }
+    .book-article pre code { padding: 0; border: 0; background: transparent; color: inherit; font-family: inherit; }
     .book-article table {
       border-collapse: collapse;
       width: 100%;
@@ -300,10 +314,10 @@
         <h1 id="volume3--33-feedback-linearization-dynamic-inversion">第33章 反馈线性化与动态逆控制</h1>
       </header>
       <article class="book-article">
-        <h2 id="问题背景">33.1 问题背景</h2>
+        <h2 id="问题背景">1 问题背景</h2>
 <p>前面章节主要基于线性化模型设计控制器。本章进入非线性控制方法：反馈线性化与非线性动态逆。它们的思想是利用非线性模型结构，把复杂对象转换成较简单的输入输出误差动态。</p>
 <p>反馈线性化和动态逆的价值，在于它们把“复杂非线性对象”转成“可直接设计的输入输出关系”。当飞行模型的输入输出结构足够清楚时，这类方法就能把问题从非线性系统控制转成对等价通道的设计。</p>
-<h2 id="仿射非线性系统">33.2 仿射非线性系统</h2>
+<h2 id="仿射非线性系统">2 仿射非线性系统</h2>
 <p>反馈线性化常从控制仿射系统开始：</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>x</mi><mo accent="true">̇</mo></mover><mo>=</mo><mi>f</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo>+</mo><mi>g</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mi>u</mi></mrow><annotation encoding="application/x-tex">
 \dot x = f(x) + g(x)u
@@ -331,7 +345,7 @@ y = h(x)
 <p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>y</mi><annotation encoding="application/x-tex">y</annotation></semantics></math>
 是控制输出，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>h</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">h(x)</annotation></semantics></math>
 是输出函数。</p>
-<h2 id="lie-导数">33.3 Lie 导数</h2>
+<h2 id="lie-导数">3 Lie 导数</h2>
 <p>反馈线性化依赖 Lie 导数。对输出
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>h</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">h(x)</annotation></semantics></math>，沿
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">f(x)</annotation></semantics></math>
@@ -345,7 +359,7 @@ L_f h(x)=\frac{\partial h}{\partial x} f(x)
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>h</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">h(x)</annotation></semantics></math>
 求导并首次显式出现输入
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>u</mi><annotation encoding="application/x-tex">u</annotation></semantics></math>，就可以确定输出的相对阶。</p>
-<h2 id="相对阶和解耦矩阵">33.4 相对阶和解耦矩阵</h2>
+<h2 id="相对阶和解耦矩阵">4 相对阶和解耦矩阵</h2>
 <p>相对阶很重要，因为它决定控制器能直接塑造哪一级输出动态。若某输出
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>y</mi><mi>j</mi></msub><annotation encoding="application/x-tex">y_j</annotation></semantics></math>
 经过
@@ -376,7 +390,7 @@ L_{g_1}L_f^{r_p-1}h_p &amp; \cdots &amp; L_{g_m}L_f^{r_p-1}h_p
 可逆，则可进行输入输出反馈线性化。若
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>B</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">B(x)</annotation></semantics></math>
 条件数很大，控制命令会对模型误差和噪声极度敏感。</p>
-<h2 id="输入输出反馈线性化">33.5 输入输出反馈线性化</h2>
+<h2 id="输入输出反馈线性化">5 输入输出反馈线性化</h2>
 <p>若输出相对阶已知，并且解耦矩阵可逆，则可令：</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>u</mi><mo>=</mo><mi>B</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><msup><mo stretchy="false" form="postfix">)</mo><mrow><mi>−</mi><mn>1</mn></mrow></msup><mrow><mo stretchy="true" form="prefix">(</mo><mi>v</mi><mo>−</mo><mi>a</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">
 u = B(x)^{-1}\left(v-a(x)\right)
@@ -394,7 +408,7 @@ y^{(r)} = v
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>r</mi><annotation encoding="application/x-tex">r</annotation></semantics></math>
 阶导数。</p>
 <p>这一步的意义，是把复杂对象的输入输出通道变成可直接设计的线性误差动力学。</p>
-<h2 id="动态逆">33.6 动态逆</h2>
+<h2 id="动态逆">6 动态逆</h2>
 <p>动态逆和反馈线性化思想相近，但更强调在飞行控制中用标称模型“反解”所需输入。一个常见写法是先给定期望输出导数：</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>u</mi><mo>=</mo><mi>𝒩</mi><mspace width="-0.167em"></mspace><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo>,</mo><msubsup><mi>y</mi><mi>d</mi><mrow><mo stretchy="false" form="prefix">(</mo><mi>r</mi><mo stretchy="false" form="postfix">)</mo></mrow></msubsup><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">
 u = \mathcal N\!\left(x,y_d^{(r)}\right)
@@ -406,7 +420,7 @@ u = \mathcal N\!\left(x,y_d^{(r)}\right)
 阶导数，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>r</mi><annotation encoding="application/x-tex">r</annotation></semantics></math>
 是相对阶。</p>
 <p>在高超声速飞行控制中，动态逆常把姿态、角速度或过载通道做成近似线性链式积分器，再由外环给出期望动态。</p>
-<h2 id="零动态">33.7 零动态</h2>
+<h2 id="零动态">7 零动态</h2>
 <p>反馈线性化只直接控制输出动态。若系统状态维度高于输出相对阶总和，还存在内部动态，即零动态。</p>
 <p>若强制输出误差为零：</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>y</mi><mo>≡</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">
@@ -415,7 +429,7 @@ y \equiv 0
 <p>则剩余内部状态的动态就是零动态。若零动态不稳定，即使输出跟踪看起来很好，内部状态也可能发散。</p>
 <p>高超声速飞行中，可能的内部状态包括速度或能量状态、攻角或侧滑角、弹性模态、执行机构状态和推进系统状态。因此，NDI
 设计不能只看被选输出的误差曲线。</p>
-<h2 id="ndi-的工程形式">33.8 NDI 的工程形式</h2>
+<h2 id="ndi-的工程形式">8 NDI 的工程形式</h2>
 <p>非线性动态逆通常把外环输出映射成内环输入。若外环输出为虚拟控制量
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>v</mi><annotation encoding="application/x-tex">v</annotation></semantics></math>，则可写为：</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>u</mi><mo>=</mo><mi>𝒩</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>v</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
@@ -426,14 +440,14 @@ u = \mathcal N(x,v)
 是由外环给出的虚拟控制量。</p>
 <p>一旦实际输入不等于动态逆命令，理想误差动态就被破坏。NDI
 验证必须记录执行机构命令、实际输入、饱和时间和速率限制。</p>
-<h2 id="高超声速应用边界">33.9 高超声速应用边界</h2>
+<h2 id="高超声速应用边界">9 高超声速应用边界</h2>
 <p>NDI
 适合标称气动模型较可信的姿态内环、相对阶清楚的角速度或过载通道、需要非线性补偿的宽包线局部控制，以及与控制分配结合的力矩命令生成。</p>
 <p>NDI
 风险包括气动导数误差、解耦矩阵奇异、输出选择不当导致零动态问题、执行机构延迟、空气数据和角加速度估计噪声、约束未进入控制律。</p>
 <p>因此，高超声速 NDI
 应被写成标称非线性补偿方法，而不是天然安全或天然鲁棒的方法。</p>
-<h2 id="与-indi-的区别">33.10 与 INDI 的区别</h2>
+<h2 id="与-indi-的区别">10 与 INDI 的区别</h2>
 <p>NDI 使用完整标称模型反解控制输入；INDI
 更强调利用增量形式和测量反馈减小模型误差敏感性。简言之：</p>
 <ul>
@@ -441,7 +455,7 @@ u = \mathcal N(x,v)
 <li>INDI 更强调增量补偿；</li>
 <li>两者都需要执行机构、噪声和约束验证。</li>
 </ul>
-<h2 id="验证要点">33.11 验证要点</h2>
+<h2 id="验证要点">11 验证要点</h2>
 <p>NDI 的验证至少应包括：</p>
 <ul>
 <li>输出跟踪误差；</li>
@@ -451,9 +465,9 @@ u = \mathcal N(x,v)
 <li>零动态相关状态是否发散；</li>
 <li>多飞行点非线性复测结果。</li>
 </ul>
-<h2 id="本章小结">33.12 本章小结</h2>
+<h2 id="本章小结">12 本章小结</h2>
 <p>反馈线性化与动态逆把非线性控制问题转成“先求逆、再设计误差动态”的形式。它们很适合高超声速飞行器的局部非线性补偿，但模型误差、零动态和执行机构约束决定了它们不能被当成自动鲁棒的方法。</p>
-<h2 id="练习">33.13 练习</h2>
+<h2 id="练习">13 练习</h2>
 <ol type="1">
 <li>写出仿射非线性系统的标准形式。</li>
 <li>说明 Lie 导数和相对阶的作用。</li>
@@ -463,7 +477,6 @@ u = \mathcal N(x,v)
 </ol>
 
       </article>
-      
       <nav class="book-bottom-nav" aria-label="章节导航">
         <a href="./32-gain-scheduling-lpv-control.html">上一章：第32章 增益调度与 LPV 控制</a>
         <a href="./index.html">卷首页</a>

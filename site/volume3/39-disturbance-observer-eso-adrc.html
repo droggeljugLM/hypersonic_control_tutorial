@@ -89,7 +89,13 @@
       font-weight: 800;
     }
     .sidebar-title { font-size: 0.94rem; line-height: 1.35; }
-    .book-main { min-width: 0; padding: 1.25rem 1.45rem 1.8rem; }
+    .book-main {
+      min-width: 0;
+      min-height: 100vh;
+      padding: 1.25rem 1.45rem 1.8rem;
+      display: flex;
+      flex-direction: column;
+    }
     .book-page-header {
       padding: 0.85rem 0 1rem;
       margin-bottom: 1rem;
@@ -104,7 +110,12 @@
       padding: 0;
     }
     .book-page-header p { margin: 0.45rem 0 0; color: var(--muted); max-width: 62rem; }
-    .book-article { max-width: 900px; margin: 0; padding: 0 0 1.2rem; }
+    .book-article {
+      max-width: 900px;
+      margin: 0;
+      padding: 0 0 1.2rem;
+      flex: 1 0 auto;
+    }
     .book-article h1, .book-article h2, .book-article h3, .book-article h4, .book-article h5, .book-article h6 {
       line-height: 1.28;
       margin-top: 1.45em;
@@ -117,27 +128,30 @@
     .book-article h3 { font-size: 1.12rem; }
     .book-article p, .book-article li, .book-article dd, .book-article td, .book-article th { text-align: justify; text-justify: inter-ideograph; }
     .book-article p { margin: 0.85rem 0; }
-    .book-article code, .book-article pre { font-family: "Cascadia Mono", "Source Code Pro", Consolas, monospace; font-size: 0.94em; }
+    .book-article code, .book-article pre { font-family: inherit; font-size: 0.98em; letter-spacing: 0; }
     .book-article code {
-      padding: 0.02rem 0.24rem;
-      background: color-mix(in srgb, var(--accent-soft) 34%, #ffffff 66%);
+      padding: 0.04rem 0.28rem;
+      background: color-mix(in srgb, var(--accent-soft) 24%, #ffffff 76%);
       border: 0;
-      border-bottom: 1px solid color-mix(in srgb, var(--accent-soft) 74%, #d1d5db 26%);
+      border-bottom: 1px solid color-mix(in srgb, var(--accent-soft) 52%, #d1d5db 48%);
       border-radius: 4px;
-      color: #253244;
+      color: #2b3440;
       box-decoration-break: clone;
       -webkit-box-decoration-break: clone;
+      font-family: inherit;
+      font-variant-ligatures: none;
     }
     .book-article pre {
-      padding: 1rem 1.1rem;
+      padding: 0.95rem 1.05rem;
       overflow: auto;
-      background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,253,248,0.98));
-      border: 1px solid color-mix(in srgb, var(--accent-soft) 54%, #d1d5db 46%);
-      border-left: 5px solid var(--accent);
+      background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,253,248,0.96));
+      border: 1px solid color-mix(in srgb, var(--accent-soft) 44%, #d1d5db 56%);
+      border-left: 4px solid var(--accent);
       border-radius: 14px;
       box-shadow: 0 8px 22px rgba(31, 41, 55, 0.05);
+      white-space: pre-wrap;
     }
-    .book-article pre code { padding: 0; border: 0; background: transparent; color: inherit; }
+    .book-article pre code { padding: 0; border: 0; background: transparent; color: inherit; font-family: inherit; }
     .book-article table {
       border-collapse: collapse;
       width: 100%;
@@ -300,10 +314,10 @@
         <h1 id="volume3--39-disturbance-observer-eso-adrc">第39章 扰动观测器、扩张状态观测器与 ADRC</h1>
       </header>
       <article class="book-article">
-        <h2 id="问题背景">39.1 问题背景</h2>
+        <h2 id="问题背景">1 问题背景</h2>
 <p>前几章讨论了鲁棒、自适应和智能逼近。本章讲另一类工程上常见的方法：扰动观测器，DOB，扩张状态观测器，ESO，以及自抗扰控制，ADRC。它们的共同思想是把模型误差、外扰、气动偏差和未建模项合并成总扰动，在线估计后补偿。</p>
 <p>扰动观测和自抗扰控制的直觉非常直接：把难以建模的影响先估计出来，再在闭环里补偿掉。</p>
-<h2 id="总扰动思想">39.2 总扰动思想</h2>
+<h2 id="总扰动思想">2 总扰动思想</h2>
 <p>考虑一阶通道</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>y</mi><mo>=</mo><mi>b</mi><mi>u</mi><mo>+</mo><mi>d</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
 y = b u + d(t)
@@ -324,7 +338,7 @@ u = \frac{u_0-\hat d}{b}
 </annotation></semantics></math></p>
 <p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>u</mi><mn>0</mn></msub><annotation encoding="application/x-tex">u_0</annotation></semantics></math>
 是基线控制输入。</p>
-<h2 id="匹配性相对阶与可补偿边界">39.3 匹配性、相对阶与可补偿边界</h2>
+<h2 id="匹配性相对阶与可补偿边界">3 匹配性、相对阶与可补偿边界</h2>
 <p>能估计扰动不等于能直接补偿扰动。至少应区分：</p>
 <table>
 <colgroup>
@@ -359,7 +373,7 @@ u = \frac{u_0-\hat d}{b}
 </tr>
 </tbody>
 </table>
-<h2 id="扰动观测器">39.4 扰动观测器</h2>
+<h2 id="扰动观测器">4 扰动观测器</h2>
 <p>在标称模型</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>x</mi><mo accent="true">̇</mo></mover><mo>=</mo><mi>A</mi><mi>x</mi><mo>+</mo><mi>E</mi><mi>d</mi></mrow><annotation encoding="application/x-tex">
 \dot x = A x + E d
@@ -386,7 +400,7 @@ u = \frac{u_0-\hat d}{b}
 和
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>L</mi><mi>d</mi></msub><annotation encoding="application/x-tex">L_d</annotation></semantics></math>
 分别对应状态与扰动的观测增益。</p>
-<h2 id="扩张状态观测器">39.5 扩张状态观测器</h2>
+<h2 id="扩张状态观测器">5 扩张状态观测器</h2>
 <p>ESO 的核心是把总扰动当成一个扩展状态一起估计。若：</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>z</mi><mn>1</mn></msub><mo>=</mo><mi>y</mi><mo>,</mo><mspace width="2.0em"></mspace><msub><mi>z</mi><mn>2</mn></msub><mo>=</mo><msub><mi>d</mi><mrow><mi mathvariant="normal">t</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">t</mi></mrow></msub></mrow><annotation encoding="application/x-tex">
 z_1=y,\qquad z_2=d_{\mathrm{tot}}
@@ -408,7 +422,7 @@ z_1=y,\qquad z_2=d_{\mathrm{tot}}
 和
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>β</mi><mn>2</mn></msub><annotation encoding="application/x-tex">\beta_2</annotation></semantics></math>
 是 ESO 的校正增益，用于调节估计收敛速度。</p>
-<h2 id="adrc-的三部分">39.6 ADRC 的三部分</h2>
+<h2 id="adrc-的三部分">6 ADRC 的三部分</h2>
 <p>ADRC 通常包含跟踪微分器、ESO 和非线性状态误差反馈。若参考为
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>r</mi><annotation encoding="application/x-tex">r</annotation></semantics></math>，跟踪微分器可生成平滑参考：</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>r</mi><mn>1</mn></msub><mo>=</mo><mrow><mi mathvariant="normal">T</mi><mi mathvariant="normal">D</mi></mrow><mo stretchy="false" form="prefix">(</mo><mi>r</mi><mo stretchy="false" form="postfix">)</mo><mo>,</mo><mspace width="2.0em"></mspace><msub><mover><mi>r</mi><mo accent="true">̇</mo></mover><mn>2</mn></msub><mo>=</mo><msub><mi>β</mi><mi>t</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>r</mi><mo>−</mo><msub><mi>r</mi><mn>1</mn></msub><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
@@ -431,7 +445,7 @@ u = \frac{v-\hat d}{b_0}
 是名义控制增益，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>v</mi><annotation encoding="application/x-tex">v</annotation></semantics></math>
 是非线性状态误差反馈生成的虚拟控制量，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mover><mi>d</mi><mo accent="true">̂</mo></mover><annotation encoding="application/x-tex">\hat d</annotation></semantics></math>
 是 ESO 估计的总扰动。</p>
-<h2 id="带宽">39.7 带宽</h2>
+<h2 id="带宽">7 带宽</h2>
 <p>ESO 或 DOB
 带宽越高，扰动估计越快。但高带宽会放大测量噪声、激发执行机构高频动作、与未建模柔性模态耦合、对采样周期更敏感，并导致估计相位误差影响控制。</p>
 <p>带宽选择应满足：</p>
@@ -444,7 +458,7 @@ u = \frac{v-\hat d}{b_0}
 是噪声或柔性模态危险频率。
 其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ω</mi><mi>o</mi></msub><annotation encoding="application/x-tex">\omega_o</annotation></semantics></math>
 应足够高以跟踪扰动，但不能高到显著放大噪声或激发柔性模态。</p>
-<h2 id="带宽噪声柔性模态与执行机构边界">39.8
+<h2 id="带宽噪声柔性模态与执行机构边界">8
 带宽、噪声、柔性模态与执行机构边界</h2>
 <p>观测器带宽至少要和以下量一起报告：</p>
 <ul>
@@ -454,7 +468,7 @@ u = \frac{v-\hat d}{b_0}
 <li>采样周期和离散化方式；</li>
 <li>控制分配或内环带宽。</li>
 </ul>
-<h2 id="与-ndi反步和滑模的组合">39.9 与 NDI、反步和滑模的组合</h2>
+<h2 id="与-ndi反步和滑模的组合">9 与 NDI、反步和滑模的组合</h2>
 <p>DOB 和 ESO 常作为补偿模块加入其他控制器：</p>
 <ul>
 <li>NDI + DOB</li>
@@ -465,7 +479,7 @@ u = \frac{v-\hat d}{b_0}
 </ul>
 <p>组合时要避免重复补偿。例如滑模切换项已经按扰动上界设计，DOB
 又估计同一扰动，若参数不协调，可能导致控制输入过大或振荡。</p>
-<h2 id="总扰动分解与物理可解释性">39.10 总扰动分解与物理可解释性</h2>
+<h2 id="总扰动分解与物理可解释性">10 总扰动分解与物理可解释性</h2>
 <p>把所有残差都堆到
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>d</mi><mrow><mi mathvariant="normal">t</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">t</mi></mrow></msub><annotation encoding="application/x-tex">d_{\mathrm{tot}}</annotation></semantics></math>
 里虽然方便，但会损失物理解释。至少应区分：</p>
@@ -510,8 +524,7 @@ u = \frac{v-\hat d}{b_0}
 </tr>
 </tbody>
 </table>
-<h2 id="与基线控制器组合的补偿边界">39.11
-与基线控制器组合的补偿边界</h2>
+<h2 id="与基线控制器组合的补偿边界">11 与基线控制器组合的补偿边界</h2>
 <p>DOB/ESO/ADRC
 与其他控制器组合时，最常见的问题不是能不能接上，而是谁在对同一残差负责。至少应说明：</p>
 <table>
@@ -550,7 +563,7 @@ u = \frac{v-\hat d}{b_0}
 </tr>
 </tbody>
 </table>
-<h2 id="高超声速扰动来源">39.12 高超声速扰动来源</h2>
+<h2 id="高超声速扰动来源">12 高超声速扰动来源</h2>
 <p>可观测或可估计的总扰动可能包括：</p>
 <table>
 <thead>
@@ -590,7 +603,7 @@ u = \frac{v-\hat d}{b_0}
 </tr>
 </tbody>
 </table>
-<h2 id="物理可解释性和总扰动边界">39.13 物理可解释性和总扰动边界</h2>
+<h2 id="物理可解释性和总扰动边界">13 物理可解释性和总扰动边界</h2>
 <p>把所有残差粗暴合并成一个总扰动虽然方便，但会损失诊断能力。更稳妥的写法是把扰动分为三类：</p>
 <ol type="1">
 <li>可直接补偿的匹配扰动；</li>
@@ -598,7 +611,7 @@ u = \frac{v-\hat d}{b_0}
 <li>需要故障诊断、结构模型或安全层单独处理的扰动。</li>
 </ol>
 <p>这样做的好处是，补偿失效时更容易定位问题来自数据、结构还是控制通道。</p>
-<h2 id="最小验证协议">39.14 最小验证协议</h2>
+<h2 id="最小验证协议">14 最小验证协议</h2>
 <p>DOB、ESO 和 ADRC 至少应报告：</p>
 <table>
 <thead>
@@ -634,10 +647,10 @@ u = \frac{v-\hat d}{b_0}
 </tr>
 </tbody>
 </table>
-<h2 id="本章小结">39.15 本章小结</h2>
+<h2 id="本章小结">15 本章小结</h2>
 <p>DOB、ESO 和 ADRC
 的核心思想，是把未知项估计成“总扰动”并在线补偿。它们适合做低频残差补偿和工程增强，但带宽、噪声、柔性模态和执行机构边界决定了它们不能被写成无条件通用方法。</p>
-<h2 id="练习">39.16 练习</h2>
+<h2 id="练习">16 练习</h2>
 <ol type="1">
 <li>写出总扰动和补偿输入的基本形式。</li>
 <li>说明匹配扰动和非匹配扰动的区别。</li>
@@ -647,7 +660,6 @@ u = \frac{v-\hat d}{b_0}
 </ol>
 
       </article>
-      
       <nav class="book-bottom-nav" aria-label="章节导航">
         <a href="./38-intelligent-approximation-control.html">上一章：第38章 智能逼近控制</a>
         <a href="./index.html">卷首页</a>

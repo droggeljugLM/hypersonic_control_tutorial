@@ -89,7 +89,13 @@
       font-weight: 800;
     }
     .sidebar-title { font-size: 0.94rem; line-height: 1.35; }
-    .book-main { min-width: 0; padding: 1.25rem 1.45rem 1.8rem; }
+    .book-main {
+      min-width: 0;
+      min-height: 100vh;
+      padding: 1.25rem 1.45rem 1.8rem;
+      display: flex;
+      flex-direction: column;
+    }
     .book-page-header {
       padding: 0.85rem 0 1rem;
       margin-bottom: 1rem;
@@ -104,7 +110,12 @@
       padding: 0;
     }
     .book-page-header p { margin: 0.45rem 0 0; color: var(--muted); max-width: 62rem; }
-    .book-article { max-width: 900px; margin: 0; padding: 0 0 1.2rem; }
+    .book-article {
+      max-width: 900px;
+      margin: 0;
+      padding: 0 0 1.2rem;
+      flex: 1 0 auto;
+    }
     .book-article h1, .book-article h2, .book-article h3, .book-article h4, .book-article h5, .book-article h6 {
       line-height: 1.28;
       margin-top: 1.45em;
@@ -117,27 +128,30 @@
     .book-article h3 { font-size: 1.12rem; }
     .book-article p, .book-article li, .book-article dd, .book-article td, .book-article th { text-align: justify; text-justify: inter-ideograph; }
     .book-article p { margin: 0.85rem 0; }
-    .book-article code, .book-article pre { font-family: "Cascadia Mono", "Source Code Pro", Consolas, monospace; font-size: 0.94em; }
+    .book-article code, .book-article pre { font-family: inherit; font-size: 0.98em; letter-spacing: 0; }
     .book-article code {
-      padding: 0.02rem 0.24rem;
-      background: color-mix(in srgb, var(--accent-soft) 34%, #ffffff 66%);
+      padding: 0.04rem 0.28rem;
+      background: color-mix(in srgb, var(--accent-soft) 24%, #ffffff 76%);
       border: 0;
-      border-bottom: 1px solid color-mix(in srgb, var(--accent-soft) 74%, #d1d5db 26%);
+      border-bottom: 1px solid color-mix(in srgb, var(--accent-soft) 52%, #d1d5db 48%);
       border-radius: 4px;
-      color: #253244;
+      color: #2b3440;
       box-decoration-break: clone;
       -webkit-box-decoration-break: clone;
+      font-family: inherit;
+      font-variant-ligatures: none;
     }
     .book-article pre {
-      padding: 1rem 1.1rem;
+      padding: 0.95rem 1.05rem;
       overflow: auto;
-      background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,253,248,0.98));
-      border: 1px solid color-mix(in srgb, var(--accent-soft) 54%, #d1d5db 46%);
-      border-left: 5px solid var(--accent);
+      background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,253,248,0.96));
+      border: 1px solid color-mix(in srgb, var(--accent-soft) 44%, #d1d5db 56%);
+      border-left: 4px solid var(--accent);
       border-radius: 14px;
       box-shadow: 0 8px 22px rgba(31, 41, 55, 0.05);
+      white-space: pre-wrap;
     }
-    .book-article pre code { padding: 0; border: 0; background: transparent; color: inherit; }
+    .book-article pre code { padding: 0; border: 0; background: transparent; color: inherit; font-family: inherit; }
     .book-article table {
       border-collapse: collapse;
       width: 100%;
@@ -296,10 +310,10 @@
         <h1 id="volume2--24-actuator-sensor-computation-modeling">第24章 执行机构、传感器与计算系统建模</h1>
       </header>
       <article class="book-article">
-        <h2 id="问题背景">24.1 问题背景</h2>
+        <h2 id="问题背景">1 问题背景</h2>
 <p>控制律输出的命令不是直接作用在飞行器上的真实输入。真实闭环中，命令必须经过执行机构、传感器、估计器、采样保持、计算延迟、限幅限速和故障逻辑。高超声速飞行器速度高、约束紧、控制余度有限，因此对这些工程环节尤其敏感。</p>
 <p>这一章的任务，是把执行链从“实现细节”提升为“控制对象的一部分”。如果不这样做，很多仿真成功其实只是理想输入成功，而不是闭环成功。</p>
-<h2 id="执行机构模型">24.2 执行机构模型</h2>
+<h2 id="执行机构模型">2 执行机构模型</h2>
 <p>升降舵、副翼、方向舵、体襟翼、推力矢量和 RCS
 都可以抽象为执行机构。一个常见的一阶舵机模型为：</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mover><mi>δ</mi><mo accent="true">̇</mo></mover><mi>a</mi></msub><mo>=</mo><mfrac><mrow><msub><mi>δ</mi><mrow><mi>a</mi><mo>,</mo><mi>c</mi></mrow></msub><mo>−</mo><msub><mi>δ</mi><mi>a</mi></msub></mrow><msub><mi>τ</mi><mi>a</mi></msub></mfrac></mrow><annotation encoding="application/x-tex">
@@ -323,7 +337,7 @@
 <p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>δ</mi><mrow><mi>a</mi><mo>,</mo><mi>min</mi><mo>&#8289;</mo></mrow></msub><annotation encoding="application/x-tex">\delta_{a,\min}</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>δ</mi><mrow><mi>a</mi><mo>,</mo><mi>max</mi><mo>&#8289;</mo></mrow></msub><annotation encoding="application/x-tex">\delta_{a,\max}</annotation></semantics></math>
 是舵面幅值边界，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mover><mi>δ</mi><mo accent="true">̇</mo></mover><mrow><mi>a</mi><mo>,</mo><mi>max</mi><mo>&#8289;</mo></mrow></msub><annotation encoding="application/x-tex">\dot{\delta}_{a,\max}</annotation></semantics></math>
 是最大舵速。</p>
-<h2 id="推进执行动态">24.3 推进执行动态</h2>
+<h2 id="推进执行动态">3 推进执行动态</h2>
 <p>推进输入也有动态。油门或当量比可写为：</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mover><mi>ϕ</mi><mo accent="true">̇</mo></mover><mi>T</mi></msub><mo>=</mo><mfrac><mrow><msub><mi>ϕ</mi><mrow><mi>T</mi><mo>,</mo><mi>c</mi></mrow></msub><mo>−</mo><msub><mi>ϕ</mi><mi>T</mi></msub></mrow><msub><mi>τ</mi><mi>T</mi></msub></mfrac></mrow><annotation encoding="application/x-tex">
 \dot{\phi}_T=\frac{\phi_{T,c}-\phi_T}{\tau_T}
@@ -333,7 +347,7 @@
 是推力命令，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>τ</mi><mi>T</mi></msub><annotation encoding="application/x-tex">\tau_T</annotation></semantics></math>
 是推进响应时间常数。</p>
 <p>如果推进系统带有滞后、迟滞或工作包线限制，就不能把推力当作瞬时输入。对速度控制和能量管理而言，这一点非常重要。</p>
-<h2 id="传感器模型">24.4 传感器模型</h2>
+<h2 id="传感器模型">4 传感器模型</h2>
 <p>传感器输出可写为：</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>y</mi><mi>m</mi></msub><mo>=</mo><mi>h</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo>+</mo><mi>b</mi><mo>+</mo><mi>n</mi><mo>+</mo><msub><mi>η</mi><mi>d</mi></msub></mrow><annotation encoding="application/x-tex">
 y_m=h(x)+b+n+\eta_d
@@ -346,7 +360,7 @@ y_m=h(x)+b+n+\eta_d
 是延迟、量化或丢包等异常项。</p>
 <p>常见传感器包括
 IMU、陀螺、GPS/导航系统、高度计和空气数据系统。高超声速控制尤其不能默认攻角、侧滑角和动压都能被直接精确测量。</p>
-<h2 id="状态估计接口">24.5 状态估计接口</h2>
+<h2 id="状态估计接口">5 状态估计接口</h2>
 <p>若状态不可直接测量，需要估计器。可以抽象为：</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mover><mi>x</mi><mo accent="true">̂</mo></mover><mo accent="true">̇</mo></mover><mo>=</mo><mi>f</mi><mo stretchy="false" form="prefix">(</mo><mover><mi>x</mi><mo accent="true">̂</mo></mover><mo>,</mo><mi>u</mi><mo>,</mo><msub><mi>y</mi><mi>m</mi></msub><mo stretchy="false" form="postfix">)</mo><mo>+</mo><mi>K</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>y</mi><mi>m</mi></msub><mo>−</mo><mover><mi>y</mi><mo accent="true">̂</mo></mover><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
 \dot{\hat x}=f(\hat x,u,y_m)+K(y_m-\hat y)
@@ -356,7 +370,7 @@ IMU、陀螺、GPS/导航系统、高度计和空气数据系统。高超声速�
 是估计输出，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>K</mi><annotation encoding="application/x-tex">K</annotation></semantics></math>
 是观测器增益。</p>
 <p>对高超声速飞行器来说，估计误差不是次要项。攻角、侧滑角、动压、过载和终端状态的估计偏差，都会直接影响安全判断和控制分配。</p>
-<h2 id="采样和计算延迟">24.6 采样和计算延迟</h2>
+<h2 id="采样和计算延迟">6 采样和计算延迟</h2>
 <p>数字控制器每个采样周期只更新一次。可写为：</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>u</mi><mo stretchy="false" form="prefix">[</mo><mi>k</mi><mo stretchy="false" form="postfix">]</mo><mo>=</mo><mi>𝒦</mi><mo stretchy="false" form="prefix">(</mo><mover><mi>x</mi><mo accent="true">̂</mo></mover><mo stretchy="false" form="prefix">[</mo><mi>k</mi><mo stretchy="false" form="postfix">]</mo><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
 u[k]=\mathcal K(\hat x[k])
@@ -374,7 +388,7 @@ u_{\mathrm{act}}[k]=u[k-d]
 是实际生效命令。</p>
 <p>采样周期和计算延迟都会降低相位裕度。对 MPC 或 QP
 控制而言，它们还会引入求解超时和命令保持问题。</p>
-<h2 id="故障模型">24.7 故障模型</h2>
+<h2 id="故障模型">7 故障模型</h2>
 <p>执行机构和传感器都可能故障。一个常见的执行机构效率损失模型为：</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>u</mi><mrow><mi mathvariant="normal">e</mi><mi mathvariant="normal">f</mi><mi mathvariant="normal">f</mi></mrow></msub><mo>=</mo><mi mathvariant="normal">Λ</mi><msub><mi>u</mi><mi>a</mi></msub></mrow><annotation encoding="application/x-tex">
 u_{\mathrm{eff}}=\Lambda u_a
@@ -384,7 +398,7 @@ u_{\mathrm{eff}}=\Lambda u_a
 是有效输入，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>u</mi><mi>a</mi></msub><annotation encoding="application/x-tex">u_a</annotation></semantics></math>
 是命令输入。</p>
 <p>若某个通道卡滞或死区明显，还需要在模型中显式加入故障项。高超声速控制不能只在图上画故障，必须让故障进入动力学和指标。</p>
-<h2 id="工程实现验证矩阵">24.8 工程实现验证矩阵</h2>
+<h2 id="工程实现验证矩阵">8 工程实现验证矩阵</h2>
 <p>执行机构、传感器和计算系统的验证应至少覆盖：</p>
 <table>
 <colgroup>
@@ -445,13 +459,13 @@ u_{\mathrm{eff}}=\Lambda u_a
 </tbody>
 </table>
 <p>这些场景不需要一开始就做高保真模型，但每个教学案例都应说明覆盖了哪一项、没有覆盖哪一项。</p>
-<h2 id="为什么必须显式建模执行链">24.9 为什么必须显式建模执行链</h2>
+<h2 id="为什么必须显式建模执行链">9 为什么必须显式建模执行链</h2>
 <p>控制器算出的命令并不等于对象实际看到的输入。执行机构的动态意味着命令不是瞬时实现的；传感器的偏置和噪声意味着安全判断不是直接基于真值做的；采样和延迟意味着离散实现和连续证明之间存在空隙。</p>
 <p>如果只看命令输入，就会高估控制能力；如果只看
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mover><mi>x</mi><mo accent="true">̂</mo></mover><annotation encoding="application/x-tex">\hat x</annotation></semantics></math>，就会高估安全裕度。高超声速飞行器的控制边界，往往恰好就在这两条链的误差交界处。</p>
-<h2 id="本章小结">24.10 本章小结</h2>
+<h2 id="本章小结">10 本章小结</h2>
 <p>执行机构、传感器与计算系统决定控制律能否从公式进入真实闭环。高超声速控制中，输入饱和、速率限制、传感器误差、估计误差、采样周期和计算延迟都会改变稳定性和安全裕度。本教程必须把这些因素作为模型的一部分，而不是仿真结束后的附加说明。</p>
-<h2 id="练习">24.11 练习</h2>
+<h2 id="练习">11 练习</h2>
 <ol type="1">
 <li>写出一阶舵机模型和幅值、速率约束。</li>
 <li>说明油门动态为什么会影响速度控制。</li>
@@ -465,7 +479,6 @@ u_{\mathrm{eff}}=\Lambda u_a
 </ol>
 
       </article>
-      
       <nav class="book-bottom-nav" aria-label="章节导航">
         <a href="./23-flexible-aeroelastic-modeling.html">上一章：第23章 刚柔耦合与气动弹性模型</a>
         <a href="./index.html">卷首页</a>

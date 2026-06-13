@@ -89,7 +89,13 @@
       font-weight: 800;
     }
     .sidebar-title { font-size: 0.94rem; line-height: 1.35; }
-    .book-main { min-width: 0; padding: 1.25rem 1.45rem 1.8rem; }
+    .book-main {
+      min-width: 0;
+      min-height: 100vh;
+      padding: 1.25rem 1.45rem 1.8rem;
+      display: flex;
+      flex-direction: column;
+    }
     .book-page-header {
       padding: 0.85rem 0 1rem;
       margin-bottom: 1rem;
@@ -104,7 +110,12 @@
       padding: 0;
     }
     .book-page-header p { margin: 0.45rem 0 0; color: var(--muted); max-width: 62rem; }
-    .book-article { max-width: 900px; margin: 0; padding: 0 0 1.2rem; }
+    .book-article {
+      max-width: 900px;
+      margin: 0;
+      padding: 0 0 1.2rem;
+      flex: 1 0 auto;
+    }
     .book-article h1, .book-article h2, .book-article h3, .book-article h4, .book-article h5, .book-article h6 {
       line-height: 1.28;
       margin-top: 1.45em;
@@ -117,27 +128,30 @@
     .book-article h3 { font-size: 1.12rem; }
     .book-article p, .book-article li, .book-article dd, .book-article td, .book-article th { text-align: justify; text-justify: inter-ideograph; }
     .book-article p { margin: 0.85rem 0; }
-    .book-article code, .book-article pre { font-family: "Cascadia Mono", "Source Code Pro", Consolas, monospace; font-size: 0.94em; }
+    .book-article code, .book-article pre { font-family: inherit; font-size: 0.98em; letter-spacing: 0; }
     .book-article code {
-      padding: 0.02rem 0.24rem;
-      background: color-mix(in srgb, var(--accent-soft) 34%, #ffffff 66%);
+      padding: 0.04rem 0.28rem;
+      background: color-mix(in srgb, var(--accent-soft) 24%, #ffffff 76%);
       border: 0;
-      border-bottom: 1px solid color-mix(in srgb, var(--accent-soft) 74%, #d1d5db 26%);
+      border-bottom: 1px solid color-mix(in srgb, var(--accent-soft) 52%, #d1d5db 48%);
       border-radius: 4px;
-      color: #253244;
+      color: #2b3440;
       box-decoration-break: clone;
       -webkit-box-decoration-break: clone;
+      font-family: inherit;
+      font-variant-ligatures: none;
     }
     .book-article pre {
-      padding: 1rem 1.1rem;
+      padding: 0.95rem 1.05rem;
       overflow: auto;
-      background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,253,248,0.98));
-      border: 1px solid color-mix(in srgb, var(--accent-soft) 54%, #d1d5db 46%);
-      border-left: 5px solid var(--accent);
+      background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,253,248,0.96));
+      border: 1px solid color-mix(in srgb, var(--accent-soft) 44%, #d1d5db 56%);
+      border-left: 4px solid var(--accent);
       border-radius: 14px;
       box-shadow: 0 8px 22px rgba(31, 41, 55, 0.05);
+      white-space: pre-wrap;
     }
-    .book-article pre code { padding: 0; border: 0; background: transparent; color: inherit; }
+    .book-article pre code { padding: 0; border: 0; background: transparent; color: inherit; font-family: inherit; }
     .book-article table {
       border-collapse: collapse;
       width: 100%;
@@ -296,10 +310,10 @@
         <h1 id="volume4--45-control-allocation-theory">第45章 控制分配理论</h1>
       </header>
       <article class="book-article">
-        <h2 id="问题背景">45.1 问题背景</h2>
+        <h2 id="问题背景">1 问题背景</h2>
 <p>高超声速飞行器常有多个执行机构：升降舵、副翼、方向舵、体襟翼、RCS、推力矢量和油门。主控制器通常不应直接逐个生成每个执行机构命令，而是先给出期望力或力矩，再由控制分配层把它们转换为实际执行机构输入。</p>
 <p>控制分配描述的是“控制律输出什么”和“执行机构实际做什么”之间的映射关系。这个层次在高超声速飞行器里尤其关键，因为控制命令常常不可能一对一落到单个执行机构上。</p>
-<h2 id="从期望力矩到执行机构">45.2 从期望力矩到执行机构</h2>
+<h2 id="从期望力矩到执行机构">2 从期望力矩到执行机构</h2>
 <p>设主控制器输出期望广义控制量</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ν</mi><mi>c</mi></msub><mo>=</mo><msup><mrow><mo stretchy="true" form="prefix">[</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><msub><mi>L</mi><mi>c</mi></msub></mtd><mtd columnalign="center" style="text-align: center"><msub><mi>M</mi><mi>c</mi></msub></mtd><mtd columnalign="center" style="text-align: center"><msub><mi>N</mi><mi>c</mi></msub></mtd></mtr></mtable><mo stretchy="true" form="postfix">]</mo></mrow><mi>⊤</mi></msup></mrow><annotation encoding="application/x-tex">
 \nu_c = \begin{bmatrix}L_c &amp; M_c &amp; N_c\end{bmatrix}^\top
@@ -313,7 +327,7 @@ B_a u_a \approx \nu_c
 <p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>B</mi><mi>a</mi></msub><annotation encoding="application/x-tex">B_a</annotation></semantics></math>
 是控制效能矩阵，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>u</mi><mi>a</mi></msub><annotation encoding="application/x-tex">u_a</annotation></semantics></math>
 是执行机构命令向量。</p>
-<h2 id="控制效能矩阵">45.3 控制效能矩阵</h2>
+<h2 id="控制效能矩阵">3 控制效能矩阵</h2>
 <p>控制效能矩阵由气动导数、执行机构安装位置、推力矢量方向和当前飞行点共同决定。若执行机构效率变化，可写为</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>B</mi><mi>a</mi></msub><mo>=</mo><msub><mi>B</mi><mn>0</mn></msub><mi mathvariant="normal">Λ</mi></mrow><annotation encoding="application/x-tex">
 B_a = B_0 \Lambda
@@ -321,7 +335,7 @@ B_a = B_0 \Lambda
 <p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>B</mi><mn>0</mn></msub><annotation encoding="application/x-tex">B_0</annotation></semantics></math>
 是名义效能矩阵，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Λ</mi><mo>=</mo><mrow><mi mathvariant="normal">d</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">g</mi></mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>λ</mi><mn>1</mn></msub><mo>,</mo><mi>…</mi><mo>,</mo><msub><mi>λ</mi><mi>m</mi></msub><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\Lambda=\mathrm{diag}(\lambda_1,\ldots,\lambda_m)</annotation></semantics></math>
 表示执行机构效率。</p>
-<h2 id="广义逆分配">45.4 广义逆分配</h2>
+<h2 id="广义逆分配">4 广义逆分配</h2>
 <p>最简单的分配为 Moore-Penrose 广义逆</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>u</mi><mi>a</mi></msub><mo>=</mo><msubsup><mi>B</mi><mi>a</mi><mo>†</mo></msubsup><msub><mi>ν</mi><mi>c</mi></msub></mrow><annotation encoding="application/x-tex">
 u_a = B_a^\dagger \nu_c
@@ -329,7 +343,7 @@ u_a = B_a^\dagger \nu_c
 <p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msubsup><mi>B</mi><mi>a</mi><mo>†</mo></msubsup><annotation encoding="application/x-tex">B_a^\dagger</annotation></semantics></math>
 是广义逆。</p>
 <p>广义逆方法直观，但不能直接处理幅值和速率约束。</p>
-<h2 id="加权最小二乘分配">45.5 加权最小二乘分配</h2>
+<h2 id="加权最小二乘分配">5 加权最小二乘分配</h2>
 <p>若考虑权重和偏好，可写成</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>u</mi><mi>a</mi><mo>⋆</mo></msubsup><mo>=</mo><mi>arg</mi><mo>&#8289;</mo><munder><mi>min</mi><mo>&#8289;</mo><msub><mi>u</mi><mi>a</mi></msub></munder><mspace width="0.222em"></mspace><mo stretchy="false" form="postfix">∥</mo><mi>W</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>B</mi><mi>a</mi></msub><msub><mi>u</mi><mi>a</mi></msub><mo>−</mo><msub><mi>ν</mi><mi>c</mi></msub><mo stretchy="false" form="postfix">)</mo><msubsup><mo stretchy="false" form="postfix">∥</mo><mn>2</mn><mn>2</mn></msubsup></mrow><annotation encoding="application/x-tex">
 u_a^\star = \arg\min_{u_a}\ \|W(B_a u_a-\nu_c)\|_2^2
@@ -337,7 +351,7 @@ u_a^\star = \arg\min_{u_a}\ \|W(B_a u_a-\nu_c)\|_2^2
 <p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>W</mi><annotation encoding="application/x-tex">W</annotation></semantics></math>
 是权重矩阵。</p>
 <p>加权最小二乘能够表达执行机构优先级和通道偏好。</p>
-<h2 id="约束分配">45.6 约束分配</h2>
+<h2 id="约束分配">6 约束分配</h2>
 <p>约束分配可写成二次规划</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><munder><mi>min</mi><mo>&#8289;</mo><msub><mi>u</mi><mi>a</mi></msub></munder><mspace width="0.222em"></mspace><mo stretchy="false" form="postfix">∥</mo><msub><mi>B</mi><mi>a</mi></msub><msub><mi>u</mi><mi>a</mi></msub><mo>−</mo><msub><mi>ν</mi><mi>c</mi></msub><msubsup><mo stretchy="false" form="postfix">∥</mo><mn>2</mn><mn>2</mn></msubsup><mo>+</mo><mi>ρ</mi><mo stretchy="false" form="postfix">∥</mo><msub><mi>u</mi><mi>a</mi></msub><msubsup><mo stretchy="false" form="postfix">∥</mo><mn>2</mn><mn>2</mn></msubsup></mrow><annotation encoding="application/x-tex">
 \min_{u_a}\ \|B_a u_a-\nu_c\|_2^2 + \rho \|u_a\|_2^2
@@ -352,7 +366,7 @@ u_{\min}\le u_a \le u_{\max}
 和
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>u</mi><mi>max</mi><mo>&#8289;</mo></msub><annotation encoding="application/x-tex">u_{\max}</annotation></semantics></math>
 是执行机构边界。</p>
-<h2 id="分配残差">45.7 分配残差</h2>
+<h2 id="分配残差">7 分配残差</h2>
 <p>若目标不可完全实现，定义残差</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>r</mi><mi>a</mi></msub><mo>=</mo><msub><mi>ν</mi><mi>c</mi></msub><mo>−</mo><msub><mi>B</mi><mi>a</mi></msub><msub><mi>u</mi><mi>a</mi></msub></mrow><annotation encoding="application/x-tex">
 r_a = \nu_c - B_a u_a
@@ -360,7 +374,7 @@ r_a = \nu_c - B_a u_a
 <p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>r</mi><mi>a</mi></msub><annotation encoding="application/x-tex">r_a</annotation></semantics></math>
 是分配残差。</p>
 <p>分配残差不是噪声，而是控制余度不足或故障重构不足的直接证据。</p>
-<h2 id="效率下降和故障重构">45.8 效率下降和故障重构</h2>
+<h2 id="效率下降和故障重构">8 效率下降和故障重构</h2>
 <p>执行机构效率损失可写为</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>u</mi><mrow><mi mathvariant="normal">a</mi><mi mathvariant="normal">c</mi><mi mathvariant="normal">t</mi></mrow></msub><mo>=</mo><mi mathvariant="normal">Λ</mi><msub><mi>u</mi><mi>a</mi></msub></mrow><annotation encoding="application/x-tex">
 u_{\mathrm{act}} = \Lambda u_a
@@ -375,14 +389,14 @@ B_a^{(f)} = B_0 \hat\Lambda
 </annotation></semantics></math></p>
 <p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msubsup><mi>B</mi><mi>a</mi><mrow><mo stretchy="false" form="prefix">(</mo><mi>f</mi><mo stretchy="false" form="postfix">)</mo></mrow></msubsup><annotation encoding="application/x-tex">B_a^{(f)}</annotation></semantics></math>
 是故障后的效能矩阵。</p>
-<h2 id="速率限制和动态分配">45.9 速率限制和动态分配</h2>
+<h2 id="速率限制和动态分配">9 速率限制和动态分配</h2>
 <p>若执行机构存在速率限制，则还应检查</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">|</mo><mi mathvariant="normal">Δ</mi><msub><mi>u</mi><mi>a</mi></msub><mo stretchy="false" form="prefix">|</mo><mo>≤</mo><mi mathvariant="normal">Δ</mi><msub><mi>u</mi><mi>max</mi><mo>&#8289;</mo></msub></mrow><annotation encoding="application/x-tex">
 |\Delta u_a| \le \Delta u_{\max}
 </annotation></semantics></math></p>
 <p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Δ</mi><msub><mi>u</mi><mi>max</mi><mo>&#8289;</mo></msub></mrow><annotation encoding="application/x-tex">\Delta u_{\max}</annotation></semantics></math>
 是单步变化上限。</p>
-<h2 id="优先级与分级分配">45.10 优先级与分级分配</h2>
+<h2 id="优先级与分级分配">10 优先级与分级分配</h2>
 <p>优先级可以通过权重实现，也可以用分级优化：</p>
 <ol type="1">
 <li>第一层尽量满足关键轴力矩；</li>
@@ -390,7 +404,7 @@ B_a^{(f)} = B_0 \hat\Lambda
 <li>第三层最小化执行机构消耗或热负荷。</li>
 </ol>
 <p>分级分配比单一加权更能表达硬优先级，但实现和验证更复杂。</p>
-<h2 id="任务降级逻辑">45.11 任务降级逻辑</h2>
+<h2 id="任务降级逻辑">11 任务降级逻辑</h2>
 <p>若分配器已经检测到不可行命令，应输出</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ν</mi><mi>c</mi></msub><mo>∈</mo><mi>𝒱</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
 \nu_c \in \mathcal V(x)
@@ -404,7 +418,7 @@ B_a^{(f)} = B_0 \hat\Lambda
 <li>进入容错控制模式；</li>
 <li>或通知制导层降低任务激进度。</li>
 </ul>
-<h2 id="与-ndiindilqrmpccbf-的连接">45.12 与 NDI、INDI、LQR、MPC、CBF
+<h2 id="与-ndiindilqrmpccbf-的连接">12 与 NDI、INDI、LQR、MPC、CBF
 的连接</h2>
 <p>控制分配通常与多类控制器共同出现：</p>
 <ul>
@@ -414,7 +428,7 @@ B_a^{(f)} = B_0 \hat\Lambda
 <li>CBF 可以在分配前后加入安全滤波；</li>
 <li>容错控制可在故障后重构分配矩阵。</li>
 </ul>
-<h2 id="验证指标">45.13 验证指标</h2>
+<h2 id="验证指标">13 验证指标</h2>
 <p>控制分配至少应报告：</p>
 <table>
 <thead>
@@ -458,9 +472,9 @@ B_a^{(f)} = B_0 \hat\Lambda
 </tr>
 </tbody>
 </table>
-<h2 id="本章小结">45.14 本章小结</h2>
+<h2 id="本章小结">14 本章小结</h2>
 <p>控制分配是连接控制律和物理执行机构的工程关键层。高超声速飞行器里，分配不是简单矩阵求逆，而是要同时处理约束、优先级、故障和可达性。</p>
-<h2 id="练习">45.15 练习</h2>
+<h2 id="练习">15 练习</h2>
 <ol type="1">
 <li>写出广义控制量和控制效能矩阵的基本形式。</li>
 <li>比较广义逆分配和加权最小二乘分配。</li>
@@ -470,7 +484,6 @@ B_a^{(f)} = B_0 \hat\Lambda
 </ol>
 
       </article>
-      
       <nav class="book-bottom-nav" aria-label="章节导航">
         <a href="./44-model-predictive-control.html">上一章：第44章 模型预测控制</a>
         <a href="./index.html">卷首页</a>

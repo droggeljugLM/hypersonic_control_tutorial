@@ -89,7 +89,13 @@
       font-weight: 800;
     }
     .sidebar-title { font-size: 0.94rem; line-height: 1.35; }
-    .book-main { min-width: 0; padding: 1.25rem 1.45rem 1.8rem; }
+    .book-main {
+      min-width: 0;
+      min-height: 100vh;
+      padding: 1.25rem 1.45rem 1.8rem;
+      display: flex;
+      flex-direction: column;
+    }
     .book-page-header {
       padding: 0.85rem 0 1rem;
       margin-bottom: 1rem;
@@ -104,7 +110,12 @@
       padding: 0;
     }
     .book-page-header p { margin: 0.45rem 0 0; color: var(--muted); max-width: 62rem; }
-    .book-article { max-width: 900px; margin: 0; padding: 0 0 1.2rem; }
+    .book-article {
+      max-width: 900px;
+      margin: 0;
+      padding: 0 0 1.2rem;
+      flex: 1 0 auto;
+    }
     .book-article h1, .book-article h2, .book-article h3, .book-article h4, .book-article h5, .book-article h6 {
       line-height: 1.28;
       margin-top: 1.45em;
@@ -117,27 +128,30 @@
     .book-article h3 { font-size: 1.12rem; }
     .book-article p, .book-article li, .book-article dd, .book-article td, .book-article th { text-align: justify; text-justify: inter-ideograph; }
     .book-article p { margin: 0.85rem 0; }
-    .book-article code, .book-article pre { font-family: "Cascadia Mono", "Source Code Pro", Consolas, monospace; font-size: 0.94em; }
+    .book-article code, .book-article pre { font-family: inherit; font-size: 0.98em; letter-spacing: 0; }
     .book-article code {
-      padding: 0.02rem 0.24rem;
-      background: color-mix(in srgb, var(--accent-soft) 34%, #ffffff 66%);
+      padding: 0.04rem 0.28rem;
+      background: color-mix(in srgb, var(--accent-soft) 24%, #ffffff 76%);
       border: 0;
-      border-bottom: 1px solid color-mix(in srgb, var(--accent-soft) 74%, #d1d5db 26%);
+      border-bottom: 1px solid color-mix(in srgb, var(--accent-soft) 52%, #d1d5db 48%);
       border-radius: 4px;
-      color: #253244;
+      color: #2b3440;
       box-decoration-break: clone;
       -webkit-box-decoration-break: clone;
+      font-family: inherit;
+      font-variant-ligatures: none;
     }
     .book-article pre {
-      padding: 1rem 1.1rem;
+      padding: 0.95rem 1.05rem;
       overflow: auto;
-      background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,253,248,0.98));
-      border: 1px solid color-mix(in srgb, var(--accent-soft) 54%, #d1d5db 46%);
-      border-left: 5px solid var(--accent);
+      background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,253,248,0.96));
+      border: 1px solid color-mix(in srgb, var(--accent-soft) 44%, #d1d5db 56%);
+      border-left: 4px solid var(--accent);
       border-radius: 14px;
       box-shadow: 0 8px 22px rgba(31, 41, 55, 0.05);
+      white-space: pre-wrap;
     }
-    .book-article pre code { padding: 0; border: 0; background: transparent; color: inherit; }
+    .book-article pre code { padding: 0; border: 0; background: transparent; color: inherit; font-family: inherit; }
     .book-article table {
       border-collapse: collapse;
       width: 100%;
@@ -296,10 +310,10 @@
         <h1 id="volume2--22-six-dof-rigid-body-model">第22章 六自由度刚体模型</h1>
       </header>
       <article class="book-article">
-        <h2 id="问题背景">22.1 问题背景</h2>
+        <h2 id="问题背景">1 问题背景</h2>
 <p>六自由度刚体模型是高超声速飞行控制从局部模型走向三维闭环验证的核心模型。它同时描述三维位置、三维速度、姿态和角速度，并把气动力、推力、力矩、执行机构和控制分配放进同一个动态系统中。</p>
 <p>这一层的重点不是“状态更多”，而是“闭环更真实”。只有把三维路径、姿态、气动、执行机构和数值健康放在一个对象里，后续控制设计、验证和故障分析才有统一的证据链。</p>
-<h2 id="模型层级中的位置">22.2 模型层级中的位置</h2>
+<h2 id="模型层级中的位置">2 模型层级中的位置</h2>
 <p>第二卷的建模链路可以写成：</p>
 <ul>
 <li>质点路径模型；</li>
@@ -309,7 +323,7 @@
 <li>刚柔耦合与气动推进耦合模型。</li>
 </ul>
 <p>六自由度模型承接前面三类模型的结果：它从质点模型继承轨迹和路径约束，从纵向模型继承攻角、俯仰和升阻力信息，从横侧向模型继承侧滑、滚转、偏航和控制分配结构。它适合做三维制导、姿态控制和控制分配的教学级闭环，但如果气动数据库、执行机构和传感器仍然很粗糙，就不能把它称为高保真工程验证。</p>
-<h2 id="状态选择">22.3 状态选择</h2>
+<h2 id="状态选择">3 状态选择</h2>
 <p>一个常见六自由度状态可写为</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>x</mi><mn>6</mn></msub><mo>=</mo><msup><mrow><mo stretchy="true" form="prefix">[</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><msub><mi>r</mi><mi>E</mi></msub></mtd><mtd columnalign="center" style="text-align: center"><msub><mi>v</mi><mi>E</mi></msub></mtd><mtd columnalign="center" style="text-align: center"><msubsup><mi>q</mi><mi>B</mi><mi>E</mi></msubsup></mtd><mtd columnalign="center" style="text-align: center"><msub><mi>ω</mi><mi>B</mi></msub></mtd></mtr></mtable><mo stretchy="true" form="postfix">]</mo></mrow><mi>⊤</mi></msup></mrow><annotation encoding="application/x-tex">
 x_6 = \begin{bmatrix} r_E &amp; v_E &amp; q_B^E &amp; \omega_B \end{bmatrix}^\top
@@ -328,8 +342,8 @@ x_\eta = \begin{bmatrix} r_E &amp; v_E &amp; \eta &amp; \omega_B \end{bmatrix}^\
 是滚转角，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>θ</mi><annotation encoding="application/x-tex">\theta</annotation></semantics></math>
 是俯仰角，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ψ</mi><annotation encoding="application/x-tex">\psi</annotation></semantics></math>
 是偏航角。</p>
-<p>四元数形式更适合避免万向节锁，但必须做归一化和健康检查。实际教学代码里，位置、速度、姿态和角速度应采用统一字段名，避免不同模块各写一套坐标约定。</p>
-<h2 id="坐标系和符号约定">22.4 坐标系和符号约定</h2>
+<p>四元数形式更适合避免万向节锁，但必须做归一化和健康检查。实际教学材料里，位置、速度、姿态和角速度应采用统一字段名，避免不同模块各写一套坐标约定。</p>
+<h2 id="坐标系和符号约定">4 坐标系和符号约定</h2>
 <p>六自由度模型最容易出错的地方不是方程本身，而是坐标约定。一个最小约定应写清：</p>
 <ul>
 <li>位置和速度在哪个坐标系表达；</li>
@@ -348,7 +362,7 @@ F_E = C_B^E F_B
 是惯性系力，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>F</mi><mi>B</mi></msub><annotation encoding="application/x-tex">F_B</annotation></semantics></math>
 是机体系力。</p>
 <p>这一约定看似简单，但如果力、姿态或角速度的坐标系写错，后面的控制律再漂亮也会在验证时失效。</p>
-<h2 id="平动方程">22.5 平动方程</h2>
+<h2 id="平动方程">5 平动方程</h2>
 <p>六自由度刚体的平动方程可写成</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mover><mi>r</mi><mo accent="true">̇</mo></mover><mi>E</mi></msub><mo>=</mo><msub><mi>v</mi><mi>E</mi></msub><mo>,</mo><mspace width="2.0em"></mspace><mi>m</mi><msub><mover><mi>v</mi><mo accent="true">̇</mo></mover><mi>E</mi></msub><mo>=</mo><msub><mi>F</mi><mi>E</mi></msub><mo>+</mo><mi>m</mi><msub><mi>g</mi><mi>E</mi></msub></mrow><annotation encoding="application/x-tex">
 \dot r_E = v_E,\qquad
@@ -367,7 +381,7 @@ m\dot v_B = F_B - \omega_B \times (m v_B) + m g_B
 是科里奥利项的等效写法，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>g</mi><mi>B</mi></msub><annotation encoding="application/x-tex">g_B</annotation></semantics></math>
 是重力在机体系中的表达。</p>
 <p>对控制设计而言，平动方程说明三维轨迹并不是直接由姿态命令决定的，而是由气动力、推力、重力和姿态共同决定的。</p>
-<h2 id="转动方程">22.6 转动方程</h2>
+<h2 id="转动方程">6 转动方程</h2>
 <p>刚体转动方程为</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>I</mi><msub><mover><mi>ω</mi><mo accent="true">̇</mo></mover><mi>B</mi></msub><mo>+</mo><msub><mi>ω</mi><mi>B</mi></msub><mo>×</mo><mo stretchy="false" form="prefix">(</mo><mi>I</mi><msub><mi>ω</mi><mi>B</mi></msub><mo stretchy="false" form="postfix">)</mo><mo>=</mo><msub><mi>M</mi><mi>B</mi></msub></mrow><annotation encoding="application/x-tex">
 I\dot\omega_B + \omega_B \times (I\omega_B) = M_B
@@ -385,7 +399,7 @@ I\dot\omega_B + \omega_B \times (I\omega_B) = M_B
 <p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>I</mi><mrow><mi>−</mi><mn>1</mn></mrow></msup><annotation encoding="application/x-tex">I^{-1}</annotation></semantics></math>
 是惯量矩阵的逆。</p>
 <p>这一节的关键在于：三轴转动不是三个互相独立的二阶系统。对于细长体、质量变化或偏置载荷对象，惯量耦合必须明确说明是否被忽略。</p>
-<h2 id="姿态运动学">22.7 姿态运动学</h2>
+<h2 id="姿态运动学">7 姿态运动学</h2>
 <p>四元数运动学可写为</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mover><mi>q</mi><mo accent="true">̇</mo></mover><mi>B</mi><mi>E</mi></msubsup><mo>=</mo><mfrac><mn>1</mn><mn>2</mn></mfrac><mi mathvariant="normal">Ω</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>ω</mi><mi>B</mi></msub><mo stretchy="false" form="postfix">)</mo><msubsup><mi>q</mi><mi>B</mi><mi>E</mi></msubsup></mrow><annotation encoding="application/x-tex">
 \dot q_B^E = \frac{1}{2}\Omega(\omega_B) q_B^E
@@ -400,7 +414,7 @@ I\dot\omega_B + \omega_B \times (I\omega_B) = M_B
 是欧拉角向量，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>T</mi><mo stretchy="false" form="prefix">(</mo><mi>η</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">T(\eta)</annotation></semantics></math>
 是欧拉角速率变换矩阵。</p>
 <p>四元数的优势是避免姿态奇异，但工程验证中仍应同时检查归一化误差，因为数值漂移会在长时间传播里破坏姿态健康。</p>
-<h2 id="气动力推力和质量变化">22.8 气动力、推力和质量变化</h2>
+<h2 id="气动力推力和质量变化">8 气动力、推力和质量变化</h2>
 <p>六自由度模型中的外力通常由气动力、推力和重力组成，可写成</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>F</mi><mi>B</mi></msub><mo>=</mo><msub><mi>F</mi><mrow><mi>a</mi><mo>,</mo><mi>B</mi></mrow></msub><mo>+</mo><msub><mi>F</mi><mrow><mi>T</mi><mo>,</mo><mi>B</mi></mrow></msub><mo>+</mo><msub><mi>F</mi><mrow><mi>g</mi><mo>,</mo><mi>B</mi></mrow></msub></mrow><annotation encoding="application/x-tex">
 F_B = F_{a,B} + F_{T,B} + F_{g,B}
@@ -416,7 +430,7 @@ F_B = F_{a,B} + F_{T,B} + F_{g,B}
 <p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mover><mi>m</mi><mo accent="true">̇</mo></mover><mi>f</mi></msub><annotation encoding="application/x-tex">\dot m_f</annotation></semantics></math>
 是燃料消耗率。</p>
 <p>对高超声速飞行器来说，推力方向偏置、燃料质量变化和气动中心变化都会进入六自由度闭环，因此不能把六自由度模型只看成“质点模型加姿态”。</p>
-<h2 id="攻角侧滑角和动压派生量">22.9 攻角、侧滑角和动压派生量</h2>
+<h2 id="攻角侧滑角和动压派生量">9 攻角、侧滑角和动压派生量</h2>
 <p>六自由度状态可派生出控制最常用的量</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>q</mi><mo accent="true">‾</mo></mover><mo>=</mo><mfrac><mn>1</mn><mn>2</mn></mfrac><mi>ρ</mi><mo stretchy="false" form="prefix">(</mo><mi>h</mi><mo stretchy="false" form="postfix">)</mo><msup><mi>V</mi><mn>2</mn></msup><mo>,</mo><mspace width="2.0em"></mspace><mi>V</mi><mo>=</mo><mo stretchy="false" form="postfix">∥</mo><msub><mi>v</mi><mi>E</mi></msub><mo stretchy="false" form="postfix">∥</mo></mrow><annotation encoding="application/x-tex">
 \bar q = \frac{1}{2}\rho(h)V^2,\qquad V=\|v_E\|
@@ -433,7 +447,7 @@ F_B = F_{a,B} + F_{T,B} + F_{g,B}
 分别是机体系前向、侧向和法向速度分量。</p>
 <p>这些派生量必须和第 15、17、20、21
 章的约定一致，否则控制器、配平和气动表就会彼此“说不同语言”。</p>
-<h2 id="控制分配接口">22.10 控制分配接口</h2>
+<h2 id="控制分配接口">10 控制分配接口</h2>
 <p>六自由度控制器通常先生成期望三轴力矩或广义力</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>τ</mi><mi>c</mi></msub><mo>=</mo><msup><mrow><mo stretchy="true" form="prefix">[</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><msub><mi>L</mi><mi>c</mi></msub></mtd><mtd columnalign="center" style="text-align: center"><msub><mi>M</mi><mrow><mi>y</mi><mo>,</mo><mi>c</mi></mrow></msub></mtd><mtd columnalign="center" style="text-align: center"><msub><mi>N</mi><mi>c</mi></msub></mtd></mtr></mtable><mo stretchy="true" form="postfix">]</mo></mrow><mi>⊤</mi></msup></mrow><annotation encoding="application/x-tex">
 \tau_c = \begin{bmatrix}L_c &amp; M_{y,c} &amp; N_c\end{bmatrix}^\top
@@ -449,7 +463,7 @@ u_a^\star = \arg\min_{u_a}\left\|W(G u_a-\tau_c)\right\|_2^2
 是控制效能矩阵，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>W</mi><annotation encoding="application/x-tex">W</annotation></semantics></math>
 是权重矩阵。</p>
 <p>这一层的重点不是算法形式，而是约束传播：如果执行机构分配让俯仰通道失去余度，三维姿态即使局部稳定，也可能失去任务可行性。</p>
-<h2 id="健康检查和仿真记录">22.11 健康检查和仿真记录</h2>
+<h2 id="健康检查和仿真记录">11 健康检查和仿真记录</h2>
 <p>六自由度仿真不能只看轨迹图，还要记录健康指标。至少应包括：</p>
 <ul>
 <li>四元数归一化误差；</li>
@@ -462,9 +476,9 @@ u_a^\star = \arg\min_{u_a}\left\|W(G u_a-\tau_c)\right\|_2^2
 <li>数值积分是否出现步长异常。</li>
 </ul>
 <p>如果这些量不记录，六自由度传播就只能算“跑过一遍”，不能算“验证过一遍”。</p>
-<h2 id="本章小结">22.12 本章小结</h2>
+<h2 id="本章小结">12 本章小结</h2>
 <p>六自由度刚体模型把三维路径、姿态、气动、推力和控制分配统一到了一个闭环对象里。它是纵向和横侧向模型的上位整合层，也是后续柔性、执行机构和配平线化分析的基础。对于高超声速飞行器控制，这一层的意义在于把“能飞”推进到“能在三维里稳定地飞并可被验证”。</p>
-<h2 id="练习">22.13 练习</h2>
+<h2 id="练习">13 练习</h2>
 <ol type="1">
 <li>写出六自由度刚体模型的状态向量。</li>
 <li>解释四元数表示和欧拉角表示的差异。</li>
@@ -475,7 +489,6 @@ u_a^\star = \arg\min_{u_a}\left\|W(G u_a-\tau_c)\right\|_2^2
 </ol>
 
       </article>
-      
       <nav class="book-bottom-nav" aria-label="章节导航">
         <a href="./21-lateral-directional-dynamics.html">上一章：第21章 横侧向动力学模型</a>
         <a href="./index.html">卷首页</a>
@@ -486,3 +499,4 @@ u_a^\star = \arg\min_{u_a}\left\|W(G u_a-\tau_c)\right\|_2^2
   </div>
 </body>
 </html>
+

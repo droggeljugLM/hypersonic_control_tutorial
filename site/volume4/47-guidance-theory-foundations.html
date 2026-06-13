@@ -89,7 +89,13 @@
       font-weight: 800;
     }
     .sidebar-title { font-size: 0.94rem; line-height: 1.35; }
-    .book-main { min-width: 0; padding: 1.25rem 1.45rem 1.8rem; }
+    .book-main {
+      min-width: 0;
+      min-height: 100vh;
+      padding: 1.25rem 1.45rem 1.8rem;
+      display: flex;
+      flex-direction: column;
+    }
     .book-page-header {
       padding: 0.85rem 0 1rem;
       margin-bottom: 1rem;
@@ -104,7 +110,12 @@
       padding: 0;
     }
     .book-page-header p { margin: 0.45rem 0 0; color: var(--muted); max-width: 62rem; }
-    .book-article { max-width: 900px; margin: 0; padding: 0 0 1.2rem; }
+    .book-article {
+      max-width: 900px;
+      margin: 0;
+      padding: 0 0 1.2rem;
+      flex: 1 0 auto;
+    }
     .book-article h1, .book-article h2, .book-article h3, .book-article h4, .book-article h5, .book-article h6 {
       line-height: 1.28;
       margin-top: 1.45em;
@@ -117,27 +128,30 @@
     .book-article h3 { font-size: 1.12rem; }
     .book-article p, .book-article li, .book-article dd, .book-article td, .book-article th { text-align: justify; text-justify: inter-ideograph; }
     .book-article p { margin: 0.85rem 0; }
-    .book-article code, .book-article pre { font-family: "Cascadia Mono", "Source Code Pro", Consolas, monospace; font-size: 0.94em; }
+    .book-article code, .book-article pre { font-family: inherit; font-size: 0.98em; letter-spacing: 0; }
     .book-article code {
-      padding: 0.02rem 0.24rem;
-      background: color-mix(in srgb, var(--accent-soft) 34%, #ffffff 66%);
+      padding: 0.04rem 0.28rem;
+      background: color-mix(in srgb, var(--accent-soft) 24%, #ffffff 76%);
       border: 0;
-      border-bottom: 1px solid color-mix(in srgb, var(--accent-soft) 74%, #d1d5db 26%);
+      border-bottom: 1px solid color-mix(in srgb, var(--accent-soft) 52%, #d1d5db 48%);
       border-radius: 4px;
-      color: #253244;
+      color: #2b3440;
       box-decoration-break: clone;
       -webkit-box-decoration-break: clone;
+      font-family: inherit;
+      font-variant-ligatures: none;
     }
     .book-article pre {
-      padding: 1rem 1.1rem;
+      padding: 0.95rem 1.05rem;
       overflow: auto;
-      background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,253,248,0.98));
-      border: 1px solid color-mix(in srgb, var(--accent-soft) 54%, #d1d5db 46%);
-      border-left: 5px solid var(--accent);
+      background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,253,248,0.96));
+      border: 1px solid color-mix(in srgb, var(--accent-soft) 44%, #d1d5db 56%);
+      border-left: 4px solid var(--accent);
       border-radius: 14px;
       box-shadow: 0 8px 22px rgba(31, 41, 55, 0.05);
+      white-space: pre-wrap;
     }
-    .book-article pre code { padding: 0; border: 0; background: transparent; color: inherit; }
+    .book-article pre code { padding: 0; border: 0; background: transparent; color: inherit; font-family: inherit; }
     .book-article table {
       border-collapse: collapse;
       width: 100%;
@@ -296,10 +310,10 @@
         <h1 id="volume4--47-guidance-theory-foundations">第47章 制导理论基础</h1>
       </header>
       <article class="book-article">
-        <h2 id="问题背景">47.1 问题背景</h2>
+        <h2 id="问题背景">1 问题背景</h2>
 <p>制导回答“飞行器应如何改变轨迹以到达目标或满足任务约束”，控制回答“飞行器如何稳定、准确、受限地实现制导命令”。在高超声速任务中，制导不能只看命中几何，还必须把动压、热流、过载、终端角、飞行走廊和控制可实现性一起考虑。</p>
 <p>本章先把制导问题抽象成可分析对象，再介绍比例导引、扩展比例导引、滑模制导和预测制导的基本写法；随后讨论三维制导、终端约束、再入制导、能量与路径走廊的耦合，以及制导命令如何转成控制层可执行参考。最后给出制导证据等级和与第48章的衔接方式。</p>
-<h2 id="制导问题抽象">47.2 制导问题抽象</h2>
+<h2 id="制导问题抽象">2 制导问题抽象</h2>
 <p>设飞行器位置和速度分别为</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>r</mi><mo>∈</mo><msup><mi>ℝ</mi><mn>3</mn></msup><mo>,</mo><mspace width="2.0em"></mspace><mi>v</mi><mo>∈</mo><msup><mi>ℝ</mi><mn>3</mn></msup></mrow><annotation encoding="application/x-tex">
 r \in \mathbb{R}^3,\qquad v \in \mathbb{R}^3
@@ -317,7 +331,7 @@ r \in \mathbb{R}^3,\qquad v \in \mathbb{R}^3
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>r</mi><annotation encoding="application/x-tex">r</annotation></semantics></math>
 接近目标点，还包括让速度方向、终端角度、路径约束和控制输入都在可行集合内。因此，制导问题本质上是“轨迹目标
 + 安全约束 + 可实现性”的联合问题。</p>
-<h2 id="比例导引">47.3 比例导引</h2>
+<h2 id="比例导引">3 比例导引</h2>
 <p>比例导引，Proportional
 Navigation，PN，是最经典的制导基线之一。对于二维平面拦截问题，可写为</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>a</mi><mi>c</mi></msub><mo>=</mo><mi>N</mi><msub><mi>V</mi><mi>c</mi></msub><mover><mi>λ</mi><mo accent="true">̇</mo></mover></mrow><annotation encoding="application/x-tex">
@@ -330,7 +344,7 @@ a_c=N V_c \dot{\lambda}
 是视线角速率。</p>
 <p>PN
 的直观含义是：视线转得越快，飞行器就越需要加大横向机动。它结构简单、实现方便，但默认目标和几何相对简单，难以直接处理热流、动压、过载和终端角约束。</p>
-<h2 id="扩展比例导引">47.4 扩展比例导引</h2>
+<h2 id="扩展比例导引">4 扩展比例导引</h2>
 <p>若任务包含目标机动或终端角要求，可在 PN 上增加补偿项，例如</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>a</mi><mi>c</mi></msub><mo>=</mo><mi>N</mi><msub><mi>V</mi><mi>c</mi></msub><mover><mi>λ</mi><mo accent="true">̇</mo></mover><mo>+</mo><msub><mi>a</mi><mrow><mi>f</mi><mi>f</mi></mrow></msub><mo>+</mo><msub><mi>a</mi><mrow><mi>b</mi><mi>i</mi><mi>a</mi><mi>s</mi></mrow></msub></mrow><annotation encoding="application/x-tex">
 a_c=N V_c \dot{\lambda}+a_{ff}+a_{bias}
@@ -339,7 +353,7 @@ a_c=N V_c \dot{\lambda}+a_{ff}+a_{bias}
 是前馈补偿项，可用于抵消目标机动或模型预测影响；<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>a</mi><mrow><mi>b</mi><mi>i</mi><mi>a</mi><mi>s</mi></mrow></msub><annotation encoding="application/x-tex">a_{bias}</annotation></semantics></math>
 是偏置项，可用于塑造终端角或终端几何。</p>
 <p>对高超声速任务，扩展导引还应检查命令幅值和变化率，否则制导层可能把控制层推入饱和。若制导命令超出可实现范围，就应在制导层先做可行化，而不是让内环被动兜底。</p>
-<h2 id="滑模制导">47.5 滑模制导</h2>
+<h2 id="滑模制导">5 滑模制导</h2>
 <p>滑模制导的基本形式可写为</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>a</mi><mi>c</mi></msub><mo>=</mo><msub><mi>a</mi><mrow><mi>e</mi><mi>q</mi></mrow></msub><mo>−</mo><mi>k</mi><mspace width="0.167em"></mspace><mrow><mi mathvariant="normal">s</mi><mi mathvariant="normal">g</mi><mi mathvariant="normal">n</mi></mrow><mo stretchy="false" form="prefix">(</mo><mi>s</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
 a_c=a_{eq}-k\,\mathrm{sgn}(s)
@@ -350,7 +364,7 @@ a_c=a_{eq}-k\,\mathrm{sgn}(s)
 是滑模面函数，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">s</mi><mi mathvariant="normal">g</mi><mi mathvariant="normal">n</mi></mrow><mo stretchy="false" form="prefix">(</mo><mi>⋅</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\mathrm{sgn}(\cdot)</annotation></semantics></math>
 是符号函数。</p>
 <p>滑模制导对不确定性和目标机动通常较鲁棒，但增益过大容易引入抖振，并把控制层推向舵面饱和、舵速受限或热/动压风险。因此，鲁棒项不能只看“压得住误差”，还要看是否压坏了可实现性。</p>
-<h2 id="预测制导">47.6 预测制导</h2>
+<h2 id="预测制导">6 预测制导</h2>
 <p>预测制导通过预测未来轨迹并修正命令来处理约束，简化写法可表示为</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>a</mi><mi>c</mi><mo>⋆</mo></msubsup><mo>=</mo><mi>arg</mi><mo>&#8289;</mo><munder><mi>min</mi><mo>&#8289;</mo><msub><mi>a</mi><mi>c</mi></msub></munder><mi>J</mi></mrow><annotation encoding="application/x-tex">
 a_c^\star=\arg\min_{a_c} J
@@ -361,7 +375,7 @@ a_c^\star=\arg\min_{a_c} J
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>J</mi><annotation encoding="application/x-tex">J</annotation></semantics></math>，预测制导就能自然兼顾目标和约束。</p>
 <p>预测制导与 MPC
 很接近，但通常在较低维的制导命令空间里求解，例如航迹角、倾侧角、攻角或能量参考，而不是直接优化所有舵面输入。</p>
-<h2 id="三维制导">47.7 三维制导</h2>
+<h2 id="三维制导">7 三维制导</h2>
 <p>三维制导需要同时处理纵向和横侧向几何。常见命令可写为</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>γ</mi><mi>c</mi></msub><mo>,</mo><mspace width="2.0em"></mspace><msub><mi>χ</mi><mi>c</mi></msub><mo>,</mo><mspace width="2.0em"></mspace><msub><mi>σ</mi><mi>c</mi></msub></mrow><annotation encoding="application/x-tex">
 \gamma_c,\qquad \chi_c,\qquad \sigma_c
@@ -371,7 +385,7 @@ a_c^\star=\arg\min_{a_c} J
 是航向角命令，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>σ</mi><mi>c</mi></msub><annotation encoding="application/x-tex">\sigma_c</annotation></semantics></math>
 是倾侧角或升力方向命令。</p>
 <p>三维制导必须同时检查终端三维距离、终端速度方向、横向偏差、倾侧角限制、控制分配余度和路径约束。二维平面达标，并不能证明三维任务可行。</p>
-<h2 id="终端角与终端时间约束">47.8 终端角与终端时间约束</h2>
+<h2 id="终端角与终端时间约束">8 终端角与终端时间约束</h2>
 <p>终端角和终端时间约束可以写成</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>γ</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>t</mi><mi>f</mi></msub><mo stretchy="false" form="postfix">)</mo><mo>=</mo><msub><mi>γ</mi><mi>f</mi></msub><mo>,</mo><mspace width="2.0em"></mspace><msub><mi>t</mi><mi>f</mi></msub><mo>=</mo><msub><mi>T</mi><mi>f</mi></msub></mrow><annotation encoding="application/x-tex">
 \gamma(t_f)=\gamma_f,\qquad t_f=T_f
@@ -382,7 +396,7 @@ a_c^\star=\arg\min_{a_c} J
 是终端时刻，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>T</mi><mi>f</mi></msub><annotation encoding="application/x-tex">T_f</annotation></semantics></math>
 是期望终端时间。</p>
 <p>这类约束会改变制导律结构。为了满足终端角，飞行器常常需要提前塑造速度方向；为了满足终端时间，常常需要调整能量管理和速度剖面。若临近终端才强行修正，通常会触发过载、攻角或舵面饱和。</p>
-<h2 id="再入制导">47.9 再入制导</h2>
+<h2 id="再入制导">9 再入制导</h2>
 <p>再入制导强调热流、过载、动压和走廊约束。一个常用热流近似可写为</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>Q</mi><mo accent="true">̇</mo></mover><mo>=</mo><msub><mi>k</mi><mi>Q</mi></msub><msup><mi>ρ</mi><mrow><mn>1</mn><mi>/</mi><mn>2</mn></mrow></msup><msup><mi>V</mi><mn>3</mn></msup></mrow><annotation encoding="application/x-tex">
 \dot Q = k_Q \rho^{1/2} V^3
@@ -393,7 +407,7 @@ a_c^\star=\arg\min_{a_c} J
 是大气密度，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>V</mi><annotation encoding="application/x-tex">V</annotation></semantics></math>
 是速度。</p>
 <p>再入任务的关键不是单纯追踪终端点，而是在热流和动压约束下维持可持续下滑。若能量过高，需要增加阻力或延长路径；若能量不足，需要减少机动、降低阻力或放宽终端时间。</p>
-<h2 id="能量与路径走廊的耦合">47.10 能量与路径走廊的耦合</h2>
+<h2 id="能量与路径走廊的耦合">10 能量与路径走廊的耦合</h2>
 <p>高超声速任务常把能量走廊和路径走廊同时写进制导问题。可将能量裕度表示为</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>e</mi><mi>E</mi></msub><mo>=</mo><mi>E</mi><mo>−</mo><msub><mi>E</mi><mrow><mi mathvariant="normal">r</mi><mi mathvariant="normal">e</mi><mi mathvariant="normal">f</mi></mrow></msub></mrow><annotation encoding="application/x-tex">
 e_E=E-E_{\mathrm{ref}}
@@ -411,7 +425,7 @@ q=\frac{1}{2}\rho V^2
 是大气密度，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>V</mi><annotation encoding="application/x-tex">V</annotation></semantics></math>
 是速度。</p>
 <p>这说明“能量过高就加大阻力”“能量不足就减少机动”只是口号，不是完整结论。因为爬升、增攻角和增倾侧都会同时影响热流、过载、控制效能和路径安全。</p>
-<h2 id="制导命令到控制参考">47.11 制导命令到控制参考</h2>
+<h2 id="制导命令到控制参考">11 制导命令到控制参考</h2>
 <p>制导输出不能直接等同于舵偏。一个更实际的链路是</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>r</mi><mi>g</mi></msub><mo>→</mo><msub><mi>r</mi><mi>f</mi></msub><mo>→</mo><msub><mi>ν</mi><mi>c</mi></msub><mo>→</mo><msub><mi>u</mi><mi>a</mi></msub></mrow><annotation encoding="application/x-tex">
 r_g \rightarrow r_f \rightarrow \nu_c \rightarrow u_a
@@ -430,7 +444,7 @@ r_f=\Pi(r_g,x)
 是当前状态。若
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi mathvariant="normal">Π</mi><annotation encoding="application/x-tex">\Pi</annotation></semantics></math>
 后仍不可行，就应继续降级任务，而不是把不可行命令直接压给控制层。</p>
-<h2 id="命令限速与可实现性">47.12 命令限速与可实现性</h2>
+<h2 id="命令限速与可实现性">12 命令限速与可实现性</h2>
 <p>命令限速不是为了让曲线更平滑，而是为了让外层制导关于“控制层能够跟上”的假设仍然成立。可用一阶限速模型表示为</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>τ</mi><mi>r</mi></msub><msub><mover><mi>r</mi><mo accent="true">̇</mo></mover><mi>f</mi></msub><mo>+</mo><msub><mi>r</mi><mi>f</mi></msub><mo>=</mo><msub><mi>r</mi><mi>g</mi></msub></mrow><annotation encoding="application/x-tex">
 \tau_r \dot r_f + r_f = r_g
@@ -443,7 +457,7 @@ e_{gr}=r_g-r_f
 </annotation></semantics></math></p>
 <p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>e</mi><mrow><mi>g</mi><mi>r</mi></mrow></msub><annotation encoding="application/x-tex">e_{gr}</annotation></semantics></math>
 是原始命令与可行参考之间的差值。这个量比单看终端误差更能反映制导接口质量。</p>
-<h2 id="制导证据等级与对第48章的衔接">47.13
+<h2 id="制导证据等级与对第48章的衔接">13
 制导证据等级与对第48章的衔接</h2>
 <p>为了避免把几何命中误判为闭环能力，本书可把制导证据粗分为五级。</p>
 <ul>
@@ -454,10 +468,10 @@ e_{gr}=r_g-r_f
 <li><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>G</mi><mn>4</mn></mrow><annotation encoding="application/x-tex">G4</annotation></semantics></math>：制导误差和控制误差进入同一闭环问题，并有六自由度或高保真验证支撑。</li>
 </ul>
 <p>第47章和第48章的分工可以这样理解：本章负责把制导问题定义清楚，第48章负责把制导误差与控制误差合成一个一体化闭环。这样，读者才能看清“制导命令是什么”和“控制系统如何实现它”之间的边界。</p>
-<h2 id="本章适用范围">47.14 本章适用范围</h2>
+<h2 id="本章适用范围">14 本章适用范围</h2>
 <p>本章适合支撑高超声速制导问题的对象定义、路径约束定义、终端指标定义和命令接口定义。它也可以用来解释为什么终端命中并不等于路径安全、控制可实现性和工程可行性都已经满足。</p>
 <p>但本章还不能直接支撑高保真六自由度制导闭环、真实执行机构耦合或大样本不确定性统计结论。那些结论需要第48章及其后的任务专题继续补齐。</p>
-<h2 id="常见错误">47.15 常见错误</h2>
+<h2 id="常见错误">15 常见错误</h2>
 <ol type="1">
 <li>只讲比例导引，不讨论高超声速路径约束。</li>
 <li>只报告终端距离，不报告动压、热流、过载和命令实现误差。</li>
@@ -467,7 +481,7 @@ e_{gr}=r_g-r_f
 <li>不定义可行参考，直接把不可行命令压给控制层。</li>
 <li>二维制导达标后直接声称三维制导有效。</li>
 </ol>
-<h2 id="练习">47.16 练习</h2>
+<h2 id="练习">16 练习</h2>
 <ol type="1">
 <li>推导比例导引中
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>a</mi><mi>c</mi></msub><mo>=</mo><mi>N</mi><msub><mi>V</mi><mi>c</mi></msub><mover><mi>λ</mi><mo accent="true">̇</mo></mover></mrow><annotation encoding="application/x-tex">a_c=N V_c \dot{\lambda}</annotation></semantics></math>
@@ -484,7 +498,6 @@ e_{gr}=r_g-r_f
 </ol>
 
       </article>
-      
       <nav class="book-bottom-nav" aria-label="章节导航">
         <a href="./46-fault-diagnosis-fault-tolerant-control.html">上一章：第46章 故障诊断与容错控制</a>
         <a href="./index.html">卷首页</a>

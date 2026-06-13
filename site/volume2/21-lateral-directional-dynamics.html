@@ -89,7 +89,13 @@
       font-weight: 800;
     }
     .sidebar-title { font-size: 0.94rem; line-height: 1.35; }
-    .book-main { min-width: 0; padding: 1.25rem 1.45rem 1.8rem; }
+    .book-main {
+      min-width: 0;
+      min-height: 100vh;
+      padding: 1.25rem 1.45rem 1.8rem;
+      display: flex;
+      flex-direction: column;
+    }
     .book-page-header {
       padding: 0.85rem 0 1rem;
       margin-bottom: 1rem;
@@ -104,7 +110,12 @@
       padding: 0;
     }
     .book-page-header p { margin: 0.45rem 0 0; color: var(--muted); max-width: 62rem; }
-    .book-article { max-width: 900px; margin: 0; padding: 0 0 1.2rem; }
+    .book-article {
+      max-width: 900px;
+      margin: 0;
+      padding: 0 0 1.2rem;
+      flex: 1 0 auto;
+    }
     .book-article h1, .book-article h2, .book-article h3, .book-article h4, .book-article h5, .book-article h6 {
       line-height: 1.28;
       margin-top: 1.45em;
@@ -117,27 +128,30 @@
     .book-article h3 { font-size: 1.12rem; }
     .book-article p, .book-article li, .book-article dd, .book-article td, .book-article th { text-align: justify; text-justify: inter-ideograph; }
     .book-article p { margin: 0.85rem 0; }
-    .book-article code, .book-article pre { font-family: "Cascadia Mono", "Source Code Pro", Consolas, monospace; font-size: 0.94em; }
+    .book-article code, .book-article pre { font-family: inherit; font-size: 0.98em; letter-spacing: 0; }
     .book-article code {
-      padding: 0.02rem 0.24rem;
-      background: color-mix(in srgb, var(--accent-soft) 34%, #ffffff 66%);
+      padding: 0.04rem 0.28rem;
+      background: color-mix(in srgb, var(--accent-soft) 24%, #ffffff 76%);
       border: 0;
-      border-bottom: 1px solid color-mix(in srgb, var(--accent-soft) 74%, #d1d5db 26%);
+      border-bottom: 1px solid color-mix(in srgb, var(--accent-soft) 52%, #d1d5db 48%);
       border-radius: 4px;
-      color: #253244;
+      color: #2b3440;
       box-decoration-break: clone;
       -webkit-box-decoration-break: clone;
+      font-family: inherit;
+      font-variant-ligatures: none;
     }
     .book-article pre {
-      padding: 1rem 1.1rem;
+      padding: 0.95rem 1.05rem;
       overflow: auto;
-      background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,253,248,0.98));
-      border: 1px solid color-mix(in srgb, var(--accent-soft) 54%, #d1d5db 46%);
-      border-left: 5px solid var(--accent);
+      background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,253,248,0.96));
+      border: 1px solid color-mix(in srgb, var(--accent-soft) 44%, #d1d5db 56%);
+      border-left: 4px solid var(--accent);
       border-radius: 14px;
       box-shadow: 0 8px 22px rgba(31, 41, 55, 0.05);
+      white-space: pre-wrap;
     }
-    .book-article pre code { padding: 0; border: 0; background: transparent; color: inherit; }
+    .book-article pre code { padding: 0; border: 0; background: transparent; color: inherit; font-family: inherit; }
     .book-article table {
       border-collapse: collapse;
       width: 100%;
@@ -296,10 +310,10 @@
         <h1 id="volume2--21-lateral-directional-dynamics">第21章 横侧向动力学模型</h1>
       </header>
       <article class="book-article">
-        <h2 id="问题背景">21.1 问题背景</h2>
+        <h2 id="问题背景">1 问题背景</h2>
 <p>横侧向动力学模型描述滚转、偏航、侧滑和倾侧角如何耦合。它是从纵向模型走向三维控制的关键一步，因为真实飞行器在三维空间中不仅要“飞得上去”，还要“转得过去、稳得住、分得开”。</p>
 <p>这一章的核心问题不是把所有横侧向细节都写满，而是说明：侧滑为什么重要，滚转和偏航如何相互影响，多执行机构如何产生三轴力矩，以及为什么三维制导和控制分配不能只用纵向模型替代。</p>
-<h2 id="模型层级中的位置">21.2 模型层级中的位置</h2>
+<h2 id="模型层级中的位置">2 模型层级中的位置</h2>
 <p>第二卷的模型链路可以概括为：</p>
 <ul>
 <li>质点路径模型；</li>
@@ -309,7 +323,7 @@
 <li>刚柔耦合与气动推进耦合模型。</li>
 </ul>
 <p>横侧向模型承接纵向模型中的速度、动压和气动效能，同时向六自由度模型提供滚转、偏航、侧滑和控制分配的局部理解。它适合训练滚转姿态稳定、侧滑抑制、偏航阻尼、倾侧角跟踪和三维机动的基础分析。</p>
-<h2 id="状态和输入">21.3 状态和输入</h2>
+<h2 id="状态和输入">3 状态和输入</h2>
 <p>一个常见的横侧向状态向量写为</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>x</mi><mi>ℓ</mi></msub><mo>=</mo><msup><mrow><mo stretchy="true" form="prefix">[</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><mi>β</mi></mtd><mtd columnalign="center" style="text-align: center"><mi>ϕ</mi></mtd><mtd columnalign="center" style="text-align: center"><mi>ψ</mi></mtd><mtd columnalign="center" style="text-align: center"><mi>p</mi></mtd><mtd columnalign="center" style="text-align: center"><mi>r</mi></mtd></mtr></mtable><mo stretchy="true" form="postfix">]</mo></mrow><mi>⊤</mi></msup></mrow><annotation encoding="application/x-tex">
 x_\ell=\begin{bmatrix}\beta &amp; \phi &amp; \psi &amp; p &amp; r\end{bmatrix}^\top
@@ -336,7 +350,7 @@ u_\ell=\begin{bmatrix}\delta_a &amp; \delta_r &amp; \delta_{\mathrm{diff}} &amp;
 和
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>u</mi><mrow><mi mathvariant="normal">r</mi><mi mathvariant="normal">c</mi><mi mathvariant="normal">s</mi></mrow></msub><annotation encoding="application/x-tex">u_{\mathrm{rcs}}</annotation></semantics></math>
 分别表示副翼、方向舵、差动升降副翼或体襟翼差动，以及反作用控制输入。这个输入向量把不同横向执行机构统一写成同一组控制变量。</p>
-<h2 id="侧滑角的控制意义">21.4 侧滑角的控制意义</h2>
+<h2 id="侧滑角的控制意义">4 侧滑角的控制意义</h2>
 <p>侧滑角不是可以随意忽略的小量。它会影响侧向气动力、偏航和滚转力矩、进气道工作状态、非对称热载荷以及控制分配的可行性。</p>
 <p>在机体系速度分量已知时，侧滑角常按下式定义</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>β</mi><mo>=</mo><mi>arcsin</mi><mo>&#8289;</mo><mspace width="-0.167em"></mspace><mrow><mo stretchy="true" form="prefix">(</mo><mfrac><mi>v</mi><msqrt><mrow><msup><mi>u</mi><mn>2</mn></msup><mo>+</mo><msup><mi>v</mi><mn>2</mn></msup><mo>+</mo><msup><mi>w</mi><mn>2</mn></msup></mrow></msqrt></mfrac><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">
@@ -348,7 +362,7 @@ u_\ell=\begin{bmatrix}\delta_a &amp; \delta_r &amp; \delta_{\mathrm{diff}} &amp;
 分别是机体系前向、侧向和法向速度分量。
 这个定义把机体系速度分量直接映射成控制分析最常用的气动角。</p>
 <p>当飞行器出现侧滑时，气动导数和控制效能都会改变。对高超声速飞行器而言，侧滑还可能影响进气道入口条件，因此它不仅是姿态问题，也是推进和任务问题。</p>
-<h2 id="横侧向动力学结构">21.5 横侧向动力学结构</h2>
+<h2 id="横侧向动力学结构">5 横侧向动力学结构</h2>
 <p>教学级横侧向线化模型通常可写为</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mover><mi>x</mi><mo accent="true">̇</mo></mover><mi>ℓ</mi></msub><mo>=</mo><msub><mi>A</mi><mi>ℓ</mi></msub><msub><mi>x</mi><mi>ℓ</mi></msub><mo>+</mo><msub><mi>B</mi><mi>ℓ</mi></msub><msub><mi>u</mi><mi>ℓ</mi></msub></mrow><annotation encoding="application/x-tex">
 \dot x_\ell=A_\ell x_\ell+B_\ell u_\ell
@@ -368,7 +382,7 @@ u_\ell=\begin{bmatrix}\delta_a &amp; \delta_r &amp; \delta_{\mathrm{diff}} &amp;
 和
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>f</mi><mi>r</mi></msub><annotation encoding="application/x-tex">f_r</annotation></semantics></math>
 表示与飞行条件相关的动力学函数，分别描述侧滑、滚转和偏航的动态演化。这个分量形式说明横侧向三个主模态会互相耦合，而不是彼此独立。</p>
-<h2 id="典型导数和模态">21.6 典型导数和模态</h2>
+<h2 id="典型导数和模态">6 典型导数和模态</h2>
 <p>横侧向线化模型中常见的稳定导数和控制导数包括</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtable><mtr><mtd columnalign="right" style="text-align: right; padding-right: 0"><mover><mi>β</mi><mo accent="true">̇</mo></mover></mtd><mtd columnalign="left" style="text-align: left; padding-left: 0"><mo>=</mo><msub><mi>Y</mi><mi>β</mi></msub><mi>β</mi><mo>+</mo><msub><mi>Y</mi><mi>p</mi></msub><mi>p</mi><mo>+</mo><msub><mi>Y</mi><mi>r</mi></msub><mi>r</mi><mo>+</mo><msub><mi>Y</mi><msub><mi>δ</mi><mi>a</mi></msub></msub><msub><mi>δ</mi><mi>a</mi></msub><mo>+</mo><msub><mi>Y</mi><msub><mi>δ</mi><mi>r</mi></msub></msub><msub><mi>δ</mi><mi>r</mi></msub><mo>,</mo></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right; padding-right: 0"><mover><mi>p</mi><mo accent="true">̇</mo></mover></mtd><mtd columnalign="left" style="text-align: left; padding-left: 0"><mo>=</mo><msub><mi>L</mi><mi>β</mi></msub><mi>β</mi><mo>+</mo><msub><mi>L</mi><mi>p</mi></msub><mi>p</mi><mo>+</mo><msub><mi>L</mi><mi>r</mi></msub><mi>r</mi><mo>+</mo><msub><mi>L</mi><msub><mi>δ</mi><mi>a</mi></msub></msub><msub><mi>δ</mi><mi>a</mi></msub><mo>+</mo><msub><mi>L</mi><msub><mi>δ</mi><mi>r</mi></msub></msub><msub><mi>δ</mi><mi>r</mi></msub><mo>,</mo></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right; padding-right: 0"><mover><mi>r</mi><mo accent="true">̇</mo></mover></mtd><mtd columnalign="left" style="text-align: left; padding-left: 0"><mo>=</mo><msub><mi>N</mi><mi>β</mi></msub><mi>β</mi><mo>+</mo><msub><mi>N</mi><mi>p</mi></msub><mi>p</mi><mo>+</mo><msub><mi>N</mi><mi>r</mi></msub><mi>r</mi><mo>+</mo><msub><mi>N</mi><msub><mi>δ</mi><mi>a</mi></msub></msub><msub><mi>δ</mi><mi>a</mi></msub><mo>+</mo><msub><mi>N</mi><msub><mi>δ</mi><mi>r</mi></msub></msub><msub><mi>δ</mi><mi>r</mi></msub><mi>.</mi></mtd></mtr></mtable><annotation encoding="application/x-tex">
 \begin{aligned}
@@ -395,7 +409,7 @@ N_{\delta_a} &amp; N_{\delta_r}
 </annotation></semantics></math></p>
 <p>这里的矩阵把副翼和方向舵对侧力、滚转力矩和偏航力矩的控制效能集中写出，对应执行机构到三轴横侧向力矩的局部灵敏度。</p>
 <p>横侧向模态分析通常重点关注荷兰滚、螺旋模态和滚转模态。若某个模态阻尼不足，或者控制导数在某些飞行点变号，就可能导致侧滑发散或分配失败。</p>
-<h2 id="倾侧角和滚转控制">21.7 倾侧角和滚转控制</h2>
+<h2 id="倾侧角和滚转控制">7 倾侧角和滚转控制</h2>
 <p>在三维任务中，倾侧角常作为横向机动的中间命令。一个简化关系可以写为</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>σ</mi><mi>c</mi></msub><mo>≈</mo><mo>∫</mo><mi>p</mi><mspace width="0.167em"></mspace><mi>d</mi><mi>t</mi></mrow><annotation encoding="application/x-tex">
 \sigma_c \approx \int p\,dt
@@ -412,7 +426,7 @@ N_{\delta_a} &amp; N_{\delta_r}
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mover><mi>σ</mi><mo accent="true">̇</mo></mover><annotation encoding="application/x-tex">\dot \sigma</annotation></semantics></math>
 是倾侧角变化率。</p>
 <p>因此，滚转控制不仅要跟踪命令，还要检查滚转过程中是否引入过大的侧滑、是否造成高度损失、是否触发舵面速率限制，以及是否挤占了纵向控制余度。</p>
-<h2 id="偏航阻尼和侧滑抑制">21.8 偏航阻尼和侧滑抑制</h2>
+<h2 id="偏航阻尼和侧滑抑制">8 偏航阻尼和侧滑抑制</h2>
 <p>一个教学级偏航阻尼律可以写成</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>δ</mi><mrow><mi>r</mi><mo>,</mo><mi>c</mi></mrow></msub><mo>=</mo><mi>−</mi><msub><mi>k</mi><mi>β</mi></msub><mi>β</mi><mo>−</mo><msub><mi>k</mi><mi>r</mi></msub><mi>r</mi></mrow><annotation encoding="application/x-tex">
 \delta_{r,c}=-k_\beta\beta-k_r r
@@ -423,7 +437,7 @@ N_{\delta_a} &amp; N_{\delta_r}
 是侧滑反馈增益，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>k</mi><mi>r</mi></msub><annotation encoding="application/x-tex">k_r</annotation></semantics></math>
 是偏航角速度反馈增益。这个控制律通过侧滑和偏航角速度反馈共同抑制荷兰滚，并提供偏航阻尼。</p>
 <p>这类控制律的目标不是消灭所有横侧向耦合，而是在允许的输入范围内压制侧滑和荷兰滚。对于高超声速飞行器，偏航通道经常还要和进气道、热载荷和控制分配共同考虑。</p>
-<h2 id="控制分配">21.9 控制分配</h2>
+<h2 id="控制分配">9 控制分配</h2>
 <p>横侧向控制往往不是“一个输入对应一个力矩”，而是多个执行机构共同产生目标力矩。控制分配可写成</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>τ</mi><mi>c</mi></msub><mo>=</mo><mi>G</mi><msub><mi>u</mi><mi>a</mi></msub></mrow><annotation encoding="application/x-tex">
 \tau_c=G u_a
@@ -442,7 +456,7 @@ u_a^\star=\arg\min_{u_a}\left\|W(G u_a-\tau_c)\right\|_2^2
 是权重矩阵，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msubsup><mi>u</mi><mi>a</mi><mo>⋆</mo></msubsup><annotation encoding="application/x-tex">u_a^\star</annotation></semantics></math>
 是最优分配结果。这个优化在约束下尽量逼近期望的横侧向力矩。</p>
 <p>控制分配的关键是把“可产生的力矩”与“必须保留的通道余度”同时考虑进去。若滚转和偏航通道满足了，但俯仰通道被牺牲，纵向安全仍可能失败。</p>
-<h2 id="横侧向控制结构">21.10 横侧向控制结构</h2>
+<h2 id="横侧向控制结构">10 横侧向控制结构</h2>
 <p>常见横侧向控制结构包括：</p>
 <ul>
 <li>制导层：航向、横程或倾侧角命令；</li>
@@ -461,7 +475,7 @@ u_c=K_r(r_c-r)
 是姿态参考，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>r</mi><annotation encoding="application/x-tex">r</annotation></semantics></math>
 是实际姿态或角速度向量。这个接口把姿态误差直接映射成控制器输出，便于和分配层衔接。</p>
 <p>这个表达式只是结构说明。真正的三维飞行控制还必须把侧滑、推力通道、执行机构约束和安全边界一起纳入。</p>
-<h2 id="横侧向验证要点">21.11 横侧向验证要点</h2>
+<h2 id="横侧向验证要点">11 横侧向验证要点</h2>
 <p>横侧向模型的验证至少应包括：</p>
 <ul>
 <li>侧滑是否被抑制；</li>
@@ -474,9 +488,9 @@ u_c=K_r(r_c-r)
 <li>不同飞行点下的模态是否都能接受。</li>
 </ul>
 <p>若某个控制器在单点仿真中表现良好，但在其它飞行点出现荷兰滚放大、侧滑发散或分配失败，就不能把它称为包线内可用控制律。</p>
-<h2 id="本章小结">21.12 本章小结</h2>
+<h2 id="本章小结">12 本章小结</h2>
 <p>横侧向动力学模型把侧滑、滚转、偏航和控制分配放到了同一个分析框架中。它是从纵向控制走向三维控制的必要中间层，也是后续六自由度模型和控制分配理论的基础。对高超声速飞行器而言，三维能力不是纵向能力的简单延伸，而是一个必须单独建模和单独验证的对象。</p>
-<h2 id="练习">21.13 练习</h2>
+<h2 id="练习">13 练习</h2>
 <ol type="1">
 <li>写出横侧向模型的常见状态和输入。</li>
 <li>解释为什么侧滑角在高超声速飞行中不能忽略。</li>
@@ -487,7 +501,6 @@ u_c=K_r(r_c-r)
 </ol>
 
       </article>
-      
       <nav class="book-bottom-nav" aria-label="章节导航">
         <a href="./20-longitudinal-rigid-body-dynamics.html">上一章：第20章 纵向刚体动力学模型</a>
         <a href="./index.html">卷首页</a>

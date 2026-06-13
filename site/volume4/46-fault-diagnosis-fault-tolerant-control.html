@@ -89,7 +89,13 @@
       font-weight: 800;
     }
     .sidebar-title { font-size: 0.94rem; line-height: 1.35; }
-    .book-main { min-width: 0; padding: 1.25rem 1.45rem 1.8rem; }
+    .book-main {
+      min-width: 0;
+      min-height: 100vh;
+      padding: 1.25rem 1.45rem 1.8rem;
+      display: flex;
+      flex-direction: column;
+    }
     .book-page-header {
       padding: 0.85rem 0 1rem;
       margin-bottom: 1rem;
@@ -104,7 +110,12 @@
       padding: 0;
     }
     .book-page-header p { margin: 0.45rem 0 0; color: var(--muted); max-width: 62rem; }
-    .book-article { max-width: 900px; margin: 0; padding: 0 0 1.2rem; }
+    .book-article {
+      max-width: 900px;
+      margin: 0;
+      padding: 0 0 1.2rem;
+      flex: 1 0 auto;
+    }
     .book-article h1, .book-article h2, .book-article h3, .book-article h4, .book-article h5, .book-article h6 {
       line-height: 1.28;
       margin-top: 1.45em;
@@ -117,27 +128,30 @@
     .book-article h3 { font-size: 1.12rem; }
     .book-article p, .book-article li, .book-article dd, .book-article td, .book-article th { text-align: justify; text-justify: inter-ideograph; }
     .book-article p { margin: 0.85rem 0; }
-    .book-article code, .book-article pre { font-family: "Cascadia Mono", "Source Code Pro", Consolas, monospace; font-size: 0.94em; }
+    .book-article code, .book-article pre { font-family: inherit; font-size: 0.98em; letter-spacing: 0; }
     .book-article code {
-      padding: 0.02rem 0.24rem;
-      background: color-mix(in srgb, var(--accent-soft) 34%, #ffffff 66%);
+      padding: 0.04rem 0.28rem;
+      background: color-mix(in srgb, var(--accent-soft) 24%, #ffffff 76%);
       border: 0;
-      border-bottom: 1px solid color-mix(in srgb, var(--accent-soft) 74%, #d1d5db 26%);
+      border-bottom: 1px solid color-mix(in srgb, var(--accent-soft) 52%, #d1d5db 48%);
       border-radius: 4px;
-      color: #253244;
+      color: #2b3440;
       box-decoration-break: clone;
       -webkit-box-decoration-break: clone;
+      font-family: inherit;
+      font-variant-ligatures: none;
     }
     .book-article pre {
-      padding: 1rem 1.1rem;
+      padding: 0.95rem 1.05rem;
       overflow: auto;
-      background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,253,248,0.98));
-      border: 1px solid color-mix(in srgb, var(--accent-soft) 54%, #d1d5db 46%);
-      border-left: 5px solid var(--accent);
+      background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,253,248,0.96));
+      border: 1px solid color-mix(in srgb, var(--accent-soft) 44%, #d1d5db 56%);
+      border-left: 4px solid var(--accent);
       border-radius: 14px;
       box-shadow: 0 8px 22px rgba(31, 41, 55, 0.05);
+      white-space: pre-wrap;
     }
-    .book-article pre code { padding: 0; border: 0; background: transparent; color: inherit; }
+    .book-article pre code { padding: 0; border: 0; background: transparent; color: inherit; font-family: inherit; }
     .book-article table {
       border-collapse: collapse;
       width: 100%;
@@ -296,11 +310,11 @@
         <h1 id="volume4--46-fault-diagnosis-fault-tolerant-control">第46章 故障诊断与容错控制</h1>
       </header>
       <article class="book-article">
-        <h2 id="问题背景">46.1 问题背景</h2>
+        <h2 id="问题背景">1 问题背景</h2>
 <p>高超声速飞行器工作在强热、强振动、高动态和宽包线环境中，传感器、执行机构、推进系统、气动参数和计算链路都可能出现异常。若控制器只在健康系统上验证，即使标称性能很好，也不能说明任务可靠。</p>
 <p>故障诊断与容错控制的目标，不是简单把异常压成一个扰动项，而是在故障发生后仍然判断系统还能否继续完成任务，以及应当如何降级、重构或退出。对高超声速对象来说，这一层和控制分配、参考治理、约束控制以及任务管理是连在一起的。</p>
 <p>本章先区分故障、扰动和不确定性，再说明故障建模、检测、隔离和估计的基本写法；随后讨论被动容错、主动容错、控制重构和任务降级的关系；最后给出与控制分配、制导控制一体化和实时实现的接口。</p>
-<h2 id="故障扰动和不确定性">46.2 故障、扰动和不确定性</h2>
+<h2 id="故障扰动和不确定性">2 故障、扰动和不确定性</h2>
 <p>扰动通常表示外界输入或未建模作用，可写为</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>x</mi><mo accent="true">̇</mo></mover><mo>=</mo><mi>f</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>u</mi><mo stretchy="false" form="postfix">)</mo><mo>+</mo><mi>d</mi></mrow><annotation encoding="application/x-tex">
 \dot{x}=f(x,u)+d
@@ -335,7 +349,7 @@ u_{\mathrm{act},i}(t)=u_{\mathrm{stick},i}
 <p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>u</mi><mrow><mrow><mi mathvariant="normal">s</mi><mi mathvariant="normal">t</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">c</mi><mi mathvariant="normal">k</mi></mrow><mo>,</mo><mi>i</mi></mrow></msub><annotation encoding="application/x-tex">u_{\mathrm{stick},i}</annotation></semantics></math>
 是卡滞后的固定值。</p>
 <p>不确定性则包括参数偏差、气动系数漂移、时滞、噪声和离散化误差等。它们不一定构成故障，但会削弱检测灵敏度、扩大控制误差，并影响容错重构的可行性。</p>
-<h2 id="故障建模的三类对象">46.3 故障建模的三类对象</h2>
+<h2 id="故障建模的三类对象">3 故障建模的三类对象</h2>
 <p>故障建模至少应分成三类。</p>
 <p>第一类是传感器故障，常表现为偏置、漂移、失真或丢包。偏置可写为</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>y</mi><mi>m</mi></msub><mo>=</mo><mi>y</mi><mo>+</mo><msub><mi>b</mi><mi>s</mi></msub></mrow><annotation encoding="application/x-tex">
@@ -362,7 +376,7 @@ y_m=y+b_s
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>θ</mi><annotation encoding="application/x-tex">\theta</annotation></semantics></math>
 偏离标称值，系统未必“坏了”，但闭环性能和稳定裕度会显著变化。</p>
 <p>本节的核心是：故障建模要服务于检测、隔离、估计和重构，而不是仅仅把异常写成一串符号。</p>
-<h2 id="故障检测隔离与估计">46.4 故障检测、隔离与估计</h2>
+<h2 id="故障检测隔离与估计">4 故障检测、隔离与估计</h2>
 <p>故障诊断通常分三步：检测、隔离和估计。</p>
 <p>检测回答“是否发生故障”。常见做法是构造残差</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>r</mi><mi>k</mi></msub><mo>=</mo><msub><mi>y</mi><mi>k</mi></msub><mo>−</mo><msub><mover><mi>y</mi><mo accent="true">̂</mo></mover><mi>k</mi></msub></mrow><annotation encoding="application/x-tex">
@@ -391,7 +405,7 @@ J_k=r_k^\top S^{-1} r_k
 或传感器偏差
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mover><mi>b</mi><mo accent="true">̂</mo></mover><mi>s</mi></msub><annotation encoding="application/x-tex">\hat{b}_s</annotation></semantics></math>。这些估计量一旦得到，就会直接进入后续的控制重构和控制分配。</p>
 <p>对高超声速对象来说，故障诊断不是离线附属分析，而是闭环的一部分。检测延迟、误报率和漏报率都会影响是否还能保持可行参考。</p>
-<h2 id="被动容错与主动容错">46.5 被动容错与主动容错</h2>
+<h2 id="被动容错与主动容错">5 被动容错与主动容错</h2>
 <p>被动容错通常是指控制器在设计时就考虑一定范围的异常和不确定性，使其在故障发生后无需显式重构也能维持基本稳定。它的优点是结构简单，切换少，工程实现相对直接；缺点是当故障幅度较大时，保守性会明显增加。</p>
 <p>主动容错则会在故障检测后显式更新模型、估计健康状态，并重构控制律、参考或控制分配。其典型链路可写成</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mtext mathvariant="normal">检测</mtext><mo>→</mo><mtext mathvariant="normal">隔离</mtext><mo>→</mo><mtext mathvariant="normal">估计</mtext><mo>→</mo><mtext mathvariant="normal">重构</mtext><mo>→</mo><mtext mathvariant="normal">验证</mtext></mrow><annotation encoding="application/x-tex">
@@ -399,7 +413,7 @@ J_k=r_k^\top S^{-1} r_k
 </annotation></semantics></math></p>
 <p>其中，重构可以发生在控制律层、参考层或分配层。</p>
 <p>如果故障较轻、任务较宽松，被动容错可能已经足够；如果故障明显、任务约束紧，主动容错通常更合适。</p>
-<h2 id="控制重构与控制分配重构">46.6 控制重构与控制分配重构</h2>
+<h2 id="控制重构与控制分配重构">6 控制重构与控制分配重构</h2>
 <p>故障后最直接的工程动作，不是立刻改控制理论，而是更新可用控制能力。若控制效能矩阵由
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>B</mi><mi>a</mi></msub><annotation encoding="application/x-tex">B_a</annotation></semantics></math>
 表示，故障后则变为</p>
@@ -423,7 +437,7 @@ r_a=\nu_c-B_a^{(f)}u_a
 <p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>r</mi><mi>a</mi></msub><annotation encoding="application/x-tex">r_a</annotation></semantics></math>
 是分配残差。</p>
 <p>控制重构不一定等于重做整套控制器。很多时候，只需调整控制增益、参考命令或分配权重，就能把系统从不可行状态拉回到可控状态。</p>
-<h2 id="任务降级与参考治理">46.7 任务降级与参考治理</h2>
+<h2 id="任务降级与参考治理">7 任务降级与参考治理</h2>
 <p>当故障导致原始任务不可行时，正确做法不是强行追原始命令，而是进行任务降级。可行参考记为
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>r</mi><mi>f</mi></msub><annotation encoding="application/x-tex">r_f</annotation></semantics></math>，原始参考记为
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>r</mi><mi>g</mi></msub><annotation encoding="application/x-tex">r_g</annotation></semantics></math>，两者差值记为</p>
@@ -436,7 +450,7 @@ e_{gr}=r_g-r_f
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>e</mi><mrow><mi>g</mi><mi>r</mi></mrow></msub><annotation encoding="application/x-tex">e_{gr}</annotation></semantics></math>
 过大，说明原始任务已经超出当前故障后的可执行能力。此时参考治理器应降低终端速度、终端角、横向机动或轨迹激进度，并向上层报告任务余度不足。</p>
 <p>任务降级不是失败，而是容错系统的一部分。对高超声速飞行器来说，能安全地降级，比在不可行命令下继续硬追更重要。</p>
-<h2 id="与-cbfmpc-和-blf-的关系">46.8 与 CBF、MPC 和 BLF 的关系</h2>
+<h2 id="与-cbfmpc-和-blf-的关系">8 与 CBF、MPC 和 BLF 的关系</h2>
 <p>控制障碍函数、模型预测控制和障碍 Lyapunov
 函数都可能参与容错系统，但它们的位置不同。</p>
 <p>CBF 更适合作为在线安全滤波器。若定义安全函数
@@ -459,7 +473,7 @@ u_a\in \mathcal{U}_f
 <p>BLF
 适合把约束保持写进稳定性分析，但前提是初始可行、约束裕度和执行能力都还存在。若故障后约束收缩过度，BLF
 也会失去可行性基础。</p>
-<h2 id="与控制分配igc-和实时实现的接口">46.9 与控制分配、IGC
+<h2 id="与控制分配igc-和实时实现的接口">9 与控制分配、IGC
 和实时实现的接口</h2>
 <p>第46章至少要与后续章节形成四条明确接口。</p>
 <ul>
@@ -483,7 +497,7 @@ u_a\in \mathcal{U}_f
 是健康矩阵估计，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>r</mi><mi>f</mi></msub><annotation encoding="application/x-tex">r_f</annotation></semantics></math>
 是可行参考。</p>
 <p>如果这三类输出没有分开写清楚，就容易把故障检测、控制重构和任务降级混成一个口头概念，最后既不利于实现，也不利于验证。</p>
-<h2 id="验证指标">46.10 验证指标</h2>
+<h2 id="验证指标">10 验证指标</h2>
 <p>故障诊断与容错控制不能只看“有没有恢复”，还要看恢复得有多稳妥。至少应报告以下指标：</p>
 <table>
 <thead>
@@ -544,7 +558,7 @@ u_a\in \mathcal{U}_f
 </tbody>
 </table>
 <p>若只报告闭环能跑通，而不报告误报、漏报、延迟和约束裕度，就不能证明容错策略真的可靠。</p>
-<h2 id="常见错误">46.11 常见错误</h2>
+<h2 id="常见错误">11 常见错误</h2>
 <ol type="1">
 <li>把大扰动当成故障处理，却没有故障发生时间和类型。</li>
 <li>检测成功后不做隔离和估计，却声称完成主动容错。</li>
@@ -554,7 +568,7 @@ u_a\in \mathcal{U}_f
 <li>容错后跟踪变好，但安全裕度和分配残差未报告。</li>
 <li>不说明输出是故障估计、健康矩阵、广义控制量还是降级参考。</li>
 </ol>
-<h2 id="练习">46.12 练习</h2>
+<h2 id="练习">12 练习</h2>
 <ol type="1">
 <li>给定
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>u</mi><mrow><mi mathvariant="normal">a</mi><mi mathvariant="normal">c</mi><mi mathvariant="normal">t</mi></mrow></msub><mo>=</mo><mi mathvariant="normal">Λ</mi><msub><mi>u</mi><mi>c</mi></msub><mo>+</mo><msub><mi>b</mi><mi>f</mi></msub></mrow><annotation encoding="application/x-tex">u_{\mathrm{act}}=\Lambda u_c+b_f</annotation></semantics></math>，分别构造效率损失、偏置和卡滞故障。</li>
@@ -564,11 +578,10 @@ u_a\in \mathcal{U}_f
 <li>说明故障检测成功为什么不等于容错控制成功。</li>
 <li>给出一个故障后必须任务降级的高超声速终端制导场景，并列出降级后的通过判据。</li>
 </ol>
-<h2 id="本章小结">46.13 本章小结</h2>
+<h2 id="本章小结">13 本章小结</h2>
 <p>故障诊断与容错控制不是控制系统的附加说明，而是保证高超声速任务能够继续执行的核心机制。它要求我们明确故障对象、诊断接口、重构方式和降级逻辑，并把这些内容和控制分配、制导控制一体化以及实时实现连成闭环。只有这样，故障处理才不只是“恢复一条曲线”，而是真正变成可核查、可实现、可退出的工程能力。</p>
 
       </article>
-      
       <nav class="book-bottom-nav" aria-label="章节导航">
         <a href="./45-control-allocation-theory.html">上一章：第45章 控制分配理论</a>
         <a href="./index.html">卷首页</a>

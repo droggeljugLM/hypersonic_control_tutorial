@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>高超声速飞行器控制教程 · 五卷五册</title>
+  <title>高超声速飞行器控制教程 五卷五册</title>
   <style>
     :root {
       --paper: #f7f3eb;
@@ -26,22 +26,32 @@
     .hero {
       max-width: 1180px;
       margin: 0 auto;
-      padding: 0.75rem 1.4rem 0.35rem;
+      padding: 0.75rem 1.4rem 0.7rem;
     }
     .eyebrow {
       display: inline-flex;
+      align-items: center;
       padding: 0.32rem 0.72rem;
       border-radius: 999px;
       background: rgba(255,255,255,0.78);
       border: 1px solid rgba(31,41,55,0.08);
       color: #334155;
+      font-family: "Microsoft YaHei", "Noto Sans CJK SC", system-ui, sans-serif;
       font-weight: 700;
       font-size: 0.82rem;
+      letter-spacing: 0.02em;
     }
     h1 {
       margin: 0.35rem 0 0.15rem;
       font-size: 2.55rem;
       line-height: 1.08;
+    }
+    .hero-lead {
+      max-width: 52rem;
+      margin: 0.35rem 0 0;
+      color: var(--muted);
+      font-size: 1rem;
+      line-height: 1.72;
     }
     .grid {
       max-width: 1180px;
@@ -49,8 +59,7 @@
       padding: 0 1.4rem 3rem;
       display: grid;
       gap: 1rem;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      justify-content: center;
+      grid-template-columns: repeat(12, minmax(0, 1fr));
     }
     .volume-card {
       position: relative;
@@ -119,14 +128,25 @@
     .card-links a:hover {
       background: var(--accent-soft);
     }
-    @media (max-width: 1180px) {
+    .volume-1 { grid-column: 1 / span 4; }
+    .volume-2 { grid-column: 5 / span 4; }
+    .volume-3 { grid-column: 9 / span 4; }
+    .volume-4 { grid-column: 2 / span 5; }
+    .volume-5 { grid-column: 7 / span 5; }
+    @media (max-width: 980px) {
       .grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      .volume-1, .volume-2, .volume-3, .volume-4, .volume-5 {
+        grid-column: auto;
       }
     }
     @media (max-width: 720px) {
       h1 {
         font-size: 2rem;
+      }
+      .hero-lead {
+        font-size: 0.96rem;
       }
       .grid {
         grid-template-columns: 1fr;
@@ -136,12 +156,12 @@
 </head>
 <body>
   <section class="hero">
-    <div class="eyebrow">五卷五册 · 网页入口</div>
+    <div class="eyebrow">五卷五册 网页首页</div>
     <h1>高超声速飞行器控制教程</h1>
+    <p class="hero-lead">这不是五个并列分区，而是一套按学习路径展开的书。上面先给总览，下面再按理论、建模、方法、约束和验证顺序铺开。</p>
   </section>
   <section class="grid">
-    
-      <article class="volume-card" style="--accent:#335c81;--accent-soft:#e7eef7;--accent-deep:#1e3d57;">
+      <article class="volume-card volume-1" style="--accent:#335c81;--accent-soft:#e7eef7;--accent-deep:#1e3d57;">
         <div class="volume-badge">1</div>
         <h2>第一卷 数学基础与控制理论基础</h2>
         <p>把动力系统、线性与非线性、稳定性、鲁棒、最优、自适应、估计与约束控制统一成一套可复用的控制语言。</p>
@@ -151,7 +171,7 @@
         </div>
       </article>
 
-      <article class="volume-card" style="--accent:#18786f;--accent-soft:#e3f5f2;--accent-deep:#0e4b45;">
+      <article class="volume-card volume-2" style="--accent:#18786f;--accent-soft:#e3f5f2;--accent-deep:#0e4b45;">
         <div class="volume-badge">2</div>
         <h2>第二卷 高超声速飞行器建模与飞行动力学</h2>
         <p>把高超声速飞行器拆成任务、坐标、环境、气动、推进、质点、纵向、横侧向、六自由度与执行系统。</p>
@@ -161,7 +181,7 @@
         </div>
       </article>
 
-      <article class="volume-card" style="--accent:#9a6d1c;--accent-soft:#f6ecd1;--accent-deep:#5d4010;">
+      <article class="volume-card volume-3" style="--accent:#9a6d1c;--accent-soft:#f6ecd1;--accent-deep:#5d4010;">
         <div class="volume-badge">3</div>
         <h2>第三卷 经典与现代飞行控制方法</h2>
         <p>从经典自动驾驶仪到鲁棒、增益调度、动态逆、反步、滑模、自适应和扰动观测器，梳理方法谱系与适用边界。</p>
@@ -171,7 +191,7 @@
         </div>
       </article>
 
-      <article class="volume-card" style="--accent:#8b3f67;--accent-soft:#f5dfe9;--accent-deep:#522640;">
+      <article class="volume-card volume-4" style="--accent:#8b3f67;--accent-soft:#f5dfe9;--accent-deep:#522640;">
         <div class="volume-badge">4</div>
         <h2>第四卷 约束、安全、容错与制导控制一体化</h2>
         <p>围绕输入饱和、BLF/CBF、MPC、控制分配、故障容错和制导控制一体化，把控制问题写成可行性和安全问题。</p>
@@ -181,7 +201,7 @@
         </div>
       </article>
 
-      <article class="volume-card" style="--accent:#4a5fb2;--accent-soft:#e4e8fb;--accent-deep:#2a3568;">
+      <article class="volume-card volume-5" style="--accent:#4a5fb2;--accent-soft:#e4e8fb;--accent-deep:#2a3568;">
         <div class="volume-badge">5</div>
         <h2>第五卷 仿真验证、工程实现与研究训练</h2>
         <p>构建仿真平台、可信性、指标、Monte Carlo、案例库、论文阅读和研究路线，让控制结果真正形成证据链。</p>

@@ -89,7 +89,13 @@
       font-weight: 800;
     }
     .sidebar-title { font-size: 0.94rem; line-height: 1.35; }
-    .book-main { min-width: 0; padding: 1.25rem 1.45rem 1.8rem; }
+    .book-main {
+      min-width: 0;
+      min-height: 100vh;
+      padding: 1.25rem 1.45rem 1.8rem;
+      display: flex;
+      flex-direction: column;
+    }
     .book-page-header {
       padding: 0.85rem 0 1rem;
       margin-bottom: 1rem;
@@ -104,7 +110,12 @@
       padding: 0;
     }
     .book-page-header p { margin: 0.45rem 0 0; color: var(--muted); max-width: 62rem; }
-    .book-article { max-width: 900px; margin: 0; padding: 0 0 1.2rem; }
+    .book-article {
+      max-width: 900px;
+      margin: 0;
+      padding: 0 0 1.2rem;
+      flex: 1 0 auto;
+    }
     .book-article h1, .book-article h2, .book-article h3, .book-article h4, .book-article h5, .book-article h6 {
       line-height: 1.28;
       margin-top: 1.45em;
@@ -117,27 +128,30 @@
     .book-article h3 { font-size: 1.12rem; }
     .book-article p, .book-article li, .book-article dd, .book-article td, .book-article th { text-align: justify; text-justify: inter-ideograph; }
     .book-article p { margin: 0.85rem 0; }
-    .book-article code, .book-article pre { font-family: "Cascadia Mono", "Source Code Pro", Consolas, monospace; font-size: 0.94em; }
+    .book-article code, .book-article pre { font-family: inherit; font-size: 0.98em; letter-spacing: 0; }
     .book-article code {
-      padding: 0.02rem 0.24rem;
-      background: color-mix(in srgb, var(--accent-soft) 34%, #ffffff 66%);
+      padding: 0.04rem 0.28rem;
+      background: color-mix(in srgb, var(--accent-soft) 24%, #ffffff 76%);
       border: 0;
-      border-bottom: 1px solid color-mix(in srgb, var(--accent-soft) 74%, #d1d5db 26%);
+      border-bottom: 1px solid color-mix(in srgb, var(--accent-soft) 52%, #d1d5db 48%);
       border-radius: 4px;
-      color: #253244;
+      color: #2b3440;
       box-decoration-break: clone;
       -webkit-box-decoration-break: clone;
+      font-family: inherit;
+      font-variant-ligatures: none;
     }
     .book-article pre {
-      padding: 1rem 1.1rem;
+      padding: 0.95rem 1.05rem;
       overflow: auto;
-      background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,253,248,0.98));
-      border: 1px solid color-mix(in srgb, var(--accent-soft) 54%, #d1d5db 46%);
-      border-left: 5px solid var(--accent);
+      background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,253,248,0.96));
+      border: 1px solid color-mix(in srgb, var(--accent-soft) 44%, #d1d5db 56%);
+      border-left: 4px solid var(--accent);
       border-radius: 14px;
       box-shadow: 0 8px 22px rgba(31, 41, 55, 0.05);
+      white-space: pre-wrap;
     }
-    .book-article pre code { padding: 0; border: 0; background: transparent; color: inherit; }
+    .book-article pre code { padding: 0; border: 0; background: transparent; color: inherit; font-family: inherit; }
     .book-article table {
       border-collapse: collapse;
       width: 100%;
@@ -300,12 +314,12 @@
         <h1 id="volume3--30-lqr-lqg-linear-optimal-control">第30章 LQR、LQG 与线性最优控制</h1>
       </header>
       <article class="book-article">
-        <h2 id="问题背景">30.1 问题背景</h2>
+        <h2 id="问题背景">1 问题背景</h2>
 <p>第29章用极点配置直接指定闭环模态。本章进一步问：能否用一个可解释的性能指标，在状态误差和控制能量之间自动折中。LQR、LQT、LQI
 和 LQG 正是线性最优控制在飞行控制中的核心工具。</p>
 <p>这类方法的价值，不只是算出一个增益，而是给状态误差和控制代价之间提供一套清晰的折中语言。LQR
 的“最优”也只是在特定目标函数和线性模型假设下成立。</p>
-<h2 id="lqr-的问题形式">30.2 LQR 的问题形式</h2>
+<h2 id="lqr-的问题形式">2 LQR 的问题形式</h2>
 <p>对线性系统</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Δ</mi><mover><mi>x</mi><mo accent="true">̇</mo></mover><mo>=</mo><mi>A</mi><mi mathvariant="normal">Δ</mi><mi>x</mi><mo>+</mo><mi>B</mi><mi mathvariant="normal">Δ</mi><mi>u</mi></mrow><annotation encoding="application/x-tex">
 \Delta \dot x = A\Delta x + B\Delta u
@@ -330,7 +344,7 @@ J=\int_0^\infty \left(\Delta x^\top Q \Delta x+\Delta u^\top R \Delta u\right)\,
 </annotation></semantics></math></p>
 <p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>K</mi><annotation encoding="application/x-tex">K</annotation></semantics></math>
 是状态反馈增益矩阵。</p>
-<h2 id="权重的物理意义">30.3 权重的物理意义</h2>
+<h2 id="权重的物理意义">3 权重的物理意义</h2>
 <p>权重不应只靠试出来。一个更稳妥的写法是先把状态按任务意义归一化，再用权重表示“哪些误差更贵、哪些控制更贵”。例如：</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>J</mi><mo>=</mo><msubsup><mo>∫</mo><mn>0</mn><mi>∞</mi></msubsup><mrow><mo stretchy="true" form="prefix">(</mo><munderover><mo>∑</mo><mrow><mi>i</mi><mo>=</mo><mn>1</mn></mrow><mi>n</mi></munderover><msub><mi>q</mi><mi>i</mi></msub><msubsup><mover><mi>x</mi><mo accent="true">̃</mo></mover><mi>i</mi><mn>2</mn></msubsup><mo>+</mo><munderover><mo>∑</mo><mrow><mi>j</mi><mo>=</mo><mn>1</mn></mrow><mi>m</mi></munderover><msub><mi>r</mi><mi>j</mi></msub><msubsup><mover><mi>u</mi><mo accent="true">̃</mo></mover><mi>j</mi><mn>2</mn></msubsup><mo stretchy="true" form="postfix">)</mo></mrow><mspace width="0.167em"></mspace><mi>d</mi><mi>t</mi></mrow><annotation encoding="application/x-tex">
 J=\int_0^\infty \left(\sum_{i=1}^{n} q_i \tilde x_i^2+\sum_{j=1}^{m} r_j \tilde u_j^2\right)\,dt
@@ -354,7 +368,7 @@ J=\int_0^\infty \left(\sum_{i=1}^{n} q_i \tilde x_i^2+\sum_{j=1}^{m} r_j \tilde 
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>K</mi><annotation encoding="application/x-tex">K</annotation></semantics></math>，还应报告
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>Q</mi><mo>,</mo><mi>R</mi></mrow><annotation encoding="application/x-tex">Q,R</annotation></semantics></math>
 的物理解释和闭环特征值。</p>
-<h2 id="离散-lqr">30.4 离散 LQR</h2>
+<h2 id="离散-lqr">4 离散 LQR</h2>
 <p>数字飞控通常使用离散模型</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Δ</mi><msub><mi>x</mi><mrow><mi>k</mi><mo>+</mo><mn>1</mn></mrow></msub><mo>=</mo><msub><mi>A</mi><mi>d</mi></msub><mi mathvariant="normal">Δ</mi><msub><mi>x</mi><mi>k</mi></msub><mo>+</mo><msub><mi>B</mi><mi>d</mi></msub><mi mathvariant="normal">Δ</mi><msub><mi>u</mi><mi>k</mi></msub></mrow><annotation encoding="application/x-tex">
 \Delta x_{k+1}=A_d\Delta x_k+B_d\Delta u_k
@@ -375,7 +389,7 @@ J=\sum_{k=0}^{\infty}\left(\Delta x_k^\top Q \Delta x_k+\Delta u_k^\top R \Delta
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>K</mi><annotation encoding="application/x-tex">K</annotation></semantics></math>
 是离散状态反馈增益矩阵。</p>
 <p>离散化不是细节。采样周期过长会改变最优增益，也会改变模态、裕度和执行机构负担。</p>
-<h2 id="lqi-和-lqt">30.5 LQI 和 LQT</h2>
+<h2 id="lqi-和-lqt">5 LQI 和 LQT</h2>
 <p>若要实现定值参考跟踪，可以加入积分状态</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>z</mi><mo accent="true">̇</mo></mover><mo>=</mo><mi>r</mi><mo>−</mo><mi>y</mi></mrow><annotation encoding="application/x-tex">
 \dot z = r-y
@@ -388,7 +402,7 @@ J=\sum_{k=0}^{\infty}\left(\Delta x_k^\top Q \Delta x_k+\Delta u_k^\top R \Delta
 对速度、高度和姿态保持很有用，但必须处理积分饱和。</p>
 <p>若任务参考本身是时变轨迹，则更接近 LQT 问题。LQT
 关注跟踪时变参考轨迹，LQI 更偏向消除定值参考下的稳态误差。</p>
-<h2 id="kalman-滤波回顾">30.6 Kalman 滤波回顾</h2>
+<h2 id="kalman-滤波回顾">6 Kalman 滤波回顾</h2>
 <p>若状态不可测，可使用 Kalman 滤波估计状态。离散线性随机系统可写为</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtable><mtr><mtd columnalign="right" style="text-align: right; padding-right: 0"><msub><mi>x</mi><mrow><mi>k</mi><mo>+</mo><mn>1</mn></mrow></msub></mtd><mtd columnalign="left" style="text-align: left; padding-left: 0"><mo>=</mo><msub><mi>A</mi><mi>d</mi></msub><msub><mi>x</mi><mi>k</mi></msub><mo>+</mo><msub><mi>B</mi><mi>d</mi></msub><msub><mi>u</mi><mi>k</mi></msub><mo>+</mo><msub><mi>w</mi><mi>k</mi></msub><mo>,</mo></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right; padding-right: 0"><msub><mi>y</mi><mi>k</mi></msub></mtd><mtd columnalign="left" style="text-align: left; padding-left: 0"><mo>=</mo><msub><mi>C</mi><mi>d</mi></msub><msub><mi>x</mi><mi>k</mi></msub><mo>+</mo><msub><mi>v</mi><mi>k</mi></msub></mtd></mtr></mtable><annotation encoding="application/x-tex">
 \begin{aligned}
@@ -402,7 +416,7 @@ y_k &amp;= C_d x_k + v_k
 是离散输出矩阵。</p>
 <p>在线性高斯条件下，LQR 控制器和 Kalman
 滤波器可以分开设计，这与第29章分离原则一致。</p>
-<h2 id="lqg-的边界">30.7 LQG 的边界</h2>
+<h2 id="lqg-的边界">7 LQG 的边界</h2>
 <p>LQG 本身不直接保证好的鲁棒稳定裕度。实际飞控中，LQG
 设计后必须额外检查：</p>
 <ul>
@@ -415,7 +429,7 @@ y_k &amp;= C_d x_k + v_k
 </ul>
 <p>因此，LQG
 更准确的定位是局部线性随机模型下的最优估计加最优反馈基线，而不是自动给出宽包线、受约束、带分配和带故障的闭环结论。</p>
-<h2 id="高超声速应用">30.8 高超声速应用</h2>
+<h2 id="高超声速应用">8 高超声速应用</h2>
 <p>LQR/LQG 可用于：</p>
 <table>
 <thead>
@@ -452,13 +466,13 @@ y_k &amp;= C_d x_k + v_k
 </tr>
 </tbody>
 </table>
-<h2 id="约束和安全边界">30.9 约束和安全边界</h2>
+<h2 id="约束和安全边界">9 约束和安全边界</h2>
 <p>标准 LQR/LQG
 不直接处理舵偏和舵速硬约束、动压和热流路径约束、过载和攻角边界、终端约束、控制分配可行性和
 QP 或 MPC 不可行问题。</p>
 <p>若任务关键在约束满足，应引入第四卷中的
 BLF、CBF、模型预测控制、参考治理器或安全滤波。</p>
-<h2 id="与参考可行化控制分配和容错的接口">30.10
+<h2 id="与参考可行化控制分配和容错的接口">10
 与参考可行化、控制分配和容错的接口</h2>
 <p>在更完整的高超声速闭环里，LQR/LQG
 很少直接把输入发送给对象。更常见的是参考先可行化，LQR/LQG
@@ -474,7 +488,7 @@ BLF、CBF、模型预测控制、参考治理器或安全滤波。</p>
 其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ℱ</mi><annotation encoding="application/x-tex">\mathcal F</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝒢</mi><annotation encoding="application/x-tex">\mathcal G</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ℋ</mi><annotation encoding="application/x-tex">\mathcal H</annotation></semantics></math>
 分别表示从状态增量到广义控制命令、期望力矩和可执行输入的映射。</p>
 <p>如果这一点不说清楚，就无法判断它是直接执行机构控制器、广义控制前级，还是一个需要再被安全层修正的参考整形器。</p>
-<h2 id="验证指标">30.11 验证指标</h2>
+<h2 id="验证指标">11 验证指标</h2>
 <p>LQR/LQG 设计至少应报告：</p>
 <table>
 <thead>
@@ -524,10 +538,10 @@ BLF、CBF、模型预测控制、参考治理器或安全滤波。</p>
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>B</mi><annotation encoding="application/x-tex">B</annotation></semantics></math>
 是线化矩阵，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>K</mi><annotation encoding="application/x-tex">K</annotation></semantics></math>
 是状态反馈增益矩阵。</p>
-<h2 id="本章小结">30.12 本章小结</h2>
+<h2 id="本章小结">12 本章小结</h2>
 <p>LQR、LQG
 和线性最优控制把状态误差、控制能量和估计噪声折中放在同一个框架里。它们是高超声速控制里最重要的线性最优基线，但仍然需要和频域裕度、约束控制、控制分配和非线性复测一起使用。</p>
-<h2 id="练习">30.13 练习</h2>
+<h2 id="练习">13 练习</h2>
 <ol type="1">
 <li>写出连续和离散 LQR 的性能指标。</li>
 <li>解释
@@ -541,7 +555,6 @@ BLF、CBF、模型预测控制、参考治理器或安全滤波。</p>
 </ol>
 
       </article>
-      
       <nav class="book-bottom-nav" aria-label="章节导航">
         <a href="./29-state-feedback-observer-pole-placement.html">上一章：第29章 状态反馈、观测器与极点配置</a>
         <a href="./index.html">卷首页</a>

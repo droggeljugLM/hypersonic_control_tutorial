@@ -89,7 +89,13 @@
       font-weight: 800;
     }
     .sidebar-title { font-size: 0.94rem; line-height: 1.35; }
-    .book-main { min-width: 0; padding: 1.25rem 1.45rem 1.8rem; }
+    .book-main {
+      min-width: 0;
+      min-height: 100vh;
+      padding: 1.25rem 1.45rem 1.8rem;
+      display: flex;
+      flex-direction: column;
+    }
     .book-page-header {
       padding: 0.85rem 0 1rem;
       margin-bottom: 1rem;
@@ -104,7 +110,12 @@
       padding: 0;
     }
     .book-page-header p { margin: 0.45rem 0 0; color: var(--muted); max-width: 62rem; }
-    .book-article { max-width: 900px; margin: 0; padding: 0 0 1.2rem; }
+    .book-article {
+      max-width: 900px;
+      margin: 0;
+      padding: 0 0 1.2rem;
+      flex: 1 0 auto;
+    }
     .book-article h1, .book-article h2, .book-article h3, .book-article h4, .book-article h5, .book-article h6 {
       line-height: 1.28;
       margin-top: 1.45em;
@@ -117,27 +128,30 @@
     .book-article h3 { font-size: 1.12rem; }
     .book-article p, .book-article li, .book-article dd, .book-article td, .book-article th { text-align: justify; text-justify: inter-ideograph; }
     .book-article p { margin: 0.85rem 0; }
-    .book-article code, .book-article pre { font-family: "Cascadia Mono", "Source Code Pro", Consolas, monospace; font-size: 0.94em; }
+    .book-article code, .book-article pre { font-family: inherit; font-size: 0.98em; letter-spacing: 0; }
     .book-article code {
-      padding: 0.02rem 0.24rem;
-      background: color-mix(in srgb, var(--accent-soft) 34%, #ffffff 66%);
+      padding: 0.04rem 0.28rem;
+      background: color-mix(in srgb, var(--accent-soft) 24%, #ffffff 76%);
       border: 0;
-      border-bottom: 1px solid color-mix(in srgb, var(--accent-soft) 74%, #d1d5db 26%);
+      border-bottom: 1px solid color-mix(in srgb, var(--accent-soft) 52%, #d1d5db 48%);
       border-radius: 4px;
-      color: #253244;
+      color: #2b3440;
       box-decoration-break: clone;
       -webkit-box-decoration-break: clone;
+      font-family: inherit;
+      font-variant-ligatures: none;
     }
     .book-article pre {
-      padding: 1rem 1.1rem;
+      padding: 0.95rem 1.05rem;
       overflow: auto;
-      background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,253,248,0.98));
-      border: 1px solid color-mix(in srgb, var(--accent-soft) 54%, #d1d5db 46%);
-      border-left: 5px solid var(--accent);
+      background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,253,248,0.96));
+      border: 1px solid color-mix(in srgb, var(--accent-soft) 44%, #d1d5db 56%);
+      border-left: 4px solid var(--accent);
       border-radius: 14px;
       box-shadow: 0 8px 22px rgba(31, 41, 55, 0.05);
+      white-space: pre-wrap;
     }
-    .book-article pre code { padding: 0; border: 0; background: transparent; color: inherit; }
+    .book-article pre code { padding: 0; border: 0; background: transparent; color: inherit; font-family: inherit; }
     .book-article table {
       border-collapse: collapse;
       width: 100%;
@@ -296,7 +310,7 @@
         <h1 id="volume2--15-coordinate-kinematics-attitude">第15章 坐标系、运动学与姿态描述</h1>
       </header>
       <article class="book-article">
-        <h2 id="问题背景">15.1 问题背景</h2>
+        <h2 id="问题背景">1 问题背景</h2>
 <p>高超声速飞行器建模中的很多错误不是来自控制律，而是来自坐标系和角度定义。力、力矩、速度、姿态、攻角、侧滑角、航迹角和倾侧角只要有一个定义不一致，后续的气动表、控制分配、制导命令和仿真指标都会出现方向错误。</p>
 <p>本章从控制建模角度回答：</p>
 <ul>
@@ -305,7 +319,7 @@
 <li>攻角、侧滑角、航迹角、航向角和倾侧角分别服务什么控制问题；</li>
 <li>坐标变换错误如何影响闭环稳定性和验证结论。</li>
 </ul>
-<h2 id="常用坐标系">15.2 常用坐标系</h2>
+<h2 id="常用坐标系">2 常用坐标系</h2>
 <p>高超声速飞行控制常见坐标系包括：</p>
 <table>
 <thead>
@@ -353,9 +367,9 @@
 </tr>
 </tbody>
 </table>
-<p>教程和代码必须明确写出采用 ENU 还是
+<p>教程和正文必须明确写出采用 ENU 还是
 NED、本体系各轴正方向、角度正方向和 DCM 的乘法约定。</p>
-<h2 id="本地水平系">15.3 本地水平系</h2>
+<h2 id="本地水平系">3 本地水平系</h2>
 <p>若采用 ENU 约定，本地水平系为：</p>
 <ul>
 <li>E：east</li>
@@ -379,7 +393,7 @@ v_E = \begin{bmatrix} v_E &amp; v_N &amp; v_U \end{bmatrix}^\top
 <p>这里的 v_E 是本地水平系速度向量，三个分量分别对应东、北、上方向。</p>
 <p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>v</mi><mi>E</mi></msub><mo>,</mo><msub><mi>v</mi><mi>N</mi></msub><mo>,</mo><msub><mi>v</mi><mi>U</mi></msub></mrow><annotation encoding="application/x-tex">v_E,v_N,v_U</annotation></semantics></math>
 分别表示东、北、上方向速度分量。</p>
-<h2 id="机体系与角速度">15.4 机体系与角速度</h2>
+<h2 id="机体系与角速度">4 机体系与角速度</h2>
 <p>机体系通常写成：</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>r</mi><mi>B</mi></msub><mo>=</mo><msup><mrow><mo stretchy="true" form="prefix">[</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><msub><mi>x</mi><mi>B</mi></msub></mtd><mtd columnalign="center" style="text-align: center"><msub><mi>y</mi><mi>B</mi></msub></mtd><mtd columnalign="center" style="text-align: center"><msub><mi>z</mi><mi>B</mi></msub></mtd></mtr></mtable><mo stretchy="true" form="postfix">]</mo></mrow><mi>⊤</mi></msup></mrow><annotation encoding="application/x-tex">
 r_B = \begin{bmatrix} x_B &amp; y_B &amp; z_B \end{bmatrix}^\top
@@ -405,7 +419,7 @@ J\dot\omega_B + \omega_B \times (J\omega_B) = M_B
 <p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>J</mi><annotation encoding="application/x-tex">J</annotation></semantics></math>
 是惯量矩阵，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>M</mi><mi>B</mi></msub><annotation encoding="application/x-tex">M_B</annotation></semantics></math>
 是机体系合力矩。</p>
-<h2 id="攻角和侧滑角">15.5 攻角和侧滑角</h2>
+<h2 id="攻角和侧滑角">5 攻角和侧滑角</h2>
 <p>攻角
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>α</mi><annotation encoding="application/x-tex">\alpha</annotation></semantics></math>
 和侧滑角
@@ -422,8 +436,8 @@ v_B = \begin{bmatrix} u_B &amp; v_B &amp; w_B \end{bmatrix}^\top
 <p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>u</mi><mi>B</mi></msub><annotation encoding="application/x-tex">u_B</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>v</mi><mi>B</mi></msub><annotation encoding="application/x-tex">v_B</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>w</mi><mi>B</mi></msub><annotation encoding="application/x-tex">w_B</annotation></semantics></math>
 是机体系速度分量，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="postfix">∥</mo><msub><mi>v</mi><mi>B</mi></msub><mo stretchy="false" form="postfix">∥</mo></mrow><annotation encoding="application/x-tex">\|v_B\|</annotation></semantics></math>
 是速度模长。</p>
-<p>这里的关键不是记住某一种公式，而是保证气动表、力变换、控制器和指标脚本使用同一组定义。</p>
-<h2 id="航迹角航向角和倾侧角">15.6 航迹角、航向角和倾侧角</h2>
+<p>这里的关键不是记住某一种公式，而是保证气动表、力变换、控制器和指标流程使用同一组定义。</p>
+<h2 id="航迹角航向角和倾侧角">6 航迹角、航向角和倾侧角</h2>
 <p>制导层更关心速度方向。常用变量包括：</p>
 <ul>
 <li><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>γ</mi><annotation encoding="application/x-tex">\gamma</annotation></semantics></math>：航迹角，表示速度相对水平面的仰角；</li>
@@ -452,7 +466,7 @@ a_c = \begin{bmatrix} a_n &amp; a_l \end{bmatrix}^\top
 和
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>a</mi><mi>l</mi></msub><annotation encoding="application/x-tex">a_l</annotation></semantics></math>
 分别表示法向和侧向加速度命令。控制接口要把这些命令转换为姿态、攻角、侧滑或倾侧角命令。若转换链没有写清，三维制导和姿态控制之间会断裂。</p>
-<h2 id="欧拉角">15.7 欧拉角</h2>
+<h2 id="欧拉角">7 欧拉角</h2>
 <p>欧拉角直观，常用滚转、俯仰、偏航表示：</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>η</mi><mo>=</mo><msup><mrow><mo stretchy="true" form="prefix">[</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><mi>ϕ</mi></mtd><mtd columnalign="center" style="text-align: center"><mi>θ</mi></mtd><mtd columnalign="center" style="text-align: center"><mi>ψ</mi></mtd></mtr></mtable><mo stretchy="true" form="postfix">]</mo></mrow><mi>⊤</mi></msup></mrow><annotation encoding="application/x-tex">
 \eta = \begin{bmatrix} \phi &amp; \theta &amp; \psi \end{bmatrix}^\top
@@ -467,7 +481,7 @@ a_c = \begin{bmatrix} a_n &amp; a_l \end{bmatrix}^\top
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>±</mi><msup><mn>90</mn><mo>∘</mo></msup></mrow><annotation encoding="application/x-tex">\pm 90^\circ</annotation></semantics></math>
 时会奇异。因此欧拉角适合教学解释和小姿态范围仿真，但高机动或工程级六自由度传播通常更适合四元数。</p>
 <p>控制设计中常见错误是把欧拉角误差当作任意大姿态误差直接线性相减。对大角度机动，应使用旋转矩阵或四元数误差。</p>
-<h2 id="方向余弦矩阵">15.8 方向余弦矩阵</h2>
+<h2 id="方向余弦矩阵">8 方向余弦矩阵</h2>
 <p>方向余弦矩阵描述两个坐标系之间的旋转。若
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msubsup><mi>C</mi><mi>B</mi><mi>E</mi></msubsup><annotation encoding="application/x-tex">C_B^E</annotation></semantics></math>
 表示从机体系到本地 ENU 的旋转，则：</p>
@@ -492,7 +506,7 @@ v_E = C_B^E v_B
 为方向余弦矩阵正交性误差；如果
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>e</mi><mi>C</mi></msub><annotation encoding="application/x-tex">e_C</annotation></semantics></math>
 随时间增长，说明姿态积分或归一化处理存在问题。</p>
-<h2 id="四元数">15.9 四元数</h2>
+<h2 id="四元数">9 四元数</h2>
 <p>四元数可避免欧拉角奇异。设四元数为：</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>q</mi><mo>=</mo><msup><mrow><mo stretchy="true" form="prefix">[</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><msub><mi>q</mi><mn>0</mn></msub></mtd><mtd columnalign="center" style="text-align: center"><msub><mi>q</mi><mn>1</mn></msub></mtd><mtd columnalign="center" style="text-align: center"><msub><mi>q</mi><mn>2</mn></msub></mtd><mtd columnalign="center" style="text-align: center"><msub><mi>q</mi><mn>3</mn></msub></mtd></mtr></mtable><mo stretchy="true" form="postfix">]</mo></mrow><mi>⊤</mi></msup></mrow><annotation encoding="application/x-tex">
 q = \begin{bmatrix} q_0 &amp; q_1 &amp; q_2 &amp; q_3 \end{bmatrix}^\top
@@ -513,7 +527,7 @@ q = \begin{bmatrix} q_0 &amp; q_1 &amp; q_2 &amp; q_3 \end{bmatrix}^\top
 </annotation></semantics></math></p>
 <p>这里的归一化条件保证四元数始终对应合法姿态。</p>
 <p>这不是控制律的一部分，而是姿态表示的数值卫生处理。报告六自由度仿真时，应说明四元数约定、归一化策略和姿态矩阵健康指标。</p>
-<h2 id="纵向角度关系">15.10 纵向角度关系</h2>
+<h2 id="纵向角度关系">10 纵向角度关系</h2>
 <p>纵向模型中常用关系为：</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>θ</mi><mo>=</mo><mi>α</mi><mo>+</mo><mi>γ</mi></mrow><annotation encoding="application/x-tex">
 \theta = \alpha + \gamma
@@ -528,7 +542,7 @@ q = \begin{bmatrix} q_0 &amp; q_1 &amp; q_2 &amp; q_3 \end{bmatrix}^\top
 是航迹角。</li>
 </ul>
 <p>这个关系只在纵向平面和小侧滑条件下清楚成立。进入三维机动后，姿态、速度方向、攻角和侧滑角之间的关系必须通过完整坐标变换计算，不能继续简单套用这个关系。</p>
-<h2 id="坐标变换进入控制闭环">15.11 坐标变换进入控制闭环</h2>
+<h2 id="坐标变换进入控制闭环">11 坐标变换进入控制闭环</h2>
 <p>一个三维闭环通常包含下列变换链：</p>
 <ul>
 <li>制导误差；</li>
@@ -541,8 +555,8 @@ q = \begin{bmatrix} q_0 &amp; q_1 &amp; q_2 &amp; q_3 \end{bmatrix}^\top
 </ul>
 <p>每一步都有坐标变换。若气动力在风轴系中计算，而转动方程在机体系中积分，就必须先把气动力矩转换到机体系。若平动方程在
 ENU 中积分，就必须把机体系合力转换到 ENU。</p>
-<h2 id="坐标和姿态接口契约">15.12 坐标和姿态接口契约</h2>
-<p>坐标约定应写成接口契约，而不是散落在公式和代码注释里。一个最小契约可写为：</p>
+<h2 id="坐标和姿态接口契约">12 坐标和姿态接口契约</h2>
+<p>坐标约定应写成接口契约，而不是散落在公式和注释里。一个最小契约可写为：</p>
 <table>
 <colgroup>
 <col style="width: 50%" />
@@ -613,7 +627,7 @@ ENU 中积分，就必须把机体系合力转换到 ENU。</p>
 </tbody>
 </table>
 <p>这些字段不是装饰性日志。坐标变换一旦出错，控制器可能仍然给出平滑曲线，但曲线对应的是错误物理方向。</p>
-<h2 id="低阶例题升力符号反向如何污染闭环">15.13
+<h2 id="低阶例题升力符号反向如何污染闭环">13
 低阶例题：升力符号反向如何污染闭环</h2>
 <p>考虑纵向近似：</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>h</mi><mo accent="true">̇</mo></mover><mo>=</mo><mi>V</mi><mi>sin</mi><mo>&#8289;</mo><mi>γ</mi><mo>,</mo><mspace width="2.0em"></mspace><mover><mi>γ</mi><mo accent="true">̇</mo></mover><mo>=</mo><mfrac><mi>L</mi><mrow><mi>m</mi><mi>V</mi></mrow></mfrac><mo>−</mo><mfrac><mrow><mi>g</mi><mi>cos</mi><mo>&#8289;</mo><mi>γ</mi></mrow><mi>V</mi></mfrac></mrow><annotation encoding="application/x-tex">
@@ -635,7 +649,7 @@ ENU 中积分，就必须把机体系合力转换到 ENU。</p>
 <li>姿态参考变化是否和制导命令方向一致；</li>
 <li>若出现反向响应，先查坐标和符号，不要先调控制增益。</li>
 </ul>
-<h2 id="坐标变换验证矩阵">15.14 坐标变换验证矩阵</h2>
+<h2 id="坐标变换验证矩阵">14 坐标变换验证矩阵</h2>
 <p>坐标和姿态章节的验证不应只检查公式是否写出。建议至少设计以下矩阵：</p>
 <table>
 <thead>
@@ -674,11 +688,11 @@ ENU 中积分，就必须把机体系合力转换到 ENU。</p>
 </tbody>
 </table>
 <p>如果这些验证不过关，后续气动、控制分配和制导闭环都不应继续往下接。</p>
-<h2 id="本章小结">15.15 本章小结</h2>
+<h2 id="本章小结">15 本章小结</h2>
 <p>坐标系、运动学和姿态描述是高超声速控制的基础接口。只要
 ENU/NED、机体系、风轴系、欧拉角、四元数和 DCM
 的定义统一了，后面的气动建模、制导命令、控制分配和六自由度仿真才有共同语言。反之，哪怕控制律本身正确，坐标和符号错误也足以让闭环结论失真。</p>
-<h2 id="练习">15.16 练习</h2>
+<h2 id="练习">16 练习</h2>
 <ol type="1">
 <li>列出高超声速控制中至少五个常见坐标系，并说明各自用途。</li>
 <li>给出 ENU 约定下的位置、速度和机体系角速度定义。</li>
@@ -691,7 +705,6 @@ ENU/NED、机体系、风轴系、欧拉角、四元数和 DCM
 </ol>
 
       </article>
-      
       <nav class="book-bottom-nav" aria-label="章节导航">
         <a href="./14-vehicle-types-mission-profiles.html">上一章：第14章 高超声速飞行器类型与任务剖面</a>
         <a href="./index.html">卷首页</a>
@@ -702,3 +715,4 @@ ENU/NED、机体系、风轴系、欧拉角、四元数和 DCM
   </div>
 </body>
 </html>
+

@@ -89,7 +89,13 @@
       font-weight: 800;
     }
     .sidebar-title { font-size: 0.94rem; line-height: 1.35; }
-    .book-main { min-width: 0; padding: 1.25rem 1.45rem 1.8rem; }
+    .book-main {
+      min-width: 0;
+      min-height: 100vh;
+      padding: 1.25rem 1.45rem 1.8rem;
+      display: flex;
+      flex-direction: column;
+    }
     .book-page-header {
       padding: 0.85rem 0 1rem;
       margin-bottom: 1rem;
@@ -104,7 +110,12 @@
       padding: 0;
     }
     .book-page-header p { margin: 0.45rem 0 0; color: var(--muted); max-width: 62rem; }
-    .book-article { max-width: 900px; margin: 0; padding: 0 0 1.2rem; }
+    .book-article {
+      max-width: 900px;
+      margin: 0;
+      padding: 0 0 1.2rem;
+      flex: 1 0 auto;
+    }
     .book-article h1, .book-article h2, .book-article h3, .book-article h4, .book-article h5, .book-article h6 {
       line-height: 1.28;
       margin-top: 1.45em;
@@ -285,7 +296,7 @@
 <a class="sidebar-link active" href="./58-typical-case-library.html"><span class="sidebar-index">07</span><span class="sidebar-title">第58章 典型案例库</span></a>
 <a class="sidebar-link" href="./59-hypersonic-control-paper-reading-method.html"><span class="sidebar-index">08</span><span class="sidebar-title">第59章 高超声速控制论文阅读方法</span></a>
 <a class="sidebar-link" href="./60-frontiers-research-roadmap.html"><span class="sidebar-index">09</span><span class="sidebar-title">第60章 前沿问题与研究路线</span></a>
-<a class="sidebar-link" href="./case-library-code-mapping.html"><span class="sidebar-index">10</span><span class="sidebar-title">第五卷案例映射</span></a>
+<a class="sidebar-link" href="./case-library-mapping.html"><span class="sidebar-index">10</span><span class="sidebar-title">第五卷案例映射</span></a>
         </nav>
       </div>
     </aside>
@@ -294,15 +305,15 @@
         <h1 id="volume5--58-typical-case-library">第58章 典型案例库</h1>
       </header>
       <article class="book-article">
-        <h2 id="问题背景">58.1 问题背景</h2>
+        <h2 id="问题背景">1 问题背景</h2>
 <p>案例库的作用，在于把“对象、模型、控制目标、方法、约束、指标和证据边界”组织成可复现训练单元，而不是把前面章节的公式再演示一遍。参考书要求案例库覆盖不同对象和方法，不能只围绕动压约束或某个论文主题。</p>
 <p>一个好案例不只是“能跑的例子”，而是一个把对象、方法和证据边界说清楚的训练单元。基于这个定义，下面先把案例应包含的最小要素说清楚，再把二十类典型案例按对象、方法、约束和证据边界组织起来。这样处理后，案例库才能真正服务于复现、作业和选题，而不是只做目录展示。它的作用，是让读者一眼看出某个案例能证明什么、还缺什么。</p>
 <p>本章承接第五卷从“验证方法”走向“训练体系”的脉络。第52到第57章讲平台、数值、数据、实时、指标和
 Monte Carlo，本章把这些要求落到具体案例矩阵里。</p>
 <p>本章另有一份案例映射页，用来说明 C01 到 C20
-与配套算例、证据材料和后续可展开方向的对应关系。读者可以先读本章理解案例设计，再结合这份映射页判断哪些案例已经能够运行，哪些仍主要适合作为教学或研究引导。</p>
+与案例材料、证据材料和后续可展开方向的对应关系。读者可以先读本章理解案例设计，再结合这份映射页判断哪些案例已经能够运行，哪些仍主要适合作为教学或研究引导。</p>
 <p>这一章不只是列案例，而是把案例放进一套可复现、可比较、可扩展的组织方式里，让案例库从“目录”变成“训练材料”。</p>
-<h2 id="案例条目的标准结构">58.2 案例条目的标准结构</h2>
+<h2 id="案例条目的标准结构">2 案例条目的标准结构</h2>
 <p>每个案例建议采用统一条目：</p>
 <table>
 <colgroup>
@@ -349,6 +360,10 @@ Monte Carlo，本章把这些要求落到具体案例矩阵里。</p>
 <td>跟踪、安全、输入、终端、计算、鲁棒指标</td>
 </tr>
 <tr>
+<td>实现线索</td>
+<td>控制周期、参数文件、日志字段、运行开关和结果记录对象</td>
+</tr>
+<tr>
 <td>实现状态</td>
 <td>已可运行、教学实现仍需完善、研究级仍需完善、高保真验证仍需完善</td>
 </tr>
@@ -358,8 +373,8 @@ Monte Carlo，本章把这些要求落到具体案例矩阵里。</p>
 </tr>
 </tbody>
 </table>
-<p>若每个案例没有基线、指标口径和证据边界，它就不是完整案例，只是方法说明。</p>
-<h2 id="二十个典型案例总表">58.3 二十个典型案例总表</h2>
+<p>若每个案例没有基线、指标口径、实现线索和证据边界，它就不是完整案例，只是方法说明。</p>
+<h2 id="二十个典型案例总表">3 二十个典型案例总表</h2>
 <p>建议至少覆盖以下二十类案例：</p>
 <table>
 <colgroup>
@@ -381,13 +396,13 @@ Monte Carlo，本章把这些要求落到具体案例矩阵里。</p>
 <td>C01</td>
 <td>纵向小扰动 PID 控制</td>
 <td>建立经典自动驾驶仪基线</td>
-<td>已有教学代码素材</td>
+<td>已有教学素材</td>
 </tr>
 <tr>
 <td>C02</td>
 <td>姿态 LQR 控制</td>
 <td>建立状态反馈和权重设计训练</td>
-<td>已有教学代码素材</td>
+<td>已有教学素材</td>
 </tr>
 <tr>
 <td>C03</td>
@@ -405,7 +420,7 @@ Monte Carlo，本章把这些要求落到具体案例矩阵里。</p>
 <td>C05</td>
 <td>NDI 姿态控制</td>
 <td>训练动态逆、相对阶和模型误差</td>
-<td>已有教学代码素材</td>
+<td>已有教学素材</td>
 </tr>
 <tr>
 <td>C06</td>
@@ -417,13 +432,13 @@ Monte Carlo，本章把这些要求落到具体案例矩阵里。</p>
 <td>C07</td>
 <td>反步纵向控制</td>
 <td>训练虚拟控制和 Lyapunov 递推</td>
-<td>已有教学代码素材</td>
+<td>已有教学素材</td>
 </tr>
 <tr>
 <td>C08</td>
 <td>滑模攻角控制</td>
 <td>训练鲁棒项、边界层和舵速指标</td>
-<td>已有教学代码素材</td>
+<td>已有教学素材</td>
 </tr>
 <tr>
 <td>C09</td>
@@ -499,9 +514,9 @@ Monte Carlo，本章把这些要求落到具体案例矩阵里。</p>
 </tr>
 </tbody>
 </table>
-<p>这个表的关键是诚实标注成熟度。现有配套实现能支撑一部分教学案例，但并不意味着全部案例都具备可运行的高保真验证。</p>
-<h2 id="可直接支撑的案例">58.4 可直接支撑的案例</h2>
-<p>Python、MATLAB 和 Simulink 配套实现已经能支撑以下方向：</p>
+<p>这个表的关键是诚实标注成熟度。现有材料能支撑一部分教学案例，但并不意味着全部案例都具备可运行的高保真验证。</p>
+<h2 id="可直接支撑的案例">4 可直接支撑的案例</h2>
+<p>现有材料已经能支撑以下方向：</p>
 <table>
 <colgroup>
 <col style="width: 33%" />
@@ -511,80 +526,80 @@ Monte Carlo，本章把这些要求落到具体案例矩阵里。</p>
 <thead>
 <tr>
 <th>案例</th>
-<th>现有配套内容</th>
+<th>现有案例内容</th>
 <th>可报告内容</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td>C01 PID/基线纵向控制</td>
-<td>基线纵向算例、MATLAB 基线算例、Simulink 安全参考修正纵向闭环</td>
+<td>基线纵向案例、对照案例和安全参考修正纵向闭环</td>
 <td>高度和速度 RMS、动压、舵偏</td>
 </tr>
 <tr>
 <td>C02 LQR 教学控制</td>
-<td>LQR 配套算例与验证用例</td>
+<td>LQR 单轴姿态案例与验证用例</td>
 <td>局部线性二次型基线</td>
 </tr>
 <tr>
 <td>C05 NDI 教学控制</td>
-<td>NDI 配套算例与验证用例</td>
+<td>NDI 纵向姿态案例与验证用例</td>
 <td>简化动态逆、模型依赖</td>
 </tr>
 <tr>
 <td>C07 反步纵向控制</td>
-<td>反步配套算例与验证用例</td>
+<td>反步纵向跟踪案例与验证用例</td>
 <td>递推结构和跟踪指标</td>
 </tr>
 <tr>
 <td>C08 滑模控制</td>
-<td>滑模配套算例与验证用例</td>
+<td>滑模鲁棒跟踪案例与验证用例</td>
 <td>鲁棒项、边界层和控制代价</td>
 </tr>
 <tr>
 <td>C13 故障注入</td>
-<td>故障注入算例与故障扫描算例</td>
+<td>故障注入案例与故障扫描案例</td>
 <td>故障后指标、检测延迟</td>
 </tr>
 <tr>
 <td>C14 再入热流约束</td>
-<td>再入热流约束配套算例</td>
+<td>再入热流约束案例</td>
 <td>热流、热载荷、动压、过载、走廊裕度和终端指标</td>
 </tr>
 <tr>
 <td>C15 滑翔能量管理</td>
-<td>滑翔能量管理配套算例</td>
+<td>滑翔能量管理案例</td>
 <td>能量高度、航程、横程、走廊裕度和倾侧输入指标</td>
 </tr>
 <tr>
 <td>C16 三维质点制导</td>
-<td>三维质点制导配套算例</td>
+<td>三维质点制导案例</td>
 <td>终端误差、路径和动压</td>
 </tr>
 <tr>
 <td>C17 教学 IGC 骨架</td>
-<td>姿态接口算例与耦合骨架算例</td>
+<td>姿态接口案例与耦合骨架案例</td>
 <td>制导、姿态和分配接口指标</td>
 </tr>
 <tr>
 <td>C18 模型预测控制 轨迹跟踪</td>
-<td>模型预测控制 轨迹跟踪配套算例</td>
+<td>模型预测控制轨迹跟踪案例</td>
 <td>预测时域、动压约束、求解时间、回退逻辑和经验可行性</td>
 </tr>
 <tr>
 <td>C19 屏障安全层</td>
-<td>命令屏障安全层算例与安全滤波算例</td>
+<td>命令屏障安全层案例与安全滤波案例</td>
 <td>动压裕度、违反积分和成对比较</td>
 </tr>
 <tr>
 <td>C20 教学六自由度传播</td>
-<td>六自由度刚体传播算例与耦合骨架算例</td>
+<td>六自由度刚体传播案例与耦合骨架案例</td>
 <td>姿态健康、位置速度传播和闭环接口梳理</td>
 </tr>
 </tbody>
 </table>
 <p>这些案例适合作为教程训练和论文证据链模板，但结论应限定为教学级。</p>
-<h2 id="c01-纵向小扰动-pid-控制">58.5 C01 纵向小扰动 PID 控制</h2>
+<h2 id="c01-纵向小扰动-pid-控制">5 C01 纵向小扰动 PID 控制</h2>
 <p>目标是在纵向小扰动或简化非线性模型上建立合理基线。</p>
 <p>应包含：</p>
 <ul>
@@ -595,11 +610,11 @@ Monte Carlo，本章把这些要求落到具体案例矩阵里。</p>
 <li>与 LQR 或非线性方法对比。</li>
 </ul>
 <p>指标可统一写成高度 RMS 误差、速度 RMS
-误差、最大攻角、舵偏峰值、舵速峰值和最小动压裕度；若需要与配套数据表逐项核对，再回到附录
+误差、最大攻角、舵偏峰值、舵速峰值和最小动压裕度；若需要与对应数据表逐项核对，再回到附录
 A 查对应指标标识。</p>
 <p>本案例的作用是建立“高级方法必须超越的合理基线”。不能故意把 PID
 调差来证明新方法优越。</p>
-<h2 id="c02-姿态-lqr-控制">58.6 C02 姿态 LQR 控制</h2>
+<h2 id="c02-姿态-lqr-控制">6 C02 姿态 LQR 控制</h2>
 <p>目标是在线性姿态模型上训练状态反馈、Riccati 方程和权重选择。</p>
 <p>模型：</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Δ</mi><mover><mi>x</mi><mo accent="true">̇</mo></mover><mo>=</mo><mi>A</mi><mi mathvariant="normal">Δ</mi><mi>x</mi><mo>+</mo><mi>B</mi><mi mathvariant="normal">Δ</mi><mi>u</mi></mrow><annotation encoding="application/x-tex">
@@ -625,7 +640,7 @@ A 查对应指标标识。</p>
 是离散化矩阵。</p>
 <p>指标应同时报告姿态误差和控制代价。若 LQR
 来自局部线化模型，则必须说明飞行点和线化范围。</p>
-<h2 id="c03-h_infty-鲁棒姿态控制">58.7 C03
+<h2 id="c03-h_infty-鲁棒姿态控制">7 C03
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>H</mi><mi>∞</mi></msub><annotation encoding="application/x-tex">H_\infty</annotation></semantics></math>
 鲁棒姿态控制</h2>
 <p>目标是训练不确定性、加权函数、鲁棒稳定性和鲁棒性能。</p>
@@ -639,13 +654,13 @@ A 查对应指标标识。</p>
 </ul>
 <p>C03 单轴俯仰
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>H</mi><mi>∞</mi></msub><annotation encoding="application/x-tex">H_\infty</annotation></semantics></math>
-风格鲁棒姿态教学算例使用惯量、阻尼和执行机构时间常数不确定样本，对比既有姿态
+风格鲁棒姿态教学案例使用惯量、阻尼和执行机构时间常数不确定样本，对比既有姿态
 PD 和加权
 PD，在频域报告混合灵敏度峰值、鲁棒稳定性相关峰值和最坏峰值频率，在时域报告姿态
-RMS、峰值误差和力矩饱和比例。该算例仍不是完整的
+RMS、峰值误差和力矩饱和比例。该案例仍不是完整的
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>H</mi><mi>∞</mi></msub><annotation encoding="application/x-tex">H_\infty</annotation></semantics></math>
 综合、多轴鲁棒姿态控制或结构奇异值分析。</p>
-<h2 id="c04-高超声速巡航速度高度控制">58.8 C04
+<h2 id="c04-高超声速巡航速度高度控制">8 C04
 高超声速巡航速度高度控制</h2>
 <p>目标是在吸气式巡航任务中同时处理速度、高度、攻角、油门和推进约束。</p>
 <p>应连接第51章的推力-姿态耦合和进气道裕度：</p>
@@ -773,7 +788,7 @@ u(t)=\bigl[\delta_e(t),\ \delta_T(t),\ \alpha_{\mathrm{cmd}}(t)\bigr]^\top
 </tbody>
 </table>
 <p>第58章提供了一组已经带着对象、基线、指标和失败样本的阅读抓手。</p>
-<h2 id="案例到研究路线任务的转化接口">58.9
+<h2 id="案例到研究路线任务的转化接口">9
 案例到研究路线任务的转化接口</h2>
 <p>第58章也不应只把案例停在“能得到一组教学结果”。更重要的是：每个案例仍需继续完善的环节，都可以转写成第60章中的研究问题。</p>
 <p>可把案例升级任务抽象为：</p>
@@ -784,7 +799,7 @@ u(t)=\bigl[\delta_e(t),\ \delta_T(t),\ \alpha_{\mathrm{cmd}}(t)\bigr]^\top
 表示案例升级任务，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Δ</mi><mi>ℳ</mi></mrow><annotation encoding="application/x-tex">\Delta\mathcal{M}</annotation></semantics></math>
 表示模型或实现中仍需继续完善的环节，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Δ</mi><mi>𝒦</mi></mrow><annotation encoding="application/x-tex">\Delta\mathcal{K}</annotation></semantics></math>
 表示尚未解决的核心矛盾，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ℬ</mi><annotation encoding="application/x-tex">\mathcal{B}</annotation></semantics></math>
-表示基线与已有配套算例，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝒱</mi><annotation encoding="application/x-tex">\mathcal{V}</annotation></semantics></math>
+表示基线与已有案例，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝒱</mi><annotation encoding="application/x-tex">\mathcal{V}</annotation></semantics></math>
 表示计划采用的验证协议，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ℒ</mi><annotation encoding="application/x-tex">\mathcal{L}</annotation></semantics></math>
 表示分阶段里程碑。</p>
 <p>从案例走向研究路线时，最常见的几类升级关系如下：</p>
@@ -804,7 +819,7 @@ u(t)=\bigl[\delta_e(t),\ \delta_T(t),\ \alpha_{\mathrm{cmd}}(t)\bigr]^\top
 <tbody>
 <tr>
 <td>C03</td>
-<td>仍是单轴和低阶结构不确定样例</td>
+<td>仍是单轴和低阶结构不确定案例</td>
 <td>如何把鲁棒姿态设计扩展到多轴、多飞行点和结构不确定耦合</td>
 </tr>
 <tr>
@@ -814,7 +829,7 @@ u(t)=\bigl[\delta_e(t),\ \delta_T(t),\ \alpha_{\mathrm{cmd}}(t)\bigr]^\top
 </tr>
 <tr>
 <td>C06</td>
-<td>仍是单轴 INDI 教学算例</td>
+<td>仍是单轴 INDI 教学案例</td>
 <td>如何把 INDI 扩展到三轴姿态、控制分配和延迟噪声扫描</td>
 </tr>
 <tr>
@@ -844,7 +859,7 @@ u(t)=\bigl[\delta_e(t),\ \delta_T(t),\ \alpha_{\mathrm{cmd}}(t)\bigr]^\top
 </tr>
 <tr>
 <td>C18</td>
-<td>仍是有限控制集教学算例</td>
+<td>仍是有限控制集教学案例</td>
 <td>如何把模型预测控制扩展到
 QP/N模型预测控制、终端集合和严格可行性分析</td>
 </tr>
@@ -856,7 +871,7 @@ QP/N模型预测控制、终端集合和严格可行性分析</td>
 </tbody>
 </table>
 <p>把这些扩展方向写清楚以后，第60章里的研究路线就不再是抽象热点，而是从案例证据自然长出来的问题链。</p>
-<h2 id="案例证据等级与第-5960-章衔接表">58.10 案例证据等级与第 59、60
+<h2 id="案例证据等级与第-5960-章衔接表">10 案例证据等级与第 59、60
 章衔接表</h2>
 <p>第 58、59、60
 章之间还需要一个共同口径：案例目前的证据强度，通常能支撑到哪个类阅读任务和研究任务。</p>
@@ -880,7 +895,7 @@ QP/N模型预测控制、终端集合和严格可行性分析</td>
 <td>0 级</td>
 <td>论文对象和问题定位</td>
 <td>方向动机和对象定义</td>
-<td>已具备复现实验</td>
+<td>已具备核查实验</td>
 </tr>
 <tr>
 <td>1 级</td>
@@ -902,7 +917,7 @@ QP/N模型预测控制、终端集合和严格可行性分析</td>
 </tr>
 <tr>
 <td>4 级及以上</td>
-<td>教学级复现到研究级比较</td>
+<td>教学级核查到研究级比较</td>
 <td>博士论文级路线闭环</td>
 <td>仍需单独审查是否足以支撑更高层级验证</td>
 </tr>
@@ -911,10 +926,10 @@ QP/N模型预测控制、终端集合和严格可行性分析</td>
 <p>由于本书中的多数案例仍处于 1 级到 3 级，所以比较稳妥的用法是：</p>
 <ul>
 <li>用第58章组织案例对象、指标和失败样本；</li>
-<li>用第59章组织阅读报告、复现问题卡和保守结论；</li>
+<li>用第59章组织阅读报告、核查问题卡和保守结论；</li>
 <li>用第60章把扩展方向升级成研究矛盾、里程碑和验证协议。</li>
 </ul>
-<h2 id="本章内容的边界">58.11 本章内容的边界</h2>
+<h2 id="本章内容的边界">11 本章内容的边界</h2>
 <p>与第58章相衔接的材料主要包括：</p>
 <table>
 <colgroup>
@@ -930,7 +945,7 @@ QP/N模型预测控制、终端集合和严格可行性分析</td>
 <tbody>
 <tr>
 <td>案例映射页</td>
-<td>给出 C01 到 C20 的配套算例、证据边界和扩展方向</td>
+<td>给出 C01 到 C20 的案例材料、证据边界和扩展方向</td>
 </tr>
 <tr>
 <td><a href="../14_paper_case_dynamic_pressure_fault_safety.md">第14章
@@ -941,7 +956,7 @@ QP/N模型预测控制、终端集合和严格可行性分析</td>
 <td><a
 href="59-hypersonic-control-paper-reading-method.html#volume5--59-hypersonic-control-paper-reading-method">第59章
 高超声速控制论文阅读方法</a></td>
-<td>给出论文阅读、复现问题卡和阅读证据层级</td>
+<td>给出论文阅读、核查问题卡和阅读证据层级</td>
 </tr>
 <tr>
 <td><a
@@ -958,7 +973,7 @@ href="60-frontiers-research-roadmap.html#volume5--60-frontiers-research-roadmap"
 <li>但它还不是正式文献库，也不是高保真六自由度闭环案例全集；</li>
 <li>因此，第58章能支撑“案例如何服务阅读和选题训练”，不能支撑“所有案例都已具备完整高保真验证”。</li>
 </ul>
-<h2 id="案例到第52到第57章训练链的转化接口">58.12
+<h2 id="案例到第52到第57章训练链的转化接口">12
 案例到第52到第57章训练链的转化接口</h2>
 <p>第58章除了向后连接第 59、60
 章，还必须向前连接第五卷前半段。否则案例库就会失去“验证训练落点”的作用。</p>
@@ -1003,8 +1018,8 @@ href="60-frontiers-research-roadmap.html#volume5--60-frontiers-research-roadmap"
 </tbody>
 </table>
 <p>因此，第58章的案例不是“附录里的例子”，而是第52到第57章所有验证要求的具体承载体。</p>
-<h2 id="案例最小构成要素">58.13 案例最小构成要素</h2>
-<p>如果每个案例只写“已有配套实现”和“已有若干结果图”，通常不足以进入参考书级案例库。要把它纳入正文体系，至少要能说清对象、模型、目标、方法、约束、指标、实现状态和证据边界。换句话说，案例不是把图和代码放在一起就算成立，而是必须让读者一眼看出它能证明什么、还证明不了什么。</p>
+<h2 id="案例最小构成要素">13 案例最小构成要素</h2>
+<p>如果每个案例只写“已有实现说明”和“已有若干结果图”，通常不足以进入参考书级案例库。要把它纳入正文体系，至少要能说清对象、模型、目标、方法、约束、指标、实现状态、实现线索和证据边界。换句话说，案例不是把图和素材放在一起就算成立，而是必须让读者一眼看出它能证明什么、还证明不了什么，以及它在前面章节里该去核对哪些对象字段。</p>
 <table>
 <thead>
 <tr>
@@ -1015,7 +1030,11 @@ href="60-frontiers-research-roadmap.html#volume5--60-frontiers-research-roadmap"
 <tbody>
 <tr>
 <td>案例承载体</td>
-<td>配套算例、场景设置、对象层级和随机样本策略</td>
+<td>案例材料、场景设置、对象层级和随机样本策略</td>
+</tr>
+<tr>
+<td>实现线索</td>
+<td>控制周期、参数文件、日志字段、运行开关和结果记录对象</td>
 </tr>
 <tr>
 <td>数值口径</td>
@@ -1034,6 +1053,10 @@ href="60-frontiers-research-roadmap.html#volume5--60-frontiers-research-roadmap"
 <td>跟踪、安全、输入、终端、计算量和组合通过判据</td>
 </tr>
 <tr>
+<td>实现线索</td>
+<td>命令量、实际执行量、限幅、延迟、回退和故障记录</td>
+</tr>
+<tr>
 <td>统计层次</td>
 <td>单场景、成对比较、Monte Carlo 或故障扫描</td>
 </tr>
@@ -1047,6 +1070,7 @@ href="60-frontiers-research-roadmap.html#volume5--60-frontiers-research-roadmap"
 </tr>
 </tbody>
 </table>
+<p>这里补上的实现线索，不是让正文变成材料说明，而是让读者知道案例后面对应的是哪些运行对象、日志对象和参数对象。这样即使不打开外部资料，也能判断案例材料是否完整。</p>
 <p>若写成抽象案例对象，至少可整理为：</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>𝒞</mi><mrow><mi mathvariant="normal">c</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">s</mi><mi mathvariant="normal">e</mi></mrow></msub><mo>=</mo><mo minsize="1.2" maxsize="1.2" stretchy="false" form="prefix">(</mo><mi>𝒫</mi><mo>,</mo><mi>𝒩</mi><mo>,</mo><mi>𝒟</mi><mo>,</mo><mi>ℐ</mi><mo>,</mo><mi>ℳ</mi><mo>,</mo><mi>𝒮</mi><mo>,</mo><mi>ℱ</mi><mo>,</mo><mi>ℰ</mi><mo minsize="1.2" maxsize="1.2" stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
 \mathcal{C}_{\mathrm{case}}=\bigl(\mathcal{P},\mathcal{N},\mathcal{D},\mathcal{I},\mathcal{M},\mathcal{S},\mathcal{F},\mathcal{E}\bigr)
@@ -1061,29 +1085,28 @@ href="60-frontiers-research-roadmap.html#volume5--60-frontiers-research-roadmap"
 表示统计层次，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ℱ</mi><annotation encoding="application/x-tex">\mathcal{F}</annotation></semantics></math>
 表示失败样本，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ℰ</mi><annotation encoding="application/x-tex">\mathcal{E}</annotation></semantics></math>
 表示证据边界。这样整理后，案例才真正能服务整卷训练链。
-这也说明，案例不是单个图或单段代码，而是连着数值、指标、统计和边界的一整套训练对象。
+这也说明，案例不是单个图或单段实现说明，而是连着数值、指标、统计和边界的一整套训练对象。
 只有把这些字段写全，案例才能和前面的平台、指标、统计章节对接。</p>
-<h2 id="常见错误">58.14 常见错误</h2>
+<h2 id="常见错误">14 常见错误</h2>
 <ol type="1">
 <li>案例库只覆盖自己的论文方向。</li>
 <li>每个案例都换指标，导致无法比较。</li>
 <li>只写方法名，不写模型和约束。</li>
 <li>没有合理基线。</li>
-<li>案例没有可复现实验过程。</li>
+<li>案例没有可核查实验过程。</li>
 <li>不要把教学级案例直接写成更高层级验证结果。</li>
 <li>删除失败样本，只保留成功图。</li>
 </ol>
-<h2 id="练习">58.15 练习</h2>
+<h2 id="练习">15 练习</h2>
 <ol type="1">
 <li>从 C01 到 C20 中选择 5 个案例，设计统一指标表。</li>
-<li>把动压安全跟踪代码定位到 0 级到 4 级中的某个级，并说明原因。</li>
+<li>把动压安全跟踪案例定位到 0 级到 4 级中的某个级，并说明原因。</li>
 <li>为 C03 H∞ 鲁棒姿态控制设计最小可运行案例结构。</li>
 <li>为 C18 模型预测控制轨迹跟踪写出配置文件应包含的字段。</li>
 <li>说明为什么 C20 六自由度闭环仿真不能只检查姿态误差。</li>
 </ol>
 
       </article>
-      
       <nav class="book-bottom-nav" aria-label="章节导航">
         <a href="./57-uncertainty-monte-carlo-verification.html">上一章：第57章 不确定性分析与 Monte Carlo 验证</a>
         <a href="./index.html">卷首页</a>
@@ -1094,3 +1117,8 @@ href="60-frontiers-research-roadmap.html#volume5--60-frontiers-research-roadmap"
   </div>
 </body>
 </html>
+
+
+
+
+

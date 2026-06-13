@@ -89,7 +89,13 @@
       font-weight: 800;
     }
     .sidebar-title { font-size: 0.94rem; line-height: 1.35; }
-    .book-main { min-width: 0; padding: 1.25rem 1.45rem 1.8rem; }
+    .book-main {
+      min-width: 0;
+      min-height: 100vh;
+      padding: 1.25rem 1.45rem 1.8rem;
+      display: flex;
+      flex-direction: column;
+    }
     .book-page-header {
       padding: 0.85rem 0 1rem;
       margin-bottom: 1rem;
@@ -104,7 +110,12 @@
       padding: 0;
     }
     .book-page-header p { margin: 0.45rem 0 0; color: var(--muted); max-width: 62rem; }
-    .book-article { max-width: 900px; margin: 0; padding: 0 0 1.2rem; }
+    .book-article {
+      max-width: 900px;
+      margin: 0;
+      padding: 0 0 1.2rem;
+      flex: 1 0 auto;
+    }
     .book-article h1, .book-article h2, .book-article h3, .book-article h4, .book-article h5, .book-article h6 {
       line-height: 1.28;
       margin-top: 1.45em;
@@ -117,27 +128,30 @@
     .book-article h3 { font-size: 1.12rem; }
     .book-article p, .book-article li, .book-article dd, .book-article td, .book-article th { text-align: justify; text-justify: inter-ideograph; }
     .book-article p { margin: 0.85rem 0; }
-    .book-article code, .book-article pre { font-family: "Cascadia Mono", "Source Code Pro", Consolas, monospace; font-size: 0.94em; }
+    .book-article code, .book-article pre { font-family: inherit; font-size: 0.98em; letter-spacing: 0; }
     .book-article code {
-      padding: 0.02rem 0.24rem;
-      background: color-mix(in srgb, var(--accent-soft) 34%, #ffffff 66%);
+      padding: 0.04rem 0.28rem;
+      background: color-mix(in srgb, var(--accent-soft) 24%, #ffffff 76%);
       border: 0;
-      border-bottom: 1px solid color-mix(in srgb, var(--accent-soft) 74%, #d1d5db 26%);
+      border-bottom: 1px solid color-mix(in srgb, var(--accent-soft) 52%, #d1d5db 48%);
       border-radius: 4px;
-      color: #253244;
+      color: #2b3440;
       box-decoration-break: clone;
       -webkit-box-decoration-break: clone;
+      font-family: inherit;
+      font-variant-ligatures: none;
     }
     .book-article pre {
-      padding: 1rem 1.1rem;
+      padding: 0.95rem 1.05rem;
       overflow: auto;
-      background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,253,248,0.98));
-      border: 1px solid color-mix(in srgb, var(--accent-soft) 54%, #d1d5db 46%);
-      border-left: 5px solid var(--accent);
+      background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,253,248,0.96));
+      border: 1px solid color-mix(in srgb, var(--accent-soft) 44%, #d1d5db 56%);
+      border-left: 4px solid var(--accent);
       border-radius: 14px;
       box-shadow: 0 8px 22px rgba(31, 41, 55, 0.05);
+      white-space: pre-wrap;
     }
-    .book-article pre code { padding: 0; border: 0; background: transparent; color: inherit; }
+    .book-article pre code { padding: 0; border: 0; background: transparent; color: inherit; font-family: inherit; }
     .book-article table {
       border-collapse: collapse;
       width: 100%;
@@ -300,12 +314,12 @@
         <h1 id="volume3--32-gain-scheduling-lpv-control">第32章 增益调度与 LPV 控制</h1>
       </header>
       <article class="book-article">
-        <h2 id="问题背景">32.1 问题背景</h2>
+        <h2 id="问题背景">1 问题背景</h2>
 <p>固定增益控制器通常只在某个配平点附近可靠。高超声速飞行器会跨越大高度、大马赫数和大动压变化范围，气动导数、推进效能、执行机构效能和模态都会明显变化。因此，第三卷在讲完经典控制、状态空间、LQR/LQG
 和鲁棒控制后，必须进入增益调度与 LPV 控制。</p>
 <p>增益调度和 LPV
 控制关心的不是单个飞行点上的局部最优，而是控制器如何随着飞行包线变化保持可用。</p>
-<h2 id="固定增益控制器的局限">32.2 固定增益控制器的局限</h2>
+<h2 id="固定增益控制器的局限">2 固定增益控制器的局限</h2>
 <p>在单个飞行点附近，可得到局部模型</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>x</mi><mo accent="true">̇</mo></mover><mo>=</mo><mi>A</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>ρ</mi><mn>0</mn></msub><mo stretchy="false" form="postfix">)</mo><mi>x</mi><mo>+</mo><mi>B</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>ρ</mi><mn>0</mn></msub><mo stretchy="false" form="postfix">)</mo><mi>u</mi></mrow><annotation encoding="application/x-tex">
 \dot x = A(\rho_0)x + B(\rho_0)u
@@ -329,7 +343,7 @@ u = -K_0 x
 <p>若参数变化使
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>A</mi><mo stretchy="false" form="prefix">(</mo><mi>ρ</mi><mo stretchy="false" form="postfix">)</mo><mo>,</mo><mi>B</mi><mo stretchy="false" form="prefix">(</mo><mi>ρ</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">A(\rho),B(\rho)</annotation></semantics></math>
 偏离太大，则固定增益可能在某些飞行点表现很好，在另一些飞行点却出现低阻尼、慢响应或失稳。</p>
-<h2 id="调度变量">32.3 调度变量</h2>
+<h2 id="调度变量">3 调度变量</h2>
 <p>常见调度变量包括</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ρ</mi><mo>=</mo><msup><mrow><mo stretchy="true" form="prefix">[</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><mi>M</mi><mi>a</mi></mtd><mtd columnalign="center" style="text-align: center"><mi>h</mi></mtd><mtd columnalign="center" style="text-align: center"><mover><mi>q</mi><mo accent="true">‾</mo></mover></mtd><mtd columnalign="center" style="text-align: center"><mi>α</mi></mtd><mtd columnalign="center" style="text-align: center"><mi>V</mi></mtd></mtr></mtable><mo stretchy="true" form="postfix">]</mo></mrow><mi>⊤</mi></msup></mrow><annotation encoding="application/x-tex">
 \rho=\begin{bmatrix}Ma &amp; h &amp; \bar q &amp; \alpha &amp; V\end{bmatrix}^\top
@@ -343,7 +357,7 @@ u = -K_0 x
 其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ρ</mi><annotation encoding="application/x-tex">\rho</annotation></semantics></math>
 是调度变量向量，各分量共同描述飞行工况变化。</p>
 <p>选择调度变量时必须满足两个条件：能代表对象变化趋势，并且在工程上可测或可估。</p>
-<h2 id="增益调度">32.4 增益调度</h2>
+<h2 id="增益调度">4 增益调度</h2>
 <p>传统增益调度常是“先设计局部控制器，再插值”。若在多个飞行点得到局部增益</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>K</mi><mo stretchy="false" form="prefix">(</mo><mi>ρ</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><munderover><mo>∑</mo><mrow><mi>i</mi><mo>=</mo><mn>1</mn></mrow><mi>N</mi></munderover><msub><mi>λ</mi><mi>i</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>ρ</mi><mo stretchy="false" form="postfix">)</mo><msub><mi>K</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">
 K(\rho)=\sum_{i=1}^{N}\lambda_i(\rho)K_i
@@ -359,7 +373,7 @@ K(\rho)=\sum_{i=1}^{N}\lambda_i(\rho)K_i
 其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>N</mi><annotation encoding="application/x-tex">N</annotation></semantics></math>
 是插值顶点或网格点数量。</p>
 <p>调度控制必须检查插值后的稳定性、连续性和无扰切换，而不能只看端点控制器是否稳定。</p>
-<h2 id="lpv-模型">32.5 LPV 模型</h2>
+<h2 id="lpv-模型">5 LPV 模型</h2>
 <p>LPV
 控制比传统增益调度更强调参数依赖模型、参数变化速率、统一稳定性证明、多面体或仿射结构、LMI
 设计条件和调度变量可测性。</p>
@@ -385,7 +399,7 @@ A(\rho)=\sum_{i=1}^{N}\lambda_i(\rho)A_i,\qquad B(\rho)=\sum_{i=1}^{N}\lambda_i(
 和
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>B</mi><mo stretchy="false" form="prefix">(</mo><mi>ρ</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">B(\rho)</annotation></semantics></math>
 是随调度变量变化的参数依赖矩阵。</p>
-<h2 id="稳定性保证">32.6 稳定性保证</h2>
+<h2 id="稳定性保证">6 稳定性保证</h2>
 <p>一种保守但清楚的 LPV 稳定性条件是寻找共同 Lyapunov 矩阵</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>P</mi><mo>&gt;</mo><mn>0</mn><mo>,</mo><mspace width="2.0em"></mspace><mi>A</mi><mo stretchy="false" form="prefix">(</mo><mi>ρ</mi><msup><mo stretchy="false" form="postfix">)</mo><mi>⊤</mi></msup><mi>P</mi><mo>+</mo><mi>P</mi><mi>A</mi><mo stretchy="false" form="prefix">(</mo><mi>ρ</mi><mo stretchy="false" form="postfix">)</mo><mo>&lt;</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">
 P&gt;0,\qquad A(\rho)^\top P + P A(\rho) &lt; 0
@@ -398,7 +412,7 @@ P&gt;0,\qquad A(\rho)^\top P + P A(\rho) &lt; 0
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>P</mi><annotation encoding="application/x-tex">P</annotation></semantics></math>
 为正定矩阵。</p>
 <p>若没有调度速率假设，只能说冻结参数意义下局部稳定，不能声称完整时变闭环稳定。</p>
-<h2 id="调度速率与实现节拍">32.7 调度速率与实现节拍</h2>
+<h2 id="调度速率与实现节拍">7 调度速率与实现节拍</h2>
 <p>调度速率不仅是数学条件，也是实现条件。工程上至少要交代：</p>
 <table>
 <thead>
@@ -434,7 +448,7 @@ P&gt;0,\qquad A(\rho)^\top P + P A(\rho) &lt; 0
 </tr>
 </tbody>
 </table>
-<h2 id="低阶问题卡两飞行点俯仰调度与积分状态继承">32.8
+<h2 id="低阶问题卡两飞行点俯仰调度与积分状态继承">8
 低阶问题卡：两飞行点俯仰调度与积分状态继承</h2>
 <p>考虑两个飞行点
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ρ</mi><mi>A</mi></msub><mo>,</mo><msub><mi>ρ</mi><mi>B</mi></msub></mrow><annotation encoding="application/x-tex">\rho_A,\rho_B</annotation></semantics></math>
@@ -470,7 +484,7 @@ u_A=-K_A x + K_{I,A} z,\qquad u_B=-K_B x + K_{I,B} z
 <p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mover><mi>ρ</mi><mo accent="true">̂</mo></mover><annotation encoding="application/x-tex">\hat\rho</annotation></semantics></math>
 是估计得到的调度变量，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>K</mi><mo stretchy="false" form="prefix">(</mo><mover><mi>ρ</mi><mo accent="true">̂</mo></mover><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">K(\hat\rho)</annotation></semantics></math>
 是基于估计调度变量得到的插值增益。</p>
-<h2 id="最小验证协议">32.9 最小验证协议</h2>
+<h2 id="最小验证协议">9 最小验证协议</h2>
 <p>第32章如果只有网格点结果和几条插值曲线，通常还不够。更自然的验证写法，是把下面六个问题依次展开：</p>
 <ol type="1">
 <li>包线定义是否清楚；</li>
@@ -527,10 +541,10 @@ u_A=-K_A x + K_{I,A} z,\qquad u_B=-K_B x + K_{I,B} z
 </tr>
 </tbody>
 </table>
-<h2 id="本章小结">32.10 本章小结</h2>
+<h2 id="本章小结">10 本章小结</h2>
 <p>增益调度和 LPV
 控制的目标，是让控制器随着飞行包线变化保持可用。它们把多个局部设计接成一条连续链路，但仍然需要配平、线化、稳定性证明、调度速率和非线性复测共同支撑。</p>
-<h2 id="练习">32.11 练习</h2>
+<h2 id="练习">11 练习</h2>
 <ol type="1">
 <li>说明固定增益控制器在宽包线对象上的局限。</li>
 <li>写出增益调度的插值形式。</li>
@@ -540,7 +554,6 @@ u_A=-K_A x + K_{I,A} z,\qquad u_B=-K_B x + K_{I,B} z
 </ol>
 
       </article>
-      
       <nav class="book-bottom-nav" aria-label="章节导航">
         <a href="./31-h2-hinf-robust-flight-control.html">上一章：第31章
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>H</mi><mn>2</mn></msub><annotation encoding="application/x-tex">H_2</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>H</mi><mi>∞</mi></msub><annotation encoding="application/x-tex">H_\infty</annotation></semantics></math>

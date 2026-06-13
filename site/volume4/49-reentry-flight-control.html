@@ -89,7 +89,13 @@
       font-weight: 800;
     }
     .sidebar-title { font-size: 0.94rem; line-height: 1.35; }
-    .book-main { min-width: 0; padding: 1.25rem 1.45rem 1.8rem; }
+    .book-main {
+      min-width: 0;
+      min-height: 100vh;
+      padding: 1.25rem 1.45rem 1.8rem;
+      display: flex;
+      flex-direction: column;
+    }
     .book-page-header {
       padding: 0.85rem 0 1rem;
       margin-bottom: 1rem;
@@ -104,7 +110,12 @@
       padding: 0;
     }
     .book-page-header p { margin: 0.45rem 0 0; color: var(--muted); max-width: 62rem; }
-    .book-article { max-width: 900px; margin: 0; padding: 0 0 1.2rem; }
+    .book-article {
+      max-width: 900px;
+      margin: 0;
+      padding: 0 0 1.2rem;
+      flex: 1 0 auto;
+    }
     .book-article h1, .book-article h2, .book-article h3, .book-article h4, .book-article h5, .book-article h6 {
       line-height: 1.28;
       margin-top: 1.45em;
@@ -117,27 +128,30 @@
     .book-article h3 { font-size: 1.12rem; }
     .book-article p, .book-article li, .book-article dd, .book-article td, .book-article th { text-align: justify; text-justify: inter-ideograph; }
     .book-article p { margin: 0.85rem 0; }
-    .book-article code, .book-article pre { font-family: "Cascadia Mono", "Source Code Pro", Consolas, monospace; font-size: 0.94em; }
+    .book-article code, .book-article pre { font-family: inherit; font-size: 0.98em; letter-spacing: 0; }
     .book-article code {
-      padding: 0.02rem 0.24rem;
-      background: color-mix(in srgb, var(--accent-soft) 34%, #ffffff 66%);
+      padding: 0.04rem 0.28rem;
+      background: color-mix(in srgb, var(--accent-soft) 24%, #ffffff 76%);
       border: 0;
-      border-bottom: 1px solid color-mix(in srgb, var(--accent-soft) 74%, #d1d5db 26%);
+      border-bottom: 1px solid color-mix(in srgb, var(--accent-soft) 52%, #d1d5db 48%);
       border-radius: 4px;
-      color: #253244;
+      color: #2b3440;
       box-decoration-break: clone;
       -webkit-box-decoration-break: clone;
+      font-family: inherit;
+      font-variant-ligatures: none;
     }
     .book-article pre {
-      padding: 1rem 1.1rem;
+      padding: 0.95rem 1.05rem;
       overflow: auto;
-      background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,253,248,0.98));
-      border: 1px solid color-mix(in srgb, var(--accent-soft) 54%, #d1d5db 46%);
-      border-left: 5px solid var(--accent);
+      background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,253,248,0.96));
+      border: 1px solid color-mix(in srgb, var(--accent-soft) 44%, #d1d5db 56%);
+      border-left: 4px solid var(--accent);
       border-radius: 14px;
       box-shadow: 0 8px 22px rgba(31, 41, 55, 0.05);
+      white-space: pre-wrap;
     }
-    .book-article pre code { padding: 0; border: 0; background: transparent; color: inherit; }
+    .book-article pre code { padding: 0; border: 0; background: transparent; color: inherit; font-family: inherit; }
     .book-article table {
       border-collapse: collapse;
       width: 100%;
@@ -296,10 +310,10 @@
         <h1 id="volume4--49-reentry-flight-control">第49章 再入飞行控制</h1>
       </header>
       <article class="book-article">
-        <h2 id="问题背景">49.1 问题背景</h2>
+        <h2 id="问题背景">1 问题背景</h2>
 <p>再入飞行控制是高超声速控制中最典型的强约束问题之一。飞行器从高空高速进入稠密大气，速度、热流、动压和过载快速变化，控制器不仅要跟踪轨迹，还要保证飞行状态始终位于再入走廊内。</p>
 <p>再入问题最重要的特点，是约束不是附属条件，而是任务本身的一部分。本章沿着这条主线展开：先把再入飞行动力学抽象成控制问题，再说明热流、动压、过载和走廊约束如何进入控制问题，以及倾侧角、攻角和升阻比如何影响能量管理。随后再看轨迹规划、再入制导和反馈控制如何分工，再入终端区域管理和横程控制需要哪些指标，以及为什么再入控制不能只用终端落点误差评价。</p>
-<h2 id="再入状态和动力学">49.2 再入状态和动力学</h2>
+<h2 id="再入状态和动力学">2 再入状态和动力学</h2>
 <p>教学中常用质点再入模型描述速度、航迹角、高度、航程和横程。可选状态为</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>x</mi><mo>=</mo><msup><mrow><mo stretchy="true" form="prefix">[</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><mi>r</mi></mtd><mtd columnalign="center" style="text-align: center"><mi>V</mi></mtd><mtd columnalign="center" style="text-align: center"><mi>γ</mi></mtd><mtd columnalign="center" style="text-align: center"><mi>χ</mi></mtd></mtr></mtable><mo stretchy="true" form="postfix">]</mo></mrow><mi>⊤</mi></msup></mrow><annotation encoding="application/x-tex">
 x=\begin{bmatrix}r &amp; V &amp; \gamma &amp; \chi\end{bmatrix}^\top
@@ -319,7 +333,7 @@ x=\begin{bmatrix}r &amp; V &amp; \gamma &amp; \chi\end{bmatrix}^\top
 是重力加速度。倾侧角
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>σ</mi><annotation encoding="application/x-tex">\sigma</annotation></semantics></math>
 通过改变升力方向影响下滑率和横向机动，是再入制导和控制的重要变量。</p>
-<h2 id="再入控制设计前的对象与接口检查">49.3
+<h2 id="再入控制设计前的对象与接口检查">3
 再入控制设计前的对象与接口检查</h2>
 <p>第49章最容易被写浅的地方，是把“再入控制”直接等同于某条下滑角命令或某个热流约束器。更稳妥的起点是先把对象层级、命令接口和安全责任边界写清楚。</p>
 <p>本节至少要明确以下接口：任务对象是再入走廊保持、终端区域进入、横程管理还是热流约束下降；模型层级是质点、三维质点、六自由度，还是还包含姿态与执行机构扩展状态；控制接口输出是
@@ -337,7 +351,7 @@ x=\begin{bmatrix}r &amp; V &amp; \gamma &amp; \chi\end{bmatrix}^\top
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>s</mi><annotation encoding="application/x-tex">s</annotation></semantics></math>
 的参考能量，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>e</mi><mi>E</mi></msub><annotation encoding="application/x-tex">e_E</annotation></semantics></math>
 表示能量误差；姿态与分配要说明倾侧角和攻角命令是否需要经过姿态控制、控制分配和舵速限制；故障与降级要说明是否考虑气动偏差、传感偏差、执行机构故障和终端目标放宽。</p>
-<h2 id="热流约束">49.4 热流约束</h2>
+<h2 id="热流约束">4 热流约束</h2>
 <p>再入热流率可用近似关系表达</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>Q</mi><mo accent="true">̇</mo></mover><mo>=</mo><msub><mi>k</mi><mi>Q</mi></msub><msup><mi>ρ</mi><mrow><mn>1</mn><mi>/</mi><mn>2</mn></mrow></msup><msup><mi>V</mi><mn>3</mn></msup></mrow><annotation encoding="application/x-tex">
 \dot Q = k_Q \rho^{1/2} V^3
@@ -348,7 +362,7 @@ x=\begin{bmatrix}r &amp; V &amp; \gamma &amp; \chi\end{bmatrix}^\top
 是大气密度，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>V</mi><annotation encoding="application/x-tex">V</annotation></semantics></math>
 是速度。</p>
 <p>热流对速度极敏感。控制器如果为了快速满足终端条件而保持过高速度进入稠密大气，可能即使动压暂时满足，也会违反热流约束。</p>
-<h2 id="动压和过载约束">49.5 动压和过载约束</h2>
+<h2 id="动压和过载约束">5 动压和过载约束</h2>
 <p>动压可写为</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>q</mi><mo>=</mo><mfrac><mn>1</mn><mn>2</mn></mfrac><mi>ρ</mi><msup><mi>V</mi><mn>2</mn></msup></mrow><annotation encoding="application/x-tex">
 q=\frac{1}{2}\rho V^2
@@ -363,7 +377,7 @@ n=\frac{L}{mg}
 是法向过载，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>L</mi><annotation encoding="application/x-tex">L</annotation></semantics></math>
 是升力。</p>
 <p>若轨迹短暂离开走廊，即使终端落点达标，也不能声称再入任务安全完成。</p>
-<h2 id="走廊定义可达性与参考可行化边界">49.6
+<h2 id="走廊定义可达性与参考可行化边界">6
 走廊定义、可达性与参考可行化边界</h2>
 <p>再入走廊不是一条“看起来顺眼的参考曲线”，而是状态、约束和终端可达性共同定义的可行域。要把它讲清楚，先从走廊坐标、上下边界和裕度定义说起，再看参考怎样被修正成可执行形式。</p>
 <p>首先要说明走廊坐标，是用高度-速度平面、能量-航程平面还是其他平面表示；其次要说明下边界由热流、动压、过载还是热防限制决定，上边界由升力不足、能量不足、控制效能不足还是终端不可达决定；然后要给出
@@ -377,7 +391,7 @@ r_f\in \mathcal{R}_{\mathrm{reentry}}(x)
 </annotation></semantics></math></p>
 <p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ℛ</mi><mrow><mi mathvariant="normal">r</mi><mi mathvariant="normal">e</mi><mi mathvariant="normal">e</mi><mi mathvariant="normal">n</mi><mi mathvariant="normal">t</mi><mi mathvariant="normal">r</mi><mi mathvariant="normal">y</mi></mrow></msub><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\mathcal{R}_{\mathrm{reentry}}(x)</annotation></semantics></math>
 由热流、累计热载荷、动压、过载、走廊和姿态/执行机构能力共同定义。</p>
-<h2 id="倾侧角控制">49.7 倾侧角控制</h2>
+<h2 id="倾侧角控制">7 倾侧角控制</h2>
 <p>倾侧角
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>σ</mi><annotation encoding="application/x-tex">\sigma</annotation></semantics></math>
 改变升力方向。纵向升力分量为</p>
@@ -387,7 +401,7 @@ L_v=L\cos\sigma
 <p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>L</mi><mi>v</mi></msub><annotation encoding="application/x-tex">L_v</annotation></semantics></math>
 是纵向升力分量。</p>
 <p>若姿态控制和控制分配无法实现倾侧角命令，质点再入制导结果就不可信。倾侧角控制的任务，不只是改横程，还要维持纵向升力、能量消耗和路径安全之间的平衡。</p>
-<h2 id="攻角与升阻比管理">49.8 攻角与升阻比管理</h2>
+<h2 id="攻角与升阻比管理">8 攻角与升阻比管理</h2>
 <p>再入飞行可通过攻角调节升阻比：</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mfrac><mi>L</mi><mi>D</mi></mfrac><mo>=</mo><mi>f</mi><mo stretchy="false" form="prefix">(</mo><mi>α</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
 \frac{L}{D}=f(\alpha)
@@ -396,7 +410,7 @@ L_v=L\cos\sigma
 是攻角，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>L</mi><mi>/</mi><mi>D</mi></mrow><annotation encoding="application/x-tex">L/D</annotation></semantics></math>
 是升阻比。</p>
 <p>较大攻角可能增加升力和阻力，有利于减速或控制下滑，但也会增大热、防结构和稳定性风险。攻角命令应与倾侧角、热流和过载共同设计，而不是单独调节。</p>
-<h2 id="能量管理">49.9 能量管理</h2>
+<h2 id="能量管理">9 能量管理</h2>
 <p>再入能量可写为</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>E</mi><mo>=</mo><mfrac><mn>1</mn><mn>2</mn></mfrac><msup><mi>V</mi><mn>2</mn></msup><mo>+</mo><mi>g</mi><mi>h</mi></mrow><annotation encoding="application/x-tex">
 E=\frac{1}{2}V^2+gh
@@ -406,7 +420,7 @@ E=\frac{1}{2}V^2+gh
 是高度，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>g</mi><annotation encoding="application/x-tex">g</annotation></semantics></math>
 是重力加速度。</p>
 <p>能量管理的目标，不是简单减速，而是在热流、动压、过载和终端条件约束下消耗正确数量的能量。若能量过高，需要增加阻力或延长路径；若能量不足，需要减少机动、降低阻力或放宽终端时间。</p>
-<h2 id="轨迹规划与再入制导">49.10 轨迹规划与再入制导</h2>
+<h2 id="轨迹规划与再入制导">10 轨迹规划与再入制导</h2>
 <p>再入制导的关键，不是单纯生成一条几何曲线，而是生成在走廊内可执行的参考。常见链路可写成</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>r</mi><mi>g</mi></msub><mo>→</mo><msub><mi>r</mi><mi>f</mi></msub><mo>→</mo><msub><mi>σ</mi><mi>c</mi></msub><mo>,</mo><msub><mi>α</mi><mi>c</mi></msub><mo>→</mo><msub><mi>u</mi><mi>a</mi></msub></mrow><annotation encoding="application/x-tex">
 r_g \rightarrow r_f \rightarrow \sigma_c,\alpha_c \rightarrow u_a
@@ -419,10 +433,10 @@ r_g \rightarrow r_f \rightarrow \sigma_c,\alpha_c \rightarrow u_a
 是可执行命令，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>u</mi><mi>a</mi></msub><annotation encoding="application/x-tex">u_a</annotation></semantics></math>
 是执行机构命令。</p>
 <p>若原始参考不可行，就应先做参考可行化，再把参考交给控制层，而不是让内环直接硬追。</p>
-<h2 id="稳定性和可行性线索">49.11 稳定性和可行性线索</h2>
+<h2 id="稳定性和可行性线索">11 稳定性和可行性线索</h2>
 <p>再入控制的分析不应只停留在“曲线能走过去”。至少要检查：跟踪误差是否有界、走廊是否保持、热流和动压是否不越界、终端能量是否满足、执行机构是否饱和。</p>
 <p>若控制器只把终端误差压小，却把热流、动压或过载压坏，那并不构成成功。再入控制的可行性判断，应同时覆盖路径、安全、输入和终端四类指标。</p>
-<h2 id="验证指标">49.12 验证指标</h2>
+<h2 id="验证指标">12 验证指标</h2>
 <p>再入飞行控制至少应报告：</p>
 <table>
 <thead>
@@ -474,10 +488,10 @@ r_g \rightarrow r_f \rightarrow \sigma_c,\alpha_c \rightarrow u_a
 </tr>
 </tbody>
 </table>
-<h2 id="本章适用范围">49.13 本章适用范围</h2>
+<h2 id="本章适用范围">13 本章适用范围</h2>
 <p>本章适合支撑再入问题的对象定义、路径约束定义、终端指标定义和命令接口定义。它也可以用来解释为什么终端命中并不等于路径安全、控制可实现性和工程可行性都已经满足。</p>
 <p>但本章还不能直接支撑高保真六自由度再入闭环、真实执行机构耦合或大样本不确定性统计结论。那些结论需要后续任务专题继续补齐。</p>
-<h2 id="常见错误">49.14 常见错误</h2>
+<h2 id="常见错误">14 常见错误</h2>
 <ol type="1">
 <li>只讲终端落点，不讲热流、动压和过载。</li>
 <li>把再入走廊写成一条曲线，而不是可行域。</li>
@@ -486,7 +500,7 @@ r_g \rightarrow r_f \rightarrow \sigma_c,\alpha_c \rightarrow u_a
 <li>把能量管理和路径安全分开处理。</li>
 <li>只看终端误差，不看安全裕度。</li>
 </ol>
-<h2 id="练习">49.15 练习</h2>
+<h2 id="练习">15 练习</h2>
 <ol type="1">
 <li>推导热流近似式
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>Q</mi><mo accent="true">̇</mo></mover><mo>=</mo><msub><mi>k</mi><mi>Q</mi></msub><msup><mi>ρ</mi><mrow><mn>1</mn><mi>/</mi><mn>2</mn></mrow></msup><msup><mi>V</mi><mn>3</mn></msup></mrow><annotation encoding="application/x-tex">\dot Q=k_Q\rho^{1/2}V^3</annotation></semantics></math>
@@ -498,7 +512,6 @@ r_g \rightarrow r_f \rightarrow \sigma_c,\alpha_c \rightarrow u_a
 </ol>
 
       </article>
-      
       <nav class="book-bottom-nav" aria-label="章节导航">
         <a href="./48-integrated-guidance-control.html">上一章：第48章 制导控制一体化</a>
         <a href="./index.html">卷首页</a>

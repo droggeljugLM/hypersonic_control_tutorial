@@ -89,7 +89,13 @@
       font-weight: 800;
     }
     .sidebar-title { font-size: 0.94rem; line-height: 1.35; }
-    .book-main { min-width: 0; padding: 1.25rem 1.45rem 1.8rem; }
+    .book-main {
+      min-width: 0;
+      min-height: 100vh;
+      padding: 1.25rem 1.45rem 1.8rem;
+      display: flex;
+      flex-direction: column;
+    }
     .book-page-header {
       padding: 0.85rem 0 1rem;
       margin-bottom: 1rem;
@@ -104,7 +110,12 @@
       padding: 0;
     }
     .book-page-header p { margin: 0.45rem 0 0; color: var(--muted); max-width: 62rem; }
-    .book-article { max-width: 900px; margin: 0; padding: 0 0 1.2rem; }
+    .book-article {
+      max-width: 900px;
+      margin: 0;
+      padding: 0 0 1.2rem;
+      flex: 1 0 auto;
+    }
     .book-article h1, .book-article h2, .book-article h3, .book-article h4, .book-article h5, .book-article h6 {
       line-height: 1.28;
       margin-top: 1.45em;
@@ -117,27 +128,30 @@
     .book-article h3 { font-size: 1.12rem; }
     .book-article p, .book-article li, .book-article dd, .book-article td, .book-article th { text-align: justify; text-justify: inter-ideograph; }
     .book-article p { margin: 0.85rem 0; }
-    .book-article code, .book-article pre { font-family: "Cascadia Mono", "Source Code Pro", Consolas, monospace; font-size: 0.94em; }
+    .book-article code, .book-article pre { font-family: inherit; font-size: 0.98em; letter-spacing: 0; }
     .book-article code {
-      padding: 0.02rem 0.24rem;
-      background: color-mix(in srgb, var(--accent-soft) 34%, #ffffff 66%);
+      padding: 0.04rem 0.28rem;
+      background: color-mix(in srgb, var(--accent-soft) 24%, #ffffff 76%);
       border: 0;
-      border-bottom: 1px solid color-mix(in srgb, var(--accent-soft) 74%, #d1d5db 26%);
+      border-bottom: 1px solid color-mix(in srgb, var(--accent-soft) 52%, #d1d5db 48%);
       border-radius: 4px;
-      color: #253244;
+      color: #2b3440;
       box-decoration-break: clone;
       -webkit-box-decoration-break: clone;
+      font-family: inherit;
+      font-variant-ligatures: none;
     }
     .book-article pre {
-      padding: 1rem 1.1rem;
+      padding: 0.95rem 1.05rem;
       overflow: auto;
-      background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,253,248,0.98));
-      border: 1px solid color-mix(in srgb, var(--accent-soft) 54%, #d1d5db 46%);
-      border-left: 5px solid var(--accent);
+      background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,253,248,0.96));
+      border: 1px solid color-mix(in srgb, var(--accent-soft) 44%, #d1d5db 56%);
+      border-left: 4px solid var(--accent);
       border-radius: 14px;
       box-shadow: 0 8px 22px rgba(31, 41, 55, 0.05);
+      white-space: pre-wrap;
     }
-    .book-article pre code { padding: 0; border: 0; background: transparent; color: inherit; }
+    .book-article pre code { padding: 0; border: 0; background: transparent; color: inherit; font-family: inherit; }
     .book-article table {
       border-collapse: collapse;
       width: 100%;
@@ -302,7 +316,7 @@
 与鲁棒飞行控制</h1>
       </header>
       <article class="book-article">
-        <h2 id="问题背景">31.1 问题背景</h2>
+        <h2 id="问题背景">1 问题背景</h2>
 <p>PID、极点配置和 LQR
 都依赖标称模型。高超声速飞行器的标称模型很难完全准确：气动导数、推进耦合、大气密度、执行机构、传感器、柔性模态和热变形都会带来不确定性。这里讨论如何用
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>H</mi><mn>2</mn></msub><annotation encoding="application/x-tex">H_2</annotation></semantics></math>
@@ -313,7 +327,7 @@
 和
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>H</mi><mi>∞</mi></msub><annotation encoding="application/x-tex">H_\infty</annotation></semantics></math>
 正是这套框架里最常见的两种度量方式：前者更关注平均意义上的能量表现，后者更关注最坏情况的放大界。</p>
-<h2 id="从标称性能到鲁棒性能">31.2 从标称性能到鲁棒性能</h2>
+<h2 id="从标称性能到鲁棒性能">2 从标称性能到鲁棒性能</h2>
 <p>标称设计只关心</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>x</mi><mo accent="true">̇</mo></mover><mo>=</mo><mi>A</mi><mi>x</mi><mo>+</mo><mi>B</mi><mi>u</mi></mrow><annotation encoding="application/x-tex">
 \dot x = A x + B u
@@ -325,7 +339,7 @@
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>B</mi><annotation encoding="application/x-tex">B</annotation></semantics></math>
 是标称模型矩阵。</p>
 <p>鲁棒飞控要回答：对给定不确定集合，闭环是否稳定，性能是否仍满足要求。因此，鲁棒性不是加大增益或仿真中加一个扰动，而是要定义不确定集合、性能输出和验证口径。</p>
-<h2 id="h_2-范数">31.3
+<h2 id="h_2-范数">3
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>H</mi><mn>2</mn></msub><annotation encoding="application/x-tex">H_2</annotation></semantics></math>
 范数</h2>
 <p>对稳定线性系统
@@ -340,7 +354,7 @@
 <p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>w</mi><annotation encoding="application/x-tex">w</annotation></semantics></math>
 是外部输入，如参考、扰动、噪声或不确定输入；<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>z</mi><annotation encoding="application/x-tex">z</annotation></semantics></math>
 是性能输出。</p>
-<h2 id="h_infty-范数">31.4
+<h2 id="h_infty-范数">4
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>H</mi><mi>∞</mi></msub><annotation encoding="application/x-tex">H_\infty</annotation></semantics></math>
 范数</h2>
 <p><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>H</mi><mi>∞</mi></msub><annotation encoding="application/x-tex">H_\infty</annotation></semantics></math>
@@ -361,7 +375,7 @@
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>H</mi><mi>∞</mi></msub><annotation encoding="application/x-tex">H_\infty</annotation></semantics></math>
 范数。</p>
 <p>这意味着：在设计考虑的不确定性和扰动范围内，性能输出不会被放大得太厉害。</p>
-<h2 id="混合灵敏度设计">31.5 混合灵敏度设计</h2>
+<h2 id="混合灵敏度设计">5 混合灵敏度设计</h2>
 <p>鲁棒飞控里最常见的
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>H</mi><mi>∞</mi></msub><annotation encoding="application/x-tex">H_\infty</annotation></semantics></math>
 设计是混合灵敏度。若开环为
@@ -386,7 +400,7 @@ S(s)=\frac{1}{1+L(s)},\qquad T(s)=\frac{L(s)}{1+L(s)}
 和
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>T</mi><mo stretchy="false" form="prefix">(</mo><mi>s</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">T(s)</annotation></semantics></math>
 分别是灵敏度函数和互补灵敏度函数。</p>
-<h2 id="权重选择的物理含义">31.6 权重选择的物理含义</h2>
+<h2 id="权重选择的物理含义">6 权重选择的物理含义</h2>
 <p>权重不应只为求解成功而调。一个更稳妥的写法是先把性能输出按任务意义归一化，再用权重表示希望控制哪些频段和哪些输出。</p>
 <table>
 <colgroup>
@@ -419,9 +433,9 @@ S(s)=\frac{1}{1+L(s)},\qquad T(s)=\frac{L(s)}{1+L(s)}
 </tr>
 </tbody>
 </table>
-<h2 id="鲁棒稳定与鲁棒性能">31.7 鲁棒稳定与鲁棒性能</h2>
+<h2 id="鲁棒稳定与鲁棒性能">7 鲁棒稳定与鲁棒性能</h2>
 <p>鲁棒稳定回答的是在不确定集合内系统是否始终稳定；鲁棒性能回答的是稳定之外性能是否也满足要求。二者不能混为一谈。</p>
-<h2 id="高超声速不确定性建模">31.8 高超声速不确定性建模</h2>
+<h2 id="高超声速不确定性建模">8 高超声速不确定性建模</h2>
 <p>高超声速鲁棒设计常见不确定源包括：</p>
 <table>
 <thead>
@@ -462,7 +476,7 @@ S(s)=\frac{1}{1+L(s)},\qquad T(s)=\frac{L(s)}{1+L(s)}
 </tbody>
 </table>
 <p>设计报告必须说明不确定性覆盖范围。若没有幅值、频率范围或样本定义，就无法核查鲁棒性。</p>
-<h2 id="多飞行点鲁棒对象">31.9 多飞行点鲁棒对象</h2>
+<h2 id="多飞行点鲁棒对象">9 多飞行点鲁棒对象</h2>
 <p>高超声速飞控里，一个常见误区是每个飞行点都能做一次鲁棒分析，于是就默认全包线鲁棒。更稳妥的组织方式是：飞行包线网格、每点配平与线化、每点不确定集合、每点频域证据、跨点插值或调度验证、非线性复测。</p>
 <p>如果不确定集合随飞行点变化，也应明确写出</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Δ</mi><mo stretchy="false" form="prefix">(</mo><mi>ρ</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><msub><mi mathvariant="normal">Δ</mi><mn>0</mn></msub><mo>+</mo><msub><mi mathvariant="normal">Δ</mi><mi>p</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>ρ</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
@@ -472,7 +486,7 @@ S(s)=\frac{1}{1+L(s)},\qquad T(s)=\frac{L(s)}{1+L(s)}
 是调度变量，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi mathvariant="normal">Δ</mi><mn>0</mn></msub><annotation encoding="application/x-tex">\Delta_0</annotation></semantics></math>
 是动态不确定部分，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi mathvariant="normal">Δ</mi><mi>p</mi></msub><annotation encoding="application/x-tex">\Delta_p</annotation></semantics></math>
 是参数不确定部分。</p>
-<h2 id="mu-的位置">31.10
+<h2 id="mu-的位置">10
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>μ</mi><annotation encoding="application/x-tex">\mu</annotation></semantics></math>
 的位置</h2>
 <p>若不确定性以结构化形式出现，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>μ</mi><annotation encoding="application/x-tex">\mu</annotation></semantics></math>
@@ -481,7 +495,7 @@ S(s)=\frac{1}{1+L(s)},\qquad T(s)=\frac{L(s)}{1+L(s)}
 范数更细。它可以减少把所有不确定性都当成最坏非结构块带来的保守性。</p>
 <p>本章只给出概念位置。若后续扩写，应单独说明 D-K
 迭代、结构不确定性建模和结果解释。</p>
-<h2 id="与-lqrlqg-的关系">31.11 与 LQR/LQG 的关系</h2>
+<h2 id="与-lqrlqg-的关系">11 与 LQR/LQG 的关系</h2>
 <p>LQR/LQG
 强调二次平均性能和估计噪声折中；<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>H</mi><mi>∞</mi></msub><annotation encoding="application/x-tex">H_\infty</annotation></semantics></math>
 强调最坏情况增益。二者不是互相替代，而是关注点不同。</p>
@@ -516,7 +530,7 @@ S(s)=\frac{1}{1+L(s)},\qquad T(s)=\frac{L(s)}{1+L(s)}
 </tr>
 </tbody>
 </table>
-<h2 id="与调度约束分配和实现的接口">31.12
+<h2 id="与调度约束分配和实现的接口">12
 与调度、约束、分配和实现的接口</h2>
 <p>第31章不应只停在频域鲁棒性分析。它还必须和后续章节形成明确接口。</p>
 <table>
@@ -549,7 +563,7 @@ S(s)=\frac{1}{1+L(s)},\qquad T(s)=\frac{L(s)}{1+L(s)}
 </tr>
 </tbody>
 </table>
-<h2 id="验证指标">31.13 验证指标</h2>
+<h2 id="验证指标">13 验证指标</h2>
 <p>鲁棒飞控设计至少应报告：</p>
 <table>
 <thead>
@@ -594,7 +608,7 @@ S(s)=\frac{1}{1+L(s)},\qquad T(s)=\frac{L(s)}{1+L(s)}
 表示从外部输入到性能输出的闭环映射，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="postfix">∥</mo><msub><mi>T</mi><mrow><mi>z</mi><mi>w</mi></mrow></msub><msub><mo stretchy="false" form="postfix">∥</mo><mi>∞</mi></msub></mrow><annotation encoding="application/x-tex">\|T_{zw}\|_\infty</annotation></semantics></math>
 是该映射的最坏情况增益界，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>W</mi><mi>S</mi></msub><mo>,</mo><msub><mi>W</mi><mi>T</mi></msub><mo>,</mo><msub><mi>W</mi><mi>U</mi></msub></mrow><annotation encoding="application/x-tex">W_S,W_T,W_U</annotation></semantics></math>
 是混合灵敏度权重。</p>
-<h2 id="证据层次">31.14 证据层次</h2>
+<h2 id="证据层次">14 证据层次</h2>
 <p>为了避免把一个能运行的频域设计误写成完整工程方案，本章可把证据粗分为四级：</p>
 <table>
 <colgroup>
@@ -632,11 +646,11 @@ S(s)=\frac{1}{1+L(s)},\qquad T(s)=\frac{L(s)}{1+L(s)}
 </tr>
 </tbody>
 </table>
-<h2 id="本章小结">31.15 本章小结</h2>
+<h2 id="本章小结">15 本章小结</h2>
 <p><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>H</mi><mn>2</mn></msub><annotation encoding="application/x-tex">H_2</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>H</mi><mi>∞</mi></msub><annotation encoding="application/x-tex">H_\infty</annotation></semantics></math>
 和鲁棒飞行控制把频域裕度、性能输出和模型不确定性连接起来。它们能系统处理扰动、噪声和未建模动态，但不能替代约束安全控制、控制分配和非线性闭环验证。后续增益调度和
 LPV 控制会进一步把鲁棒方法扩展到宽飞行包线。</p>
-<h2 id="练习">31.16 练习</h2>
+<h2 id="练习">16 练习</h2>
 <ol type="1">
 <li>说明
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>H</mi><mn>2</mn></msub><annotation encoding="application/x-tex">H_2</annotation></semantics></math>
@@ -652,7 +666,6 @@ LPV 控制会进一步把鲁棒方法扩展到宽飞行包线。</p>
 </ol>
 
       </article>
-      
       <nav class="book-bottom-nav" aria-label="章节导航">
         <a href="./30-lqr-lqg-linear-optimal-control.html">上一章：第30章 LQR、LQG 与线性最优控制</a>
         <a href="./index.html">卷首页</a>

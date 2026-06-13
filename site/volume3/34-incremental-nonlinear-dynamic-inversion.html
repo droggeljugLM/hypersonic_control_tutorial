@@ -89,7 +89,13 @@
       font-weight: 800;
     }
     .sidebar-title { font-size: 0.94rem; line-height: 1.35; }
-    .book-main { min-width: 0; padding: 1.25rem 1.45rem 1.8rem; }
+    .book-main {
+      min-width: 0;
+      min-height: 100vh;
+      padding: 1.25rem 1.45rem 1.8rem;
+      display: flex;
+      flex-direction: column;
+    }
     .book-page-header {
       padding: 0.85rem 0 1rem;
       margin-bottom: 1rem;
@@ -104,7 +110,12 @@
       padding: 0;
     }
     .book-page-header p { margin: 0.45rem 0 0; color: var(--muted); max-width: 62rem; }
-    .book-article { max-width: 900px; margin: 0; padding: 0 0 1.2rem; }
+    .book-article {
+      max-width: 900px;
+      margin: 0;
+      padding: 0 0 1.2rem;
+      flex: 1 0 auto;
+    }
     .book-article h1, .book-article h2, .book-article h3, .book-article h4, .book-article h5, .book-article h6 {
       line-height: 1.28;
       margin-top: 1.45em;
@@ -117,27 +128,30 @@
     .book-article h3 { font-size: 1.12rem; }
     .book-article p, .book-article li, .book-article dd, .book-article td, .book-article th { text-align: justify; text-justify: inter-ideograph; }
     .book-article p { margin: 0.85rem 0; }
-    .book-article code, .book-article pre { font-family: "Cascadia Mono", "Source Code Pro", Consolas, monospace; font-size: 0.94em; }
+    .book-article code, .book-article pre { font-family: inherit; font-size: 0.98em; letter-spacing: 0; }
     .book-article code {
-      padding: 0.02rem 0.24rem;
-      background: color-mix(in srgb, var(--accent-soft) 34%, #ffffff 66%);
+      padding: 0.04rem 0.28rem;
+      background: color-mix(in srgb, var(--accent-soft) 24%, #ffffff 76%);
       border: 0;
-      border-bottom: 1px solid color-mix(in srgb, var(--accent-soft) 74%, #d1d5db 26%);
+      border-bottom: 1px solid color-mix(in srgb, var(--accent-soft) 52%, #d1d5db 48%);
       border-radius: 4px;
-      color: #253244;
+      color: #2b3440;
       box-decoration-break: clone;
       -webkit-box-decoration-break: clone;
+      font-family: inherit;
+      font-variant-ligatures: none;
     }
     .book-article pre {
-      padding: 1rem 1.1rem;
+      padding: 0.95rem 1.05rem;
       overflow: auto;
-      background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,253,248,0.98));
-      border: 1px solid color-mix(in srgb, var(--accent-soft) 54%, #d1d5db 46%);
-      border-left: 5px solid var(--accent);
+      background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,253,248,0.96));
+      border: 1px solid color-mix(in srgb, var(--accent-soft) 44%, #d1d5db 56%);
+      border-left: 4px solid var(--accent);
       border-radius: 14px;
       box-shadow: 0 8px 22px rgba(31, 41, 55, 0.05);
+      white-space: pre-wrap;
     }
-    .book-article pre code { padding: 0; border: 0; background: transparent; color: inherit; }
+    .book-article pre code { padding: 0; border: 0; background: transparent; color: inherit; font-family: inherit; }
     .book-article table {
       border-collapse: collapse;
       width: 100%;
@@ -300,12 +314,12 @@
         <h1 id="volume3--34-incremental-nonlinear-dynamic-inversion">第34章 增量非线性动态逆控制</h1>
       </header>
       <article class="book-article">
-        <h2 id="问题背景">34.1 问题背景</h2>
+        <h2 id="问题背景">1 问题背景</h2>
 <p>第33章的 NDI
 依赖完整标称模型。高超声速飞行中，气动和推进模型误差可能较大，完整动态逆会对模型误差敏感。增量非线性动态逆，INDI，试图利用当前测得的加速度或角加速度，把控制设计改写成局部增量问题，从而降低对完整模型的依赖。</p>
 <p>INDI
 的核心不是完全不要模型，而是减少对漂移项的依赖，更强调当前测量量和当前执行量之间的增量关系。</p>
-<h2 id="从-ndi-到-indi">34.2 从 NDI 到 INDI</h2>
+<h2 id="从-ndi-到-indi">2 从 NDI 到 INDI</h2>
 <p>NDI 常写为：</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>u</mi><mo>=</mo><mi>B</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><msup><mo stretchy="false" form="postfix">)</mo><mrow><mi>−</mi><mn>1</mn></mrow></msup><mrow><mo stretchy="true" form="prefix">(</mo><mi>v</mi><mo>−</mo><mi>a</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">
 u=B(x)^{-1}\left(v-a(x)\right)
@@ -339,7 +353,7 @@ u=B(x)^{-1}\left(v-a(x)\right)
 其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msubsup><mi>B</mi><mi mathvariant="normal">Δ</mi><mo>†</mo></msubsup><annotation encoding="application/x-tex">B_\Delta^\dagger</annotation></semantics></math>
 用于把期望输出导数增量映射成输入增量，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Δ</mi><mi>v</mi></mrow><annotation encoding="application/x-tex">\Delta v</annotation></semantics></math>
 是期望输出导数增量。</p>
-<h2 id="增量模型的含义">34.3 增量模型的含义</h2>
+<h2 id="增量模型的含义">3 增量模型的含义</h2>
 <p>INDI 的核心不是完全不要模型，而是减少对
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>a</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">a(x)</annotation></semantics></math>
 的依赖。它仍然需要控制效能矩阵：</p>
@@ -349,7 +363,7 @@ B_\Delta=\frac{\partial \dot y^{(r)}}{\partial u}
 <p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>B</mi><mi mathvariant="normal">Δ</mi></msub><annotation encoding="application/x-tex">B_\Delta</annotation></semantics></math>
 描述输入增量对输出导数增量的局部影响。</p>
 <p>因此，INDI 更像“局部控制增量补偿”，而不是“完全无模型控制”。</p>
-<h2 id="加速度和角加速度测量">34.4 加速度和角加速度测量</h2>
+<h2 id="加速度和角加速度测量">4 加速度和角加速度测量</h2>
 <p>INDI
 之所以有效，是因为角加速度或过载可以直接反映控制效能。若角速度测量为
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>q</mi><annotation encoding="application/x-tex">q</annotation></semantics></math>，则可由差分或传感器给出：</p>
@@ -360,7 +374,7 @@ B_\Delta=\frac{\partial \dot y^{(r)}}{\partial u}
 是采样周期。</p>
 <p>这也意味着噪声会被放大。通常需要低通滤波，但滤波会引入相位滞后。INDI
 设计必须把滤波器参数和延迟写入验证。</p>
-<h2 id="执行机构实际位置">34.5 执行机构实际位置</h2>
+<h2 id="执行机构实际位置">5 执行机构实际位置</h2>
 <p>INDI
 的增量输入应基于实际执行机构位置，而不是控制器命令。若舵机动态为：</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mover><mi>δ</mi><mo accent="true">̇</mo></mover><mi>e</mi></msub><mo>=</mo><mfrac><mrow><msub><mi>δ</mi><mrow><mi>e</mi><mo>,</mo><mi>c</mi></mrow></msub><mo>−</mo><msub><mi>δ</mi><mi>e</mi></msub></mrow><msub><mi>τ</mi><mi>a</mi></msub></mfrac></mrow><annotation encoding="application/x-tex">
@@ -372,13 +386,13 @@ B_\Delta=\frac{\partial \dot y^{(r)}}{\partial u}
 是执行机构时间常数。</p>
 <p>如果只用命令增量，执行机构延迟、饱和和速率限制会破坏 INDI
 的增量关系。</p>
-<h2 id="时间同步">34.6 时间同步</h2>
+<h2 id="时间同步">6 时间同步</h2>
 <p>INDI
 要求测量、执行机构位置和控制计算在同一时间基准下对齐。若角加速度来自时刻
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>k</mi><annotation encoding="application/x-tex">k</annotation></semantics></math>，舵面实际变化来自时刻
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>k</mi><mo>−</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">k-1</annotation></semantics></math>，则估计出的控制效能会错位。</p>
 <p>应记录传感器采样周期、控制器采样周期、执行机构反馈采样周期、滤波器延迟、时间戳同步误差和计算延迟。</p>
-<h2 id="控制效能矩阵">34.7 控制效能矩阵</h2>
+<h2 id="控制效能矩阵">7 控制效能矩阵</h2>
 <p>多输入 INDI 可写为：</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Δ</mi><mi>ν</mi><mo>=</mo><msub><mi>B</mi><mi mathvariant="normal">Δ</mi></msub><mi mathvariant="normal">Δ</mi><mi>u</mi></mrow><annotation encoding="application/x-tex">
 \Delta \nu = B_\Delta \Delta u
@@ -394,14 +408,14 @@ B_\Delta=\frac{\partial \dot y^{(r)}}{\partial u}
 \Delta u=B_\Delta^\dagger \Delta \nu
 </annotation></semantics></math></p>
 <p>这说明 INDI 与控制分配天然相连。</p>
-<h2 id="与控制分配的连接">34.8 与控制分配的连接</h2>
+<h2 id="与控制分配的连接">8 与控制分配的连接</h2>
 <p>INDI 可以分成两层：</p>
 <ul>
 <li>期望角加速度或过载增量；</li>
 <li>期望广义力矩增量，再经控制分配得到执行机构增量。</li>
 </ul>
 <p>控制分配层负责处理舵偏限制、舵速限制、执行机构优先级、故障后重构、分配残差和多执行机构耦合。</p>
-<h2 id="稳定性线索">34.9 稳定性线索</h2>
+<h2 id="稳定性线索">9 稳定性线索</h2>
 <p>设输出误差满足期望动态：</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mover><mi>e</mi><mo accent="true">̇</mo></mover><mi>y</mi></msub><mo>=</mo><mi>−</mi><msub><mi>K</mi><mi>e</mi></msub><msub><mi>e</mi><mi>y</mi></msub><mo>+</mo><mi mathvariant="normal">Δ</mi><mi>d</mi></mrow><annotation encoding="application/x-tex">
 \dot e_y=-K_e e_y+\Delta d
@@ -413,17 +427,17 @@ B_\Delta=\frac{\partial \dot y^{(r)}}{\partial u}
 <p>因此，INDI
 稳定性通常要证明模型增量误差、滤波误差和执行机构误差有界，并使误差系统
 ISS 或 UUB。不能只写“INDI 不依赖模型，所以鲁棒”。</p>
-<h2 id="噪声和滤波">34.10 噪声和滤波</h2>
+<h2 id="噪声和滤波">10 噪声和滤波</h2>
 <p>INDI
 对噪声敏感，原因包括角加速度常由角速度差分得到、加速度计包含结构振动和安装误差、低通滤波引入延迟、高带宽控制会放大高频测量误差、增量输入可能频繁振荡，增加舵速负担。</p>
 <p>滤波器设计必须和带宽、执行机构和柔性模态一起检查。过重滤波会让 INDI
 失去快速补偿能力；过轻滤波会让噪声进入舵面。</p>
-<h2 id="高超声速应用边界">34.11 高超声速应用边界</h2>
+<h2 id="高超声速应用边界">11 高超声速应用边界</h2>
 <p>INDI
 适合姿态内环、角加速度或过载可可靠测量的场景、气动模型误差较大但控制效能矩阵大致可信的场景、多执行机构控制分配前的增量命令生成、故障后重新估计控制效能的场景。</p>
 <p>INDI
 不适合或需谨慎的场景包括传感器噪声大、执行机构位置不可测、延迟不可忽略、控制效能矩阵秩不足、柔性模态强烈污染加速度信号、约束频繁活跃但没有安全层。</p>
-<h2 id="与-ndi-的对比">34.12 与 NDI 的对比</h2>
+<h2 id="与-ndi-的对比">12 与 NDI 的对比</h2>
 <table>
 <thead>
 <tr>
@@ -466,7 +480,7 @@ ISS 或 UUB。不能只写“INDI 不依赖模型，所以鲁棒”。</p>
 </tr>
 </tbody>
 </table>
-<h2 id="低阶问题卡单轴俯仰-indi-的测量链执行反馈与时间对齐">34.13
+<h2 id="低阶问题卡单轴俯仰-indi-的测量链执行反馈与时间对齐">13
 低阶问题卡：单轴俯仰 INDI 的测量链、执行反馈与时间对齐</h2>
 <p>考虑俯仰通道输出为角速度
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>q</mi><annotation encoding="application/x-tex">q</annotation></semantics></math>，实际舵面为
@@ -491,9 +505,9 @@ ISS 或 UUB。不能只写“INDI 不依赖模型，所以鲁棒”。</p>
 <li>第34章里的 INDI
 不是“少依赖模型就天然更简单”，而是把难点转移到了测量链和执行链。</li>
 </ol>
-<h2 id="本章小结">34.14 本章小结</h2>
+<h2 id="本章小结">14 本章小结</h2>
 <p>增量非线性动态逆把复杂非线性补偿问题转成局部增量问题，能在模型误差较大时提供更好的工程可用性。但它依然依赖测量质量、执行机构反馈、时间同步和控制分配，并不能自动解决约束和安全问题。</p>
-<h2 id="练习">34.15 练习</h2>
+<h2 id="练习">15 练习</h2>
 <ol type="1">
 <li>写出 NDI 和 INDI 的基本形式。</li>
 <li>说明为什么 INDI 需要实际舵面位置反馈。</li>
@@ -503,7 +517,6 @@ ISS 或 UUB。不能只写“INDI 不依赖模型，所以鲁棒”。</p>
 </ol>
 
       </article>
-      
       <nav class="book-bottom-nav" aria-label="章节导航">
         <a href="./33-feedback-linearization-dynamic-inversion.html">上一章：第33章 反馈线性化与动态逆控制</a>
         <a href="./index.html">卷首页</a>

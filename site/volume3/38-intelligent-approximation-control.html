@@ -89,7 +89,13 @@
       font-weight: 800;
     }
     .sidebar-title { font-size: 0.94rem; line-height: 1.35; }
-    .book-main { min-width: 0; padding: 1.25rem 1.45rem 1.8rem; }
+    .book-main {
+      min-width: 0;
+      min-height: 100vh;
+      padding: 1.25rem 1.45rem 1.8rem;
+      display: flex;
+      flex-direction: column;
+    }
     .book-page-header {
       padding: 0.85rem 0 1rem;
       margin-bottom: 1rem;
@@ -104,7 +110,12 @@
       padding: 0;
     }
     .book-page-header p { margin: 0.45rem 0 0; color: var(--muted); max-width: 62rem; }
-    .book-article { max-width: 900px; margin: 0; padding: 0 0 1.2rem; }
+    .book-article {
+      max-width: 900px;
+      margin: 0;
+      padding: 0 0 1.2rem;
+      flex: 1 0 auto;
+    }
     .book-article h1, .book-article h2, .book-article h3, .book-article h4, .book-article h5, .book-article h6 {
       line-height: 1.28;
       margin-top: 1.45em;
@@ -117,27 +128,30 @@
     .book-article h3 { font-size: 1.12rem; }
     .book-article p, .book-article li, .book-article dd, .book-article td, .book-article th { text-align: justify; text-justify: inter-ideograph; }
     .book-article p { margin: 0.85rem 0; }
-    .book-article code, .book-article pre { font-family: "Cascadia Mono", "Source Code Pro", Consolas, monospace; font-size: 0.94em; }
+    .book-article code, .book-article pre { font-family: inherit; font-size: 0.98em; letter-spacing: 0; }
     .book-article code {
-      padding: 0.02rem 0.24rem;
-      background: color-mix(in srgb, var(--accent-soft) 34%, #ffffff 66%);
+      padding: 0.04rem 0.28rem;
+      background: color-mix(in srgb, var(--accent-soft) 24%, #ffffff 76%);
       border: 0;
-      border-bottom: 1px solid color-mix(in srgb, var(--accent-soft) 74%, #d1d5db 26%);
+      border-bottom: 1px solid color-mix(in srgb, var(--accent-soft) 52%, #d1d5db 48%);
       border-radius: 4px;
-      color: #253244;
+      color: #2b3440;
       box-decoration-break: clone;
       -webkit-box-decoration-break: clone;
+      font-family: inherit;
+      font-variant-ligatures: none;
     }
     .book-article pre {
-      padding: 1rem 1.1rem;
+      padding: 0.95rem 1.05rem;
       overflow: auto;
-      background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,253,248,0.98));
-      border: 1px solid color-mix(in srgb, var(--accent-soft) 54%, #d1d5db 46%);
-      border-left: 5px solid var(--accent);
+      background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,253,248,0.96));
+      border: 1px solid color-mix(in srgb, var(--accent-soft) 44%, #d1d5db 56%);
+      border-left: 4px solid var(--accent);
       border-radius: 14px;
       box-shadow: 0 8px 22px rgba(31, 41, 55, 0.05);
+      white-space: pre-wrap;
     }
-    .book-article pre code { padding: 0; border: 0; background: transparent; color: inherit; }
+    .book-article pre code { padding: 0; border: 0; background: transparent; color: inherit; font-family: inherit; }
     .book-article table {
       border-collapse: collapse;
       width: 100%;
@@ -300,10 +314,10 @@
         <h1 id="volume3--38-intelligent-approximation-control">第38章 智能逼近控制</h1>
       </header>
       <article class="book-article">
-        <h2 id="问题背景">38.1 问题背景</h2>
+        <h2 id="问题背景">1 问题背景</h2>
 <p>高超声速飞行器存在强非线性、气动表误差、推进耦合和难以精确建模的热与结构影响。神经网络、RBF、模糊系统和深度学习辅助方法常被用于逼近未知非线性，但智能控制不是把网络加进控制律就更高级，它必须回到控制科学问题：逼近什么、误差如何进入稳定性、数据覆盖哪里、异常输出如何保护。</p>
 <p>智能逼近方法的重点，不是让网络替代控制器，而是让它在可控边界内补偿未知动态。</p>
-<h2 id="未知非线性逼近">38.2 未知非线性逼近</h2>
+<h2 id="未知非线性逼近">2 未知非线性逼近</h2>
 <p>设误差系统含未知项</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>x</mi><mo accent="true">̇</mo></mover><mo>=</mo><mi>f</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo>+</mo><mi mathvariant="normal">Δ</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo>+</mo><mi>g</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mi>u</mi></mrow><annotation encoding="application/x-tex">
 \dot x = f(x) + \Delta(x) + g(x)u
@@ -327,7 +341,7 @@
 是逼近误差。</p>
 <p>稳定性证明必须处理
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ε</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\varepsilon(x)</annotation></semantics></math>，不能假设网络完全逼近未知项。</p>
-<h2 id="智能逼近设计前的对象与接口检查">38.3
+<h2 id="智能逼近设计前的对象与接口检查">3
 智能逼近设计前的对象与接口检查</h2>
 <p>智能逼近最容易被写成把网络塞进控制律。在真正引入基函数、网络或模糊规则之前，先把它要补什么、从哪里取输入、最后送到哪一层说清楚，才算把问题落到闭环里。</p>
 <table>
@@ -371,7 +385,7 @@
 </tr>
 </tbody>
 </table>
-<h2 id="rbf-网络">38.4 RBF 网络</h2>
+<h2 id="rbf-网络">4 RBF 网络</h2>
 <p>RBF 网络常写为</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi mathvariant="normal">Δ</mi><mo accent="true">̂</mo></mover><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><msup><mi>W</mi><mi>⊤</mi></msup><mi>ψ</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
 \hat\Delta(x)=W^\top \psi(x)
@@ -393,7 +407,7 @@
 个中心，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>σ</mi><mi>i</mi></msub><annotation encoding="application/x-tex">\sigma_i</annotation></semantics></math>
 是宽度参数。</p>
 <p>RBF 结构直观、可解释，但它只在样本覆盖区内通常可靠。</p>
-<h2 id="神经网络和模糊系统">38.5 神经网络和模糊系统</h2>
+<h2 id="神经网络和模糊系统">5 神经网络和模糊系统</h2>
 <p>神经网络可以写成</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi mathvariant="normal">Δ</mi><mo accent="true">̂</mo></mover><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><msup><mi>V</mi><mi>⊤</mi></msup><mi>σ</mi><mo stretchy="false" form="prefix">(</mo><msup><mi>W</mi><mi>⊤</mi></msup><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
 \hat\Delta(x)=V^\top \sigma(W^\top x)
@@ -406,7 +420,7 @@
 是隐层权值矩阵，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>σ</mi><mo stretchy="false" form="prefix">(</mo><mi>⋅</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\sigma(\cdot)</annotation></semantics></math>
 是激活函数。</p>
 <p>模糊系统则通常把规则和隶属度函数组合成近似器，用于表示难以精确写出的规则关系。</p>
-<h2 id="自适应权值更新">38.6 自适应权值更新</h2>
+<h2 id="自适应权值更新">6 自适应权值更新</h2>
 <p>若用自适应律更新权值，可写成</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>W</mi><mo accent="true">̇</mo></mover><mo>=</mo><mi>−</mi><mi mathvariant="normal">Γ</mi><mi>ϕ</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mi>e</mi><mo>−</mo><msub><mi>σ</mi><mi>W</mi></msub><mi>W</mi></mrow><annotation encoding="application/x-tex">
 \dot W = -\Gamma \phi(x)e - \sigma_W W
@@ -443,12 +457,11 @@ u = u_{\mathrm{base}} + u_{\mathrm{rob}} + \hat\Delta(x)
 是鲁棒补偿项，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi mathvariant="normal">Δ</mi><mo accent="true">̂</mo></mover><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\hat\Delta(x)</annotation></semantics></math>
 是智能逼近补偿项。</p>
 <p>这说明智能模块是补偿项，而不是安全责任的唯一承担者。</p>
-<h2 id="离线训练与在线学习">38.7 离线训练与在线学习</h2>
+<h2 id="离线训练与在线学习">7 离线训练与在线学习</h2>
 <p>离线训练使用已有气动数据、仿真数据或风洞/飞行数据。风险包括数据覆盖不足、训练分布和任务分布不同、外推区域误差不可控、数据单位和坐标不一致、仿真数据偏差被网络学习。</p>
 <p>在线学习可适应所选对象，但风险包括激励不足、噪声驱动权值漂移、学习速度与飞行安全冲突、训练过程中的瞬态控制风险和难以认证。</p>
 <p>高超声速飞行中，常见且稳妥的结构是离线训练、在线小幅修正和鲁棒安全层。</p>
-<h2 id="训练数据包线覆盖与外推风险">38.8
-训练数据、包线覆盖与外推风险</h2>
+<h2 id="训练数据包线覆盖与外推风险">8 训练数据、包线覆盖与外推风险</h2>
 <p>智能逼近控制与传统自适应控制最不同的地方，在于它还必须交代数据证据。本章至少说明：</p>
 <table>
 <thead>
@@ -484,12 +497,11 @@ u = u_{\mathrm{base}} + u_{\mathrm{rob}} + \hat\Delta(x)
 </tr>
 </tbody>
 </table>
-<h2 id="深度学习辅助控制">38.9 深度学习辅助控制</h2>
+<h2 id="深度学习辅助控制">9 深度学习辅助控制</h2>
 <p>深度网络可用于快速近似气动表、轨迹优化 warm
 start、模型预测控制策略近似、故障分类、增益调度参数推荐和参考轨迹生成。</p>
 <p>但直接让深度网络输出舵面命令风险最高。若没有形式化安全保证，应把网络输出放在上层建议或参考生成位置，再由传统控制器、CBF、模型预测控制或包线保护过滤。</p>
-<h2 id="代理模型策略近似与闭环边界">38.10
-代理模型、策略近似与闭环边界</h2>
+<h2 id="代理模型策略近似与闭环边界">10 代理模型、策略近似与闭环边界</h2>
 <p>深度学习在高超声速控制中更可信的角色，通常不是直接闭环控舵，而是以下三类：</p>
 <table>
 <colgroup>
@@ -522,10 +534,10 @@ start、模型预测控制策略近似、故障分类、增益调度参数推荐
 </tr>
 </tbody>
 </table>
-<h2 id="安全强化学习的边界">38.11 安全强化学习的边界</h2>
+<h2 id="安全强化学习的边界">11 安全强化学习的边界</h2>
 <p>强化学习用于高超声速控制时，必须回答训练是否只在仿真中进行、探索是否满足动压和输入约束、策略如何处理未见飞行包线、是否有屏障函数或参考治理器兜底、是否能解释失败样本、是否有形式化安全证明。</p>
 <p>没有这些证据时，只能称为仿真探索或策略辅助，不能称为可验证飞行控制器。</p>
-<h2 id="最小验证协议">38.12 最小验证协议</h2>
+<h2 id="最小验证协议">12 最小验证协议</h2>
 <p>智能逼近控制不能被写成一个独立闭环终点。它至少要与后续章节形成四条明确接口：</p>
 <table>
 <colgroup>
@@ -562,9 +574,9 @@ start、模型预测控制策略近似、故障分类、增益调度参数推荐
 是广义控制量，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>r</mi><mi>f</mi></msub><annotation encoding="application/x-tex">r_f</annotation></semantics></math>
 是参考修正量，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>u</mi><annotation encoding="application/x-tex">u</annotation></semantics></math>
 是实际控制输入。</p>
-<h2 id="本章小结">38.13 本章小结</h2>
+<h2 id="本章小结">13 本章小结</h2>
 <p>智能逼近控制的价值在于补偿局部未知动态，而不是替代整机控制器。对高超声速飞行器来说，它只有在包线覆盖、数据一致性、外推保护和安全层都明确之后，才可以作为可信的闭环补偿模块。</p>
-<h2 id="练习">38.14 练习</h2>
+<h2 id="练习">14 练习</h2>
 <ol type="1">
 <li>写出一个智能逼近项和逼近误差的分解式。</li>
 <li>说明为什么测试集误差不能替代包线覆盖。</li>
@@ -574,7 +586,6 @@ start、模型预测控制策略近似、故障分类、增益调度参数推荐
 </ol>
 
       </article>
-      
       <nav class="book-bottom-nav" aria-label="章节导航">
         <a href="./37-adaptive-flight-control.html">上一章：第37章 自适应飞行控制</a>
         <a href="./index.html">卷首页</a>

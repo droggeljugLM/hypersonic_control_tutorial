@@ -89,7 +89,13 @@
       font-weight: 800;
     }
     .sidebar-title { font-size: 0.94rem; line-height: 1.35; }
-    .book-main { min-width: 0; padding: 1.25rem 1.45rem 1.8rem; }
+    .book-main {
+      min-width: 0;
+      min-height: 100vh;
+      padding: 1.25rem 1.45rem 1.8rem;
+      display: flex;
+      flex-direction: column;
+    }
     .book-page-header {
       padding: 0.85rem 0 1rem;
       margin-bottom: 1rem;
@@ -104,7 +110,12 @@
       padding: 0;
     }
     .book-page-header p { margin: 0.45rem 0 0; color: var(--muted); max-width: 62rem; }
-    .book-article { max-width: 900px; margin: 0; padding: 0 0 1.2rem; }
+    .book-article {
+      max-width: 900px;
+      margin: 0;
+      padding: 0 0 1.2rem;
+      flex: 1 0 auto;
+    }
     .book-article h1, .book-article h2, .book-article h3, .book-article h4, .book-article h5, .book-article h6 {
       line-height: 1.28;
       margin-top: 1.45em;
@@ -285,7 +296,7 @@
 <a class="sidebar-link" href="./58-typical-case-library.html"><span class="sidebar-index">07</span><span class="sidebar-title">第58章 典型案例库</span></a>
 <a class="sidebar-link" href="./59-hypersonic-control-paper-reading-method.html"><span class="sidebar-index">08</span><span class="sidebar-title">第59章 高超声速控制论文阅读方法</span></a>
 <a class="sidebar-link" href="./60-frontiers-research-roadmap.html"><span class="sidebar-index">09</span><span class="sidebar-title">第60章 前沿问题与研究路线</span></a>
-<a class="sidebar-link" href="./case-library-code-mapping.html"><span class="sidebar-index">10</span><span class="sidebar-title">第五卷案例映射</span></a>
+<a class="sidebar-link" href="./case-library-mapping.html"><span class="sidebar-index">10</span><span class="sidebar-title">第五卷案例映射</span></a>
         </nav>
       </div>
     </aside>
@@ -294,7 +305,7 @@
         <h1 id="volume5--57-uncertainty-monte-carlo-verification">第57章 不确定性分析与 Monte Carlo 验证</h1>
       </header>
       <article class="book-article">
-        <h2 id="问题背景">57.1 问题背景</h2>
+        <h2 id="问题背景">1 问题背景</h2>
 <p>单一标称仿真只能说明控制器在一个模型、一个初值和一个扰动场景下的表现。高超声速飞行器存在气动、质量、惯量、大气、传感器、执行机构和故障不确定性。若不做不确定性分析，控制器的鲁棒性结论就没有证据支撑。</p>
 <p>本章先把对象、分布、相关性、通过判据和证据目标定义清楚，再讨论不确定性分类、参数化方式和
 Monte Carlo
@@ -304,7 +315,7 @@ Carlo 只会变成一堆难以比较的图。</p>
 <p>本章更重要的作用，是把“鲁棒性”从单次成功仿真变成统计上的可讨论对象。也就是说，控制器不是在某一个样本里表现得好就算完，而是要在一组定义清楚的样本里保持可接受行为，并能说清楚失败样本为什么失败。</p>
 <p>因此，本章真正关心的不是样本数越多越好，而是样本设计是否覆盖了对象、约束和故障的主要变化方向。只有当采样方式、通过判据和失败记录都定义清楚时，Monte
 Carlo 才能从“多次仿真”变成“统计证据”。</p>
-<h2 id="不确定性分类">57.2 不确定性分类</h2>
+<h2 id="不确定性分类">2 不确定性分类</h2>
 <p>高超声速控制常见不确定性包括：</p>
 <table>
 <colgroup>
@@ -315,7 +326,7 @@ Carlo 才能从“多次仿真”变成“统计证据”。</p>
 <thead>
 <tr>
 <th>类别</th>
-<th>示例</th>
+<th>典型项</th>
 <th>进入模型的位置</th>
 </tr>
 </thead>
@@ -364,7 +375,7 @@ Carlo 才能从“多次仿真”变成“统计证据”。</p>
 </tbody>
 </table>
 <p>不同不确定性不能混成一个“随机扰动”。每类不确定性都应说明范围、分布和是否符合物理约束。</p>
-<h2 id="monte-carlo-设计前的对象分布与证据检查">57.3 Monte Carlo
+<h2 id="monte-carlo-设计前的对象分布与证据检查">3 Monte Carlo
 设计前的对象、分布与证据检查</h2>
 <p>第57章关注的不是“多跑几次随机仿真”本身，而是把对象、分布、相关性、通过判据和证据目标先定义清楚。采样方式只有建立在这些前提之上，才谈得上验证。</p>
 <p>进入随机采样之前，先把一些问题想清楚：</p>
@@ -415,7 +426,7 @@ Carlo 才能从“多次仿真”变成“统计证据”。</p>
 </tbody>
 </table>
 <p>因此，更自然的起点，是先问清楚到底想检验哪一类不确定性、它们怎样采样才有物理意义、结果准备支撑到什么强度的结论，再去随机化参数。</p>
-<h2 id="参数摄动模型">57.4 参数摄动模型</h2>
+<h2 id="参数摄动模型">4 参数摄动模型</h2>
 <p>加性摄动：</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mover><mi>θ</mi><mo accent="true">̃</mo></mover><mi>i</mi></msub><mo>=</mo><msub><mover><mi>θ</mi><mo accent="true">‾</mo></mover><mi>i</mi></msub><mo>+</mo><msub><mi>η</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">
 \tilde{\theta}_i=\bar{\theta}_i+\eta_i
@@ -440,7 +451,7 @@ Carlo 才能从“多次仿真”变成“统计证据”。</p>
 这意味着参数在给定区间内等可能取值，适合表示教学级或保守区间摄动。</p>
 <p>若某些参数相关，例如升力和阻力同时受 Mach
 插值误差影响，不应把它们简单设为完全独立。相关性可以用协方差矩阵或共同随机因子表示。</p>
-<h2 id="扰动风和噪声">57.5 扰动风和噪声</h2>
+<h2 id="扰动风和噪声">5 扰动风和噪声</h2>
 <p>风场扰动可写为：</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>w</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mover><mi>w</mi><mo accent="true">‾</mo></mover><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo>+</mo><mi>δ</mi><mi>w</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
 w(t)=\bar{w}(t)+\delta w(t)
@@ -463,7 +474,7 @@ y_k=\bar{y}_k+b_k+v_k
 <p>若控制器使用数值微分、INDI、ESO
 或高增益观测器，噪声会显著影响控制输入和稳定裕度。因此 Monte Carlo
 不应只扰动初值和参数，也应考虑测量噪声和估计误差。</p>
-<h2 id="随机初值和任务场景">57.6 随机初值和任务场景</h2>
+<h2 id="随机初值和任务场景">6 随机初值和任务场景</h2>
 <p>初始状态可按任务包线采样：</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>𝐱</mi><mn>0</mn></msub><mo>∼</mo><mi>𝒮</mi><mo stretchy="false" form="prefix">(</mo><msub><mi mathvariant="normal">Ω</mi><mi>x</mi></msub><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
 \mathbf{x}_0 \sim \mathcal{S}(\Omega_x)
@@ -474,7 +485,7 @@ y_k=\bar{y}_k+b_k+v_k
 是初始状态包线。
 这个写法强调采样来自预先定义的任务包线，而不是任意挑选初值。</p>
 <p>分位数比均值更能说明尾部风险，例如最小动压裕度的 5% 分位。</p>
-<h2 id="最坏情况分析">57.7 最坏情况分析</h2>
+<h2 id="最坏情况分析">7 最坏情况分析</h2>
 <p>Monte Carlo
 随机抽样不保证找到真正最坏情况。仍应记录观测到的最坏样本：</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>J</mi><mi>max</mi><mo>&#8289;</mo></msub><mo>=</mo><munder><mi>max</mi><mo>&#8289;</mo><mrow><mn>1</mn><mo>≤</mo><mi>i</mi><mo>≤</mo><mi>N</mi></mrow></munder><msub><mi>J</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">
@@ -503,7 +514,7 @@ m_{\min}=\min_{1\leq i\leq N} m_i
 表示失败样本记录，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ℰ</mi><annotation encoding="application/x-tex">\mathcal{E}</annotation></semantics></math>
 表示证据边界。把这些量整理清楚后，Monte Carlo
 验证才真正可复现、可审查、可升级。</p>
-<h2 id="monte-carlo-证据层次及其与后续章节的关系">57.8 Monte Carlo
+<h2 id="monte-carlo-证据层次及其与后续章节的关系">8 Monte Carlo
 证据层次及其与后续章节的关系</h2>
 <p>为了避免把“做过随机仿真”误写成“已经证明鲁棒性”，本章可把不确定性验证证据粗分为五级：</p>
 <table>
@@ -577,7 +588,7 @@ m_{\min}=\min_{1\leq i\leq N} m_i
 </tbody>
 </table>
 <p>因此，第57章建立一个对象、采样、失败样本和结论边界都可核查的统计验证框架。</p>
-<h2 id="本章内容的边界">57.9 本章内容的边界</h2>
+<h2 id="本章内容的边界">9 本章内容的边界</h2>
 <p>与第57章相衔接的材料主要包括：</p>
 <table>
 <colgroup>
@@ -618,7 +629,7 @@ Carlo、故障随机化和报告模板主线；</li>
 <li>因此，第57章能支撑“如何保守、系统地做不确定性分析与 Monte Carlo
 验证”，不能支撑“所有不确定性都已被完整覆盖并严格证明”。</li>
 </ul>
-<h2 id="monte-carlo-结果写法">57.10 Monte Carlo 结果写法</h2>
+<h2 id="monte-carlo-结果写法">10 Monte Carlo 结果写法</h2>
 <p>如果一个 Monte Carlo
 结果只写“通过率较高”，通常还不足以支撑控制结论。更适合正文的写法，是把对象、不确定性、样本协议、指标字段、失败样本和结论边界连成一条完整叙述。这样写出来的统计结果，才不是“做过随机仿真”这么简单，而是可以直接被后续案例、论文和研究路线调用的证据。</p>
 <table>
@@ -673,7 +684,7 @@ Carlo、故障随机化和报告模板主线；</li>
 表示失败样本，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ℰ</mi><annotation encoding="application/x-tex">\mathcal{E}</annotation></semantics></math>
 表示证据边界。一样写，Monte Carlo 结果才真正能被阅读、复现和延展。
 这也是把随机实验从“跑图”提升为“统计证据”的关键一步。</p>
-<h2 id="常见错误">57.11 常见错误</h2>
+<h2 id="常见错误">11 常见错误</h2>
 <ol type="1">
 <li>样本数很小，却声称强鲁棒性。</li>
 <li>不记录随机种子，导致结果无法复现。</li>
@@ -683,7 +694,7 @@ Carlo、故障随机化和报告模板主线；</li>
 <li>只报告均值，不报告最差样本和分位数。</li>
 <li>把 Monte Carlo 经验通过率当成严格安全证明。</li>
 </ol>
-<h2 id="练习">57.12 练习</h2>
+<h2 id="练习">12 练习</h2>
 <ol type="1">
 <li>为纵向动压约束控制设计一个包含气动、质量、大气和初值摄动的 Monte
 Carlo 实验。</li>
@@ -692,7 +703,7 @@ Carlo 实验。</li>
 <li>对舵面效率下降故障设计随机故障注入方案。</li>
 <li>说明为什么 Monte Carlo 通过率不能替代 CBF 或 BLF 的安全性证明。</li>
 </ol>
-<h2 id="本章应形成的成果">57.13 本章应形成的成果</h2>
+<h2 id="本章应形成的成果">13 本章应形成的成果</h2>
 <p>第57章的作用，不是把随机仿真次数做大，而是把不确定性、失败样本和统计结论写成可复现的证据对象。</p>
 <h3 id="样本对象">样本对象</h3>
 <p>本章应交付的样本对象至少包括：</p>
@@ -731,7 +742,7 @@ Carlo 实验。</li>
 <li>当前统计结论能支撑到什么层级，不能外推到什么层级。</li>
 </ol>
 <p>写到这里，Monte Carlo 才真正从“多跑几次”变成“统计验证方法”。</p>
-<h2 id="本章应保留的最小信息集">57.14 本章应保留的最小信息集</h2>
+<h2 id="本章应保留的最小信息集">14 本章应保留的最小信息集</h2>
 <p>如果正文只写“我们做了 Monte Carlo
 验证”，读者仍然无法判断结论强度。第57章至少应保留以下信息：</p>
 <ul>
@@ -745,7 +756,6 @@ Carlo 实验。</li>
 <p>把这些信息交代完整，随机仿真才算进入可审查的统计证据阶段。</p>
 
       </article>
-      
       <nav class="book-bottom-nav" aria-label="章节导航">
         <a href="./56-verification-metrics-system.html">上一章：第56章 验证指标体系</a>
         <a href="./index.html">卷首页</a>
@@ -756,3 +766,6 @@ Carlo 实验。</li>
   </div>
 </body>
 </html>
+
+
+

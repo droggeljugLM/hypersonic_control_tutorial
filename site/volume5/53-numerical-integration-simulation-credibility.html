@@ -89,7 +89,13 @@
       font-weight: 800;
     }
     .sidebar-title { font-size: 0.94rem; line-height: 1.35; }
-    .book-main { min-width: 0; padding: 1.25rem 1.45rem 1.8rem; }
+    .book-main {
+      min-width: 0;
+      min-height: 100vh;
+      padding: 1.25rem 1.45rem 1.8rem;
+      display: flex;
+      flex-direction: column;
+    }
     .book-page-header {
       padding: 0.85rem 0 1rem;
       margin-bottom: 1rem;
@@ -104,7 +110,12 @@
       padding: 0;
     }
     .book-page-header p { margin: 0.45rem 0 0; color: var(--muted); max-width: 62rem; }
-    .book-article { max-width: 900px; margin: 0; padding: 0 0 1.2rem; }
+    .book-article {
+      max-width: 900px;
+      margin: 0;
+      padding: 0 0 1.2rem;
+      flex: 1 0 auto;
+    }
     .book-article h1, .book-article h2, .book-article h3, .book-article h4, .book-article h5, .book-article h6 {
       line-height: 1.28;
       margin-top: 1.45em;
@@ -285,7 +296,7 @@
 <a class="sidebar-link" href="./58-typical-case-library.html"><span class="sidebar-index">07</span><span class="sidebar-title">第58章 典型案例库</span></a>
 <a class="sidebar-link" href="./59-hypersonic-control-paper-reading-method.html"><span class="sidebar-index">08</span><span class="sidebar-title">第59章 高超声速控制论文阅读方法</span></a>
 <a class="sidebar-link" href="./60-frontiers-research-roadmap.html"><span class="sidebar-index">09</span><span class="sidebar-title">第60章 前沿问题与研究路线</span></a>
-<a class="sidebar-link" href="./case-library-code-mapping.html"><span class="sidebar-index">10</span><span class="sidebar-title">第五卷案例映射</span></a>
+<a class="sidebar-link" href="./case-library-mapping.html"><span class="sidebar-index">10</span><span class="sidebar-title">第五卷案例映射</span></a>
         </nav>
       </div>
     </aside>
@@ -294,11 +305,11 @@
         <h1 id="volume5--53-numerical-integration-simulation-credibility">第53章 数值积分与仿真可信性</h1>
       </header>
       <article class="book-article">
-        <h2 id="问题背景">53.1 问题背景</h2>
+        <h2 id="问题背景">1 问题背景</h2>
 <p>控制器在仿真中表现良好，并不自动说明控制器真实有效。仿真结果同时受模型、控制律、参数、积分器、步长、事件处理、插值、采样周期和随机扰动影响。数值积分错误可能把一个不稳定闭环看起来稳定，也可能把一个本来安全的控制器算成约束违规。</p>
 <p>本章处理的是“数值方法如何影响控制结论”的问题，而不是单纯介绍求解器。高超声速控制仿真中的一个步长、一个事件定位、一次插值方式变化，都可能把结论带偏。因此，本章说明常见数值误差来自哪里，再说明
 Euler、Runge-Kutta、自适应积分和刚性系统求解器各适合什么场景；随后讨论控制器采样、执行机构限幅和事件触发如何影响积分可信性，如何做步长收敛检查和指标收敛检查，以及为什么“曲线平滑”不等于“仿真可信”。</p>
-<h2 id="连续动力学的积分问题">53.2 连续动力学的积分问题</h2>
+<h2 id="连续动力学的积分问题">2 连续动力学的积分问题</h2>
 <p>闭环飞行动力学可写为：</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>x</mi><mo accent="true">̇</mo></mover><mo>=</mo><mi>f</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo>,</mo><msub><mi>u</mi><mi>a</mi></msub><mo>,</mo><mi>p</mi><mo>,</mo><mi>d</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
 \dot{x}=f(x,u_a,p,d)
@@ -364,7 +375,7 @@ t_k=t_0+k\Delta t
 是初始时刻，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>k</mi><annotation encoding="application/x-tex">k</annotation></semantics></math>
 是正整数。这样控制更新点和积分网格一致。若二者不对齐，需要插值或事件调度，平台必须明确实现方式。</p>
 <p>多速率控制中，外环制导、姿态内环、执行机构和传感器可能有不同采样率。仿真平台应记录每个模块的更新时间，而不是把所有信号默认同步。</p>
-<h2 id="步长敏感性">53.3 步长敏感性</h2>
+<h2 id="步长敏感性">3 步长敏感性</h2>
 <p>数值可信性最基本的检查，是比较不同步长下关键指标是否收敛。若步长减半后指标变化很大，说明当前步长可能不足以支撑结论。</p>
 <p>可以比较：</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Δ</mi><msub><mi>J</mi><mi>h</mi></msub><mo>=</mo><msub><mi>J</mi><mi>h</mi></msub><mo stretchy="false" form="prefix">(</mo><mi mathvariant="normal">Δ</mi><mi>t</mi><mi>/</mi><mn>2</mn><mo stretchy="false" form="postfix">)</mo><mo>−</mo><msub><mi>J</mi><mi>h</mi></msub><mo stretchy="false" form="prefix">(</mo><mi mathvariant="normal">Δ</mi><mi>t</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
@@ -376,7 +387,7 @@ t_k=t_0+k\Delta t
 下得到的某个高度相关指标，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Δ</mi><msub><mi>J</mi><mi>h</mi></msub></mrow><annotation encoding="application/x-tex">\Delta J_h</annotation></semantics></math>
 是步长变化引起的差值。</p>
 <p>同理可比较动压裕度、终端误差和控制能量。若某个指标对步长极其敏感，应优先检查该指标对应的事件、插值和限幅实现。</p>
-<h2 id="事件处理">53.4 事件处理</h2>
+<h2 id="事件处理">4 事件处理</h2>
 <p>高超声速控制仿真中常见事件包括：</p>
 <ul>
 <li>动压、热流、过载或攻角达到边界；</li>
@@ -396,7 +407,7 @@ h_{\min}=\min_{t\in[0,T]}h(x(t))
 这个最小值用于判断约束是否在采样点之间被短时穿越，因此它比单点检查更严格。</p>
 <p>如果只记录采样点上的
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>h</mi><mi>min</mi><mo>&#8289;</mo></msub><annotation encoding="application/x-tex">h_{\min}</annotation></semantics></math>，应在报告中说明采样周期和事件捕捉误差。</p>
-<h2 id="插值误差">53.5 插值误差</h2>
+<h2 id="插值误差">5 插值误差</h2>
 <p>气动表、参考轨迹和风场常通过插值获得。插值误差会进入动力学：</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>g</mi><mo accent="true">̃</mo></mover><mo stretchy="false" form="prefix">(</mo><mi>ξ</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mi>ℐ</mi><mi>g</mi></mrow><annotation encoding="application/x-tex">
 \tilde{g}(\xi)=\mathcal{I}g
@@ -413,7 +424,7 @@ h_{\min}=\min_{t\in[0,T]}h(x(t))
 是插值误差，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>g</mi><mo stretchy="false" form="prefix">(</mo><mi>ξ</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">g(\xi)</annotation></semantics></math>
 是原始函数值。</p>
 <p>插值方法、外推边界和单位一致性都会影响闭环结果。气动表、风场、控制参考和任务轨迹都应记录插值方式。</p>
-<h2 id="控制更新与积分网格对齐">53.6 控制更新与积分网格对齐</h2>
+<h2 id="控制更新与积分网格对齐">6 控制更新与积分网格对齐</h2>
 <p>离散控制器通常要求在固定采样点更新。若控制器更新与积分网格不对齐，需要说明状态是先更新控制、后积分对象，还是先积分对象、后更新控制。</p>
 <p>一个常见的对齐表达是：</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>t</mi><mi>k</mi></msub><mo>=</mo><msub><mi>t</mi><mn>0</mn></msub><mo>+</mo><mi>k</mi><mi mathvariant="normal">Δ</mi><mi>t</mi><mo>,</mo><mspace width="2.0em"></mspace><mi>k</mi><mo>=</mo><mn>0</mn><mo>,</mo><mn>1</mn><mo>,</mo><mi>…</mi><mo>,</mo><mi>N</mi></mrow><annotation encoding="application/x-tex">
@@ -431,7 +442,7 @@ t_k=t_0+k\Delta t,\qquad k=0,1,\ldots,N
 <li>事件检测方式；</li>
 <li>执行机构保持方式。</li>
 </ul>
-<h2 id="数值可信性与证据边界">53.7 数值可信性与证据边界</h2>
+<h2 id="数值可信性与证据边界">7 数值可信性与证据边界</h2>
 <p>数值设置并不是实现细节，而是结论边界的一部分。一个控制器若只在特定步长、特定插值和特定事件设置下有效，就不能把该结果外推成更强的结论。</p>
 <p>可以把数值可信对象写成：</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>𝒩</mi><mo>=</mo><mo stretchy="false" form="prefix">(</mo><mi>ℐ</mi><mo>,</mo><mi>𝒯</mi><mo>,</mo><mi>𝒢</mi><mo>,</mo><mi>ℛ</mi><mo>,</mo><mi>ℳ</mi><mo>,</mo><mi>ℰ</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
@@ -445,7 +456,7 @@ t_k=t_0+k\Delta t,\qquad k=0,1,\ldots,N
 表示敏感指标，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ℰ</mi><annotation encoding="application/x-tex">\mathcal{E}</annotation></semantics></math>
 表示证据边界。
 这组对象的作用，是把“数值设置会影响结论”的事实直接写进仿真报告的证据结构里。</p>
-<h2 id="数值证据层次及其与后续章节的关系">53.8
+<h2 id="数值证据层次及其与后续章节的关系">8
 数值证据层次及其与后续章节的关系</h2>
 <p>为了避免把“仿真曲线看起来平滑”误写成“数值可信”，本章可把数值证据粗分为五级：</p>
 <p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>N</mi><mi>q</mi></mrow><annotation encoding="application/x-tex">Nq</annotation></semantics></math>
@@ -519,7 +530,7 @@ t_k=t_0+k\Delta t,\qquad k=0,1,\ldots,N
 </tbody>
 </table>
 <p>因此，第53章建立一个步长、事件、可重复性和证据边界都可交接的数值可信框架。</p>
-<h2 id="本章内容的边界">53.9 本章内容的边界</h2>
+<h2 id="本章内容的边界">9 本章内容的边界</h2>
 <p>与第53章相衔接的材料主要包括：</p>
 <table>
 <colgroup>
@@ -546,7 +557,7 @@ t_k=t_0+k\Delta t,\qquad k=0,1,\ldots,N
 <td>提供步长敏感指标、异常终止和组合通过判据</td>
 </tr>
 <tr>
-<td>现有配套结果资料与失败样本记录</td>
+<td>现有结果资料与失败样本记录</td>
 <td>提供教学级指标追溯和失败样本核查材料</td>
 </tr>
 </tbody>
@@ -554,11 +565,11 @@ t_k=t_0+k\Delta t,\qquad k=0,1,\ldots,N
 <p>本章边界必须写清楚：</p>
 <ul>
 <li>本书呈现积分器、步长、事件处理和可重复性的主线；</li>
-<li>这些素材能支撑从教学复现到研究原型级的数值可信性检查和结果追溯；</li>
+<li>这些素材能支撑从教学核查到研究原型级的数值可信性检查和结果追溯；</li>
 <li>但它还不是正式数值分析报告，也不是覆盖全部高保真模型的严密求解器认证流程；</li>
 <li>因此，第53章能支撑“如何保守、系统地检查仿真可信性”，不能支撑“所有数值误差都已被完整排除”。</li>
 </ul>
-<h2 id="常见错误">53.10 常见错误</h2>
+<h2 id="常见错误">10 常见错误</h2>
 <ol type="1">
 <li>用过大步长得到漂亮曲线，却没有做步长减半检查。</li>
 <li>控制器采样周期和积分步长不对齐，但没有说明插值方式。</li>
@@ -568,7 +579,7 @@ t_k=t_0+k\Delta t,\qquad k=0,1,\ldots,N
 <li>不记录随机种子，导致 Monte Carlo 结果无法复现。</li>
 <li>在切换、饱和和故障注入场景中使用与光滑系统相同的可信性标准。</li>
 </ol>
-<h2 id="练习">53.11 练习</h2>
+<h2 id="练习">11 练习</h2>
 <ol type="1">
 <li>对同一纵向闭环模型，分别用 Euler 和 RK4 仿真，比较
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>h</mi><mrow><mi mathvariant="normal">r</mi><mi mathvariant="normal">m</mi><mi mathvariant="normal">s</mi></mrow></msub><annotation encoding="application/x-tex">h_{\mathrm{rms}}</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>q</mi><mrow><mi mathvariant="normal">m</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">r</mi><mi mathvariant="normal">g</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">n</mi><mo mathvariant="normal">,</mo><mi mathvariant="normal">m</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">n</mi></mrow></msub><annotation encoding="application/x-tex">q_{\mathrm{margin,min}}</annotation></semantics></math>
@@ -584,7 +595,6 @@ t_k=t_0+k\Delta t,\qquad k=0,1,\ldots,N
 </ol>
 
       </article>
-      
       <nav class="book-bottom-nav" aria-label="章节导航">
         <a href="./52-hypersonic-control-simulation-platform.html">上一章：第52章 高超声速控制仿真平台设计</a>
         <a href="./index.html">卷首页</a>
@@ -595,3 +605,6 @@ t_k=t_0+k\Delta t,\qquad k=0,1,\ldots,N
   </div>
 </body>
 </html>
+
+
+

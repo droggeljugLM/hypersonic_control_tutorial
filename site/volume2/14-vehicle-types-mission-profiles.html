@@ -89,7 +89,13 @@
       font-weight: 800;
     }
     .sidebar-title { font-size: 0.94rem; line-height: 1.35; }
-    .book-main { min-width: 0; padding: 1.25rem 1.45rem 1.8rem; }
+    .book-main {
+      min-width: 0;
+      min-height: 100vh;
+      padding: 1.25rem 1.45rem 1.8rem;
+      display: flex;
+      flex-direction: column;
+    }
     .book-page-header {
       padding: 0.85rem 0 1rem;
       margin-bottom: 1rem;
@@ -104,7 +110,12 @@
       padding: 0;
     }
     .book-page-header p { margin: 0.45rem 0 0; color: var(--muted); max-width: 62rem; }
-    .book-article { max-width: 900px; margin: 0; padding: 0 0 1.2rem; }
+    .book-article {
+      max-width: 900px;
+      margin: 0;
+      padding: 0 0 1.2rem;
+      flex: 1 0 auto;
+    }
     .book-article h1, .book-article h2, .book-article h3, .book-article h4, .book-article h5, .book-article h6 {
       line-height: 1.28;
       margin-top: 1.45em;
@@ -117,27 +128,30 @@
     .book-article h3 { font-size: 1.12rem; }
     .book-article p, .book-article li, .book-article dd, .book-article td, .book-article th { text-align: justify; text-justify: inter-ideograph; }
     .book-article p { margin: 0.85rem 0; }
-    .book-article code, .book-article pre { font-family: "Cascadia Mono", "Source Code Pro", Consolas, monospace; font-size: 0.94em; }
+    .book-article code, .book-article pre { font-family: inherit; font-size: 0.98em; letter-spacing: 0; }
     .book-article code {
-      padding: 0.02rem 0.24rem;
-      background: color-mix(in srgb, var(--accent-soft) 34%, #ffffff 66%);
+      padding: 0.04rem 0.28rem;
+      background: color-mix(in srgb, var(--accent-soft) 24%, #ffffff 76%);
       border: 0;
-      border-bottom: 1px solid color-mix(in srgb, var(--accent-soft) 74%, #d1d5db 26%);
+      border-bottom: 1px solid color-mix(in srgb, var(--accent-soft) 52%, #d1d5db 48%);
       border-radius: 4px;
-      color: #253244;
+      color: #2b3440;
       box-decoration-break: clone;
       -webkit-box-decoration-break: clone;
+      font-family: inherit;
+      font-variant-ligatures: none;
     }
     .book-article pre {
-      padding: 1rem 1.1rem;
+      padding: 0.95rem 1.05rem;
       overflow: auto;
-      background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,253,248,0.98));
-      border: 1px solid color-mix(in srgb, var(--accent-soft) 54%, #d1d5db 46%);
-      border-left: 5px solid var(--accent);
+      background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,253,248,0.96));
+      border: 1px solid color-mix(in srgb, var(--accent-soft) 44%, #d1d5db 56%);
+      border-left: 4px solid var(--accent);
       border-radius: 14px;
       box-shadow: 0 8px 22px rgba(31, 41, 55, 0.05);
+      white-space: pre-wrap;
     }
-    .book-article pre code { padding: 0; border: 0; background: transparent; color: inherit; }
+    .book-article pre code { padding: 0; border: 0; background: transparent; color: inherit; font-family: inherit; }
     .book-article table {
       border-collapse: collapse;
       width: 100%;
@@ -296,7 +310,7 @@
         <h1 id="volume2--14-vehicle-types-mission-profiles">第14章 高超声速飞行器类型与任务剖面</h1>
       </header>
       <article class="book-article">
-        <h2 id="为什么要先分对象">14.1 为什么要先分对象</h2>
+        <h2 id="为什么要先分对象">1 为什么要先分对象</h2>
 <p>高超声速飞行器控制不能先默认一个固定对象，再把所有方法套上去。不同飞行器的动力来源、任务段、控制权限和约束完全不同。同样是
 Mach 5
 以上飞行，吸气式巡航飞行器、助推滑翔飞行器、再入飞行器和空天飞行器的控制问题并不相同。</p>
@@ -307,7 +321,7 @@ Mach 5
 <li>用某个论文案例的模型假设代表全部任务剖面。</li>
 </ol>
 <p>参考书级教程应先建立对象地图，再进入坐标系、大气、气动、推进和刚体动力学。</p>
-<h2 id="对象描述模板">14.2 对象描述模板</h2>
+<h2 id="对象描述模板">2 对象描述模板</h2>
 <p>对任意一种高超声速飞行器，建议先用下面模板描述：</p>
 <table>
 <thead>
@@ -356,7 +370,7 @@ Mach 5
 </tbody>
 </table>
 <p>这一模板的作用是防止控制器设计脱离对象。控制律写成公式之前，必须先知道它到底在控制什么系统。</p>
-<h2 id="高超声速巡航飞行器">14.3 高超声速巡航飞行器</h2>
+<h2 id="高超声速巡航飞行器">3 高超声速巡航飞行器</h2>
 <p>高超声速巡航飞行器通常在大气层内较长时间保持高 Mach
 数飞行。控制目标常包括：</p>
 <ul>
@@ -368,7 +382,7 @@ Mach 5
 <li>对气动和推力不确定性的鲁棒性。</li>
 </ul>
 <p>巡航问题的特点是气动、推进和姿态控制强耦合。油门变化不仅改变速度，还可能改变俯仰力矩；攻角变化不仅改变升力，也影响进气道和热流。因此这一类对象不能长期使用“推力只进入速度方程、舵面只进入姿态方程”的弱耦合假设。</p>
-<h2 id="吸气式高超声速飞行器">14.4 吸气式高超声速飞行器</h2>
+<h2 id="吸气式高超声速飞行器">4 吸气式高超声速飞行器</h2>
 <p>吸气式高超声速飞行器依赖冲压或超燃冲压推进。它的控制难点比一般巡航对象更集中在气动推进一体化：</p>
 <ul>
 <li>前体压缩面影响进气道；</li>
@@ -379,7 +393,7 @@ Mach 5
 <li>推进约束可能限制可用姿态和机动能力。</li>
 </ul>
 <p>因此，这一类对象在控制上通常需要把推进、气动和姿态放在同一闭环里讨论，而不能只看单个通道。</p>
-<h2 id="助推滑翔飞行器">14.5 助推滑翔飞行器</h2>
+<h2 id="助推滑翔飞行器">5 助推滑翔飞行器</h2>
 <p>助推滑翔飞行器一般经历助推段、滑翔段和末端机动段。控制问题在不同阶段完全不同。</p>
 <ul>
 <li>助推段更关注推力、姿态建立和阶段切换；</li>
@@ -387,7 +401,7 @@ Mach 5
 <li>末端机动段更关注终端命中、姿态带宽和剩余控制权限。</li>
 </ul>
 <p>因此，助推滑翔任务的建模和验证应写清阶段切换点、切换条件以及每一段的主要控制目标。若把整个任务都写成同一个连续跟踪问题，往往会忽略阶段边界处的控制重置和约束重收缩。</p>
-<h2 id="再入飞行器">14.6 再入飞行器</h2>
+<h2 id="再入飞行器">6 再入飞行器</h2>
 <p>再入飞行器的典型任务是从高空高速进入大气层，按照走廊完成减速、减热和终端落点控制。其约束通常比巡航对象更硬：</p>
 <ul>
 <li>热流上限；</li>
@@ -398,7 +412,7 @@ Mach 5
 <li>终端位置或速度约束。</li>
 </ul>
 <p>再入问题的控制核心是“在走廊内耗散能量并满足终端条件”，不是简单高度跟踪。对此类对象，控制策略通常要显式面对路径约束和阶段性目标切换。</p>
-<h2 id="空天飞行器与跨域飞行对象">14.7 空天飞行器与跨域飞行对象</h2>
+<h2 id="空天飞行器与跨域飞行对象">7 空天飞行器与跨域飞行对象</h2>
 <p>空天飞行器可能跨越大气层内外，存在不同动力学模式：</p>
 <ul>
 <li>稀薄大气中气动力减弱；</li>
@@ -414,13 +428,13 @@ Mach 5
 <li>切换时是否重置控制器或估计器。</li>
 </ul>
 <p>这样后续章节在引用对象时，就不会把不同阶段混成一个全局对象。</p>
-<h2 id="本章对后续章节的接口意义">14.8 本章对后续章节的接口意义</h2>
+<h2 id="本章对后续章节的接口意义">8 本章对后续章节的接口意义</h2>
 <p>本章的对象分类会直接影响后面的建模、控制和验证。对象类型决定你要不要强调推进耦合，任务剖面决定你要不要强调阶段切换，控制权限决定你该优先看舵面、推力还是
 RCS，验证矩阵决定你应该报告哪些指标。</p>
 <p>因此，第二卷后续章节在写模型时，必须回到本章先问一遍：这个模型服务的是巡航、滑翔、再入、终端机动，还是混合任务？如果回答不清，后面的动力学方程、控制设计和仿真结果就容易各说各话。</p>
-<h2 id="本章小结">14.9 本章小结</h2>
+<h2 id="本章小结">9 本章小结</h2>
 <p>对象分类不是外层说明，而是控制问题定义的一部分。高超声速巡航、吸气式、助推滑翔、再入、空天和终端机动对象的状态、输入、约束和指标不同，因此控制方法、验证矩阵和工程边界也不同。第二卷从这里起步，是为了保证后面的建模、控制和验证都建立在同一对象语义上。</p>
-<h2 id="练习">14.10 练习</h2>
+<h2 id="练习">10 练习</h2>
 <ol type="1">
 <li>选择一种高超声速对象，按本章模板列出状态、输入、输出、扰动和约束。</li>
 <li>比较吸气式巡航飞行器和助推滑翔飞行器在控制输入上的差异。</li>
@@ -434,11 +448,10 @@ RCS，验证矩阵决定你应该报告哪些指标。</p>
 <li>对一个空天飞行器任务，说明舵面、RCS
 和推力矢量的控制权限如何随高度变化。</li>
 <li>给出一个对象类型到验证指标的表格，说明为什么不能只看跟踪误差。</li>
-<li>选择一个现有教学代码入口，说明它能支持哪些对象结论、不能支持哪些对象结论。</li>
+<li>选择一个现有教学材料入口，说明它能支持哪些对象结论、不能支持哪些对象结论。</li>
 </ol>
 
       </article>
-      
       <nav class="book-bottom-nav" aria-label="章节导航">
         <a href="./index.html">上一章：卷首页</a>
         <a href="./index.html">卷首页</a>
@@ -449,3 +462,4 @@ RCS，验证矩阵决定你应该报告哪些指标。</p>
   </div>
 </body>
 </html>
+

@@ -89,7 +89,13 @@
       font-weight: 800;
     }
     .sidebar-title { font-size: 0.94rem; line-height: 1.35; }
-    .book-main { min-width: 0; padding: 1.25rem 1.45rem 1.8rem; }
+    .book-main {
+      min-width: 0;
+      min-height: 100vh;
+      padding: 1.25rem 1.45rem 1.8rem;
+      display: flex;
+      flex-direction: column;
+    }
     .book-page-header {
       padding: 0.85rem 0 1rem;
       margin-bottom: 1rem;
@@ -104,7 +110,12 @@
       padding: 0;
     }
     .book-page-header p { margin: 0.45rem 0 0; color: var(--muted); max-width: 62rem; }
-    .book-article { max-width: 900px; margin: 0; padding: 0 0 1.2rem; }
+    .book-article {
+      max-width: 900px;
+      margin: 0;
+      padding: 0 0 1.2rem;
+      flex: 1 0 auto;
+    }
     .book-article h1, .book-article h2, .book-article h3, .book-article h4, .book-article h5, .book-article h6 {
       line-height: 1.28;
       margin-top: 1.45em;
@@ -285,7 +296,7 @@
 <a class="sidebar-link" href="./58-typical-case-library.html"><span class="sidebar-index">07</span><span class="sidebar-title">第58章 典型案例库</span></a>
 <a class="sidebar-link" href="./59-hypersonic-control-paper-reading-method.html"><span class="sidebar-index">08</span><span class="sidebar-title">第59章 高超声速控制论文阅读方法</span></a>
 <a class="sidebar-link" href="./60-frontiers-research-roadmap.html"><span class="sidebar-index">09</span><span class="sidebar-title">第60章 前沿问题与研究路线</span></a>
-<a class="sidebar-link" href="./case-library-code-mapping.html"><span class="sidebar-index">10</span><span class="sidebar-title">第五卷案例映射</span></a>
+<a class="sidebar-link" href="./case-library-mapping.html"><span class="sidebar-index">10</span><span class="sidebar-title">第五卷案例映射</span></a>
         </nav>
       </div>
     </aside>
@@ -294,7 +305,7 @@
         <h1 id="volume5--55-controller-discretization-real-time-implementation">第55章 控制器离散化与实时实现</h1>
       </header>
       <article class="book-article">
-        <h2 id="问题背景">55.1 问题背景</h2>
+        <h2 id="问题背景">1 问题背景</h2>
 <p>前面几卷中的控制律大多以连续时间形式推导，例如：</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>u</mi><mo>=</mo><mi>κ</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>r</mi><mo>,</mo><mi>p</mi><mo stretchy="false" form="postfix">)</mo><mi>.</mi></mrow><annotation encoding="application/x-tex">
 u=\kappa(x,r,p).
@@ -307,7 +318,7 @@ u=\kappa(x,r,p).
 是参数。</p>
 <p>真实飞行控制计算机和大多数仿真平台却以离散时间运行。控制器每隔一个采样周期读取传感器、更新估计器、计算命令、执行限幅、写出舵面或推力命令。连续控制律如果不经过离散化、滤波、限幅、延迟和计算负载检查，就不能直接称为可实现控制器。</p>
 <p>这里把对象、节拍、内部状态和实际执行接口交代清楚，再讨论连续控制律如何进入离散时间闭环。采样周期、零阶保持、延迟、多速率更新、数值微分、滤波和限幅都不是外围细节，而是控制律能否真正落地的一部分。</p>
-<h2 id="连续控制律到离散闭环">55.2 连续控制律到离散闭环</h2>
+<h2 id="连续控制律到离散闭环">2 连续控制律到离散闭环</h2>
 <p>连续对象可写为：</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>x</mi><mo accent="true">̇</mo></mover><mo>=</mo><mi>f</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo>,</mo><msub><mi>u</mi><mi>a</mi></msub><mo>,</mo><mi>d</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
 \dot{x}=f(x,u_a,d)
@@ -347,7 +358,7 @@ u_a(t)=\mathcal{H}(u_{a,k}),\quad t\in[t_k,t_{k+1})
 </annotation></semantics></math></p>
 <p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ℋ</mi><mo stretchy="false" form="prefix">(</mo><mi>⋅</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\mathcal{H}(\cdot)</annotation></semantics></math>
 表示零阶保持、限幅、速率限制和执行机构动态。</p>
-<h2 id="离散实现设计前的对象节拍和接口检查">55.3
+<h2 id="离散实现设计前的对象节拍和接口检查">3
 离散实现设计前的对象、节拍和接口检查</h2>
 <p>第55章讨论离散实现时，关键不是把连续公式改成差分形式，而是先把对象、更新节拍、内部状态和实际执行接口交代清楚。离散化方法只有放进一条链路里，才看得出它是否真的能落地。</p>
 <p>进入离散化方式之前，先把这些问题想清楚：</p>
@@ -399,7 +410,7 @@ u_a(t)=\mathcal{H}(u_{a,k}),\quad t\in[t_k,t_{k+1})
 </table>
 <p>因此，第55章更自然的起点，是先问清楚：控制命令发给谁、多久更新一次、哪些内部状态会跨周期积累、真正执行到对象上的量到底是什么，再去选
 Euler 还是 Tustin。</p>
-<h2 id="采样周期与零阶保持">55.4 采样周期与零阶保持</h2>
+<h2 id="采样周期与零阶保持">4 采样周期与零阶保持</h2>
 <p>采样周期
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>T</mi><mi>s</mi></msub><annotation encoding="application/x-tex">T_s</annotation></semantics></math>
 是实时实现的第一参数。采样太慢会带来相位滞后、命令粗糙和约束漏检；采样太快会增加计算负载和噪声敏感性。</p>
@@ -455,7 +466,7 @@ u(t)=u_k,\quad t\in[kT_s,(k+1)T_s)
 </annotation></semantics></math></p>
 <p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>u</mi><mi>k</mi></msub><annotation encoding="application/x-tex">u_k</annotation></semantics></math>
 是采样时刻的控制输入。</p>
-<h2 id="离散化方法">55.5 离散化方法</h2>
+<h2 id="离散化方法">5 离散化方法</h2>
 <p>线性连续控制器可写为：</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>z</mi><mo accent="true">̇</mo></mover><mo>=</mo><msub><mi>A</mi><mi>c</mi></msub><mi>z</mi><mo>+</mo><msub><mi>B</mi><mi>c</mi></msub><mi>e</mi><mo>,</mo><mspace width="1.0em"></mspace><mi>u</mi><mo>=</mo><msub><mi>C</mi><mi>c</mi></msub><mi>z</mi><mo>+</mo><msub><mi>D</mi><mi>c</mi></msub><mi>e</mi></mrow><annotation encoding="application/x-tex">
 \dot{z}=A_cz+B_ce,\quad u=C_cz+D_ce
@@ -475,7 +486,7 @@ z_{k+1}=A_dz_k+B_de_k,\quad u_k=C_dz_k+D_de_k
 个误差采样值。</p>
 <p>离散化方法包括零阶保持离散化、前向欧拉、后向欧拉、Tustin
 变换和直接离散化。不同方法会影响闭环极点、相位裕度和高频噪声抑制能力。</p>
-<h2 id="采样滤波和微分">55.6 采样、滤波和微分</h2>
+<h2 id="采样滤波和微分">6 采样、滤波和微分</h2>
 <p>控制实现常需要对测量值做滤波，对角速度或加速度做数值微分。若连续信号写成
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>y</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">y(t)</annotation></semantics></math>，离散滤波输出可写为：</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mover><mi>y</mi><mo accent="true">‾</mo></mover><mi>k</mi></msub><mo>=</mo><mi>ℱ</mi><mo stretchy="false" form="prefix">[</mo><msub><mi>y</mi><mi>k</mi></msub><mo stretchy="false" form="postfix">]</mo></mrow><annotation encoding="application/x-tex">
@@ -499,7 +510,7 @@ z_{k+1}=A_dz_k+B_de_k,\quad u_k=C_dz_k+D_de_k
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>a</mi><mi>f</mi></msub><annotation encoding="application/x-tex">a_f</annotation></semantics></math>
 决定滤波强度。滤波降低噪声，但引入滞后。动态面控制、INDI、滑模边界层、ESO
 和 Kalman 滤波都需要在性能和延迟之间折中。</p>
-<h2 id="限幅和速率限制">55.7 限幅和速率限制</h2>
+<h2 id="限幅和速率限制">7 限幅和速率限制</h2>
 <p>执行机构通常满足：</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>u</mi><mi>min</mi><mo>&#8289;</mo></msub><mo>≤</mo><msub><mi>u</mi><mi>a</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo>≤</mo><msub><mi>u</mi><mi>max</mi><mo>&#8289;</mo></msub></mrow><annotation encoding="application/x-tex">
 u_{\min}\le u_a(t)\le u_{\max}
@@ -517,7 +528,7 @@ u_{\min}\le u_a(t)\le u_{\max}
 是执行机构速率上限。
 这说明速率限制不是附加注释，而是离散实现里必须显式满足的约束。</p>
 <p>随后再做幅值限制。限幅顺序会影响结果，应固定并记录。对积分控制、自适应律和动态面控制，限幅后还要处理积分累积、参数漂移和命令滤波误差。</p>
-<h2 id="安全滤波和优化求解的实时性">55.8 安全滤波和优化求解的实时性</h2>
+<h2 id="安全滤波和优化求解的实时性">8 安全滤波和优化求解的实时性</h2>
 <p>CBF-QP、预测控制、参考治理器和控制分配都可能涉及在线优化。离散实现时需要检查：</p>
 <table>
 <thead>
@@ -554,7 +565,7 @@ u_{\min}\le u_a(t)\le u_{\max}
 </tbody>
 </table>
 <p>若优化器偶尔超时，必须记录超时样本。不能只报告成功样本的跟踪曲线。</p>
-<h2 id="实现结构">55.9 实现结构</h2>
+<h2 id="实现结构">9 实现结构</h2>
 <p>实时友好的控制实现应尽量分层。一个典型单步循环可以按下表组织：</p>
 <table>
 <colgroup>
@@ -625,7 +636,7 @@ u_{\min}\le u_a(t)\le u_{\max}
 <p>每个环节的输入输出都应明确，不依赖隐藏全局状态。控制器内部状态
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>z</mi><mi>k</mi></msub><annotation encoding="application/x-tex">z_k</annotation></semantics></math>
 应集中保存，便于重置、测试和故障复现。</p>
-<h2 id="实时计算负载">55.10 实时计算负载</h2>
+<h2 id="实时计算负载">10 实时计算负载</h2>
 <p>实时计算负载可用以下指标描述：</p>
 <table>
 <thead>
@@ -667,7 +678,7 @@ u_{\min}\le u_a(t)\le u_{\max}
 </table>
 <p>实时控制器不只要“算得出来”，还要“在截止时间前算出来”。若控制器依赖大型神经网络、非线性
 MPC 或复杂在线辨识，更应如实报告计算负载。</p>
-<h2 id="与第-5657585960-章的接口">55.11 与第 56、57、58、59、60
+<h2 id="与第-5657585960-章的接口">11 与第 56、57、58、59、60
 章的接口</h2>
 <p>第55章不能只讲“如何写离散控制循环”，否则它会和后面的指标、统计、案例和论文复现脱节。更有效的组织方式，是把实现日志和节拍信息直接接到第五卷后续章节。</p>
 <p>与相关章节的接口可概括为：</p>
@@ -706,7 +717,7 @@ MPC 或复杂在线辨识，更应如实报告计算负载。</p>
 </tbody>
 </table>
 <p>因此，第55章把实现细节变成后续可统计、可审查、可复现的证据字段。</p>
-<h2 id="离散实现问题写法">55.12 离散实现问题写法</h2>
+<h2 id="离散实现问题写法">12 离散实现问题写法</h2>
 <p>如果一个实现说明只写“控制器已经完成数字实现”，通常不足以支撑复现和对比。更好的写法，是把对象、控制结构、节拍配置、内部状态、执行接口、运行日志、验收指标和证据边界连成一段完整叙述。</p>
 <table>
 <thead>
@@ -762,7 +773,7 @@ MPC 或复杂在线辨识，更应如实报告计算负载。</p>
 表示执行接口，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ℒ</mi><annotation encoding="application/x-tex">\mathcal{L}</annotation></semantics></math>
 表示运行日志字段，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ℰ</mi><annotation encoding="application/x-tex">\mathcal{E}</annotation></semantics></math>
 表示证据边界。</p>
-<h2 id="实现证据层次及其与后续章节的关系">55.13
+<h2 id="实现证据层次及其与后续章节的关系">13
 实现证据层次及其与后续章节的关系</h2>
 <p>为了避免把“写了一个离散循环”误写成“已经具备实时实现能力”，本章可把实现证据粗分为五级：</p>
 <table>
@@ -811,8 +822,8 @@ MPC 或复杂在线辨识，更应如实报告计算负载。</p>
 说明“控制律已经按节拍运行”，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mi>t</mi><mn>2</mn></mrow><annotation encoding="application/x-tex">Rt2</annotation></semantics></math>
 说明“实时实现开始具备工程约束”，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mi>t</mi><mn>3</mn></mrow><annotation encoding="application/x-tex">Rt3</annotation></semantics></math>
 说明“实现记录可以支撑复现与对比”，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mi>t</mi><mn>4</mn></mrow><annotation encoding="application/x-tex">Rt4</annotation></semantics></math>
-说明“同一套实现口径已经能跨案例复用”。这个分级的目的，不是给实现贴标签，而是提醒读者：离散实现的证据强度，必须和章节后面的统计验证、案例复现和论文对比保持一致。</p>
-<h2 id="本章应保留的最小信息集">55.14 本章应保留的最小信息集</h2>
+说明“同一套实现口径已经能跨案例复用”。这个分级的目的，不是给实现贴标签，而是提醒读者：离散实现的证据强度，必须和章节后面的统计验证、案例核查和论文对比保持一致。</p>
+<h2 id="本章应保留的最小信息集">14 本章应保留的最小信息集</h2>
 <p>如果正文只剩下“控制器离散化了”这一句话，那么后面的章节就很难接上。本章至少应保留以下信息：</p>
 <ul>
 <li>对象类型、模型层级和任务段；</li>
@@ -854,7 +865,7 @@ MPC 或复杂在线辨识，更应如实报告计算负载。</p>
 </tr>
 </tbody>
 </table>
-<h2 id="本章内容的边界">55.15 本章内容的边界</h2>
+<h2 id="本章内容的边界">15 本章内容的边界</h2>
 <p>与第55章相衔接的材料主要包括：</p>
 <table>
 <colgroup>
@@ -901,7 +912,7 @@ MPC 或复杂在线辨识，更应如实报告计算负载。</p>
 <li>但它还不是完整嵌入式飞控规范，也不是飞行任务级软硬件协同认证；</li>
 <li>因此，第55章能支撑“如何保守、系统地说明离散实现”，不能支撑“实时实现已经自动通过工程认证”。</li>
 </ul>
-<h2 id="常见错误">55.16 常见错误</h2>
+<h2 id="常见错误">16 常见错误</h2>
 <ol type="1">
 <li>把连续控制律直接当作离散实现。</li>
 <li>不记录控制更新周期和积分步长。</li>
@@ -911,7 +922,7 @@ MPC 或复杂在线辨识，更应如实报告计算负载。</p>
 <li>在超时或无解时删掉异常样本。</li>
 <li>把离散实现中引入的延迟忽略掉。</li>
 </ol>
-<h2 id="练习">55.17 练习</h2>
+<h2 id="练习">17 练习</h2>
 <ol type="1">
 <li>为一个纵向控制器设计离散更新结构，写出状态、输入和日志字段。</li>
 <li>比较零阶保持和一阶保持对舵面命令的影响。</li>
@@ -921,7 +932,6 @@ MPC 或复杂在线辨识，更应如实报告计算负载。</p>
 </ol>
 
       </article>
-      
       <nav class="book-bottom-nav" aria-label="章节导航">
         <a href="./54-aerodynamic-data-tables-parameter-management.html">上一章：第54章 气动数据表、插值与参数管理</a>
         <a href="./index.html">卷首页</a>
@@ -932,3 +942,6 @@ MPC 或复杂在线辨识，更应如实报告计算负载。</p>
   </div>
 </body>
 </html>
+
+
+

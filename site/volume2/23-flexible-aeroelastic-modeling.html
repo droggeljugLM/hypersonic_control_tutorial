@@ -89,7 +89,13 @@
       font-weight: 800;
     }
     .sidebar-title { font-size: 0.94rem; line-height: 1.35; }
-    .book-main { min-width: 0; padding: 1.25rem 1.45rem 1.8rem; }
+    .book-main {
+      min-width: 0;
+      min-height: 100vh;
+      padding: 1.25rem 1.45rem 1.8rem;
+      display: flex;
+      flex-direction: column;
+    }
     .book-page-header {
       padding: 0.85rem 0 1rem;
       margin-bottom: 1rem;
@@ -104,7 +110,12 @@
       padding: 0;
     }
     .book-page-header p { margin: 0.45rem 0 0; color: var(--muted); max-width: 62rem; }
-    .book-article { max-width: 900px; margin: 0; padding: 0 0 1.2rem; }
+    .book-article {
+      max-width: 900px;
+      margin: 0;
+      padding: 0 0 1.2rem;
+      flex: 1 0 auto;
+    }
     .book-article h1, .book-article h2, .book-article h3, .book-article h4, .book-article h5, .book-article h6 {
       line-height: 1.28;
       margin-top: 1.45em;
@@ -117,27 +128,30 @@
     .book-article h3 { font-size: 1.12rem; }
     .book-article p, .book-article li, .book-article dd, .book-article td, .book-article th { text-align: justify; text-justify: inter-ideograph; }
     .book-article p { margin: 0.85rem 0; }
-    .book-article code, .book-article pre { font-family: "Cascadia Mono", "Source Code Pro", Consolas, monospace; font-size: 0.94em; }
+    .book-article code, .book-article pre { font-family: inherit; font-size: 0.98em; letter-spacing: 0; }
     .book-article code {
-      padding: 0.02rem 0.24rem;
-      background: color-mix(in srgb, var(--accent-soft) 34%, #ffffff 66%);
+      padding: 0.04rem 0.28rem;
+      background: color-mix(in srgb, var(--accent-soft) 24%, #ffffff 76%);
       border: 0;
-      border-bottom: 1px solid color-mix(in srgb, var(--accent-soft) 74%, #d1d5db 26%);
+      border-bottom: 1px solid color-mix(in srgb, var(--accent-soft) 52%, #d1d5db 48%);
       border-radius: 4px;
-      color: #253244;
+      color: #2b3440;
       box-decoration-break: clone;
       -webkit-box-decoration-break: clone;
+      font-family: inherit;
+      font-variant-ligatures: none;
     }
     .book-article pre {
-      padding: 1rem 1.1rem;
+      padding: 0.95rem 1.05rem;
       overflow: auto;
-      background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,253,248,0.98));
-      border: 1px solid color-mix(in srgb, var(--accent-soft) 54%, #d1d5db 46%);
-      border-left: 5px solid var(--accent);
+      background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,253,248,0.96));
+      border: 1px solid color-mix(in srgb, var(--accent-soft) 44%, #d1d5db 56%);
+      border-left: 4px solid var(--accent);
       border-radius: 14px;
       box-shadow: 0 8px 22px rgba(31, 41, 55, 0.05);
+      white-space: pre-wrap;
     }
-    .book-article pre code { padding: 0; border: 0; background: transparent; color: inherit; }
+    .book-article pre code { padding: 0; border: 0; background: transparent; color: inherit; font-family: inherit; }
     .book-article table {
       border-collapse: collapse;
       width: 100%;
@@ -296,10 +310,10 @@
         <h1 id="volume2--23-flexible-aeroelastic-modeling">第23章 刚柔耦合与气动弹性模型</h1>
       </header>
       <article class="book-article">
-        <h2 id="问题背景">23.1 问题背景</h2>
+        <h2 id="问题背景">1 问题背景</h2>
 <p>六自由度刚体模型默认结构外形和惯量不随变形改变。对低速、短时、小载荷任务，这个假设通常足够；但高超声速飞行器常常具有细长体、薄壁结构、热防护层和较强的气动热环境，结构变形会改变气动力、气动力矩、传感器读数和控制效能。</p>
 <p>这一章的目标不是做结构力学百科，而是说明：什么时候刚体模型不够，柔性模态如何进入控制模型，气动弹性如何影响闭环稳定性，以及在没有完整结构数据时，如何把柔性影响作为不确定性和带宽约束处理。</p>
-<h2 id="控制建模边界">23.2 控制建模边界</h2>
+<h2 id="控制建模边界">2 控制建模边界</h2>
 <p>控制科学关心的不是所有结构细节，而是这些细节如何进入闭环。一个控制可用的柔性模型至少应说明：</p>
 <ul>
 <li>刚体状态和柔性状态分别是什么；</li>
@@ -310,7 +324,7 @@
 <li>截断后的高阶模态如何进入鲁棒性分析。</li>
 </ul>
 <p>如果没有结构数据，就不应伪装成高保真刚柔耦合模型，而应明确说明当前结论只覆盖刚体或低阶等效模型。</p>
-<h2 id="什么时候刚体模型不够">23.3 什么时候刚体模型不够</h2>
+<h2 id="什么时候刚体模型不够">3 什么时候刚体模型不够</h2>
 <p>以下现象通常说明刚体近似已经不稳妥：</p>
 <ul>
 <li>姿态误差不大，但角速度出现高频振荡，说明测量中可能混入柔性模态；</li>
@@ -321,7 +335,7 @@
 <li>舵机长期接近速率上限，往往意味着未建模动态被控制器放大。</li>
 </ul>
 <p>刚体模型仍然是必要基础，但它不能自动给出颤振裕度、热弹性裕度或结构安全结论。</p>
-<h2 id="柔性结构变量">23.4 柔性结构变量</h2>
+<h2 id="柔性结构变量">4 柔性结构变量</h2>
 <p>柔性结构可以从连续位移场描述：</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>w</mi><mo>=</mo><mi>w</mi><mo stretchy="false" form="prefix">(</mo><mi>r</mi><mo>,</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
 w=w(r,t)
@@ -352,7 +366,7 @@ w(r,t)=\sum_{i=1}^{N}\phi_i(r)\eta_i(t)
 是刚体状态，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>u</mi><annotation encoding="application/x-tex">u</annotation></semantics></math>
 是控制输入，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>p</mi><annotation encoding="application/x-tex">p</annotation></semantics></math>
 是飞行条件和结构参数。</p>
-<h2 id="一阶状态空间形式">23.5 一阶状态空间形式</h2>
+<h2 id="一阶状态空间形式">5 一阶状态空间形式</h2>
 <p>把刚体状态和柔性状态合并，可写成：</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>x</mi><mo>=</mo><msup><mrow><mo stretchy="true" form="prefix">[</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><msub><mi>x</mi><mi>r</mi></msub></mtd><mtd columnalign="center" style="text-align: center"><mi>η</mi></mtd><mtd columnalign="center" style="text-align: center"><mover><mi>η</mi><mo accent="true">̇</mo></mover></mtd></mtr></mtable><mo stretchy="true" form="postfix">]</mo></mrow><mi>⊤</mi></msup></mrow><annotation encoding="application/x-tex">
 x=\begin{bmatrix}x_r &amp; \eta &amp; \dot\eta\end{bmatrix}^\top
@@ -369,7 +383,7 @@ x=\begin{bmatrix}x_r &amp; \eta &amp; \dot\eta\end{bmatrix}^\top
 表示刚体与柔性模态合并后的线性化系统矩阵，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>B</mi><annotation encoding="application/x-tex">B</annotation></semantics></math>
 表示对应的输入矩阵。</p>
 <p>如果刚体与柔性之间的耦合块被忽略，得到的只是“刚体加孤立振子”模型，通常不足以说明气动弹性闭环风险。</p>
-<h2 id="刚柔耦合路径">23.6 刚柔耦合路径</h2>
+<h2 id="刚柔耦合路径">6 刚柔耦合路径</h2>
 <p>刚柔耦合进入控制闭环主要有四条路径：</p>
 <ol type="1">
 <li>控制输入经过气动力和执行机构载荷激励柔性模态；</li>
@@ -378,7 +392,7 @@ x=\begin{bmatrix}x_r &amp; \eta &amp; \dot\eta\end{bmatrix}^\top
 <li>热载荷和时间历史改变模态频率、阻尼和气动中心。</li>
 </ol>
 <p>这四条路径分别影响输入效能、状态测量、频域裕度、配平点、增益调度和鲁棒稳定边界。</p>
-<h2 id="气动弹性系数表达">23.7 气动弹性系数表达</h2>
+<h2 id="气动弹性系数表达">7 气动弹性系数表达</h2>
 <p>刚体气动系数如果扩展到柔性模型，常可写成：</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>C</mi><mi>m</mi></msub><mo>=</mo><msub><mi>C</mi><mrow><mi>m</mi><mn>0</mn></mrow></msub><mo>+</mo><msub><mi>C</mi><mrow><mi>m</mi><mi>α</mi></mrow></msub><mi>α</mi><mo>+</mo><msub><mi>C</mi><mrow><mi>m</mi><mi>q</mi></mrow></msub><mover><mi>q</mi><mo accent="true">̂</mo></mover><mo>+</mo><msub><mi>C</mi><mrow><mi>m</mi><msub><mi>δ</mi><mi>e</mi></msub></mrow></msub><msub><mi>δ</mi><mi>e</mi></msub><mo>+</mo><msub><mi>C</mi><mrow><mi>m</mi><mi>η</mi></mrow></msub><mi>η</mi></mrow><annotation encoding="application/x-tex">
 C_m=C_{m0}+C_{m\alpha}\alpha+C_{mq}\hat q+C_{m\delta_e}\delta_e+C_{m\eta}\eta
@@ -388,7 +402,7 @@ C_m=C_{m0}+C_{m\alpha}\alpha+C_{mq}\hat q+C_{m\delta_e}\delta_e+C_{m\eta}\eta
 <p>如果
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>C</mi><mrow><mi>m</mi><mi>η</mi></mrow></msub><annotation encoding="application/x-tex">C_{m\eta}</annotation></semantics></math>
 的符号和尺度不清楚，控制器可能把柔性变形误判为有利阻尼，实际却削弱闭环稳定性。</p>
-<h2 id="舵面柔性和控制效能">23.8 舵面柔性和控制效能</h2>
+<h2 id="舵面柔性和控制效能">8 舵面柔性和控制效能</h2>
 <p>舵面、体襟翼或升降副翼的局部柔性会改变实际控制效能。可用等效形式表示：</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>M</mi><mi>y</mi></msub><mo>=</mo><mover><mi>q</mi><mo accent="true">‾</mo></mover><mi>S</mi><mover><mi>c</mi><mo accent="true">‾</mo></mover><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>C</mi><mrow><mi>m</mi><mn>0</mn></mrow></msub><mo>+</mo><msub><mi>C</mi><mrow><mi>m</mi><msub><mi>δ</mi><mi>e</mi></msub></mrow></msub><msub><mi>δ</mi><mi>e</mi></msub><mo>+</mo><msub><mi>C</mi><mrow><mi>m</mi><mi>η</mi></mrow></msub><mi>η</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">
 M_y=\bar q S \bar c\left(C_{m0}+C_{m\delta_e}\delta_e+C_{m\eta}\eta\right)
@@ -397,7 +411,7 @@ M_y=\bar q S \bar c\left(C_{m0}+C_{m\delta_e}\delta_e+C_{m\eta}\eta\right)
 是舵面角，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>η</mi><annotation encoding="application/x-tex">\eta</annotation></semantics></math>
 是柔性模态坐标。</p>
 <p>这说明控制输入不仅影响刚体姿态，还可能激励柔性振动。因而，舵速限制和输入滤波不只是硬件保护，也是抑制结构激励的闭环设计手段。</p>
-<h2 id="传感器污染">23.9 传感器污染</h2>
+<h2 id="传感器污染">9 传感器污染</h2>
 <p>如果传感器安装点位于柔性显著区域，测量量就可能写成：</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>y</mi><mi>m</mi></msub><mo>=</mo><mi>y</mi><mo>+</mo><mi mathvariant="normal">Γ</mi><mi>η</mi><mo>+</mo><mi>n</mi></mrow><annotation encoding="application/x-tex">
 y_m=y+\Gamma \eta + n
@@ -408,7 +422,7 @@ y_m=y+\Gamma \eta + n
 是柔性污染映射，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>n</mi><annotation encoding="application/x-tex">n</annotation></semantics></math>
 是噪声。</p>
 <p>这意味着观测器和滤波器不能只针对刚体变量设计，还要考虑柔性污染和安装位置效应。否则，观测器可能把柔性振动误认为姿态变化。</p>
-<h2 id="带宽分离原则">23.10 带宽分离原则</h2>
+<h2 id="带宽分离原则">10 带宽分离原则</h2>
 <p>如果主导柔性模态频率为
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ω</mi><mi>f</mi></msub><annotation encoding="application/x-tex">\omega_f</annotation></semantics></math>，姿态闭环带宽为
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ω</mi><mi>c</mi></msub><annotation encoding="application/x-tex">\omega_c</annotation></semantics></math>，通常希望：</p>
@@ -419,11 +433,11 @@ y_m=y+\Gamma \eta + n
 是姿态闭环带宽，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ω</mi><mi>f</mi></msub><annotation encoding="application/x-tex">\omega_f</annotation></semantics></math>
 是主导柔性模态频率。</p>
 <p>这个关系不是普适定理，但它提醒我们：刚体控制器不能只按刚体响应调快。若为了跟踪性能把姿态环带宽推近柔性模态，就必须同时检查频域裕度、传感器相位滞后和执行机构高频命令。</p>
-<h2 id="低阶例子">23.11 低阶例子</h2>
+<h2 id="低阶例子">11 低阶例子</h2>
 <p>一个常用教学近似是“俯仰刚体加一个柔性模态”。这类模型足够说明柔性模态如何进入力矩通道、测量通道和控制通道，也足够用于理解为什么某些高频闭环会在仿真里看似有效、在真实对象上却失效。</p>
 <p>它适合教学，不适合直接代替结构试验、CFD-CSD
 耦合或高保真颤振分析。</p>
-<h2 id="验证要点">23.12 验证要点</h2>
+<h2 id="验证要点">12 验证要点</h2>
 <p>柔性和气动弹性模型的验证至少应包括：</p>
 <ul>
 <li>柔性模态频率和阻尼是否已知；</li>
@@ -433,9 +447,9 @@ y_m=y+\Gamma \eta + n
 <li>频域裕度是否在全包线内可接受；</li>
 <li>结论是否只适用于某个有限飞行点。</li>
 </ul>
-<h2 id="本章小结">23.13 本章小结</h2>
+<h2 id="本章小结">13 本章小结</h2>
 <p>刚柔耦合和气动弹性模型的作用，是把“刚体可控”与“结构可控”分开讨论。高超声速飞行器控制中，柔性不是附加噪声，而是会改变闭环稳定性、控制效能和安全裕度的真实对象。</p>
-<h2 id="练习">23.14 练习</h2>
+<h2 id="练习">14 练习</h2>
 <ol type="1">
 <li>说明什么时候刚体模型不够用。</li>
 <li>写出模态展开的基本形式。</li>
@@ -449,7 +463,6 @@ y_m=y+\Gamma \eta + n
 </ol>
 
       </article>
-      
       <nav class="book-bottom-nav" aria-label="章节导航">
         <a href="./22-six-dof-rigid-body-model.html">上一章：第22章 六自由度刚体模型</a>
         <a href="./index.html">卷首页</a>

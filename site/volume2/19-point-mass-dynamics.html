@@ -89,7 +89,13 @@
       font-weight: 800;
     }
     .sidebar-title { font-size: 0.94rem; line-height: 1.35; }
-    .book-main { min-width: 0; padding: 1.25rem 1.45rem 1.8rem; }
+    .book-main {
+      min-width: 0;
+      min-height: 100vh;
+      padding: 1.25rem 1.45rem 1.8rem;
+      display: flex;
+      flex-direction: column;
+    }
     .book-page-header {
       padding: 0.85rem 0 1rem;
       margin-bottom: 1rem;
@@ -104,7 +110,12 @@
       padding: 0;
     }
     .book-page-header p { margin: 0.45rem 0 0; color: var(--muted); max-width: 62rem; }
-    .book-article { max-width: 900px; margin: 0; padding: 0 0 1.2rem; }
+    .book-article {
+      max-width: 900px;
+      margin: 0;
+      padding: 0 0 1.2rem;
+      flex: 1 0 auto;
+    }
     .book-article h1, .book-article h2, .book-article h3, .book-article h4, .book-article h5, .book-article h6 {
       line-height: 1.28;
       margin-top: 1.45em;
@@ -117,27 +128,30 @@
     .book-article h3 { font-size: 1.12rem; }
     .book-article p, .book-article li, .book-article dd, .book-article td, .book-article th { text-align: justify; text-justify: inter-ideograph; }
     .book-article p { margin: 0.85rem 0; }
-    .book-article code, .book-article pre { font-family: "Cascadia Mono", "Source Code Pro", Consolas, monospace; font-size: 0.94em; }
+    .book-article code, .book-article pre { font-family: inherit; font-size: 0.98em; letter-spacing: 0; }
     .book-article code {
-      padding: 0.02rem 0.24rem;
-      background: color-mix(in srgb, var(--accent-soft) 34%, #ffffff 66%);
+      padding: 0.04rem 0.28rem;
+      background: color-mix(in srgb, var(--accent-soft) 24%, #ffffff 76%);
       border: 0;
-      border-bottom: 1px solid color-mix(in srgb, var(--accent-soft) 74%, #d1d5db 26%);
+      border-bottom: 1px solid color-mix(in srgb, var(--accent-soft) 52%, #d1d5db 48%);
       border-radius: 4px;
-      color: #253244;
+      color: #2b3440;
       box-decoration-break: clone;
       -webkit-box-decoration-break: clone;
+      font-family: inherit;
+      font-variant-ligatures: none;
     }
     .book-article pre {
-      padding: 1rem 1.1rem;
+      padding: 0.95rem 1.05rem;
       overflow: auto;
-      background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,253,248,0.98));
-      border: 1px solid color-mix(in srgb, var(--accent-soft) 54%, #d1d5db 46%);
-      border-left: 5px solid var(--accent);
+      background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,253,248,0.96));
+      border: 1px solid color-mix(in srgb, var(--accent-soft) 44%, #d1d5db 56%);
+      border-left: 4px solid var(--accent);
       border-radius: 14px;
       box-shadow: 0 8px 22px rgba(31, 41, 55, 0.05);
+      white-space: pre-wrap;
     }
-    .book-article pre code { padding: 0; border: 0; background: transparent; color: inherit; }
+    .book-article pre code { padding: 0; border: 0; background: transparent; color: inherit; font-family: inherit; }
     .book-article table {
       border-collapse: collapse;
       width: 100%;
@@ -296,13 +310,13 @@
         <h1 id="volume2--19-point-mass-dynamics">第19章 质点动力学模型</h1>
       </header>
       <article class="book-article">
-        <h2 id="问题背景">19.1 问题背景</h2>
+        <h2 id="问题背景">1 问题背景</h2>
 <p>质点模型是高超声速飞行器控制学习中最基础的动力学模型之一。它忽略姿态角速度、舵面细节和结构柔性，只保留位置、速度、航迹角、航向角、能量和路径约束。</p>
 <p>质点模型适合回答三个问题：参考轨迹是否可行，速度和高度如何随时间变化，以及动压、热流和过载走廊是否会被违反。它不适合证明舵面控制、姿态稳定、控制分配或六自由度闭环性能。</p>
-<h2 id="模型层级中的位置">19.2 模型层级中的位置</h2>
+<h2 id="模型层级中的位置">2 模型层级中的位置</h2>
 <p>在第二卷的层级中，质点模型处于最基础的路径层。后续的纵向刚体模型、横侧向模型、六自由度刚体模型以及刚柔耦合和气动推进耦合高保真模型，都要建立在它所提供的轨迹与约束抽象之上。</p>
 <p>质点模型把飞行器视为具有质量的运动点。控制输入通常不是舵面，而是升力、阻力、推力、倾侧角、法向加速度或等效制导命令。</p>
-<h2 id="纵向质点模型">19.3 纵向质点模型</h2>
+<h2 id="纵向质点模型">3 纵向质点模型</h2>
 <p>最常用的纵向质点状态为</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>x</mi><mi>p</mi></msub><mo>=</mo><msup><mrow><mo stretchy="true" form="prefix">[</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><mi>V</mi></mtd><mtd columnalign="center" style="text-align: center"><mi>γ</mi></mtd><mtd columnalign="center" style="text-align: center"><mi>h</mi></mtd><mtd columnalign="center" style="text-align: center"><mi>s</mi></mtd></mtr></mtable><mo stretchy="true" form="postfix">]</mo></mrow><mi>⊤</mi></msup></mrow><annotation encoding="application/x-tex">
 x_p = \begin{bmatrix} V &amp; \gamma &amp; h &amp; s \end{bmatrix}^\top
@@ -335,7 +349,7 @@ x_p = \begin{bmatrix} V &amp; \gamma &amp; h &amp; s \end{bmatrix}^\top
 和
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>T</mi><annotation encoding="application/x-tex">T</annotation></semantics></math>
 可来自简单气动/推进模型，也可由轨迹优化或制导律间接给出。</p>
-<h2 id="三维质点模型">19.4 三维质点模型</h2>
+<h2 id="三维质点模型">4 三维质点模型</h2>
 <p>三维任务需要加入水平位置和航向角。一个本地 ENU 形式的状态可写为</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>x</mi><mi>p</mi></msub><mo>=</mo><msup><mrow><mo stretchy="true" form="prefix">[</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><msub><mi>x</mi><mi>E</mi></msub></mtd><mtd columnalign="center" style="text-align: center"><msub><mi>y</mi><mi>N</mi></msub></mtd><mtd columnalign="center" style="text-align: center"><mi>h</mi></mtd><mtd columnalign="center" style="text-align: center"><mi>V</mi></mtd><mtd columnalign="center" style="text-align: center"><mi>γ</mi></mtd><mtd columnalign="center" style="text-align: center"><mi>χ</mi></mtd></mtr></mtable><mo stretchy="true" form="postfix">]</mo></mrow><mi>⊤</mi></msup></mrow><annotation encoding="application/x-tex">
 x_p = \begin{bmatrix} x_E &amp; y_N &amp; h &amp; V &amp; \gamma &amp; \chi \end{bmatrix}^\top
@@ -360,7 +374,7 @@ x_p = \begin{bmatrix} x_E &amp; y_N &amp; h &amp; V &amp; \gamma &amp; \chi \end
 </annotation></semantics></math></p>
 <p>这里的三条运动学方程给出水平位置和高度的变化率。</p>
 <p>在三维路径层中，制导命令常用法向和侧向加速度表示。质点模型的作用是先检查这种命令是否能在飞行包线内实现。</p>
-<h2 id="能量与可行性">19.5 能量与可行性</h2>
+<h2 id="能量与可行性">5 能量与可行性</h2>
 <p>质点模型常配合能量变量使用</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>E</mi><mo>=</mo><mfrac><mn>1</mn><mn>2</mn></mfrac><msup><mi>V</mi><mn>2</mn></msup><mo>+</mo><mi>g</mi><mi>h</mi></mrow><annotation encoding="application/x-tex">
 E = \frac{1}{2}V^2 + gh
@@ -371,7 +385,7 @@ E = \frac{1}{2}V^2 + gh
 <p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>E</mi><annotation encoding="application/x-tex">E</annotation></semantics></math>
 是单位质量的机械能。</p>
 <p>若参考速度上升而高度下降，动压可能迅速增大；若速度下降过快，高度参考可能无法维持。能量视角通常比单纯高度视角更容易解释参考可行性。</p>
-<h2 id="路径约束">19.6 路径约束</h2>
+<h2 id="路径约束">6 路径约束</h2>
 <p>质点模型最重要的价值之一，是可以把路径约束写成可计算的量</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>q</mi><mo accent="true">‾</mo></mover><mo>=</mo><mfrac><mn>1</mn><mn>2</mn></mfrac><mi>ρ</mi><mo stretchy="false" form="prefix">(</mo><mi>h</mi><mo stretchy="false" form="postfix">)</mo><msup><mi>V</mi><mn>2</mn></msup></mrow><annotation encoding="application/x-tex">
 \bar q = \frac{1}{2}\rho(h)V^2
@@ -398,7 +412,7 @@ n = \frac{L}{mg}, \qquad \dot Q = \dot Q(\rho,V,\alpha)
 是热流率，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>α</mi><annotation encoding="application/x-tex">\alpha</annotation></semantics></math>
 是攻角。</p>
 <p>这使得路径层参考不再只是速度和高度，而是带约束的飞行走廊。</p>
-<h2 id="制导与轨迹优化">19.7 制导与轨迹优化</h2>
+<h2 id="制导与轨迹优化">7 制导与轨迹优化</h2>
 <p>给定速度高度参考
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>r</mi><mi>c</mi></msub><annotation encoding="application/x-tex">r_c</annotation></semantics></math>，参考治理后的轨迹可写为</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>r</mi><mi>g</mi></msub><mo>=</mo><mi>𝒢</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>r</mi><mi>c</mi></msub><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
@@ -415,7 +429,7 @@ r_g = \mathcal G(r_c)
 <p>验证时不能只比较
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>r</mi><mi>g</mi></msub><annotation encoding="application/x-tex">r_g</annotation></semantics></math>
 和实际轨迹，还要记录参考修改幅值、动压代价和约束裕度。这体现了动压可行域进入闭环，而不是仿真结束后才检查动压曲线。</p>
-<h2 id="低阶模型接口">19.8 低阶模型接口</h2>
+<h2 id="低阶模型接口">8 低阶模型接口</h2>
 <p>质点模型的教学接口应至少包含：</p>
 <ul>
 <li>状态：<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>V</mi><mo>,</mo><mi>γ</mi><mo>,</mo><mi>h</mi><mo>,</mo><mi>s</mi></mrow><annotation encoding="application/x-tex">V,\gamma,h,s</annotation></semantics></math>
@@ -427,7 +441,7 @@ r_g = \mathcal G(r_c)
 <li>下游接口：姿态、攻角、舵偏、控制分配。</li>
 </ul>
 <p>其中，这一层的教学接口应把状态、输入、派生约束量和下游输出分开记录，避免把参考可行性、路径约束和姿态控制混在同一个字段里。</p>
-<h2 id="参考可行性检查">19.9 参考可行性检查</h2>
+<h2 id="参考可行性检查">9 参考可行性检查</h2>
 <p>给定速度高度参考后，应检查：</p>
 <ul>
 <li>参考是否位于飞行包线；</li>
@@ -438,7 +452,7 @@ r_g = \mathcal G(r_c)
 <li>下游姿态或控制分配是否还能实现该参考。</li>
 </ul>
 <p>这体现了路径层可行性进入闭环，而不是仿真结束后才检查动压曲线。</p>
-<h2 id="质点层验证矩阵">19.10 质点层验证矩阵</h2>
+<h2 id="质点层验证矩阵">10 质点层验证矩阵</h2>
 <p>质点模型验证应覆盖任务、约束和下游接口：</p>
 <table>
 <colgroup>
@@ -496,12 +510,12 @@ r_g = \mathcal G(r_c)
 </tr>
 </tbody>
 </table>
-<h2 id="配套示例的支撑范围">19.11 配套示例的支撑范围</h2>
-<p>教学级质点和制导示例包括：</p>
+<h2 id="材料支撑范围">11 材料支撑范围</h2>
+<p>教学级质点和制导材料包括：</p>
 <table>
 <thead>
 <tr>
-<th>配套示例</th>
+<th>材料</th>
 <th>作用</th>
 </tr>
 </thead>
@@ -511,21 +525,21 @@ r_g = \mathcal G(r_c)
 <td>提供三维质点动力学对象</td>
 </tr>
 <tr>
-<td>三维质点制导示例</td>
+<td>三维质点制导材料</td>
 <td>提供质点层制导案例</td>
 </tr>
 <tr>
-<td>质点到姿态/分配接口示例</td>
+<td>质点到姿态/分配接口材料</td>
 <td>展示制导命令如何传给下游姿态与分配链路</td>
 </tr>
 <tr>
-<td>MATLAB 纵向动力学示例</td>
+<td>纵向动力学材料</td>
 <td>提供纵向教学模型中的速度高度动力学</td>
 </tr>
 </tbody>
 </table>
-<p>这些示例支撑教学级路径和制导指标，但不能替代完整姿态、气动、执行机构和六自由度闭环验证。</p>
-<h2 id="常见错误">19.12 常见错误</h2>
+<p>这些材料支撑教学级路径和制导指标，但不能替代完整姿态、气动、执行机构和六自由度闭环验证。</p>
+<h2 id="常见错误">12 常见错误</h2>
 <ol type="1">
 <li>用质点模型证明舵面控制器稳定。</li>
 <li>只看终端误差，不看动压、热流和过载。</li>
@@ -538,9 +552,9 @@ r_g = \mathcal G(r_c)
 <li>参考治理修改了参考，却不报告修改幅值。</li>
 <li>动压走廊只在后处理中画图，没有进入路径层命令生成。</li>
 </ol>
-<h2 id="本章小结">19.13 本章小结</h2>
+<h2 id="本章小结">13 本章小结</h2>
 <p>质点动力学模型提供的是路径、能量和参考可行性层面的控制解释。它帮助我们先判断任务是否合理，再把合理任务传递给纵向、横侧向和六自由度模型。对高超声速飞行器而言，这一层结论很重要，但它不能替代姿态、执行机构和控制分配层的闭环验证。</p>
-<h2 id="练习">19.14 练习</h2>
+<h2 id="练习">14 练习</h2>
 <ol type="1">
 <li>写出纵向质点模型的四个状态和动力学方程。</li>
 <li>说明为什么质点模型适合能量管理。</li>
@@ -554,7 +568,6 @@ r_g = \mathcal G(r_c)
 </ol>
 
       </article>
-      
       <nav class="book-bottom-nav" aria-label="章节导航">
         <a href="./18-propulsion-aero-propulsive-coupling.html">上一章：第18章 推进系统与气动推进耦合</a>
         <a href="./index.html">卷首页</a>
@@ -565,3 +578,4 @@ r_g = \mathcal G(r_c)
   </div>
 </body>
 </html>
+

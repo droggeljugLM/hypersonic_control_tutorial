@@ -89,7 +89,13 @@
       font-weight: 800;
     }
     .sidebar-title { font-size: 0.94rem; line-height: 1.35; }
-    .book-main { min-width: 0; padding: 1.25rem 1.45rem 1.8rem; }
+    .book-main {
+      min-width: 0;
+      min-height: 100vh;
+      padding: 1.25rem 1.45rem 1.8rem;
+      display: flex;
+      flex-direction: column;
+    }
     .book-page-header {
       padding: 0.85rem 0 1rem;
       margin-bottom: 1rem;
@@ -104,7 +110,12 @@
       padding: 0;
     }
     .book-page-header p { margin: 0.45rem 0 0; color: var(--muted); max-width: 62rem; }
-    .book-article { max-width: 900px; margin: 0; padding: 0 0 1.2rem; }
+    .book-article {
+      max-width: 900px;
+      margin: 0;
+      padding: 0 0 1.2rem;
+      flex: 1 0 auto;
+    }
     .book-article h1, .book-article h2, .book-article h3, .book-article h4, .book-article h5, .book-article h6 {
       line-height: 1.28;
       margin-top: 1.45em;
@@ -117,27 +128,30 @@
     .book-article h3 { font-size: 1.12rem; }
     .book-article p, .book-article li, .book-article dd, .book-article td, .book-article th { text-align: justify; text-justify: inter-ideograph; }
     .book-article p { margin: 0.85rem 0; }
-    .book-article code, .book-article pre { font-family: "Cascadia Mono", "Source Code Pro", Consolas, monospace; font-size: 0.94em; }
+    .book-article code, .book-article pre { font-family: inherit; font-size: 0.98em; letter-spacing: 0; }
     .book-article code {
-      padding: 0.02rem 0.24rem;
-      background: color-mix(in srgb, var(--accent-soft) 34%, #ffffff 66%);
+      padding: 0.04rem 0.28rem;
+      background: color-mix(in srgb, var(--accent-soft) 24%, #ffffff 76%);
       border: 0;
-      border-bottom: 1px solid color-mix(in srgb, var(--accent-soft) 74%, #d1d5db 26%);
+      border-bottom: 1px solid color-mix(in srgb, var(--accent-soft) 52%, #d1d5db 48%);
       border-radius: 4px;
-      color: #253244;
+      color: #2b3440;
       box-decoration-break: clone;
       -webkit-box-decoration-break: clone;
+      font-family: inherit;
+      font-variant-ligatures: none;
     }
     .book-article pre {
-      padding: 1rem 1.1rem;
+      padding: 0.95rem 1.05rem;
       overflow: auto;
-      background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,253,248,0.98));
-      border: 1px solid color-mix(in srgb, var(--accent-soft) 54%, #d1d5db 46%);
-      border-left: 5px solid var(--accent);
+      background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,253,248,0.96));
+      border: 1px solid color-mix(in srgb, var(--accent-soft) 44%, #d1d5db 56%);
+      border-left: 4px solid var(--accent);
       border-radius: 14px;
       box-shadow: 0 8px 22px rgba(31, 41, 55, 0.05);
+      white-space: pre-wrap;
     }
-    .book-article pre code { padding: 0; border: 0; background: transparent; color: inherit; }
+    .book-article pre code { padding: 0; border: 0; background: transparent; color: inherit; font-family: inherit; }
     .book-article table {
       border-collapse: collapse;
       width: 100%;
@@ -296,7 +310,7 @@
         <h1 id="volume2--17-aerodynamic-force-moment-modeling">第17章 气动力与气动力矩建模</h1>
       </header>
       <article class="book-article">
-        <h2 id="问题背景">17.1 问题背景</h2>
+        <h2 id="问题背景">1 问题背景</h2>
 <p>气动模型是高超声速飞行器控制中连接环境、运动学和控制输入的核心环节。升力、阻力、侧力以及三轴力矩决定轨迹演化、姿态变化、控制效能、约束裕度和不确定性传播。</p>
 <p>从控制科学与工程角度看，气动建模至少要回答五个问题：</p>
 <ul>
@@ -307,7 +321,7 @@
 <li>气动表插值、外推和不确定性如何进入验证与闭环分析。</li>
 </ul>
 <p>本章不追求高保真气动理论全覆盖，而是建立后续配平、线化、控制分配、鲁棒控制和六自由度仿真的统一接口。</p>
-<h2 id="气动力和力矩的基本表达">17.2 气动力和力矩的基本表达</h2>
+<h2 id="气动力和力矩的基本表达">2 气动力和力矩的基本表达</h2>
 <p>在机体系中，气动力和气动力矩通常写成</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtable><mtr><mtd columnalign="right" style="text-align: right; padding-right: 0"><msub><mi>F</mi><mi>A</mi></msub></mtd><mtd columnalign="left" style="text-align: left; padding-left: 0"><mo>=</mo><mover><mi>q</mi><mo accent="true">‾</mo></mover><mi>S</mi><mrow><mo stretchy="true" form="prefix">[</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><msub><mi>C</mi><mi>X</mi></msub></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><msub><mi>C</mi><mi>Y</mi></msub></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><msub><mi>C</mi><mi>Z</mi></msub></mtd></mtr></mtable><mo stretchy="true" form="postfix">]</mo></mrow><mo>,</mo></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right; padding-right: 0"><msub><mi>M</mi><mi>A</mi></msub></mtd><mtd columnalign="left" style="text-align: left; padding-left: 0"><mo>=</mo><mover><mi>q</mi><mo accent="true">‾</mo></mover><mi>S</mi><mrow><mo stretchy="true" form="prefix">[</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><mover><mi>c</mi><mo accent="true">‾</mo></mover><mspace width="0.167em"></mspace><msub><mi>C</mi><mi>l</mi></msub></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><mover><mi>c</mi><mo accent="true">‾</mo></mover><mspace width="0.167em"></mspace><msub><mi>C</mi><mi>m</mi></msub></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><mi>b</mi><mspace width="0.167em"></mspace><msub><mi>C</mi><mi>n</mi></msub></mtd></mtr></mtable><mo stretchy="true" form="postfix">]</mo></mrow><mi>.</mi></mtd></mtr></mtable><annotation encoding="application/x-tex">
 \begin{aligned}
@@ -325,7 +339,7 @@ M_A &amp;= \bar q S \begin{bmatrix} \bar c\, C_l \\ \bar c\, C_m \\ b\, C_n \end
 是力系数，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>C</mi><mi>l</mi></msub><mo>,</mo><msub><mi>C</mi><mi>m</mi></msub><mo>,</mo><msub><mi>C</mi><mi>n</mi></msub></mrow><annotation encoding="application/x-tex">C_l,C_m,C_n</annotation></semantics></math>
 是滚转、俯仰和偏航力矩系数。</p>
 <p>这里的符号约定必须在项目中统一。若采用风轴系或稳定轴系，系数表达会改变，但“系数乘以动压和参考尺度”的建模逻辑不变。控制器设计时应始终明确当前使用的坐标系，以及从气动模型到刚体方程的旋转关系。</p>
-<h2 id="气动系数的变量依赖">17.3 气动系数的变量依赖</h2>
+<h2 id="气动系数的变量依赖">3 气动系数的变量依赖</h2>
 <p>气动系数通常依赖下列变量：</p>
 <ul>
 <li><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>M</mi><mi>a</mi></mrow><annotation encoding="application/x-tex">Ma</annotation></semantics></math>：Mach
@@ -349,7 +363,7 @@ C = C(Ma,h,\alpha,\beta,\omega_B,\delta,\eta_s).
 是它的主要自变量。</p>
 <p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>C</mi><annotation encoding="application/x-tex">C</annotation></semantics></math>
 可以代表任一力系数或力矩系数。入门模型可以忽略一部分变量，但必须说明被忽略变量将以不确定性、外扰或未建模动态的形式进入后续验证。</p>
-<h2 id="静态项导数项和控制导数">17.4 静态项、导数项和控制导数</h2>
+<h2 id="静态项导数项和控制导数">4 静态项、导数项和控制导数</h2>
 <p>在局部建模中，气动系数常在某个平衡点附近展开为</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>C</mi><mo>≈</mo><msub><mi>C</mi><mn>0</mn></msub><mo>+</mo><msub><mi>C</mi><mi>x</mi></msub><mspace width="0.167em"></mspace><mi mathvariant="normal">Δ</mi><mi>x</mi><mo>+</mo><msub><mi>C</mi><mi>δ</mi></msub><mspace width="0.167em"></mspace><mi mathvariant="normal">Δ</mi><mi>δ</mi><mo>+</mo><msub><mi>C</mi><mi>ω</mi></msub><mspace width="0.167em"></mspace><mi mathvariant="normal">Δ</mi><msub><mi>ω</mi><mi>B</mi></msub><mi>.</mi></mrow><annotation encoding="application/x-tex">
 C \approx C_0 + C_x\,\Delta x + C_\delta\,\Delta \delta + C_\omega\,\Delta \omega_B.
@@ -386,7 +400,7 @@ C_{m_\alpha}\Delta \alpha
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>C</mi><msub><mi>m</mi><msub><mi>δ</mi><mi>e</mi></msub></msub></msub><annotation encoding="application/x-tex">C_{m_{\delta_e}}</annotation></semantics></math>
 分别是攻角导数、俯仰阻尼导数和升降舵控制导数。</p>
 <p>这里的关键不只是“存在导数”，而是导数决定了输入矩阵的方向、尺度和符号。若控制导数符号写错，闭环设计会从根上失配。</p>
-<h2 id="控制效能矩阵">17.5 控制效能矩阵</h2>
+<h2 id="控制效能矩阵">5 控制效能矩阵</h2>
 <p>多执行机构系统常写成</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ν</mi><mo>=</mo><msub><mi>B</mi><mi>a</mi></msub><mi>δ</mi><mo>,</mo></mrow><annotation encoding="application/x-tex">
 \nu = B_a \delta,
@@ -417,7 +431,7 @@ C_{m_\alpha}\Delta \alpha
 <p>若
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>B</mi><mi>a</mi></msub><annotation encoding="application/x-tex">B_a</annotation></semantics></math>
 不可信，控制分配优化即使数学上可解，也不代表真实执行机构能产生所需力矩。</p>
-<h2 id="气动表与插值">17.6 气动表与插值</h2>
+<h2 id="气动表与插值">6 气动表与插值</h2>
 <p>工程中常使用多维气动表描述系数随变量变化的关系，例如</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>C</mi><mo>=</mo><mi>𝒯</mi><mo stretchy="false" form="prefix">(</mo><mi>M</mi><mi>a</mi><mo>,</mo><mi>h</mi><mo>,</mo><mi>α</mi><mo>,</mo><mi>β</mi><mo>,</mo><mi>δ</mi><mo>,</mo><msub><mi>ω</mi><mi>B</mi></msub><mo>,</mo><msub><mi>η</mi><mi>s</mi></msub><mo stretchy="false" form="postfix">)</mo><mo>,</mo></mrow><annotation encoding="application/x-tex">
 C = \mathcal{T}(Ma,h,\alpha,\beta,\delta,\omega_B,\eta_s),
@@ -443,7 +457,7 @@ C = \mathcal{T}(Ma,h,\alpha,\beta,\delta,\omega_B,\eta_s),
 <li>模型误差如何由鲁棒项、观测器或增量式控制补偿。</li>
 </ul>
 <p>如果直接把线性控制效能矩阵当作全局模型使用，结果通常只在很窄的包线内成立。</p>
-<h2 id="气动导数与动压效应">17.7 气动导数与动压效应</h2>
+<h2 id="气动导数与动压效应">7 气动导数与动压效应</h2>
 <p>考虑纵向教学模型，气动力矩在局部可近似为</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Δ</mi><msub><mi>M</mi><mi>y</mi></msub><mo>≈</mo><mover><mi>q</mi><mo accent="true">‾</mo></mover><mi>S</mi><mover><mi>c</mi><mo accent="true">‾</mo></mover><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>C</mi><msub><mi>m</mi><mi>α</mi></msub></msub><mi mathvariant="normal">Δ</mi><mi>α</mi><mo>+</mo><msub><mi>C</mi><msub><mi>m</mi><mi>q</mi></msub></msub><mfrac><mover><mi>c</mi><mo accent="true">‾</mo></mover><mrow><mn>2</mn><mi>V</mi></mrow></mfrac><mi mathvariant="normal">Δ</mi><mi>q</mi><mo>+</mo><msub><mi>C</mi><msub><mi>m</mi><msub><mi>δ</mi><mi>e</mi></msub></msub></msub><mi mathvariant="normal">Δ</mi><msub><mi>δ</mi><mi>e</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mi>.</mi></mrow><annotation encoding="application/x-tex">
 \Delta M_y \approx \bar q S \bar c \left( C_{m_\alpha}\Delta \alpha + C_{m_q}\frac{\bar c}{2V}\Delta q + C_{m_{\delta_e}}\Delta \delta_e \right).
@@ -471,7 +485,7 @@ C = \mathcal{T}(Ma,h,\alpha,\beta,\delta,\omega_B,\eta_s),
 或
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>q</mi><mo accent="true">‾</mo></mover><mi>S</mi><mover><mi>c</mi><mo accent="true">‾</mo></mover><msub><mi>C</mi><msub><mi>m</mi><msub><mi>δ</mi><mi>e</mi></msub></msub></msub></mrow><annotation encoding="application/x-tex">\bar q S \bar c C_{m_{\delta_e}}</annotation></semantics></math>
 接近零，动态逆和控制分配都可能变得病态。</p>
-<h2 id="气动接口契约">17.8 气动接口契约</h2>
+<h2 id="气动接口契约">8 气动接口契约</h2>
 <p>一个可复用的气动模型应明确输入、输出、单位和状态标志。建议最小契约如下：</p>
 <table>
 <thead>
@@ -546,7 +560,7 @@ C = \mathcal{T}(Ma,h,\alpha,\beta,\delta,\omega_B,\eta_s),
 </tbody>
 </table>
 <p>控制器设计时，气动模型必须使用实际执行机构偏角。如果把命令偏角直接送入气动模型，就会掩盖执行机构滞后、饱和、速率限制和故障带来的真实力矩损失。</p>
-<h2 id="气动数据验收矩阵">17.9 气动数据验收矩阵</h2>
+<h2 id="气动数据验收矩阵">9 气动数据验收矩阵</h2>
 <p>教学合成气动表也需要验收。一个最小检查矩阵可写为：</p>
 <table>
 <thead>
@@ -600,7 +614,7 @@ C = \mathcal{T}(Ma,h,\alpha,\beta,\delta,\omega_B,\eta_s),
 </tbody>
 </table>
 <p>这张矩阵的作用不是证明气动模型真实，而是证明当前模型在教学范围内自洽。若要支撑高保真结论，还需要风洞、CFD、飞行数据或经过审查的气动数据库。</p>
-<h2 id="与后续章节的接口">17.10 与后续章节的接口</h2>
+<h2 id="与后续章节的接口">10 与后续章节的接口</h2>
 <p>本章的输出会直接进入后续几章：</p>
 <ul>
 <li>第18章使用气动力与推进耦合；</li>
@@ -610,7 +624,7 @@ C = \mathcal{T}(Ma,h,\alpha,\beta,\delta,\omega_B,\eta_s),
 <li>第23章继续引入弹性模态与气动弹性效应。</li>
 </ul>
 <p>因此，本章不是“系数列表”，而是一个接口定义章。后续所有建模、控制和验证章节都应继承这里的符号、单位和输入输出约定。</p>
-<h2 id="常见错误">17.11 常见错误</h2>
+<h2 id="常见错误">11 常见错误</h2>
 <ol type="1">
 <li>升力、阻力、侧力坐标系没有说明。</li>
 <li>攻角单位在度和弧度之间混用。</li>
@@ -623,10 +637,10 @@ C = \mathcal{T}(Ma,h,\alpha,\beta,\delta,\omega_B,\eta_s),
 <li>用命令舵偏计算气动力，而不是用执行机构实际舵偏。</li>
 <li>不检查低动压下控制效能矩阵是否病态。</li>
 </ol>
-<h2 id="本章小结">17.12 本章小结</h2>
+<h2 id="本章小结">12 本章小结</h2>
 <p>气动力与气动力矩建模决定高超声速控制器是否有真实对象可控。参考书级教程必须把气动系数、气动表、稳定导数、控制导数、插值外推、不确定性和验证指标讲清楚。后续配平、线化、增益调度、控制分配、鲁棒控制、NDI/INDI
 和六自由度仿真都建立在本章接口之上。</p>
-<h2 id="练习">17.13 练习</h2>
+<h2 id="练习">13 练习</h2>
 <ol type="1">
 <li>写出三维气动力和气动力矩的系数表达。</li>
 <li>解释稳定导数和控制导数的区别。</li>
@@ -643,7 +657,6 @@ C = \mathcal{T}(Ma,h,\alpha,\beta,\delta,\omega_B,\eta_s),
 </ol>
 
       </article>
-      
       <nav class="book-bottom-nav" aria-label="章节导航">
         <a href="./16-atmosphere-flight-conditions.html">上一章：第16章 大气环境与飞行条件</a>
         <a href="./index.html">卷首页</a>

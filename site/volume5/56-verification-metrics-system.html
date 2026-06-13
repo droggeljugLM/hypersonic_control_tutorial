@@ -89,7 +89,13 @@
       font-weight: 800;
     }
     .sidebar-title { font-size: 0.94rem; line-height: 1.35; }
-    .book-main { min-width: 0; padding: 1.25rem 1.45rem 1.8rem; }
+    .book-main {
+      min-width: 0;
+      min-height: 100vh;
+      padding: 1.25rem 1.45rem 1.8rem;
+      display: flex;
+      flex-direction: column;
+    }
     .book-page-header {
       padding: 0.85rem 0 1rem;
       margin-bottom: 1rem;
@@ -104,7 +110,12 @@
       padding: 0;
     }
     .book-page-header p { margin: 0.45rem 0 0; color: var(--muted); max-width: 62rem; }
-    .book-article { max-width: 900px; margin: 0; padding: 0 0 1.2rem; }
+    .book-article {
+      max-width: 900px;
+      margin: 0;
+      padding: 0 0 1.2rem;
+      flex: 1 0 auto;
+    }
     .book-article h1, .book-article h2, .book-article h3, .book-article h4, .book-article h5, .book-article h6 {
       line-height: 1.28;
       margin-top: 1.45em;
@@ -285,7 +296,7 @@
 <a class="sidebar-link" href="./58-typical-case-library.html"><span class="sidebar-index">07</span><span class="sidebar-title">第58章 典型案例库</span></a>
 <a class="sidebar-link" href="./59-hypersonic-control-paper-reading-method.html"><span class="sidebar-index">08</span><span class="sidebar-title">第59章 高超声速控制论文阅读方法</span></a>
 <a class="sidebar-link" href="./60-frontiers-research-roadmap.html"><span class="sidebar-index">09</span><span class="sidebar-title">第60章 前沿问题与研究路线</span></a>
-<a class="sidebar-link" href="./case-library-code-mapping.html"><span class="sidebar-index">10</span><span class="sidebar-title">第五卷案例映射</span></a>
+<a class="sidebar-link" href="./case-library-mapping.html"><span class="sidebar-index">10</span><span class="sidebar-title">第五卷案例映射</span></a>
         </nav>
       </div>
     </aside>
@@ -294,12 +305,12 @@
         <h1 id="volume5--56-verification-metrics-system">第56章 验证指标体系</h1>
       </header>
       <article class="book-article">
-        <h2 id="问题背景">56.1 问题背景</h2>
+        <h2 id="问题背景">1 问题背景</h2>
 <p>高超声速控制论文和教程常见问题是只展示若干状态曲线，然后用“跟踪效果良好”“控制输入平滑”“满足约束”等语言总结。这种表述缺乏可核查性。控制系统验证必须把曲线转化为指标，把指标转化为判据，把判据转化为可复现实验表。</p>
 <p>本章先把对象、任务、阈值来源和证据目标说清楚，再讨论指标分类、误差口径、动态响应、安全裕度、终端任务和计算实现。指标不是曲线旁边的装饰文字，而是把仿真结果转成可核查证据的语言。</p>
 <p>本章是第五卷的核心验收章节。没有统一的指标体系，仿真平台和控制器实现就很难形成可比较、可审查、可复现的证据链。</p>
 <p>这意味着，指标体系的价值不在于“列出更多数字”，而在于把不同章节的结果放到同一把尺子上。若一个方法只改进了曲线，却没有改善对应的约束裕度、终端误差或计算代价，那么它的结论就不能被夸大。</p>
-<h2 id="指标分类">56.2 指标分类</h2>
+<h2 id="指标分类">2 指标分类</h2>
 <p>可以把指标分为七类：</p>
 <table>
 <thead>
@@ -340,7 +351,7 @@
 </tbody>
 </table>
 <p>不同章节可以重点不同，但不应只保留跟踪指标。</p>
-<h2 id="指标定义前的对象阈值和证据检查">56.3
+<h2 id="指标定义前的对象阈值和证据检查">3
 指标定义前的对象、阈值和证据检查</h2>
 <p>第56章先要做的，不是罗列常用指标，而是把对象、任务、阈值来源和证据目标说清楚。只有先确定这些前提，指标才不会变成一张彼此孤立的名单。</p>
 <p>进入指标计算之前，先把一些问题想清楚：</p>
@@ -388,7 +399,7 @@
 </table>
 <p>因此，更自然的起点，是先问清楚一些指标到底服务哪个对象、哪段任务、什么验收门槛，以及准备支撑到哪一级结论，再去算
 RMS。</p>
-<h2 id="跟踪误差">56.4 跟踪误差</h2>
+<h2 id="跟踪误差">4 跟踪误差</h2>
 <p>设输出
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>y</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">y(t)</annotation></semantics></math>
 跟踪参考
@@ -425,7 +436,7 @@ e_{\mathrm{rms}}=\sqrt{\frac{1}{N}\sum_{k=1}^{N}e_k^2}
 <p>对速度高度控制，可报告速度均方根误差、高度均方根误差、航迹角均方根误差和攻角均方根误差。</p>
 <p>对姿态控制，可报告滚转角、俯仰角、偏航角以及角速度的均方根误差。</p>
 <p>跟踪误差应明确相对于原始参考还是修正参考。若参考治理器修改了参考，必须同时报告原始任务误差和修正参考跟踪误差。</p>
-<h2 id="稳态误差超调和调节时间">56.5 稳态误差、超调和调节时间</h2>
+<h2 id="稳态误差超调和调节时间">5 稳态误差、超调和调节时间</h2>
 <p>稳态误差可定义为末段平均误差：</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>e</mi><mrow><mi mathvariant="normal">s</mi><mi mathvariant="normal">s</mi></mrow></msub><mo>=</mo><mfrac><mn>1</mn><mrow><msub><mi>T</mi><mn>2</mn></msub><mo>−</mo><msub><mi>T</mi><mn>1</mn></msub></mrow></mfrac><msubsup><mo>∫</mo><msub><mi>T</mi><mn>1</mn></msub><msub><mi>T</mi><mn>2</mn></msub></msubsup><mi>e</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mspace width="0.167em"></mspace><mi>d</mi><mi>t</mi></mrow><annotation encoding="application/x-tex">
 e_{\mathrm{ss}}=\frac{1}{T_2-T_1}\int_{T_1}^{T_2}e(t)\,dt
@@ -450,7 +461,7 @@ t_s=\inf\{t:|e(\tau)|\le \epsilon,\ \forall \tau\ge t\}
 是误差容限，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>t</mi><mi>s</mi></msub><annotation encoding="application/x-tex">t_s</annotation></semantics></math>
 是调节时间。</p>
 <p>高超声速控制中，调节时间阈值必须结合任务阶段。例如再入终端制导关注末段误差，巡航控制关注长时间稳态，高机动滑翔则关注路径约束下的动态响应。</p>
-<h2 id="控制输入指标">56.6 控制输入指标</h2>
+<h2 id="控制输入指标">6 控制输入指标</h2>
 <p>控制输入指标用于检查实现代价：</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>J</mi><mi>u</mi></msub><mo>=</mo><msubsup><mo>∫</mo><mn>0</mn><mi>T</mi></msubsup><msup><mi>u</mi><mi>⊤</mi></msup><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mi>R</mi><mi>u</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mspace width="0.167em"></mspace><mi>d</mi><mi>t</mi></mrow><annotation encoding="application/x-tex">
 J_u=\int_0^T u^\top(t)Ru(t)\,dt
@@ -481,7 +492,7 @@ J_u=\int_0^T u^\top(t)Ru(t)\,dt
 是舵偏上限。</p>
 <p>对推力或油门，还应报告油门峰值、油门变化率峰值和油门饱和时间比例。</p>
 <p>若安全改善完全依赖长期饱和或极大控制能量，该控制器工程价值有限。</p>
-<h2 id="动压热流和过载裕度">56.7 动压、热流和过载裕度</h2>
+<h2 id="动压热流和过载裕度">7 动压、热流和过载裕度</h2>
 <p>安全约束常写为：</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>c</mi><mi>i</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo>≤</mo><msub><mi>c</mi><mrow><mi>i</mi><mo>,</mo><mi>max</mi><mo>&#8289;</mo></mrow></msub></mrow><annotation encoding="application/x-tex">
 c_i(x)\le c_{i,\max}
@@ -542,7 +553,7 @@ m_{i,\min}=\min_{t\in[0,T]}m_i(t)
 </table>
 <p>如果
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>m</mi><mrow><mi>i</mi><mo>,</mo><mi>min</mi><mo>&#8289;</mo></mrow></msub><mo>&lt;</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">m_{i,\min}&lt;0</annotation></semantics></math>，说明出现约束违反。此时不能只报告平均裕度，还应报告违反时间和违反积分。</p>
-<h2 id="违反时间和违反积分">56.8 违反时间和违反积分</h2>
+<h2 id="违反时间和违反积分">8 违反时间和违反积分</h2>
 <p>违反幅度定义为：</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>v</mi><mi>i</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mi>max</mi><mo>&#8289;</mo><mo stretchy="false" form="prefix">{</mo><mn>0</mn><mo>,</mo><mi>−</mi><msub><mi>m</mi><mi>i</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">}</mo></mrow><annotation encoding="application/x-tex">
 v_i(t)=\max\{0,-m_i(t)\}
@@ -562,7 +573,7 @@ I_{\mathrm{viol}}=\int_0^T v_i(t)\,dt
 <p>其中，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>I</mi><mrow><mi mathvariant="normal">v</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">l</mi></mrow></msub><annotation encoding="application/x-tex">I_{\mathrm{viol}}</annotation></semantics></math>
 是违反严重程度的积分量。 它回答的是“越界到底有多严重”。</p>
 <p>违反时间说明持续多久，违反积分说明严重程度。一个短时小幅超限和长时间大幅超限不应被同等对待。</p>
-<h2 id="终端任务指标">56.9 终端任务指标</h2>
+<h2 id="终端任务指标">9 终端任务指标</h2>
 <p>制导和再入任务需要终端指标：</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>e</mi><mrow><mi>r</mi><mo>,</mo><mi>f</mi></mrow></msub><mo>=</mo><mo stretchy="false" form="postfix">∥</mo><mi>r</mi><mo stretchy="false" form="prefix">(</mo><mi>T</mi><mo stretchy="false" form="postfix">)</mo><mo>−</mo><msubsup><mi>r</mi><mi>f</mi><mo>⋆</mo></msubsup><mo stretchy="false" form="postfix">∥</mo></mrow><annotation encoding="application/x-tex">
 e_{r,f}=\|r(T)-r_f^\star\|
@@ -618,7 +629,7 @@ e_{\psi,f}=|\psi(T)-\psi_f^\star|
 </tbody>
 </table>
 <p>终端指标必须和路径安全一起报告。终端命中但中途热流超限，不能称为任务成功。</p>
-<h2 id="鲁棒性和故障指标">56.10 鲁棒性和故障指标</h2>
+<h2 id="鲁棒性和故障指标">10 鲁棒性和故障指标</h2>
 <p>扰动或故障下应报告：</p>
 <table>
 <thead>
@@ -663,7 +674,7 @@ e_{\psi,f}=|\psi(T)-\psi_f^\star|
 </tbody>
 </table>
 <p>容错控制不能只报告故障检测成功，还要报告故障后剩余控制能力、任务降级和安全约束。</p>
-<h2 id="计算实现指标">56.11 计算实现指标</h2>
+<h2 id="计算实现指标">11 计算实现指标</h2>
 <p>实时实现指标包括：</p>
 <table>
 <thead>
@@ -704,7 +715,7 @@ e_{\psi,f}=|\psi(T)-\psi_f^\star|
 </tbody>
 </table>
 <p>若一个控制器跟踪和安全指标都很好，但经常超过实时截止时间，它不能算工程可实现。</p>
-<h2 id="组合通过判据">56.12 组合通过判据</h2>
+<h2 id="组合通过判据">12 组合通过判据</h2>
 <p>建议把多指标合成为一个总体通过判据：</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi mathvariant="normal">Π</mi><mrow><mi mathvariant="normal">a</mi><mi mathvariant="normal">l</mi><mi mathvariant="normal">l</mi></mrow></msub><mo>=</mo><msub><mi mathvariant="normal">Π</mi><mrow><mi mathvariant="normal">t</mi><mi mathvariant="normal">r</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">c</mi><mi mathvariant="normal">k</mi></mrow></msub><mo>∧</mo><msub><mi mathvariant="normal">Π</mi><mrow><mi mathvariant="normal">s</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">f</mi><mi mathvariant="normal">e</mi><mi mathvariant="normal">t</mi><mi mathvariant="normal">y</mi></mrow></msub><mo>∧</mo><msub><mi mathvariant="normal">Π</mi><mrow><mi mathvariant="normal">i</mi><mi mathvariant="normal">n</mi><mi mathvariant="normal">p</mi><mi mathvariant="normal">u</mi><mi mathvariant="normal">t</mi></mrow></msub><mo>∧</mo><msub><mi mathvariant="normal">Π</mi><mrow><mi mathvariant="normal">t</mi><mi mathvariant="normal">e</mi><mi mathvariant="normal">r</mi><mi mathvariant="normal">m</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">n</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">l</mi></mrow></msub><mo>∧</mo><msub><mi mathvariant="normal">Π</mi><mrow><mi mathvariant="normal">n</mi><mi mathvariant="normal">u</mi><mi mathvariant="normal">m</mi></mrow></msub><mo>∧</mo><msub><mi mathvariant="normal">Π</mi><mrow><mi mathvariant="normal">r</mi><mi mathvariant="normal">t</mi></mrow></msub></mrow><annotation encoding="application/x-tex">
 \Pi_{\mathrm{all}}=\Pi_{\mathrm{track}}\land \Pi_{\mathrm{safety}}\land \Pi_{\mathrm{input}}\land \Pi_{\mathrm{terminal}}\land \Pi_{\mathrm{num}}\land \Pi_{\mathrm{rt}}
@@ -720,7 +731,7 @@ NaN、无异常终止，步长检查通过；</li>
 <li><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi mathvariant="normal">Π</mi><mrow><mi mathvariant="normal">r</mi><mi mathvariant="normal">t</mi></mrow></msub><annotation encoding="application/x-tex">\Pi_{\mathrm{rt}}</annotation></semantics></math>：计算时间满足采样周期。</li>
 </ul>
 <p>组合判据应提前定义，不能在仿真后临时调整。</p>
-<h2 id="成对比较">56.13 成对比较</h2>
+<h2 id="成对比较">13 成对比较</h2>
 <p>比较基线方法和改进方法时，应使用同一场景、初值、扰动和随机种子。成对差值可写为：</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Δ</mi><mi>J</mi><mo>=</mo><msub><mi>J</mi><mrow><mi mathvariant="normal">n</mi><mi mathvariant="normal">e</mi><mi mathvariant="normal">w</mi></mrow></msub><mo>−</mo><msub><mi>J</mi><mrow><mi mathvariant="normal">b</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">s</mi><mi mathvariant="normal">e</mi></mrow></msub></mrow><annotation encoding="application/x-tex">
 \Delta J = J_{\mathrm{new}}-J_{\mathrm{base}}
@@ -730,7 +741,7 @@ NaN、无异常终止，步长检查通过；</li>
 是基线方法指标，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Δ</mi><mi>J</mi></mrow><annotation encoding="application/x-tex">\Delta J</annotation></semantics></math>
 是成对差值。</p>
 <p>若要比较多个指标，应把每个指标都写成差值或比值，并说明正负方向。</p>
-<h2 id="统一结果对象">56.14 统一结果对象</h2>
+<h2 id="统一结果对象">14 统一结果对象</h2>
 <p>为了把指标、通过判据、成对比较和边界一起管理，可把结果对象写成：</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ℛ</mi><mo>=</mo><mo stretchy="false" form="prefix">(</mo><mi>𝒪</mi><mo>,</mo><msub><mi>ℛ</mi><mi>f</mi></msub><mo>,</mo><mi>𝒞</mi><mo>,</mo><mi>ℳ</mi><mo>,</mo><mi>𝒯</mi><mo>,</mo><mi>𝒫</mi><mo>,</mo><mi>ℰ</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
 \mathcal{R}=(\mathcal{O},\mathcal{R}_f,\mathcal{C},\mathcal{M},\mathcal{T},\mathcal{P},\mathcal{E})
@@ -744,7 +755,7 @@ NaN、无异常终止，步长检查通过；</li>
 表示通过判据，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ℰ</mi><annotation encoding="application/x-tex">\mathcal{E}</annotation></semantics></math>
 表示证据边界。
 这个对象把指标、判据和边界统一收进一个结果包，方便后续章节直接复用同一套验收口径。</p>
-<h2 id="指标证据层次及其与后续章节的关系">56.15
+<h2 id="指标证据层次及其与后续章节的关系">15
 指标证据层次及其与后续章节的关系</h2>
 <p>为了避免把“算出几个指标”误写成“已经建立可信验证体系”，本章可把指标证据粗分为五级：</p>
 <table>
@@ -794,7 +805,7 @@ NaN、无异常终止，步长检查通过；</li>
 说明“这些指标怎样组成验收门槛”，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>V</mi><mi>m</mi><mn>3</mn></mrow><annotation encoding="application/x-tex">Vm3</annotation></semantics></math>
 说明“指标已经进入统计证据层”，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>V</mi><mi>m</mi><mn>4</mn></mrow><annotation encoding="application/x-tex">Vm4</annotation></semantics></math>
 说明“同一套指标口径可以支撑更高一级的研究比较”。换句话说，指标不是越多越好，而是要能稳定地回答三件事：有没有跟好、有没有越界、有没有按时算完。</p>
-<h2 id="本章应保留的最小信息集">56.16 本章应保留的最小信息集</h2>
+<h2 id="本章应保留的最小信息集">16 本章应保留的最小信息集</h2>
 <p>如果正文只剩下一个指标名称列表，它还不足以支撑验证。第56章至少应保留以下信息：</p>
 <ul>
 <li>每个指标对应的对象、参考和统计区间；</li>
@@ -836,7 +847,7 @@ NaN、无异常终止，步长检查通过；</li>
 </tr>
 </tbody>
 </table>
-<h2 id="本章内容的边界">56.17 本章内容的边界</h2>
+<h2 id="本章内容的边界">17 本章内容的边界</h2>
 <p>与第56章相衔接的材料主要包括：</p>
 <table>
 <colgroup>
@@ -879,7 +890,7 @@ NaN、无异常终止，步长检查通过；</li>
 <li>但它还不是自动生成结论的工具，也不是高保真飞行试验的替代品；</li>
 <li>因此，第56章能支撑“如何把结果写成可核查证据”，不能支撑“任何结果都天然成立”。</li>
 </ul>
-<h2 id="常见错误">56.18 常见错误</h2>
+<h2 id="常见错误">18 常见错误</h2>
 <ol type="1">
 <li>只报跟踪曲线，不报安全裕度。</li>
 <li>只报平均值，不报最差样本和分位数。</li>
@@ -889,7 +900,7 @@ NaN、无异常终止，步长检查通过；</li>
 <li>组合判据在仿真后临时修改。</li>
 <li>用“满足约束”代替明确阈值和数值。</li>
 </ol>
-<h2 id="练习">56.19 练习</h2>
+<h2 id="练习">19 练习</h2>
 <ol type="1">
 <li>为纵向动压约束控制设计一组完整的跟踪、安全、输入和终端指标。</li>
 <li>写出违反时间和违反积分的计算方法。</li>
@@ -897,7 +908,7 @@ NaN、无异常终止，步长检查通过；</li>
 <li>设计一个基线方法与改进方法的成对比较表。</li>
 <li>说明为什么终端命中但路径超限不能算任务成功。</li>
 </ol>
-<h2 id="本章应形成的成果">56.20 本章应形成的成果</h2>
+<h2 id="本章应形成的成果">20 本章应形成的成果</h2>
 <p>第56章的作用，不是把指标列得更多，而是把验证结果写成可复现的证据对象。</p>
 <h3 id="指标对象">指标对象</h3>
 <p>本章应交付的指标对象至少包括：</p>
@@ -931,7 +942,6 @@ NaN、无异常终止，步长检查通过；</li>
 <p>写到这里，验证指标体系才真正从“列指标”变成“证据语言”。</p>
 
       </article>
-      
       <nav class="book-bottom-nav" aria-label="章节导航">
         <a href="./55-controller-discretization-real-time-implementation.html">上一章：第55章 控制器离散化与实时实现</a>
         <a href="./index.html">卷首页</a>
@@ -942,3 +952,6 @@ NaN、无异常终止，步长检查通过；</li>
   </div>
 </body>
 </html>
+
+
+
