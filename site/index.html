@@ -6,210 +6,505 @@
   <title>高超声速飞行器控制教程 五卷五册</title>
   <style>
     :root {
-      --paper: #f7f3eb;
-      --ink: #1f2937;
-      --muted: #5b6472;
+      --paper: #f5f0e6;
+      --paper-2: #fcfaf6;
+      --ink: #172033;
+      --muted: #5d6676;
+      --line: rgba(23, 32, 51, 0.10);
+      --shadow: 0 18px 44px rgba(29, 38, 59, 0.08);
     }
     html {
       background:
-        radial-gradient(circle at top left, rgba(72, 87, 153, 0.11) 0, rgba(255,255,255,0) 36%),
-        linear-gradient(180deg, #fbfaf6 0%, var(--paper) 100%);
+        radial-gradient(circle at top left, rgba(67, 94, 152, 0.14), transparent 32%),
+        radial-gradient(circle at top right, rgba(143, 91, 57, 0.12), transparent 28%),
+        linear-gradient(180deg, #fdfbf7 0%, var(--paper) 100%);
       -webkit-text-size-adjust: 100%;
     }
     body {
       margin: 0;
-      font-family: "Source Han Serif SC", "Songti SC", "Noto Serif CJK SC", "Microsoft YaHei", serif;
       color: var(--ink);
+      font-family: "Source Han Serif SC", "Songti SC", "Noto Serif CJK SC", "Microsoft YaHei", serif;
       line-height: 1.78;
       letter-spacing: 0;
     }
-    .hero {
-      max-width: 1180px;
+    a { color: inherit; }
+    .shell {
+      max-width: 1220px;
       margin: 0 auto;
-      padding: 0.75rem 1.4rem 0.7rem;
+      padding: 22px 22px 40px;
+    }
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 18px;
     }
     .eyebrow {
       display: inline-flex;
       align-items: center;
-      padding: 0.32rem 0.72rem;
+      padding: 0.38rem 0.78rem;
       border-radius: 999px;
-      background: rgba(255,255,255,0.78);
-      border: 1px solid rgba(31,41,55,0.08);
-      color: #334155;
-      font-family: "Microsoft YaHei", "Noto Sans CJK SC", system-ui, sans-serif;
-      font-weight: 700;
-      font-size: 0.82rem;
-      letter-spacing: 0.02em;
+      border: 1px solid rgba(23, 32, 51, 0.10);
+      background: rgba(255, 255, 255, 0.72);
+      font: 700 0.84rem/1 "Microsoft YaHei", "Noto Sans CJK SC", sans-serif;
+      color: #344155;
+      letter-spacing: 0;
+    }
+    .hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1.08fr) minmax(290px, 0.92fr);
+      gap: 18px;
+      align-items: stretch;
+      margin-bottom: 20px;
+    }
+    .hero-main, .hero-panel, .selector, .summary, .book-card {
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.74);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(8px);
+    }
+    .hero-main {
+      padding: 24px 24px 22px;
     }
     h1 {
-      margin: 0.35rem 0 0.15rem;
-      font-size: 2.55rem;
-      line-height: 1.08;
+      margin: 8px 0 10px;
+      font-size: clamp(2.1rem, 4vw, 3.25rem);
+      line-height: 1.06;
+      letter-spacing: 0;
     }
     .hero-lead {
-      max-width: 52rem;
-      margin: 0.35rem 0 0;
+      margin: 0;
+      max-width: 58rem;
       color: var(--muted);
-      font-size: 1rem;
-      line-height: 1.72;
+      font-size: 1.02rem;
+      line-height: 1.76;
     }
-    .grid {
-      max-width: 1180px;
-      margin: 0 auto;
-      padding: 0 1.4rem 3rem;
-      display: grid;
-      gap: 1rem;
-      grid-template-columns: repeat(12, minmax(0, 1fr));
-    }
-    .volume-card {
+    .hero-panel {
       position: relative;
       overflow: hidden;
-      padding: 1.1rem 1rem 1rem;
-      border-radius: 18px;
-      background:
-        linear-gradient(180deg, rgba(255,255,255,0.95), rgba(255,255,255,0.82)),
-        linear-gradient(135deg, var(--accent-soft), rgba(255,255,255,0));
-      border: 1px solid color-mix(in srgb, var(--accent-soft) 82%, #d1d5db 18%);
-      box-shadow: 0 14px 40px rgba(31, 41, 55, 0.06);
-      min-height: 220px;
+      padding: 18px;
     }
-    .volume-card::before {
+    .hero-panel::before {
       content: "";
       position: absolute;
-      inset: 0 auto 0 0;
-      width: 10px;
-      background: linear-gradient(180deg, var(--accent), var(--accent-deep));
+      inset: auto -10% -32% auto;
+      width: 180px;
+      height: 180px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(67, 94, 152, 0.22), transparent 70%);
+      pointer-events: none;
     }
-    .volume-badge {
+    .hero-panel h2 {
+      margin: 2px 0 12px;
+      font-size: 1.04rem;
+      line-height: 1.35;
+    }
+    .hero-panel p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.95rem;
+      line-height: 1.7;
+    }
+    .hero-stats {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 16px;
+    }
+    .stat {
+      padding: 12px 12px 11px;
+      border-radius: 14px;
+      border: 1px solid rgba(23, 32, 51, 0.08);
+      background: linear-gradient(180deg, rgba(255,255,255,0.9), rgba(250,248,243,0.92));
+    }
+    .stat strong {
+      display: block;
+      font-size: 1.06rem;
+      line-height: 1.2;
+      margin-bottom: 2px;
+    }
+    .stat span {
+      color: var(--muted);
+      font-size: 0.86rem;
+      line-height: 1.55;
+    }
+    .workspace {
+      display: grid;
+      grid-template-columns: 280px minmax(0, 1fr);
+      gap: 18px;
+      align-items: start;
+      margin-bottom: 20px;
+    }
+    .selector {
+      padding: 16px;
+      position: sticky;
+      top: 16px;
+    }
+    .selector h2, .summary h2 {
+      margin: 0 0 12px;
+      font-size: 1.02rem;
+      line-height: 1.25;
+    }
+    .selector-list {
+      display: grid;
+      gap: 10px;
+    }
+    .volume-tab {
+      display: grid;
+      grid-template-columns: 42px minmax(0, 1fr);
+      gap: 10px;
+      align-items: center;
+      padding: 10px 11px;
+      border-radius: 14px;
+      border: 1px solid rgba(23, 32, 51, 0.09);
+      background: rgba(255,255,255,0.86);
+      color: var(--ink);
+      cursor: pointer;
+      text-align: left;
+      transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease, background .18s ease;
+      box-shadow: 0 8px 20px rgba(31,41,55,0.04);
+      font: inherit;
+    }
+    .volume-tab:hover, .volume-tab:focus-visible {
+      transform: translateY(-1px);
+      border-color: rgba(23,32,51,0.18);
+      box-shadow: 0 12px 24px rgba(31,41,55,0.09);
+      outline: none;
+    }
+    .volume-tab.active {
+      background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(242,245,255,0.94));
+      border-color: var(--accent);
+      box-shadow: 0 16px 28px color-mix(in srgb, var(--accent) 18%, transparent);
+    }
+    .volume-no {
+      width: 42px;
+      height: 42px;
+      border-radius: 999px;
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      width: 2rem;
-      height: 2rem;
-      border-radius: 999px;
-      background: var(--accent-soft);
-      color: var(--accent-deep);
       font-weight: 800;
-      font-size: 0.92rem;
+      color: var(--accent);
+      background: var(--accent-soft);
     }
-    .volume-card h2 {
-      margin: 0.9rem 0 0.4rem;
-      font-size: 1.08rem;
-      line-height: 1.25;
-      color: var(--ink);
-    }
-    .volume-card p {
-      margin: 0;
-      color: var(--muted);
+    .volume-tab strong {
+      display: block;
       font-size: 0.94rem;
+      line-height: 1.35;
+      margin-bottom: 2px;
     }
-    .volume-card-note {
-      margin-top: 0.7rem;
-      color: #384152;
-      font-size: 0.9rem;
-      line-height: 1.55;
+    .volume-tab span {
+      display: block;
+      color: var(--muted);
+      font-size: 0.84rem;
+      line-height: 1.45;
     }
-    .card-links {
+    .detail {
+      min-height: 100%;
+    }
+    .book-card {
+      display: none;
+      position: relative;
+      overflow: hidden;
+      padding: 18px 18px 16px;
+      min-height: 100%;
+      animation: fadeUp .26s ease;
+    }
+    .book-card.active {
+      display: block;
+    }
+    .book-card::before {
+      content: "";
+      position: absolute;
+      inset: 0 auto 0 0;
+      width: 12px;
+      background: linear-gradient(180deg, var(--accent), var(--accent-deep));
+    }
+    .book-top {
       display: flex;
-      gap: 0.55rem;
-      margin-top: 1rem;
-      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: flex-start;
     }
-    .card-links a {
+    .book-title {
+      margin: 0;
+      font-size: 1.42rem;
+      line-height: 1.2;
+    }
+    .book-subtitle {
+      margin: 8px 0 0;
+      color: var(--muted);
+      font-size: 0.97rem;
+      line-height: 1.7;
+    }
+    .book-note {
+      margin-top: 14px;
+      padding: 12px 13px;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.82);
+      border: 1px solid rgba(23, 32, 51, 0.08);
+      color: #3a4557;
+      font-size: 0.92rem;
+      line-height: 1.66;
+    }
+    .book-links {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 16px;
+    }
+    .book-links a {
       text-decoration: none;
-      padding: 0.45rem 0.72rem;
+      padding: 0.56rem 0.82rem;
       border-radius: 999px;
       border: 1px solid var(--accent-soft);
       color: var(--accent-deep);
       background: rgba(255,255,255,0.9);
-      font-size: 0.9rem;
       font-weight: 700;
+      transition: transform .18s ease, background .18s ease, box-shadow .18s ease;
     }
-    .card-links a:hover {
+    .book-links a:hover {
+      transform: translateY(-1px);
       background: var(--accent-soft);
+      box-shadow: 0 12px 20px color-mix(in srgb, var(--accent) 10%, transparent);
     }
-    .volume-1 { grid-column: 1 / span 4; }
-    .volume-2 { grid-column: 5 / span 4; }
-    .volume-3 { grid-column: 9 / span 4; }
-    .volume-4 { grid-column: 2 / span 5; }
-    .volume-5 { grid-column: 7 / span 5; }
-    @media (max-width: 980px) {
-      .grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-      }
-      .volume-1, .volume-2, .volume-3, .volume-4, .volume-5 {
-        grid-column: auto;
-      }
+    .summary {
+      padding: 16px;
+      margin-top: 18px;
     }
-    @media (max-width: 720px) {
-      h1 {
-        font-size: 2rem;
-      }
-      .hero-lead {
-        font-size: 0.96rem;
-      }
-      .grid {
-        grid-template-columns: 1fr;
-      }
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 12px;
+    }
+    .book-tile {
+      position: relative;
+      padding: 14px 14px 12px;
+      border-radius: 16px;
+      border: 1px solid rgba(23, 32, 51, 0.09);
+      background: linear-gradient(180deg, rgba(255,255,255,0.95), rgba(250,248,243,0.92));
+      text-decoration: none;
+      min-height: 165px;
+      overflow: hidden;
+      transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+    }
+    .book-tile:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 16px 30px rgba(31,41,55,0.08);
+      border-color: color-mix(in srgb, var(--accent) 35%, rgba(23,32,51,0.09));
+    }
+    .book-tile::before {
+      content: "";
+      position: absolute;
+      inset: 0 auto 0 0;
+      width: 8px;
+      background: linear-gradient(180deg, var(--accent), var(--accent-deep));
+    }
+    .book-tile .mini-no {
+      width: 1.9rem;
+      height: 1.9rem;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      color: var(--accent);
+      background: var(--accent-soft);
+      margin-bottom: 10px;
+    }
+    .book-tile strong {
+      display: block;
+      font-size: 0.96rem;
+      line-height: 1.35;
+      margin-bottom: 8px;
+    }
+    .book-tile span {
+      display: block;
+      color: var(--muted);
+      font-size: 0.84rem;
+      line-height: 1.55;
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @media (max-width: 1100px) {
+      .workspace { grid-template-columns: 1fr; }
+      .selector { position: static; }
+      .summary-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    @media (max-width: 820px) {
+      .hero { grid-template-columns: 1fr; }
+      .summary-grid { grid-template-columns: 1fr; }
+      .book-top { flex-direction: column; }
+      .book-title { font-size: 1.24rem; }
     }
   </style>
 </head>
 <body>
-  <section class="hero">
-    <div class="eyebrow">五卷五册 网页首页</div>
-    <h1>高超声速飞行器控制教程</h1>
-    <p class="hero-lead">这不是五个并列分区，而是一套按学习路径展开的书。上面先给总览，下面再按理论、建模、方法、约束和验证顺序铺开。</p>
-  </section>
-  <section class="grid">
-      <article class="volume-card volume-1" style="--accent:#335c81;--accent-soft:#e7eef7;--accent-deep:#1e3d57;">
-        <div class="volume-badge">1</div>
-        <h2>第一卷 数学基础与控制理论基础</h2>
-        <p>把动力系统、线性与非线性、稳定性、鲁棒、最优、自适应、估计与约束控制统一成一套可复用的控制语言。</p>
-        <div class="volume-card-note">建议先读第1至第5章，再回到约束、最优、估计和多时间尺度章节。</div>
-        <div class="card-links">
-          <a href="./volume1/index.html">网页版</a>
-        </div>
-      </article>
+  <main class="shell">
+    <div class="topbar">
+      <div class="eyebrow">五卷五册 网页首页</div>
+      <div class="eyebrow">卷册切换 · 章节浏览 · 直接阅读</div>
+    </div>
 
-      <article class="volume-card volume-2" style="--accent:#18786f;--accent-soft:#e3f5f2;--accent-deep:#0e4b45;">
-        <div class="volume-badge">2</div>
-        <h2>第二卷 高超声速飞行器建模与飞行动力学</h2>
-        <p>把高超声速飞行器拆成任务、坐标、环境、气动、推进、质点、纵向、横侧向、六自由度与执行系统。</p>
-        <div class="volume-card-note">建议先把对象分类、坐标系和环境模型看完，再进入质点、纵向、横侧向和六自由度模型。</div>
-        <div class="card-links">
-          <a href="./volume2/index.html">网页版</a>
+    <section class="hero">
+      <div class="hero-main">
+        <h1>高超声速飞行器控制教程</h1>
+        <p class="hero-lead">这是一套按学习路径展开的书。左边先选卷，右边即时展开对应卷的摘要、阅读顺序和入口。整体尽量做成电子书而不是仓库目录，让页面有明确层次，也让切换更像翻书。</p>
+      </div>
+      <aside class="hero-panel">
+        <h2>当前结构</h2>
+        <p>五卷分别对应理论基础、建模与动力学、控制方法、约束与容错、仿真验证与研究训练。点选任一卷，右侧会切换为该卷的首页摘要。</p>
+        <div class="hero-stats">
+          <div class="stat"><strong>5 卷</strong><span>按学习路径组织</span></div>
+          <div class="stat"><strong>60 章</strong><span>章节统一排版</span></div>
+          <div class="stat"><strong>网页版</strong><span>适合直接阅读</span></div>
+          <div class="stat"><strong>动画</strong><span>轻量切换反馈</span></div>
         </div>
-      </article>
+      </aside>
+    </section>
 
-      <article class="volume-card volume-3" style="--accent:#9a6d1c;--accent-soft:#f6ecd1;--accent-deep:#5d4010;">
-        <div class="volume-badge">3</div>
-        <h2>第三卷 经典与现代飞行控制方法</h2>
-        <p>从经典自动驾驶仪到鲁棒、增益调度、动态逆、反步、滑模、自适应和扰动观测器，梳理方法谱系与适用边界。</p>
-        <div class="volume-card-note">建议按架构、线性方法、鲁棒方法、非线性方法、自适应和观测器的顺序阅读。</div>
-        <div class="card-links">
-          <a href="./volume3/index.html">网页版</a>
+    <section class="workspace">
+      <nav class="selector" aria-label="卷册选择">
+        <h2>选择卷册</h2>
+        <div class="selector-list">
+          <button class="volume-tab active" data-target="v1" style="--accent:#335c81;--accent-soft:#e7eef7;--accent-deep:#1e3d57;">
+            <span class="volume-no">1</span>
+            <span><strong>第一卷</strong>数学基础与控制理论基础</span>
+          </button>
+          <button class="volume-tab" data-target="v2" style="--accent:#18786f;--accent-soft:#e3f5f2;--accent-deep:#0e4b45;">
+            <span class="volume-no">2</span>
+            <span><strong>第二卷</strong>高超声速飞行器建模与飞行动力学</span>
+          </button>
+          <button class="volume-tab" data-target="v3" style="--accent:#9a6d1c;--accent-soft:#f6ecd1;--accent-deep:#5d4010;">
+            <span class="volume-no">3</span>
+            <span><strong>第三卷</strong>经典与现代飞行控制方法</span>
+          </button>
+          <button class="volume-tab" data-target="v4" style="--accent:#8b3f67;--accent-soft:#f5dfe9;--accent-deep:#522640;">
+            <span class="volume-no">4</span>
+            <span><strong>第四卷</strong>约束、安全、容错与制导控制一体化</span>
+          </button>
+          <button class="volume-tab" data-target="v5" style="--accent:#4a5fb2;--accent-soft:#e4e8fb;--accent-deep:#2a3568;">
+            <span class="volume-no">5</span>
+            <span><strong>第五卷</strong>仿真验证、工程实现与研究训练</span>
+          </button>
         </div>
-      </article>
+      </nav>
 
-      <article class="volume-card volume-4" style="--accent:#8b3f67;--accent-soft:#f5dfe9;--accent-deep:#522640;">
-        <div class="volume-badge">4</div>
-        <h2>第四卷 约束、安全、容错与制导控制一体化</h2>
-        <p>围绕输入饱和、BLF/CBF、MPC、控制分配、故障容错和制导控制一体化，把控制问题写成可行性和安全问题。</p>
-        <div class="volume-card-note">建议先读约束体系和安全滤波，再进入预测控制、控制分配、故障容错和制导控制一体化。</div>
-        <div class="card-links">
-          <a href="./volume4/index.html">网页版</a>
-        </div>
-      </article>
+      <div class="detail">
+        <article id="v1" class="book-card active" style="--accent:#335c81;--accent-soft:#e7eef7;--accent-deep:#1e3d57;">
+          <div class="book-top">
+            <div>
+              <p class="eyebrow">第一卷</p>
+              <h2 class="book-title">数学基础与控制理论基础</h2>
+            </div>
+            <div class="eyebrow">从理论语言开始</div>
+          </div>
+          <p class="book-subtitle">把动力系统、线性与非线性、稳定性、鲁棒、最优、自适应、估计与约束控制统一成一套可复用的控制语言。</p>
+          <div class="book-note">建议先读第1至第5章，再回到约束、最优、估计和多时间尺度章节。</div>
+          <div class="book-links"><a href="./volume1/index.html">进入网页卷册</a></div>
+        </article>
 
-      <article class="volume-card volume-5" style="--accent:#4a5fb2;--accent-soft:#e4e8fb;--accent-deep:#2a3568;">
-        <div class="volume-badge">5</div>
-        <h2>第五卷 仿真验证、工程实现与研究训练</h2>
-        <p>构建仿真平台、可信性、指标、Monte Carlo、案例库、论文阅读和研究路线，让控制结果真正形成证据链。</p>
-        <div class="volume-card-note">建议先建立仿真和可信性框架，再读指标、Monte Carlo、案例库和研究路线。</div>
-        <div class="card-links">
-          <a href="./volume5/index.html">网页版</a>
-        </div>
-      </article>
-  </section>
+        <article id="v2" class="book-card" style="--accent:#18786f;--accent-soft:#e3f5f2;--accent-deep:#0e4b45;">
+          <div class="book-top">
+            <div>
+              <p class="eyebrow">第二卷</p>
+              <h2 class="book-title">高超声速飞行器建模与飞行动力学</h2>
+            </div>
+            <div class="eyebrow">从对象到模型</div>
+          </div>
+          <p class="book-subtitle">把高超声速飞行器拆成任务、坐标、环境、气动、推进、质点、纵向、横侧向、六自由度与执行系统。</p>
+          <div class="book-note">建议先把对象分类、坐标系和环境模型看完，再进入质点、纵向、横侧向和六自由度模型。</div>
+          <div class="book-links"><a href="./volume2/index.html">进入网页卷册</a></div>
+        </article>
+
+        <article id="v3" class="book-card" style="--accent:#9a6d1c;--accent-soft:#f6ecd1;--accent-deep:#5d4010;">
+          <div class="book-top">
+            <div>
+              <p class="eyebrow">第三卷</p>
+              <h2 class="book-title">经典与现代飞行控制方法</h2>
+            </div>
+            <div class="eyebrow">方法谱系</div>
+          </div>
+          <p class="book-subtitle">从经典自动驾驶仪到鲁棒、增益调度、动态逆、反步、滑模、自适应和扰动观测器，梳理方法谱系与适用边界。</p>
+          <div class="book-note">建议按架构、线性方法、鲁棒方法、非线性方法、自适应和观测器的顺序阅读。</div>
+          <div class="book-links"><a href="./volume3/index.html">进入网页卷册</a></div>
+        </article>
+
+        <article id="v4" class="book-card" style="--accent:#8b3f67;--accent-soft:#f5dfe9;--accent-deep:#522640;">
+          <div class="book-top">
+            <div>
+              <p class="eyebrow">第四卷</p>
+              <h2 class="book-title">约束、安全、容错与制导控制一体化</h2>
+            </div>
+            <div class="eyebrow">可行性与安全</div>
+          </div>
+          <p class="book-subtitle">围绕输入饱和、BLF/CBF、MPC、控制分配、故障容错和制导控制一体化，把控制问题写成可行性和安全问题。</p>
+          <div class="book-note">建议先读约束体系和安全滤波，再进入预测控制、控制分配、故障容错和制导控制一体化。</div>
+          <div class="book-links"><a href="./volume4/index.html">进入网页卷册</a></div>
+        </article>
+
+        <article id="v5" class="book-card" style="--accent:#4a5fb2;--accent-soft:#e4e8fb;--accent-deep:#2a3568;">
+          <div class="book-top">
+            <div>
+              <p class="eyebrow">第五卷</p>
+              <h2 class="book-title">仿真验证、工程实现与研究训练</h2>
+            </div>
+            <div class="eyebrow">证据链与落地</div>
+          </div>
+          <p class="book-subtitle">构建仿真平台、可信性、指标、Monte Carlo、案例库、论文阅读和研究路线，让控制结果真正形成证据链。</p>
+          <div class="book-note">建议先建立仿真和可信性框架，再读指标、Monte Carlo、案例库和研究路线。</div>
+          <div class="book-links"><a href="./volume5/index.html">进入网页卷册</a></div>
+        </article>
+      </div>
+    </section>
+
+    <section class="summary">
+      <h2>全卷总览</h2>
+      <div class="summary-grid">
+        <a class="book-tile" href="./volume1/index.html" style="--accent:#335c81;--accent-soft:#e7eef7;--accent-deep:#1e3d57;">
+          <div class="mini-no">1</div>
+          <strong>第一卷</strong>
+          <span>理论基础，打底控制语言</span>
+        </a>
+        <a class="book-tile" href="./volume2/index.html" style="--accent:#18786f;--accent-soft:#e3f5f2;--accent-deep:#0e4b45;">
+          <div class="mini-no">2</div>
+          <strong>第二卷</strong>
+          <span>建模与动力学，理解对象</span>
+        </a>
+        <a class="book-tile" href="./volume3/index.html" style="--accent:#9a6d1c;--accent-soft:#f6ecd1;--accent-deep:#5d4010;">
+          <div class="mini-no">3</div>
+          <strong>第三卷</strong>
+          <span>方法谱系，形成控制工具箱</span>
+        </a>
+        <a class="book-tile" href="./volume4/index.html" style="--accent:#8b3f67;--accent-soft:#f5dfe9;--accent-deep:#522640;">
+          <div class="mini-no">4</div>
+          <strong>第四卷</strong>
+          <span>约束与安全，保证可行性</span>
+        </a>
+        <a class="book-tile" href="./volume5/index.html" style="--accent:#4a5fb2;--accent-soft:#e4e8fb;--accent-deep:#2a3568;">
+          <div class="mini-no">5</div>
+          <strong>第五卷</strong>
+          <span>验证与工程实现，形成证据链</span>
+        </a>
+      </div>
+    </section>
+  </main>
+  <script>
+    const tabs = Array.from(document.querySelectorAll('.volume-tab'));
+    const cards = Array.from(document.querySelectorAll('.book-card'));
+
+    function activate(id) {
+      tabs.forEach((tab) => tab.classList.toggle('active', tab.dataset.target === id));
+      cards.forEach((card) => card.classList.toggle('active', card.id === id));
+    }
+
+    tabs.forEach((tab) => {
+      tab.addEventListener('click', () => activate(tab.dataset.target));
+    });
+  </script>
 </body>
 </html>
