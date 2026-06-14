@@ -4,280 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>第39章 扰动观测器、扩张状态观测器与 ADRC</title>
-  <style>
-    :root {
-      --paper: #f7f3eb;
-      --ink: #1f2937;
-      --muted: #5b6472;
-      --line: color-mix(in srgb, #f6ecd1 68%, #cbd5e1 32%);
-      --accent: #9a6d1c;
-      --accent-soft: #f6ecd1;
-      --accent-deep: #5d4010;
-      color-scheme: light;
-    }
-    html {
-      -webkit-text-size-adjust: 100%;
-      background:
-        radial-gradient(circle at top left, #f6ecd1 0, rgba(255,255,255,0) 32%),
-        linear-gradient(180deg, #fbfaf6 0%, var(--paper) 18%, #f7f1e6 100%);
-    }
-    body {
-      margin: 0;
-      font-family: "Source Han Serif SC", "Songti SC", "Noto Serif CJK SC", "Microsoft YaHei", serif;
-      color: var(--ink);
-      line-height: 1.78;
-      letter-spacing: 0;
-    }
-    a { color: var(--accent-deep); }
-    .book-app {
-      display: grid;
-      grid-template-columns: 280px minmax(0, 1fr);
-      min-height: 100vh;
-    }
-    .book-sidebar {
-      position: sticky;
-      top: 0;
-      height: 100vh;
-      overflow: auto;
-      padding: 1.2rem 1rem 1.2rem 1.15rem;
-      border-right: 1px solid var(--line);
-      background: linear-gradient(180deg, rgba(255,255,255,0.86), rgba(255,255,255,0.72));
-      backdrop-filter: blur(10px);
-    }
-    .sidebar-shell { position: sticky; top: 0; display: flex; flex-direction: column; gap: 1rem; }
-    .sidebar-brand {
-      padding: 0.95rem 0.95rem 1rem;
-      border-radius: 18px;
-      background:
-        linear-gradient(135deg, rgba(255,255,255,0.95), rgba(255,255,255,0.84)),
-        linear-gradient(135deg, var(--accent-soft), rgba(255,255,255,0));
-      border: 1px solid var(--line);
-      box-shadow: 0 12px 28px rgba(31, 41, 55, 0.06);
-    }
-    .sidebar-brand .kicker { margin: 0; color: var(--accent); font-size: 0.82rem; font-weight: 700; }
-    .sidebar-brand h2 { margin: 0.45rem 0 0.25rem; font-size: 1.08rem; line-height: 1.3; color: var(--ink); }
-    .sidebar-brand p { margin: 0.35rem 0 0; color: var(--muted); font-size: 0.9rem; }
-    .sidebar-links { display: grid; gap: 0.45rem; }
-    .sidebar-link {
-      display: grid;
-      grid-template-columns: 2.2rem minmax(0, 1fr);
-      gap: 0.6rem;
-      align-items: start;
-      padding: 0.7rem 0.75rem;
-      border-radius: 14px;
-      text-decoration: none;
-      background: rgba(255,255,255,0.72);
-      border: 1px solid rgba(31,41,55,0.07);
-      color: var(--ink);
-    }
-    .sidebar-link:hover { background: rgba(255,255,255,0.95); border-color: var(--line); }
-    .sidebar-link.active {
-      background: linear-gradient(135deg, rgba(255,255,255,0.98), rgba(255,255,255,0.9));
-      border-color: var(--accent-soft);
-      box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent-soft) 68%, #ffffff 32%);
-    }
-    .sidebar-index {
-      display: inline-flex;
-      justify-content: center;
-      align-items: center;
-      min-width: 2rem;
-      height: 2rem;
-      border-radius: 999px;
-      background: var(--accent-soft);
-      color: var(--accent-deep);
-      font-size: 0.78rem;
-      font-weight: 800;
-    }
-    .sidebar-title { font-size: 0.94rem; line-height: 1.35; }
-    .book-main {
-      min-width: 0;
-      min-height: 100vh;
-      padding: 1.25rem 1.45rem 1.8rem;
-      display: flex;
-      flex-direction: column;
-    }
-    .book-page-header {
-      padding: 0.85rem 0 1rem;
-      margin-bottom: 1rem;
-      border-bottom: 1px solid var(--line);
-    }
-    .book-page-header h1 {
-      margin: 0.7rem 0 0;
-      font-size: 1.85rem;
-      line-height: 1.22;
-      color: var(--accent-deep);
-      border: 0;
-      padding: 0;
-    }
-    .book-page-header p { margin: 0.45rem 0 0; color: var(--muted); max-width: 62rem; }
-    .book-article {
-      max-width: 900px;
-      margin: 0;
-      padding: 0 0 1.2rem;
-      flex: 1 0 auto;
-    }
-    .book-article h1, .book-article h2, .book-article h3, .book-article h4, .book-article h5, .book-article h6 {
-      line-height: 1.28;
-      margin-top: 1.45em;
-      margin-bottom: 0.55em;
-      color: var(--accent-deep);
-    }
-    .book-article h1 { font-size: 2rem; border-bottom: 2px solid var(--line); padding-bottom: 0.42rem; }
-    .book-article h1:first-of-type { margin-top: 0; }
-    .book-article h2 { font-size: 1.42rem; }
-    .book-article h3 { font-size: 1.12rem; }
-    .book-article p, .book-article li, .book-article dd, .book-article td, .book-article th { text-align: justify; text-justify: inter-ideograph; }
-    .book-article p { margin: 0.85rem 0; }
-    .book-article code, .book-article pre { font-family: inherit; font-size: 0.98em; letter-spacing: 0; }
-    .book-article code {
-      padding: 0.04rem 0.28rem;
-      background: color-mix(in srgb, var(--accent-soft) 24%, #ffffff 76%);
-      border: 0;
-      border-bottom: 1px solid color-mix(in srgb, var(--accent-soft) 52%, #d1d5db 48%);
-      border-radius: 4px;
-      color: #2b3440;
-      box-decoration-break: clone;
-      -webkit-box-decoration-break: clone;
-      font-family: inherit;
-      font-variant-ligatures: none;
-    }
-    .book-article pre {
-      padding: 0.95rem 1.05rem;
-      overflow: auto;
-      background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,253,248,0.96));
-      border: 1px solid color-mix(in srgb, var(--accent-soft) 44%, #d1d5db 56%);
-      border-left: 4px solid var(--accent);
-      border-radius: 14px;
-      box-shadow: 0 8px 22px rgba(31, 41, 55, 0.05);
-      white-space: pre-wrap;
-    }
-    .book-article pre code { padding: 0; border: 0; background: transparent; color: inherit; font-family: inherit; }
-    .book-article table {
-      border-collapse: collapse;
-      width: 100%;
-      margin: 1rem 0 1.25rem;
-      background: rgba(255,255,255,0.82);
-      overflow: hidden;
-      border-radius: 12px;
-    }
-    .book-article th, .book-article td { border: 1px solid var(--line); padding: 0.5rem 0.7rem; vertical-align: top; }
-    .book-article th { background: color-mix(in srgb, var(--accent-soft) 42%, #ffffff 58%); }
-    .book-article blockquote {
-      margin: 1rem 0;
-      padding: 0.25rem 0 0.25rem 1rem;
-      border-left: 4px solid var(--accent);
-      color: #374151;
-      background: linear-gradient(90deg, rgba(255,255,255,0.72), rgba(255,255,255,0.48));
-      border-radius: 0 12px 12px 0;
-    }
-    .book-bottom-nav {
-      display: flex;
-      justify-content: space-between;
-      gap: 1rem;
-      margin-top: 2.2rem;
-      padding-top: 1rem;
-      border-top: 1px solid var(--line);
-    }
-    .book-bottom-nav a {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.35rem;
-      padding: 0.6rem 0.9rem;
-      border-radius: 999px;
-      border: 1px solid var(--line);
-      background: rgba(255,255,255,0.84);
-      text-decoration: none;
-      font-weight: 700;
-    }
-    .book-bottom-nav span {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.35rem;
-      padding: 0.6rem 0.9rem;
-      border-radius: 999px;
-      border: 1px solid rgba(31,41,55,0.08);
-      background: rgba(255,255,255,0.54);
-      color: rgba(31,41,55,0.42);
-      font-weight: 700;
-    }
-    .book-bottom-nav a:hover { background: rgba(255,255,255,0.98); }
-    .book-return-portal {
-      display: flex;
-      justify-content: flex-end;
-      margin-top: 0.8rem;
-    }
-    .book-return-portal a {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      padding: 0.68rem 1rem;
-      border-radius: 999px;
-      border: 1px solid var(--accent-soft);
-      background: linear-gradient(180deg, rgba(255,255,255,0.96), rgba(255,255,255,0.86));
-      color: var(--accent-deep);
-      text-decoration: none;
-      font-weight: 700;
-      box-shadow: 0 8px 18px rgba(31, 41, 55, 0.05);
-    }
-    .book-return-portal a:hover { background: var(--accent-soft); }
-    .book-volume-intro {
-      margin: 0 0 1.25rem;
-      padding: 1.2rem 1.25rem 1.1rem;
-      border-radius: 18px;
-      background:
-        linear-gradient(135deg, rgba(255,255,255,0.96), rgba(255,255,255,0.78)),
-        linear-gradient(135deg, var(--accent-soft), rgba(255,255,255,0));
-      border: 1px solid var(--line);
-      box-shadow: 0 14px 34px rgba(31, 41, 55, 0.06);
-    }
-    .book-volume-intro h2 {
-      margin: 0.55rem 0 0.55rem;
-      font-size: 1.28rem;
-      line-height: 1.35;
-      color: var(--accent-deep);
-    }
-    .volume-intro-grid {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 0.8rem;
-      margin-top: 1rem;
-    }
-    .volume-intro-box {
-      padding: 0.85rem 0.9rem;
-      border-radius: 14px;
-      background: rgba(255,255,255,0.72);
-      border: 1px solid rgba(31,41,55,0.08);
-    }
-    .volume-intro-box span {
-      display: block;
-      color: var(--accent);
-      font-size: 0.78rem;
-      font-weight: 800;
-      letter-spacing: 0.04em;
-    }
-    .volume-intro-box strong {
-      display: block;
-      margin-top: 0.35rem;
-      color: var(--ink);
-      font-size: 0.95rem;
-      line-height: 1.45;
-    }
-    @media (max-width: 1180px) {
-      .book-app { grid-template-columns: 1fr; }
-      .book-sidebar {
-        position: relative;
-        height: auto;
-        border-right: 0;
-        border-bottom: 1px solid var(--line);
-      }
-      .sidebar-shell { position: static; }
-    }
-    @media (max-width: 900px) {
-      .book-main { padding: 1rem 1rem 1.5rem; }
-      .book-bottom-nav { flex-direction: column; }
-      .volume-intro-grid { grid-template-columns: 1fr; }
-    }
-  </style>
+  <link rel="stylesheet" href="../theme.css">
 </head>
 <body>
   <div class="book-app">
@@ -289,18 +16,16 @@
           <p>控制方法体系</p>
         </div>
         <nav class="sidebar-links" aria-label="本卷目录">
-          <a class="sidebar-link" href="./index.html"><span class="sidebar-index">0</span><span class="sidebar-title">卷首页</span></a>
-<a class="sidebar-link" href="./26-flight-control-system-architecture.html"><span class="sidebar-index">01</span><span class="sidebar-title">第26章 飞行控制系统架构</span></a>
-<a class="sidebar-link" href="./27-pid-classical-autopilot.html"><span class="sidebar-index">02</span><span class="sidebar-title">第27章 PID 与经典自动驾驶仪</span></a>
-<a class="sidebar-link" href="./28-root-locus-frequency-domain-margins.html"><span class="sidebar-index">03</span><span class="sidebar-title">第28章 根轨迹、频域设计与稳定裕度</span></a>
-<a class="sidebar-link" href="./29-state-feedback-observer-pole-placement.html"><span class="sidebar-index">04</span><span class="sidebar-title">第29章 状态反馈、观测器与极点配置</span></a>
-<a class="sidebar-link" href="./30-lqr-lqg-linear-optimal-control.html"><span class="sidebar-index">05</span><span class="sidebar-title">第30章 LQR、LQG 与线性最优控制</span></a>
-<a class="sidebar-link" href="./31-h2-hinf-robust-flight-control.html"><span class="sidebar-index">06</span><span class="sidebar-title">第31章
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>H</mi><mn>2</mn></msub><annotation encoding="application/x-tex">H_2</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>H</mi><mi>∞</mi></msub><annotation encoding="application/x-tex">H_\infty</annotation></semantics></math>
-与鲁棒飞行控制</span></a>
-<a class="sidebar-link" href="./32-gain-scheduling-lpv-control.html"><span class="sidebar-index">07</span><span class="sidebar-title">第32章 增益调度与 LPV 控制</span></a>
-<a class="sidebar-link" href="./33-feedback-linearization-dynamic-inversion.html"><span class="sidebar-index">08</span><span class="sidebar-title">第33章 反馈线性化与动态逆控制</span></a>
-<a class="sidebar-link" href="./34-incremental-nonlinear-dynamic-inversion.html"><span class="sidebar-index">09</span><span class="sidebar-title">第34章 增量非线性动态逆控制</span></a>
+          <a class="sidebar-link" href="./index.html"><span class="sidebar-index">卷</span><span class="sidebar-title">卷首页</span></a>
+<a class="sidebar-link" href="./26-flight-control-system-architecture.html"><span class="sidebar-index">1</span><span class="sidebar-title">第26章 飞行控制系统架构</span></a>
+<a class="sidebar-link" href="./27-pid-classical-autopilot.html"><span class="sidebar-index">2</span><span class="sidebar-title">第27章 PID 与经典自动驾驶仪</span></a>
+<a class="sidebar-link" href="./28-root-locus-frequency-domain-margins.html"><span class="sidebar-index">3</span><span class="sidebar-title">第28章 根轨迹、频域设计与稳定裕度</span></a>
+<a class="sidebar-link" href="./29-state-feedback-observer-pole-placement.html"><span class="sidebar-index">4</span><span class="sidebar-title">第29章 状态反馈、观测器与极点配置</span></a>
+<a class="sidebar-link" href="./30-lqr-lqg-linear-optimal-control.html"><span class="sidebar-index">5</span><span class="sidebar-title">第30章 LQR、LQG 与线性最优控制</span></a>
+<a class="sidebar-link" href="./31-h2-hinf-robust-flight-control.html"><span class="sidebar-index">6</span><span class="sidebar-title">第31章 H2、H∞ 与鲁棒飞行控制</span></a>
+<a class="sidebar-link" href="./32-gain-scheduling-lpv-control.html"><span class="sidebar-index">7</span><span class="sidebar-title">第32章 增益调度与 LPV 控制</span></a>
+<a class="sidebar-link" href="./33-feedback-linearization-dynamic-inversion.html"><span class="sidebar-index">8</span><span class="sidebar-title">第33章 反馈线性化与动态逆控制</span></a>
+<a class="sidebar-link" href="./34-incremental-nonlinear-dynamic-inversion.html"><span class="sidebar-index">9</span><span class="sidebar-title">第34章 增量非线性动态逆控制</span></a>
 <a class="sidebar-link" href="./35-backstepping-dynamic-surface-control.html"><span class="sidebar-index">10</span><span class="sidebar-title">第35章 反步控制与动态面控制</span></a>
 <a class="sidebar-link" href="./36-sliding-mode-high-order-sliding-control.html"><span class="sidebar-index">11</span><span class="sidebar-title">第36章 滑模控制与高阶滑模控制</span></a>
 <a class="sidebar-link" href="./37-adaptive-flight-control.html"><span class="sidebar-index">12</span><span class="sidebar-title">第37章 自适应飞行控制</span></a>
@@ -311,7 +36,9 @@
     </aside>
     <main class="book-main">
       <header class="book-page-header">
-        <h1 id="volume3--39-disturbance-observer-eso-adrc">第39章 扰动观测器、扩张状态观测器与 ADRC</h1>
+        <div class="chapter-strap">正文</div>
+        <h1>第39章 扰动观测器、扩张状态观测器与 ADRC</h1>
+        <p class="chapter-intro">本章先从“问题背景”切入，围绕“扰动观测器、扩张状态观测器与 ADRC”梳理控制架构、设计思路和方法适用边界。</p>
       </header>
       <article class="book-article">
         <h2 id="问题背景">1 问题背景</h2>
@@ -670,3 +397,5 @@ u = \frac{v-\hat d}{b_0}
   </div>
 </body>
 </html>
+
+

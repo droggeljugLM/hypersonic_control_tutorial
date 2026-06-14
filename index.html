@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>高超声速飞行器控制教程</title>
+  <style>
+    :root {
+      color-scheme: dark;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      background:
+        radial-gradient(circle at top right, rgba(68, 104, 190, 0.18), transparent 30%),
+        linear-gradient(180deg, #08101a 0%, #0b1118 56%, #080c13 100%);
+      color: #edf3fa;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    }
+
+    main {
+      width: min(980px, calc(100vw - 32px));
+      padding: 34px 32px 30px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.02);
+      box-shadow: 0 24px 64px rgba(0, 0, 0, 0.28);
+    }
+
+    .kicker {
+      margin: 0 0 12px;
+      color: #9ea9bd;
+      font-size: 0.8rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(2rem, 4vw, 3.2rem);
+      line-height: 1.08;
+    }
+
+    p {
+      margin: 0;
+      color: #afbbcf;
+      line-height: 1.8;
+    }
+
+    .lead {
+      max-width: 50rem;
+      margin-top: 14px;
+      font-size: 1.02rem;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 22px;
+    }
+
+    a {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 2.8rem;
+      padding: 0.58rem 1rem;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: #edf3fa;
+      text-decoration: none;
+      background: rgba(255, 255, 255, 0.03);
+      font-weight: 600;
+    }
+
+    a.primary {
+      background: #335c81;
+      border-color: transparent;
+    }
+
+    .meta {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 26px;
+    }
+
+    .meta div {
+      padding: 14px 16px;
+      border-radius: 14px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .meta strong {
+      display: block;
+      font-size: 1rem;
+      color: #f6f9ff;
+    }
+
+    .meta span {
+      display: block;
+      margin-top: 4px;
+      color: #9ea9bd;
+      font-size: 0.82rem;
+    }
+
+    .note {
+      margin-top: 18px;
+      color: #8f9db4;
+      font-size: 0.86rem;
+    }
+
+    @media (max-width: 760px) {
+      main {
+        padding: 26px 20px 22px;
+        border-radius: 16px;
+      }
+
+      .meta {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <p class="kicker">高超声速飞行器控制教程</p>
+    <h1>高超声速飞行器控制教程</h1>
+    <p class="lead">这是一个五卷五册的网页版电子书项目。网页成品放在 `site/`，仓库根页保留为项目封面，方便直接浏览。</p>
+    <div class="actions">
+      <a class="primary" href="./site/index.html">进入网页首页</a>
+      <a href="./site/volume1/index.html">从第一卷开始阅读</a>
+      <a href="./site/volume5/index.html">直接进入第五卷</a>
+    </div>
+    <div class="meta" aria-label="项目概览">
+      <div>
+        <strong>五卷五册</strong>
+        <span>理论、对象、方法、约束、安全、验证</span>
+      </div>
+      <div>
+        <strong>60 章正文</strong>
+        <span>分卷组织，章节间可顺序阅读</span>
+      </div>
+      <div>
+        <strong>网页成品</strong>
+        <span>仓库即网页，直接浏览即可</span>
+      </div>
+    </div>
+    <p class="note">网页入口与正文均使用相对路径组织，打开即可阅读。</p>
+  </main>
+</body>
+</html>

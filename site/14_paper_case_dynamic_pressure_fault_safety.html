@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>第14章 论文案例：动压安全跟踪与故障敏感性证据链</title>
+  <link rel="stylesheet" href="./theme.css">
+</head>
+<body>
+  <main class="shell">
+    <div class="topbar">
+      <div class="eyebrow">高超声速飞行器控制教程 · 论文案例</div>
+      <div class="mode-switch" aria-hidden="true">
+        <span>默认夜间</span>
+        <span>阅读版</span>
+      </div>
+    </div>
+
+    <header class="book-page-header">
+      <div class="chapter-strap">第14章 · 论文案例</div>
+      <h1>动压安全跟踪与故障敏感性证据链</h1>
+      <p class="chapter-intro">这是一个教学级论文案例页，用来说明如何把对象、控制目标、约束、安全证据、故障注入和图表结果组织成可核查的论文写法。</p>
+    </header>
+
+    <article class="book-article">
+      <p>本页并不是正式投稿论文，也不是高保真飞行器验证报告。它的作用，是把教程中的建模、控制、约束、故障注入、指标统计和图表整理成一条可复核的研究证据链。</p>
+
+      <section class="book-volume-intro">
+        <h2>题目边界</h2>
+        <div class="volume-intro-grid">
+          <div class="volume-intro-box">
+            <span>可接受题目</span>
+            <strong>动压约束下高超声速纵向速度高度安全跟踪的教学级复现实验</strong>
+          </div>
+          <div class="volume-intro-box">
+            <span>强调故障时</span>
+            <strong>考虑传感器和执行机构故障注入的高超声速纵向安全跟踪复现实验</strong>
+          </div>
+          <div class="volume-intro-box">
+            <span>不宜写法</span>
+            <strong>最优、全局安全、工程级容错重构等过强结论</strong>
+          </div>
+        </div>
+      </section>
+
+      <h2>摘要草案</h2>
+      <p>本文围绕高超声速纵向速度高度跟踪中的动压约束冲突，构建一个教学级简化纵向模型和可复现实验流程。在相同任务参考和同一组教学样本下，比较无保护基线、参考治理型控制器以及命令屏障型安全层。实验以高度和速度误差、最大动压、动压违反积分、舵偏和舵速约束为主要指标，并通过故障注入矩阵考察攻角传感器偏置、升降舵效率损失和输入延迟对闭环结果的影响。</p>
+
+      <h2>证据链</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>证据层</th>
+            <th>内容</th>
+            <th>作用</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>完整性核查</td>
+            <td>对象、指标和图表是否能稳定给出</td>
+            <td>防止书稿与实现脱节</td>
+          </tr>
+          <tr>
+            <td>动压安全比较</td>
+            <td>候选方法相对基线的成对统计</td>
+            <td>说明安全改善是否真实存在</td>
+          </tr>
+          <tr>
+            <td>故障矩阵扫描</td>
+            <td>典型故障场景下的故障后指标</td>
+            <td>检查故障是否改变结论</td>
+          </tr>
+          <tr>
+            <td>图表整理</td>
+            <td>轨迹图、差值图和检测延迟图</td>
+            <td>把结果组织成可读证据</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h2>局限性</h2>
+      <ul>
+        <li>对象仍是简化纵向教学模型，不是完整六自由度高保真模型。</li>
+        <li>安全层是教学级方法，不等于正式高相对阶控制屏障函数求解器。</li>
+        <li>故障扫描规模较小，不能直接支持统计显著性结论。</li>
+        <li>热流、过载、侧向通道和终端制导约束尚未并入本案例。</li>
+      </ul>
+
+      <p>这个案例的重点，不是把结果说得更强，而是让每一句结论都不超过当前证据。</p>
+      <nav class="book-bottom-nav" aria-label="页面导航">
+        <a href="./volume5/59-hypersonic-control-paper-reading-method.html">返回第59章</a>
+        <a href="./volume5/index.html">返回第五卷</a>
+        <a href="./index.html">返回首页</a>
+      </nav>
+    </article>
+  </main>
+</body>
+</html>

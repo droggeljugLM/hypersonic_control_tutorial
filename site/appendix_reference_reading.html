@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>附录 C 参考阅读与文献训练</title>
+  <link rel="stylesheet" href="./theme.css">
+</head>
+<body>
+  <main class="shell">
+    <div class="topbar">
+      <div class="eyebrow">高超声速飞行器控制教程 · 附录</div>
+      <div class="mode-switch" aria-hidden="true">
+        <span>默认夜间</span>
+        <span>阅读版</span>
+      </div>
+    </div>
+
+    <header class="book-page-header">
+      <div class="chapter-strap">附录 C</div>
+      <h1>参考阅读与文献训练</h1>
+      <p class="chapter-intro">本附录给出参考阅读路线、检索关键词、阅读记录模板和文献综述写法。它不是正式参考文献表，也不替代数据库检索。</p>
+    </header>
+
+    <article class="book-article">
+      <section class="book-volume-intro">
+        <h2>阅读顺序</h2>
+        <p>建议先读飞行动力学、现代控制、非线性控制、鲁棒控制，再进入高超声速综述、具体控制论文和技术报告。不要一开始只读最新智能控制论文，否则容易把问题写成算法堆叠。</p>
+      </section>
+
+      <h2>资料类型</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>类型</th>
+            <th>用途</th>
+            <th>阅读重点</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>飞行动力学教材</td><td>建立变量和方程基础</td><td>坐标系、姿态、气动力、配平</td></tr>
+          <tr><td>现代控制教材</td><td>建立状态空间和 LQR 基础</td><td>可控性、稳定性、Riccati 方程</td></tr>
+          <tr><td>非线性控制教材</td><td>建立证明能力</td><td>Lyapunov、反步、ISS、滑模</td></tr>
+          <tr><td>鲁棒控制教材</td><td>理解不确定性</td><td>H 无穷、增益裕度、模型摄动</td></tr>
+          <tr><td>高超声速综述</td><td>了解对象难点</td><td>强非线性、耦合、约束、验证</td></tr>
+          <tr><td>具体控制论文</td><td>学习方法细节</td><td>模型、控制律、证明、指标</td></tr>
+        </tbody>
+      </table>
+
+      <h2>检索关键词</h2>
+      <p>英文关键词：hypersonic vehicle control, hypersonic longitudinal dynamics, dynamic pressure constrained control, barrier Lyapunov function hypersonic, control barrier function aerospace, nonlinear dynamic inversion hypersonic, backstepping hypersonic vehicle, sliding mode hypersonic vehicle, integrated guidance and control hypersonic.</p>
+      <p>中文关键词：高超声速飞行器控制、高超声速纵向动力学、高超声速动压约束、高超声速制导控制一体化、高超声速反步控制、高超声速滑模控制、高超声速自适应控制、高超声速控制屏障函数。</p>
+
+      <h2>文献记录模板</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>字段</th>
+            <th>内容</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>文献类型</td><td>教材、综述、方法论文、技术报告</td></tr>
+          <tr><td>飞行器类型</td><td>AB-HSV、HGV、再入飞行器等</td></tr>
+          <tr><td>模型</td><td>质点、纵向、六自由度、刚柔耦合</td></tr>
+          <tr><td>控制目标</td><td>跟踪、镇定、制导、约束、安全、故障</td></tr>
+          <tr><td>方法</td><td>PID、LQR、NDI、反步、SMC、BLF、CBF、模型预测控制等</td></tr>
+          <tr><td>可复现性</td><td>是否有参数、数据和命令</td></tr>
+        </tbody>
+      </table>
+
+      <h2>红旗清单</h2>
+      <ul>
+        <li>只展示误差曲线，不报告约束和控制输入。</li>
+        <li>声称安全，但没有安全集合和不变性证明。</li>
+        <li>声称鲁棒，但没有不确定性范围。</li>
+        <li>结论从简化纵向模型外推到完整飞行器。</li>
+      </ul>
+
+      <p>本附录的目的，是把“读过一篇论文”转成“知道它证明了什么、还没证明什么”。</p>
+      <nav class="book-bottom-nav" aria-label="页面导航">
+        <a href="./volume5/59-hypersonic-control-paper-reading-method.html">返回第59章</a>
+        <a href="./volume5/index.html">返回第五卷</a>
+        <a href="./index.html">返回首页</a>
+      </nav>
+    </article>
+  </main>
+</body>
+</html>
